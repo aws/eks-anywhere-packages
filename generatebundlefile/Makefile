@@ -1,0 +1,45 @@
+REPO_ROOT=$(shell git rev-parse --show-toplevel)
+AWS_ACCOUNT_ID?=$(shell aws sts get-caller-identity --query Account --output text)
+AWS_REGION?=us-west-2
+SOURCE_CONTAINER_REGISTRY?=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
+RELEASE_CONTAINER_REGISTRY?=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
+BUILD_REPO_BRANCH_NAME?=main
+CLI_REPO_BRANCH_NAME?=main
+
+ifeq ($(CODEBUILD_CI),)
+DRY_RUN=true
+SOURCE_BUCKET=projectbuildpipeline-857-pipelineoutputartifactsb-10ajmk30khe3f
+else
+DRY_RUN=false
+endif
+
+IMG ?= controller:latest
+
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
+
+SHELL = /usr/bin/env bash -o pipefail
+.SHELLFLAGS = -ec
+
+all: build
+
+help: ## Display this help.
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+clean: ## Clean output directory, and the built binary
+	rm -rf output/
+	rm -rf bin/generatebundlefile
+
+##@ Build
+
+build: ## Build release binary.
+	mkdir -p bin
+	go mod tidy -compat=1.17
+	go build -o bin/generatebundlefile *.go
+
+run:
+	go run .

@@ -1,0 +1,10 @@
+.idea
+*.sw*
+.vscode
+.DS_Store
+bin/*
+testbin
+cover.out
+.dir-locals.el
+/_artifacts
+/kubetest-plugins/bin

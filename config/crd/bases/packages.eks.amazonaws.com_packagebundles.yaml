@@ -1,0 +1,182 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: packagebundles.packages.eks.amazonaws.com
+spec:
+  group: packages.eks.amazonaws.com
+  names:
+    kind: PackageBundle
+    listKind: PackageBundleList
+    plural: packagebundles
+    singular: packagebundle
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.kubeVersion
+      name: Version
+      type: string
+    - jsonPath: .status.state
+      name: State
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: PackageBundle is the Schema for the packagebundles API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PackageBundleSpec defines the desired state of PackageBundle
+            properties:
+              kubeVersion:
+                description: KubeVersion is the Kubernetes version to which this bundle
+                  is compatible.
+                type: string
+              packages:
+                description: Packages supported by this bundle.
+                items:
+                  description: BundlePackage specifies a package within a bundle.
+                  properties:
+                    name:
+                      description: Name of the package
+                      type: string
+                    source:
+                      description: Source location for the package (probably a helm
+                        chart).
+                      properties:
+                        registry:
+                          description: Registry in which the package is found.
+                          type: string
+                        repository:
+                          description: Repository within the Registry where the package
+                            is found.
+                          type: string
+                        versions:
+                          description: Versions of the package supported by this bundle.
+                          items:
+                            description: SourceVersion describes a version of an package
+                              within a repository.
+                            properties:
+                              name:
+                                description: Name is a human-friendly description
+                                  of the version, e.g. "v1.0".
+                                type: string
+                              tag:
+                                description: Tag is a sha256 checksum value identifying
+                                  the version of the package and its contents.
+                                type: string
+                            required:
+                            - name
+                            - tag
+                            type: object
+                          minItems: 1
+                          type: array
+                      required:
+                      - registry
+                      - repository
+                      - versions
+                      type: object
+                  required:
+                  - source
+                  type: object
+                type: array
+            required:
+            - packages
+            type: object
+          status:
+            description: PackageBundleStatus defines the observed state of PackageBundle
+            properties:
+              spec:
+                description: PackageBundleSpec defines the desired state of PackageBundle
+                properties:
+                  kubeVersion:
+                    description: KubeVersion is the Kubernetes version to which this
+                      bundle is compatible.
+                    type: string
+                  packages:
+                    description: Packages supported by this bundle.
+                    items:
+                      description: BundlePackage specifies a package within a bundle.
+                      properties:
+                        name:
+                          description: Name of the package
+                          type: string
+                        source:
+                          description: Source location for the package (probably a
+                            helm chart).
+                          properties:
+                            registry:
+                              description: Registry in which the package is found.
+                              type: string
+                            repository:
+                              description: Repository within the Registry where the
+                                package is found.
+                              type: string
+                            versions:
+                              description: Versions of the package supported by this
+                                bundle.
+                              items:
+                                description: SourceVersion describes a version of
+                                  an package within a repository.
+                                properties:
+                                  name:
+                                    description: Name is a human-friendly description
+                                      of the version, e.g. "v1.0".
+                                    type: string
+                                  tag:
+                                    description: Tag is a sha256 checksum value identifying
+                                      the version of the package and its contents.
+                                    type: string
+                                required:
+                                - name
+                                - tag
+                                type: object
+                              minItems: 1
+                              type: array
+                          required:
+                          - registry
+                          - repository
+                          - versions
+                          type: object
+                      required:
+                      - source
+                      type: object
+                    type: array
+                required:
+                - packages
+                type: object
+              state:
+                enum:
+                - inactive
+                - active
+                - active (upgrade available)
+                type: string
+            required:
+            - state
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

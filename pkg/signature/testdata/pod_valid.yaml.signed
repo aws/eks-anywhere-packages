@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  annotations: {eksa.aws.com/signature: MEUCIQDq/O/nXn6LdWwfPoSJ3i351sipTCCPKlv0cuXX2Z1u+QIgJZy/lB74L2gsSerjbuviWNXEEBpTEfwDhP1q5I8SWsA=}
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.14.2
+      ports:
+        - containerPort: 80
+      resources: {}

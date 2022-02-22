@@ -1,0 +1,18 @@
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: PackageBundle
+metadata:
+  name: 1-21
+  namespace: eks-anywhere-packages-system
+  annotations:
+    eksa.aws.com/excludes: LnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVnaXN0cnkKLnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVwb3NpdG9yeQo=
+    eksa.aws.com/signature: MEUCIG+h+vT4Du9Ty2amKrcK2isrJsypc9vRqYVI02Z8XRm6AiEAh+nuMiVkJMQWgNVDu80t0iFR9eTe3jswXOs9ipau+A0=
+spec:
+  kubeVersion: v1.21
+  packages:
+    - name: Package
+      source:
+        registry: public.ecr.aws/l0g8r8j6
+        repository: eks-anywhere-test
+        versions:
+          - name: test
+            tag: v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm

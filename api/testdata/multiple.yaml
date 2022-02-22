@@ -1,0 +1,6 @@
+---
+kind: testObject
+foo: 42
+---
+kind: testOtherObject
+bar: 11
