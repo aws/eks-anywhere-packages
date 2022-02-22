@@ -1,0 +1,24 @@
+# permissions for end users to edit packagebundles.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: packagebundle-editor-role
+rules:
+- apiGroups:
+  - packages.eks.amazonaws.com
+  resources:
+  - packagebundles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - packages.eks.amazonaws.com
+  resources:
+  - packagebundles/status
+  verbs:
+  - get

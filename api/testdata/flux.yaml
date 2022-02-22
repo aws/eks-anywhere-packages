@@ -1,0 +1,7 @@
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: Package
+metadata:
+  name: fluxy
+spec:
+  packageName: Flux
+  packageVersion: v0.23.0-0b585d5986a1cfcee67b7a956eeef687f00ae468-helm

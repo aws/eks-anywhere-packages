@@ -1,0 +1,22 @@
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: PackageBundle
+metadata:
+  name: v1-21-1002
+  namespace: eksa-packages
+spec:
+  kubeVersion: v1.21
+  packages:
+  - name: Test
+    source:
+      registry: public.ecr.aws/l0g8r8j6
+      repository: eks-anywhere-test
+      versions:
+        - name: v0.1.1
+          tag: "sha256:6fcf2a5af06528187bc607858630ecaa6e3bf9c1"
+  - name: Flux
+    source:
+      registry: public.ecr.aws/j0a1m4z9
+      repository: fluxcd/flux2
+      versions:
+        - name: v0.25.1-7fb396bd0be3769162a408aa4d22a48fd74a9db7-helm
+          tag: "sha256:ab067969310f3f237c716d6f348dab9cfdce8cc2c188dfdd6b5cfa0e2cd63939"

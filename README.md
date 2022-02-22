@@ -1,17 +1,39 @@
-## My Project
+## Amazon EKS Anywhere Curated Packages
 
-TODO: Fill this README out!
+EKS Anywhere curated packages is a framework to manage installation, configuration and maintenance of components that provide general operational capabilities for Kubernetes applications.
 
-Be sure to:
+### Getting Started
 
-* Change the title in this README
-* Edit your repository description on GitHub
+Create a cluster with EKS Anywhere and set and export with KUBECONFIG.
 
-## Security
+1. Install the CRDs:
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+        make install
 
-## License
+1. For now, you need to login to helm to pull the images from public ECR:
 
-This project is licensed under the Apache-2.0 License.
+        aws ecr-public get-login-password --region us-east-1 \
+          | HELM_EXPERIMENTAL_OCI=1 helm registry login \
+              --username AWS \
+              --password-stdin public.ecr.aws
 
+1. Run the controller locally:
+
+        make run ENABLE_WEBHOOKS=false
+
+1. Load the controller resources:
+
+        kubectl apply -f api/testdata/packagecontroller.yaml
+        kubectl apply -f api/testdata/bundlecontroller.yaml
+
+1. Load a bundle resource:
+
+        kubectl apply -f api/testdata/bundle_one.yaml
+
+1. Create a package installation:
+
+        kubectl apply -f api/testdata/test.yaml
+
+1. Delete a package installation:
+
+        kubectl delete package package-sample

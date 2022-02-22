@@ -1,0 +1,140 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: packages.packages.eks.amazonaws.com
+spec:
+  group: packages.eks.amazonaws.com
+  names:
+    kind: Package
+    listKind: PackageList
+    plural: packages
+    singular: package
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.repository
+      name: Repository
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    - jsonPath: .status.state
+      name: State
+      type: string
+    - jsonPath: .status.version
+      name: Version
+      type: string
+    - jsonPath: .status.detail
+      name: Detail
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Package is the Schema for the package API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PackageSpec defines the desired state of an package.
+            properties:
+              config:
+                additionalProperties:
+                  type: string
+                description: Config for the package
+                type: object
+              packageName:
+                description: PackageName is the name of the package as specified in
+                  the bundle.
+                type: string
+              packageVersion:
+                description: PackageVersion is a human-friendly version name or sha256
+                  checksum for the package, as specified in the bundle.
+                type: string
+              targetNamespace:
+                description: TargetNamespace where package resources will be deployed.
+                type: string
+            required:
+            - packageName
+            type: object
+          status:
+            description: PackageStatus defines the observed state of Package
+            properties:
+              detail:
+                description: Detail of the state
+                type: string
+              source:
+                description: Source associated with the installation
+                properties:
+                  registry:
+                    type: string
+                  repository:
+                    type: string
+                  tag:
+                    type: string
+                required:
+                - registry
+                - repository
+                - tag
+                type: object
+              state:
+                description: State of the installation
+                enum:
+                - initializing
+                - installing
+                - installed
+                - updating
+                - uninstalling
+                type: string
+              upgradesAvailable:
+                description: UpgradesAvailable indicates upgraded versions in the
+                  bundle.
+                items:
+                  description: PackageAvailableUpgrade details the package's available
+                    upgrades' versions.
+                  properties:
+                    tag:
+                      description: Tag is a specific version number or sha256 checksum
+                        for the package upgrade.
+                      type: string
+                    version:
+                      description: Version is a human-friendly version name for the
+                        package upgrade.
+                      type: string
+                  required:
+                  - tag
+                  - version
+                  type: object
+                type: array
+              version:
+                description: Chart associated with the installation
+                type: string
+            required:
+            - source
+            - version
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

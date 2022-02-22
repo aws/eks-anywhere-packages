@@ -1,0 +1,17 @@
+kubernetesVersion: "v1-20"
+packages:
+  - name: jetstack
+    projects:
+      - name: cert-manager
+        registry: public.ecr.aws/f5b7k4z5
+        repository: cert-manager
+        versions:
+            - name: v1.1
+            - name: v1.0
+  - name: eks-anywhere
+    projects:
+      - name: eks-anywhere-test
+        registry: public.ecr.aws/f5b7k4z5
+        repository: eks-anywhere-test
+        versions:
+            - name: v0.1.1-4280284ae5696ef42fd2a890d083b88f75d4978a-helm
