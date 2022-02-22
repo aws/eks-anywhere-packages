@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/modelrocket-add-ons/api"
+	"github.com/aws/eks-anywhere-packages/api"
 )
 
 // MustPackageBundleFromFilename is a helper to load a bundle or fail trying.

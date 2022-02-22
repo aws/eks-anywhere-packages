@@ -14,7 +14,7 @@ linters:
     - gci
 linters-settings:
   gci:
-    local-prefixes: github.com/aws/modelrocket-add-ons
+    local-prefixes: github.com/aws/eks-anywhere-packages
 issues:
   max-same-issues: 0
   max-issues-per-linter: 0

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 func TestPackageBundle_Find(t *testing.T) {

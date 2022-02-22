@@ -48,7 +48,7 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 .PHONY: fmt
 fmt: ## Run gofmt against code.
 	gofmt -w $(shell find . -name '*go' | grep -v mock)
-	gci -w -local github.com/aws/modelrocket-add-ons $(shell find . -name '*go' | grep -v mock)
+	gci -w -local github.com/aws/eks-anywhere-packages $(shell find . -name '*go' | grep -v mock)
 
 .PHONY: lint
 lint: bin/golangci-lint ## Run golangci-lint

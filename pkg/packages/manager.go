@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-logr/logr"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
-	"github.com/aws/modelrocket-add-ons/pkg/driver"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/driver"
 )
 
 const ( // coordinate state names to enum values

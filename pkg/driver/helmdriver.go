@@ -14,7 +14,7 @@ import (
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/storage/driver"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 // helmDriver implements PackageDriver to install packages from Helm charts.

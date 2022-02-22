@@ -11,10 +11,10 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/aws/modelrocket-add-ons/controllers"
-	"github.com/aws/modelrocket-add-ons/controllers/mocks"
-	"github.com/aws/modelrocket-add-ons/pkg/bundle"
-	bundlefake "github.com/aws/modelrocket-add-ons/pkg/bundle/fake"
+	"github.com/aws/eks-anywhere-packages/controllers"
+	"github.com/aws/eks-anywhere-packages/controllers/mocks"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	bundlefake "github.com/aws/eks-anywhere-packages/pkg/bundle/fake"
 )
 
 func givenRequest() ctrl.Request {

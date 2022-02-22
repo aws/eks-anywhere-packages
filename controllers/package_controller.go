@@ -26,11 +26,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
-	"github.com/aws/modelrocket-add-ons/pkg/artifacts"
-	"github.com/aws/modelrocket-add-ons/pkg/bundle"
-	"github.com/aws/modelrocket-add-ons/pkg/driver"
-	"github.com/aws/modelrocket-add-ons/pkg/packages"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	"github.com/aws/eks-anywhere-packages/pkg/driver"
+	"github.com/aws/eks-anywhere-packages/pkg/packages"
 )
 
 const (

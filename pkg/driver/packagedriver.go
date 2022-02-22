@@ -3,7 +3,7 @@ package driver
 import (
 	"context"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 // PackageDriver is an interface for converting a CRD to a series of Kubernetes

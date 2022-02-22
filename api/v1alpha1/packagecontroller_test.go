@@ -3,7 +3,7 @@ package v1alpha1_test
 import (
 	"testing"
 
-	"github.com/aws/modelrocket-add-ons/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 func TestPackageController_ExpectedKind(t *testing.T) {

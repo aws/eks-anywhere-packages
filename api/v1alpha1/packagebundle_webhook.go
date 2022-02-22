@@ -22,7 +22,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	"github.com/aws/modelrocket-add-ons/pkg/signature"
+	"github.com/aws/eks-anywhere-packages/pkg/signature"
 )
 
 // apilog is for logging in this package.

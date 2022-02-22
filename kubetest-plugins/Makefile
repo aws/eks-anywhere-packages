@@ -29,7 +29,7 @@ help: ## Display this help.
 .PHONY: fmt
 fmt: ## Run gofmt against code.
 	gofmt -w .
-	gci -w -local github.com/aws/modelrocket-add-ons/kubetest-plugins $(shell find . -name '*go')
+	gci -w -local github.com/aws/eks-anywhere-packages/kubetest-plugins $(shell find . -name '*go')
 
 .PHONY: lint
 lint: ../bin/golangci-lint ## Run golangci-lint
@@ -50,5 +50,5 @@ clean: ## Clean up resources created by make targets
 ##@ Build
 
 build: vet
-	go build -o bin/kubetest2-eksa -ldflags="-X=github.com/aws/modelrocket-add-ons/kubetest-plugins/cmd/kubetest2-eksa/deployer.GitTag=$(GIT_TAG)" ./cmd/kubetest2-eksa
-	go build -o bin/kubetest2-tester-eksa -ldflags="-X=github.com/aws/modelrocket-add-ons/kubetest-plugins/cmd/kubetest2-tester-eksa/main.GitTag=$(GIT_TAG)" ./cmd/kubetest2-tester-eksa
+	go build -o bin/kubetest2-eksa -ldflags="-X=github.com/aws/eks-anywhere-packages/kubetest-plugins/cmd/kubetest2-eksa/deployer.GitTag=$(GIT_TAG)" ./cmd/kubetest2-eksa
+	go build -o bin/kubetest2-tester-eksa -ldflags="-X=github.com/aws/eks-anywhere-packages/kubetest-plugins/cmd/kubetest2-tester-eksa/main.GitTag=$(GIT_TAG)" ./cmd/kubetest2-tester-eksa

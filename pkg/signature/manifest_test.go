@@ -12,9 +12,9 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/yaml"
 
-	"github.com/aws/modelrocket-add-ons/api"
-	"github.com/aws/modelrocket-add-ons/api/v1alpha1"
-	"github.com/aws/modelrocket-add-ons/pkg/signature"
+	"github.com/aws/eks-anywhere-packages/api"
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/signature"
 )
 
 const (

@@ -7,7 +7,7 @@ package mocks
 import (
 	reflect "reflect"
 
-	packages "github.com/aws/modelrocket-add-ons/pkg/packages"
+	packages "github.com/aws/eks-anywhere-packages/pkg/packages"
 	gomock "github.com/golang/mock/gomock"
 )
 

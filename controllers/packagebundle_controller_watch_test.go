@@ -8,9 +8,9 @@ import (
 	"gotest.tools/assert"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
-	"github.com/aws/modelrocket-add-ons/controllers/mocks"
-	bundlefake "github.com/aws/modelrocket-add-ons/pkg/bundle/fake"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/controllers/mocks"
+	bundlefake "github.com/aws/eks-anywhere-packages/pkg/bundle/fake"
 )
 
 func TestPackageBundleReconciler_mapBundleReconcileReqeusts(t *testing.T) {
