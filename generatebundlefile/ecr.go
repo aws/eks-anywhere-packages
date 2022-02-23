@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
 	"github.com/aws/aws-sdk-go/aws"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 type ecrClient struct {
