@@ -23,7 +23,7 @@ func NewTester() *Tester {
 }
 
 type Tester struct {
-	SourcePath string `desc:"Path to the modelrocket-add-ons source."`
+	SourcePath string `desc:"Path to the eks-anywhere-packages source."`
 
 	kubeconfigPath string
 }

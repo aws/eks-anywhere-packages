@@ -3,7 +3,7 @@ package v1alpha1
 import (
 	"testing"
 
-	"github.com/aws/modelrocket-add-ons/api"
+	"github.com/aws/eks-anywhere-packages/api"
 )
 
 // These tests ensure that the api.FileReader can correctly unmarshal the API

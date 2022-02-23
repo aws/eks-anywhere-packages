@@ -26,8 +26,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
-	"github.com/aws/modelrocket-add-ons/controllers"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/controllers"
 )
 
 var (

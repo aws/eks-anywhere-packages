@@ -141,7 +141,7 @@ func ValidateSignature(manifest Manifest, domain Domain) (valid bool, digest [32
 	//
 	// Sign with kms
 	//AWS_REGION=us-east-2 aws kms sign --key-id alias/demo --message \
-	// file://<(< ~/dev/proj/modelrocket-add-ons/api/v1alpha1/testdata/addons_v1alpha_addonbundle_signature_good.yaml \
+	// file://<(< ~/dev/proj/eks-anywhere-packages/api/v1alpha1/testdata/addons_v1alpha_addonbundle_signature_good.yaml \
 	//   yq --indentless-lists -y -S 'del(.spec.bundles[].chart.registry, .spec.bundles[].chart.repository, .metadata.annotations) |  \
 	//      walk( if type == "object" then with_entries(select(.value != "" and .value != null and .value != [])) else . end)'  \
 	//          --message-type RAW --signing-algorithm ECDSA_SHA_256

@@ -2,7 +2,7 @@ domain: eks.amazonaws.com
 layout:
 - go.kubebuilder.io/v3
 projectName: eks-anywhere-packages
-repo: github.com/aws/modelrocket-add-ons
+repo: github.com/aws/eks-anywhere-packages
 resources:
 - api:
     crdVersion: v1
@@ -11,7 +11,7 @@ resources:
   domain: eks.amazonaws.com
   group: packages
   kind: PackageController
-  path: github.com/aws/modelrocket-add-ons/api/v1alpha1
+  path: github.com/aws/eks-anywhere-packages/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -20,7 +20,7 @@ resources:
   domain: eks.amazonaws.com
   group: packages
   kind: Package
-  path: github.com/aws/modelrocket-add-ons/api/v1alpha1
+  path: github.com/aws/eks-anywhere-packages/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -29,7 +29,7 @@ resources:
   domain: eks.amazonaws.com
   group: packages
   kind: PackageBundle
-  path: github.com/aws/modelrocket-add-ons/api/v1alpha1
+  path: github.com/aws/eks-anywhere-packages/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -38,7 +38,7 @@ resources:
   domain: eks.amazonaws.com
   group: packages
   kind: PackageBundleController
-  path: github.com/aws/modelrocket-add-ons/api/v1alpha1
+  path: github.com/aws/eks-anywhere-packages/api/v1alpha1
   version: v1alpha1
   webhooks:
     defaulting: true

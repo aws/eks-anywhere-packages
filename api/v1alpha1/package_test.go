@@ -3,7 +3,7 @@ package v1alpha1_test
 import (
 	"testing"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 func givenPackage(config map[string]string) api.Package {

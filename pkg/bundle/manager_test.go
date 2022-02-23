@@ -10,8 +10,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
-	"github.com/aws/modelrocket-add-ons/pkg/testutil"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
 func TestLatestBundle(t *testing.T) {

@@ -12,11 +12,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
-	ctrlmocks "github.com/aws/modelrocket-add-ons/controllers/mocks"
-	bundlefake "github.com/aws/modelrocket-add-ons/pkg/bundle/fake"
-	drivermocks "github.com/aws/modelrocket-add-ons/pkg/driver/mocks"
-	packageMocks "github.com/aws/modelrocket-add-ons/pkg/packages/mocks"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	ctrlmocks "github.com/aws/eks-anywhere-packages/controllers/mocks"
+	bundlefake "github.com/aws/eks-anywhere-packages/pkg/bundle/fake"
+	drivermocks "github.com/aws/eks-anywhere-packages/pkg/driver/mocks"
+	packageMocks "github.com/aws/eks-anywhere-packages/pkg/packages/mocks"
 )
 
 func TestReconcile(t *testing.T) {

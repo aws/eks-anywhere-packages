@@ -13,10 +13,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
-	"github.com/aws/modelrocket-add-ons/controllers/mocks"
-	"github.com/aws/modelrocket-add-ons/pkg/bundle"
-	"github.com/aws/modelrocket-add-ons/pkg/testutil"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/controllers/mocks"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
 func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {

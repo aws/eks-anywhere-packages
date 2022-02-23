@@ -6,8 +6,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
-	"github.com/aws/modelrocket-add-ons/pkg/bundle"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 )
 
 type FakeBundleManager struct {

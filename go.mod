@@ -1,4 +1,4 @@
-module github.com/aws/modelrocket-add-ons
+module github.com/aws/eks-anywhere-packages
 
 go 1.17
 

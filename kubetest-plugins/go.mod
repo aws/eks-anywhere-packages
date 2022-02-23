@@ -1,4 +1,4 @@
-module github.com/aws/modelrocket-add-ons/kubetest-plugins
+module github.com/aws/eks-anywhere-packages/kubetest-plugins
 
 go 1.16
 

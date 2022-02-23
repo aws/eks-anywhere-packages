@@ -3,7 +3,7 @@ package main
 import (
 	"sigs.k8s.io/kubetest2/pkg/app"
 
-	"github.com/aws/modelrocket-add-ons/kubetest-plugins/cmd/kubetest2-eksa/deployer"
+	"github.com/aws/eks-anywhere-packages/kubetest-plugins/cmd/kubetest2-eksa/deployer"
 )
 
 func main() {
