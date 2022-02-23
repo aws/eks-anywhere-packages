@@ -1,9 +1,9 @@
-module github.com/aws/modelrocket-add-ons/generatebundlefile
+module github.com/aws/eks-anywhere-packages/generatebundlefile
 
 go 1.17
 
 replace (
-	github.com/aws/modelrocket-add-ons => ../
+	github.com/aws/eks-anywhere-packages => ../
 	github.com/containerd/containerd => github.com/containerd/containerd v1.5.9
 	github.com/docker/distribution => github.com/docker/distribution v2.8.0-beta.1+incompatible
 )
@@ -12,7 +12,6 @@ require (
 	github.com/aws/aws-sdk-go v1.42.51
 	github.com/aws/aws-sdk-go-v2/config v1.13.1
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.11.0
-	github.com/aws/modelrocket-add-ons v0.0.0-00010101000000-000000000000
 	k8s.io/apimachinery v0.23.3
 	sigs.k8s.io/controller-runtime v0.11.0
 	sigs.k8s.io/yaml v1.3.0

@@ -7,7 +7,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	api "github.com/aws/modelrocket-add-ons/api/v1alpha1"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 const (
