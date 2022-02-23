@@ -1,3 +1,5 @@
+
+---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
@@ -10,9 +12,9 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-packages-eks-amazonaws-com-v1alpha1-packagebundle
+      path: /validate-packages-eks-amazonaws-com-v1alpha1-packagebundlecontroller
   failurePolicy: Fail
-  name: vpackagebundle.kb.io
+  name: vpackagebundlecontroller.kb.io
   rules:
   - apiGroups:
     - packages.eks.amazonaws.com
@@ -22,5 +24,5 @@ webhooks:
     - CREATE
     - UPDATE
     resources:
-    - packagebundles
+    - packagebundlecontrollers
   sideEffects: None
