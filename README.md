@@ -10,13 +10,6 @@ Create a cluster with EKS Anywhere and set and export with KUBECONFIG.
 
         make install
 
-1. For now, you need to login to helm to pull the images from public ECR:
-
-        aws ecr-public get-login-password --region us-east-1 \
-          | HELM_EXPERIMENTAL_OCI=1 helm registry login \
-              --username AWS \
-              --password-stdin public.ecr.aws
-
 1. Run the controller locally:
 
         make run ENABLE_WEBHOOKS=false
