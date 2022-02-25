@@ -12,7 +12,7 @@ spec:
       repository: eks-anywhere-test
       versions:
         - name: v0.1.1
-          tag: "sha256:6fcf2a5af06528187bc607858630ecaa6e3bf9c1"
+          tag: sha256:64ea03b119d2421f9206252ff4af4bf7cdc2823c343420763e0e6fc20bf03b68
   - name: Flux
     source:
       registry: public.ecr.aws/j0a1m4z9
