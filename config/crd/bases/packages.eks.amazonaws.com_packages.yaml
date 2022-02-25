@@ -17,8 +17,8 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .spec.repository
-      name: Repository
+    - jsonPath: .spec.packageName
+      name: Package
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
@@ -121,7 +121,7 @@ spec:
                   type: object
                 type: array
               version:
-                description: Chart associated with the installation
+                description: Version currently installed
                 type: string
             required:
             - source

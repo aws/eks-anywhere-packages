@@ -24,6 +24,7 @@ type ManagerContext struct {
 	Package       api.Package
 	PackageDriver driver.PackageDriver
 	Source        api.PackageOCISource
+	Version       string
 	RequeueAfter  time.Duration
 	Log           logr.Logger
 }
@@ -58,6 +59,7 @@ func processInstalling(mc *ManagerContext) bool {
 	}
 	mc.Log.Info("Installed", "name", mc.Package.Name, "chart", mc.Package.Status.Source)
 	mc.Package.Status.State = api.StateInstalled
+	mc.Package.Status.Version = mc.Version
 	mc.Package.Status.Detail = ""
 	return true
 }

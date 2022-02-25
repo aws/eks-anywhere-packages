@@ -20,7 +20,7 @@ import (
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Repository",type=string,JSONPath=`.spec.repository`
+// +kubebuilder:printcolumn:name="Package",type=string,JSONPath=`.spec.packageName`
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="Version",type=string,JSONPath=`.status.version`
@@ -69,7 +69,7 @@ type PackageStatus struct {
 	Source PackageOCISource `json:"source"`
 
 	// +kubebuilder:validation:Required
-	// Chart associated with the installation
+	// Version currently installed
 	Version string `json:"version"`
 
 	// State of the installation
