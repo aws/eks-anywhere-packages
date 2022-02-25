@@ -100,7 +100,7 @@ docker-push: ## Push docker image with the package-manager.
 ##@ Deployment
 
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	kubectl create namespace eksa-packages
+	kubectl create namespace eksa-packages || true
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
 
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config.
