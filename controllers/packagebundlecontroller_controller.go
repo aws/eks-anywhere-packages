@@ -123,8 +123,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 
 	latestBundle, err := r.bundleManager.LatestBundle(ctx, abc.Spec.Source.BaseRef())
 	if err != nil {
-		r.Log.Error(err, "Error getting latest bundle")
-		return result, nil
+		return result, err
 	}
 
 	bundles := &api.PackageBundleList{}
