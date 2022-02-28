@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
@@ -27,7 +27,7 @@ func TestLatestBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithFileData(t, "../../api/testdata/bundle_one.yaml")
 
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 		bundle, err := bm.LatestBundle(ctx, baseRef)
 		if err != nil {
 			t.Fatalf("expected no error, got: %s", err)
@@ -58,7 +58,7 @@ func TestLatestBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithError(fmt.Errorf("test error"))
 
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 		_, err := bm.LatestBundle(ctx, baseRef)
 		if err == nil {
 			t.Errorf("expected error, got nil")
@@ -72,7 +72,7 @@ func TestLatestBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithData([]byte(""))
 
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 		_, err := bm.LatestBundle(ctx, baseRef)
 		if err == nil {
 			t.Errorf("expected error, got nil")
@@ -87,7 +87,7 @@ func TestLatestBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithData([]byte("invalid yaml"))
 
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 		_, err := bm.LatestBundle(ctx, baseRef)
 		if err == nil {
 			t.Errorf("expected error, got nil")
@@ -144,7 +144,7 @@ func TestIsBundleOlderthan(t *testing.T) {
 		t.Parallel()
 
 		puller := testutil.NewMockPuller()
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 		current := "v1.21-10002"
 		candidate := "v1.21-10003"
 		if older, _ := bm.IsBundleOlderThan(current, candidate); !older {
@@ -161,7 +161,7 @@ func TestIsBundleOlderthan(t *testing.T) {
 		t.Parallel()
 
 		puller := testutil.NewMockPuller()
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 		current := "v1.21-10002"
 		candidate := "v1.22-10001"
 		if older, _ := bm.IsBundleOlderThan(current, candidate); !older {
@@ -173,7 +173,7 @@ func TestIsBundleOlderthan(t *testing.T) {
 		t.Parallel()
 
 		puller := testutil.NewMockPuller()
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 		current := "v1.21-10002"
 		candidate := "v1.21-10002"
 		if older, _ := bm.IsBundleOlderThan(current, candidate); older {
@@ -190,7 +190,7 @@ func TestPackageVersion(t *testing.T) {
 
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		got, err := bm.apiVersion()
 		if err != nil {
@@ -207,7 +207,7 @@ func TestPackageVersion(t *testing.T) {
 
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		got, err := bm.apiVersion()
 		if err != nil {
@@ -233,7 +233,7 @@ func TestUpdate(t *testing.T) {
 				State: api.PackageBundleStateInactive,
 			},
 		}
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		if assert.True(t, bm.Update(bundle, true, noBundles)) {
 			assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
@@ -248,7 +248,7 @@ func TestUpdate(t *testing.T) {
 				State: api.PackageBundleStateActive,
 			},
 		}
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		if assert.True(t, bm.Update(bundle, false, noBundles)) {
 			assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
@@ -263,7 +263,7 @@ func TestUpdate(t *testing.T) {
 				State: api.PackageBundleStateInactive,
 			},
 		}
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		if assert.True(t, bm.Update(bundle, false, noBundles)) {
 			assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
@@ -278,7 +278,7 @@ func TestUpdate(t *testing.T) {
 				State: api.PackageBundleStateActive,
 			},
 		}
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		if assert.True(t, bm.Update(bundle, true, noBundles)) {
 			assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
@@ -294,7 +294,7 @@ func TestUpdate(t *testing.T) {
 			*bundle,
 			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
 		}
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		if assert.True(t, bm.Update(bundle, true, allBundles)) {
 			assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
@@ -310,7 +310,7 @@ func TestUpdate(t *testing.T) {
 			*bundle,
 			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
 		}
-		bm := NewBundleManager(nil, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		if assert.True(t, bm.Update(bundle, true, allBundles)) {
 			assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
@@ -332,7 +332,7 @@ func TestSortBundleNewestFirst(t *testing.T) {
 			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
 		}
 
-		bm := NewBundleManager(log.NullLogger{}, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 		_ = bm.Update(bundle, true, allBundles)
 		if assert.Greater(t, len(allBundles), 1) {
 			assert.Equal(t, "v1-21-1002", allBundles[0].Name)
@@ -361,7 +361,7 @@ func TestSortBundleNewestFirst(t *testing.T) {
 			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
 		}
 
-		bm := NewBundleManager(log.NullLogger{}, discovery, puller)
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
 		_ = bm.Update(bundle, true, allBundles)
 		if assert.Greater(t, len(allBundles), 2) {
 			assert.Equal(t, "funky", allBundles[2].Name)

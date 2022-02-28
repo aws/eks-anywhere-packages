@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/driver/mocks"
@@ -47,7 +47,7 @@ func givenManagerContext(driver *mocks.MockPackageDriver) *ManagerContext {
 			Tag:        "sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
 		},
 		RequeueAfter: time.Duration(100),
-		Log:          log.NullLogger{},
+		Log:          logr.Discard(),
 	}
 }
 

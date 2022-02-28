@@ -52,17 +52,13 @@ func NewPackageReconciler(client client.Client, scheme *runtime.Scheme,
 	driver driver.PackageDriver, manager packages.Manager,
 	bundleManager bundle.Manager, log logr.Logger) *PackageReconciler {
 
-	if log == nil {
-		log = ctrl.Log.WithName(packageName)
-	}
-
 	return &PackageReconciler{
 		Client:        client,
 		Scheme:        scheme,
 		PackageDriver: driver,
 		Manager:       manager,
 		bundleManager: bundleManager,
-		Log:           log,
+		Log:           log.WithName(packageName),
 	}
 }
 

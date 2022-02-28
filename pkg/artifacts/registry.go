@@ -15,7 +15,7 @@ import (
 // (i.e. bundles)
 type RegistryPuller struct {
 	resolver remotes.Resolver
-	store    *content.Memorystore
+	store    *content.Memory
 }
 
 var _ Puller = (*RegistryPuller)(nil)
@@ -34,12 +34,12 @@ func NewRegistryPuller() *RegistryPuller {
 		resolver: docker.NewResolver(docker.ResolverOptions{
 			Hosts: docker.ConfigureDefaultRegistries(docker.WithAuthorizer(authorizer)),
 		}),
-		store: content.NewMemoryStore(),
+		store: content.NewMemory(),
 	}
 }
 
 func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
-	_, _, err := oras.Pull(ctx, p.resolver, ref, p.store)
+	_, err := oras.Copy(ctx, p.resolver, ref, p.store, "")
 	if err != nil {
 		return nil, fmt.Errorf("pulling artifact %q: %s", ref, err)
 	}

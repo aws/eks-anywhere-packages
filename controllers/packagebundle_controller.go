@@ -49,14 +49,10 @@ type PackageBundleReconciler struct {
 func NewPackageBundleReconciler(client client.Client, scheme *runtime.Scheme,
 	bundleManager bundle.Manager, log logr.Logger) *PackageBundleReconciler {
 
-	if log == nil {
-		log = ctrl.Log.WithName(packageBundleName)
-	}
-
 	return &(PackageBundleReconciler{
 		Client:        client,
 		Scheme:        scheme,
-		Log:           log,
+		Log:           log.WithName(packageBundleName),
 		bundleManager: bundleManager,
 	})
 }

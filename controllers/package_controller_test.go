@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	ctrlmocks "github.com/aws/eks-anywhere-packages/controllers/mocks"
@@ -180,7 +180,7 @@ const (
 
 type testFixtures struct {
 	gomockController *gomock.Controller
-	logger           log.NullLogger
+	logger           logr.Logger
 
 	ctrlClient     *ctrlmocks.MockClient
 	packageDriver  *drivermocks.MockPackageDriver
@@ -194,7 +194,7 @@ func newTestFixtures(t *testing.T) (*testFixtures, context.Context) {
 	gomockController := gomock.NewController(t)
 	return &testFixtures{
 		gomockController: gomockController,
-		logger:           log.NullLogger{},
+		logger:           logr.Discard(),
 		ctrlClient:       ctrlmocks.NewMockClient(gomockController),
 		packageDriver:    drivermocks.NewMockPackageDriver(gomockController),
 		packageManager:   packageMocks.NewMockManager(gomockController),

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -38,7 +39,7 @@ func TestPackageBundleReconciler_ReconcileAddUpdate(t *testing.T) {
 	bm := bundlefake.NewBundleManager()
 	bm.FakeIsActive = true
 	bm.FakeUpdate = true
-	sut := controllers.NewPackageBundleReconciler(mockClient, nil, bm, nil)
+	sut := controllers.NewPackageBundleReconciler(mockClient, nil, bm, logr.Discard())
 
 	_, actualError := sut.Reconcile(ctx, request)
 
@@ -55,7 +56,7 @@ func TestPackageBundleReconciler_ReconcileError(t *testing.T) {
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(expectedError)
 	bm := bundlefake.NewBundleManager()
 	bm.FakeIsActive = true
-	sut := controllers.NewPackageBundleReconciler(mockClient, nil, bm, nil)
+	sut := controllers.NewPackageBundleReconciler(mockClient, nil, bm, logr.Discard())
 
 	_, actualError := sut.Reconcile(ctx, request)
 
@@ -72,7 +73,7 @@ func TestPackageBundleReconciler_ReconcileIgnored(t *testing.T) {
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(nil)
 	mockClient.EXPECT().List(ctx, gomock.Any()).Return(nil)
 	bm := bundlefake.NewBundleManager()
-	sut := controllers.NewPackageBundleReconciler(mockClient, nil, bm, nil)
+	sut := controllers.NewPackageBundleReconciler(mockClient, nil, bm, logr.Discard())
 
 	_, actualError := sut.Reconcile(ctx, request)
 
@@ -93,7 +94,7 @@ func TestPackageBundleReconciler_ReconcileDelete(t *testing.T) {
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(notFoundError)
 	bm := bundlefake.NewBundleManager()
 	bm.FakeIsActive = true
-	sut := controllers.NewPackageBundleReconciler(mockClient, nil, bm, nil)
+	sut := controllers.NewPackageBundleReconciler(mockClient, nil, bm, logr.Discard())
 
 	_, actualError := sut.Reconcile(ctx, request)
 
