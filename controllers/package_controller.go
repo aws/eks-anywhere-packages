@@ -128,7 +128,7 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			return ctrl.Result{RequeueAfter: retryLong}, err
 		}
 
-		managerContext.Source, err = bundle.FindSource(managerContext.Package.Spec.PackageName, managerContext.Package.Spec.PackageVersion)
+		managerContext.Source, managerContext.Version, err = bundle.FindSource(managerContext.Package.Spec.PackageName, managerContext.Package.Spec.PackageVersion)
 		if err != nil {
 			return ctrl.Result{RequeueAfter: retryLong}, err
 		}

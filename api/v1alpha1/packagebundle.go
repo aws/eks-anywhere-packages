@@ -23,20 +23,20 @@ func (config *PackageBundle) ExpectedKind() string {
 	return PackageBundleKind
 }
 
-func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource PackageOCISource, err error) {
+func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource PackageOCISource, version string, err error) {
 	for _, pkg := range config.Spec.Packages {
 		if pkg.Name == pkgName {
 			source := pkg.Source
 			for _, version := range source.Versions {
 				if version.Name == pkgVersion || version.Tag == pkgVersion {
 					retSource = PackageOCISource{Registry: source.Registry, Repository: source.Repository, Tag: version.Tag}
-					return retSource, nil
+					return retSource, version.Name, nil
 				}
 			}
 		}
 	}
 
-	return retSource, fmt.Errorf("package not found: %s @ %s", pkgName, pkgVersion)
+	return retSource, "", fmt.Errorf("package not found: %s @ %s", pkgName, pkgVersion)
 }
 
 func (s PackageOCISource) AsRepoURI() string {

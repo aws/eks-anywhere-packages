@@ -32,16 +32,19 @@ func TestPackageBundle_Find(t *testing.T) {
 	}
 
 	expected := api.PackageOCISource{Registry: "public.ecr.aws/l0g8r8j6", Repository: "eks-anywhere-test", Tag: "v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm"}
-	actual, err := sut.FindSource("eks-anywhere-test", "v0.1.0")
+	expectedVersion := "v0.1.0"
+	actual, version, err := sut.FindSource("eks-anywhere-test", "v0.1.0")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+	assert.Equal(t, expectedVersion, version)
 
-	actual, err = sut.FindSource("eks-anywhere-test", "v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm")
+	actual, version, err = sut.FindSource("eks-anywhere-test", "v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+	assert.Equal(t, expectedVersion, version)
 
 	expectedErr := "package not found: Bogus @ bar"
-	_, err = sut.FindSource("Bogus", "bar")
+	_, _, err = sut.FindSource("Bogus", "bar")
 	assert.EqualError(t, err, expectedErr)
 }
 
