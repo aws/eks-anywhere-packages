@@ -80,16 +80,16 @@ spec:
               source:
                 description: Source associated with the installation
                 properties:
+                  digest:
+                    type: string
                   registry:
                     type: string
                   repository:
                     type: string
-                  tag:
-                    type: string
                 required:
+                - digest
                 - registry
                 - repository
-                - tag
                 type: object
               state:
                 description: State of the installation

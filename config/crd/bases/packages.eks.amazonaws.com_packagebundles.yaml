@@ -73,7 +73,7 @@ spec:
                               within a repository.
                             properties:
                               digest:
-                                description: Digest is a sha256 checksum value identifying
+                                description: Digest is a checksum value identifying
                                   the version of the package and its contents.
                                 type: string
                               name:
@@ -135,9 +135,8 @@ spec:
                                   an package within a repository.
                                 properties:
                                   digest:
-                                    description: Digest is a sha256 checksum value
-                                      identifying the version of the package and its
-                                      contents.
+                                    description: Digest is a checksum value identifying
+                                      the version of the package and its contents.
                                     type: string
                                   name:
                                     description: Name is a human-friendly description

@@ -5,7 +5,7 @@ metadata:
   namespace: eks-anywhere-packages-system
   annotations:
     eksa.aws.com/excludes: LnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVnaXN0cnkKLnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVwb3NpdG9yeQo=
-    eksa.aws.com/signature: MEQCIHvGwywZHwK/twzsnURCgi6bRJC+O0IJsXF4/bpdNtwxAiBZ0WWyIUbobPsAntUbepfAdXPlQ40s57IH32WZGP9yJw==
+    eksa.aws.com/signature: MEQCIFmKsSfnHSxlkZEBV4XF96JE0v2yZ8Ic0UaJbhCemDUBAiBVVufClgTGlAjUmSM7uPGKj02ugPl0jN8boyTEzhi4Pg==
 spec:
   kubeVersion: v1.21
   packages:
@@ -15,4 +15,4 @@ spec:
         repository: eks-anywhere-test
         versions:
           - name: test
-            digest: v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm
+            digest: sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7

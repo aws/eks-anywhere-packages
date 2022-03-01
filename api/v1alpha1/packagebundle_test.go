@@ -22,7 +22,7 @@ func TestPackageBundle_Find(t *testing.T) {
 						Versions: []api.SourceVersion{
 							{
 								Name:   "v0.1.0",
-								Digest: "v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm",
+								Digest: "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
 							},
 						},
 					},
@@ -31,14 +31,18 @@ func TestPackageBundle_Find(t *testing.T) {
 		},
 	}
 
-	expected := api.PackageOCISource{Registry: "public.ecr.aws/l0g8r8j6", Repository: "eks-anywhere-test", Tag: "v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm"}
+	expected := api.PackageOCISource{
+		Registry:   "public.ecr.aws/l0g8r8j6",
+		Repository: "eks-anywhere-test",
+		Digest:     "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
+	}
 	expectedVersion := "v0.1.0"
 	actual, version, err := sut.FindSource("eks-anywhere-test", "v0.1.0")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, expectedVersion, version)
 
-	actual, version, err = sut.FindSource("eks-anywhere-test", "v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm")
+	actual, version, err = sut.FindSource("eks-anywhere-test", "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, expectedVersion, version)

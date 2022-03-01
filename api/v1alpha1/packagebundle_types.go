@@ -78,8 +78,7 @@ type SourceVersion struct {
 	Name string `json:"name"`
 
 	// +kubebuilder:validation:Required
-	// Digest is a sha256 checksum value identifying the version of the package and
-	// its contents.
+	// Digest is a checksum value identifying the version of the package and its contents.
 	Digest string `json:"digest"`
 }
 
