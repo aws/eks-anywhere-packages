@@ -26,8 +26,11 @@ spec:
     - jsonPath: .status.state
       name: State
       type: string
-    - jsonPath: .status.version
-      name: Version
+    - jsonPath: .status.currentVersion
+      name: CurrentVersion
+      type: string
+    - jsonPath: .status.targetVersion
+      name: TargetVersion
       type: string
     - jsonPath: .status.detail
       name: Detail
@@ -74,6 +77,9 @@ spec:
           status:
             description: PackageStatus defines the observed state of Package
             properties:
+              currentVersion:
+                description: Version currently installed
+                type: string
               detail:
                 description: Detail of the state
                 type: string
@@ -100,6 +106,9 @@ spec:
                 - updating
                 - uninstalling
                 type: string
+              targetVersion:
+                description: Version to be installed
+                type: string
               upgradesAvailable:
                 description: UpgradesAvailable indicates upgraded versions in the
                   bundle.
@@ -120,12 +129,10 @@ spec:
                   - version
                   type: object
                 type: array
-              version:
-                description: Version currently installed
-                type: string
             required:
+            - currentVersion
             - source
-            - version
+            - targetVersion
             type: object
         type: object
     served: true

@@ -97,12 +97,6 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Package object against the actual cluster state, and then perform
-// operations to make the cluster state reflect the state specified by the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.8.3/pkg/reconcile
 func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.V(6).Info("Reconcile:", "NamespacedName", req.NamespacedName)
 
@@ -113,6 +107,7 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		Log:           r.Log,
 		PackageDriver: r.PackageDriver,
 	}
+
 	if err = r.Get(ctx, req.NamespacedName, &managerContext.Package); err != nil {
 		if !apierrors.IsNotFound(err) {
 			return ctrl.Result{}, err
@@ -124,8 +119,16 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			return ctrl.Result{RequeueAfter: retryLong}, err
 		}
 
-		managerContext.Source, managerContext.Version, err = bundle.FindSource(managerContext.Package.Spec.PackageName, managerContext.Package.Spec.PackageVersion)
+		targetVersion := managerContext.Package.Spec.PackageVersion
+		pkgName := managerContext.Package.Spec.PackageName
+		managerContext.Package.Status.TargetVersion = targetVersion
+		managerContext.Source, err = bundle.FindSource(pkgName, targetVersion)
 		if err != nil {
+			//TODO add a link to documentation on how to make a bundle active.
+			managerContext.Package.Status.Detail = fmt.Sprintf("Package %s@%s is not in the current active bundle. Did you forget to activate the new bundle?", pkgName, targetVersion)
+			if err = r.Status().Update(ctx, &managerContext.Package); err != nil {
+				return ctrl.Result{RequeueAfter: managerContext.RequeueAfter}, err
+			}
 			return ctrl.Result{RequeueAfter: retryLong}, err
 		}
 	}

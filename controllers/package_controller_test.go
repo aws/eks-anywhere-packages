@@ -3,11 +3,13 @@ package controllers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -35,6 +37,7 @@ func TestReconcile(t *testing.T) {
 			Return(true)
 
 		status := tf.mockStatusWriter()
+		pkg.Status.TargetVersion = "v0.1.1"
 		status.EXPECT().
 			Update(ctx, pkg).
 			Return(nil)
@@ -145,6 +148,7 @@ func TestReconcile(t *testing.T) {
 
 		testErr := errors.New("status update test error")
 		status := tf.mockStatusWriter()
+		pkg.Status.TargetVersion = "v0.1.1"
 		status.EXPECT().
 			Update(ctx, pkg).
 			Return(testErr)
@@ -164,6 +168,40 @@ func TestReconcile(t *testing.T) {
 		if got.RequeueAfter != expected {
 			t.Errorf("expected <%s> got <%s>", expected, got.RequeueAfter)
 		}
+	})
+
+	t.Run("Reports error when requested package version is not in the bundle", func(t *testing.T) {
+		tf, ctx := newTestFixtures(t)
+
+		fn, pkg := tf.mockGetFnPkg()
+		tf.ctrlClient.EXPECT().
+			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
+			DoAndReturn(fn)
+
+		tf.bundleManager.FakeActiveBundle = tf.mockBundle()
+
+		testErr := errors.New("status update test error")
+		status := tf.mockStatusWriter()
+
+		pkg.Spec.PackageVersion = "v2.0.0"
+		pkg.Status.TargetVersion = "v2.0.0"
+		pkg.Status.Detail = fmt.Sprintf("Package %s@%s is not in the current active bundle. Did you forget to activate the new bundle?", pkg.Spec.PackageName, pkg.Spec.PackageVersion)
+		status.EXPECT().
+			Update(ctx, pkg).
+			Return(testErr)
+
+		tf.ctrlClient.EXPECT().
+			Status().
+			Return(status)
+
+		sut := tf.newReconciler()
+		req := tf.mockRequest()
+		got, err := sut.Reconcile(ctx, req)
+
+		assert.Error(t, err, testErr)
+		expected := time.Duration(0)
+		assert.Equal(t, expected, got.RequeueAfter)
+
 	})
 }
 
