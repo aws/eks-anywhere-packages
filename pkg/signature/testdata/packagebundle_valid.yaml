@@ -14,4 +14,4 @@ spec:
         repository: eks-anywhere-test
         versions:
           - name: test
-            tag: v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm
+            digest: v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm

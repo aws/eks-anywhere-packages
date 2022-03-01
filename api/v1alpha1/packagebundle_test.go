@@ -21,8 +21,8 @@ func TestPackageBundle_Find(t *testing.T) {
 						Repository: "eks-anywhere-test",
 						Versions: []api.SourceVersion{
 							{
-								Name: "v0.1.0",
-								Tag:  "v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm",
+								Name:   "v0.1.0",
+								Digest: "v0.1.0-c0c266629ccc70506ae818f282d12b01e287d2c6-helm",
 							},
 						},
 					},
@@ -53,8 +53,8 @@ func TestMatches(t *testing.T) {
 		Registry:   "registry",
 		Repository: "repository",
 		Versions: []api.SourceVersion{
-			{Name: "v1", Tag: "sha256:deadbeef"},
-			{Name: "v2", Tag: "sha256:cafebabe"},
+			{Name: "v1", Digest: "sha256:deadbeef"},
+			{Name: "v2", Digest: "sha256:cafebabe"},
 		},
 	}
 
@@ -63,8 +63,8 @@ func TestMatches(t *testing.T) {
 			Registry:   "registry",
 			Repository: "repository",
 			Versions: []api.SourceVersion{
-				{Name: "v1", Tag: "sha256:deadbeef"},
-				{Name: "v2", Tag: "sha256:cafebabe"},
+				{Name: "v1", Digest: "sha256:deadbeef"},
+				{Name: "v2", Digest: "sha256:cafebabe"},
 			},
 		}
 		result := orig.Matches(other)
@@ -78,8 +78,8 @@ func TestMatches(t *testing.T) {
 			Registry:   "registry2",
 			Repository: "repository",
 			Versions: []api.SourceVersion{
-				{Name: "v1", Tag: "sha256:deadbeef"},
-				{Name: "v2", Tag: "sha256:cafebabe"},
+				{Name: "v1", Digest: "sha256:deadbeef"},
+				{Name: "v2", Digest: "sha256:cafebabe"},
 			},
 		}
 		result := orig.Matches(other)
@@ -93,8 +93,8 @@ func TestMatches(t *testing.T) {
 			Registry:   "registry",
 			Repository: "repository2",
 			Versions: []api.SourceVersion{
-				{Name: "v1", Tag: "sha256:deadbeef"},
-				{Name: "v2", Tag: "sha256:cafebabe"},
+				{Name: "v1", Digest: "sha256:deadbeef"},
+				{Name: "v2", Digest: "sha256:cafebabe"},
 			},
 		}
 		result := orig.Matches(other)
@@ -108,9 +108,9 @@ func TestMatches(t *testing.T) {
 			Registry:   "registry",
 			Repository: "repository",
 			Versions: []api.SourceVersion{
-				{Name: "v1", Tag: "sha256:deadbeef"},
-				{Name: "v2", Tag: "sha256:cafebabe"},
-				{Name: "v3", Tag: "sha256:deadf00d"},
+				{Name: "v1", Digest: "sha256:deadbeef"},
+				{Name: "v2", Digest: "sha256:cafebabe"},
+				{Name: "v3", Digest: "sha256:deadf00d"},
 			},
 		}
 		result := orig.Matches(other)
@@ -124,7 +124,7 @@ func TestMatches(t *testing.T) {
 			Registry:   "registry",
 			Repository: "repository",
 			Versions: []api.SourceVersion{
-				{Name: "v2", Tag: "sha256:cafebabe"},
+				{Name: "v2", Digest: "sha256:cafebabe"},
 			},
 		}
 		result := orig.Matches(other)
@@ -138,8 +138,8 @@ func TestMatches(t *testing.T) {
 			Registry:   "registry",
 			Repository: "repository",
 			Versions: []api.SourceVersion{
-				{Name: "v1", Tag: "sha256:feedface"},
-				{Name: "v2", Tag: "sha256:cafebabe"},
+				{Name: "v1", Digest: "sha256:feedface"},
+				{Name: "v2", Digest: "sha256:cafebabe"},
 			},
 		}
 		result := orig.Matches(other)
@@ -153,7 +153,7 @@ func TestSourceVersionKey(t *testing.T) {
 	t.Parallel()
 
 	s := api.SourceVersion{
-		Name: "v1", Tag: "sha256:blah",
+		Name: "v1", Digest: "sha256:blah",
 	}
 
 	t.Run("smoke test", func(t *testing.T) {

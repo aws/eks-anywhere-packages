@@ -28,8 +28,8 @@ func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource P
 		if pkg.Name == pkgName {
 			source := pkg.Source
 			for _, version := range source.Versions {
-				if version.Name == pkgVersion || version.Tag == pkgVersion {
-					retSource = PackageOCISource{Registry: source.Registry, Repository: source.Repository, Tag: version.Tag}
+				if version.Name == pkgVersion || version.Digest == pkgVersion {
+					retSource = PackageOCISource{Registry: source.Registry, Repository: source.Repository, Tag: version.Digest}
 					return retSource, version.Name, nil
 				}
 			}
@@ -76,5 +76,5 @@ func (s BundlePackageSource) Matches(other BundlePackageSource) bool {
 }
 
 func (v SourceVersion) Key() string {
-	return v.Name + " " + v.Tag
+	return v.Name + " " + v.Digest
 }

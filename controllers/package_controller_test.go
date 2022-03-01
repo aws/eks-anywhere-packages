@@ -230,8 +230,8 @@ func (tf *testFixtures) mockBundle() *api.PackageBundle {
 						Registry:   "public.ecr.aws/l0g8r8j6",
 						Repository: "eks-anywhere-test",
 						Versions: []api.SourceVersion{
-							{Name: "v0.1.1", Tag: "sha256:deadbeef"},
-							{Name: "v0.1.0", Tag: "sha256:cafebabe"},
+							{Name: "v0.1.1", Digest: "sha256:deadbeef"},
+							{Name: "v0.1.0", Digest: "sha256:cafebabe"},
 						},
 					},
 				},

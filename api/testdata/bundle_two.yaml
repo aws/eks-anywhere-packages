@@ -12,11 +12,12 @@ spec:
       repository: eks-anywhere-test
       versions:
         - name: v0.1.1
-          tag: sha256:64ea03b119d2421f9206252ff4af4bf7cdc2823c343420763e0e6fc20bf03b68
+          digest: sha256:64ea03b119d2421f9206252ff4af4bf7cdc2823c343420763e0e6fc20bf03b68
   - name: Flux
     source:
       registry: public.ecr.aws/j0a1m4z9
       repository: fluxcd/flux2
       versions:
         - name: v0.25.1-7fb396bd0be3769162a408aa4d22a48fd74a9db7-helm
-          tag: sha256:ab067969310f3f237c716d6f348dab9cfdce8cc2c188dfdd6b5cfa0e2cd63939
+          digest: sha256:ab067969310f3f237c716d6f348dab9cfdce8cc2c188dfdd6b5cfa0e2cd63939
+

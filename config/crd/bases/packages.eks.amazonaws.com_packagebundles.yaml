@@ -72,17 +72,17 @@ spec:
                             description: SourceVersion describes a version of an package
                               within a repository.
                             properties:
+                              digest:
+                                description: Digest is a sha256 checksum value identifying
+                                  the version of the package and its contents.
+                                type: string
                               name:
                                 description: Name is a human-friendly description
                                   of the version, e.g. "v1.0".
                                 type: string
-                              tag:
-                                description: Tag is a sha256 checksum value identifying
-                                  the version of the package and its contents.
-                                type: string
                             required:
+                            - digest
                             - name
-                            - tag
                             type: object
                           minItems: 1
                           type: array
@@ -134,17 +134,18 @@ spec:
                                 description: SourceVersion describes a version of
                                   an package within a repository.
                                 properties:
+                                  digest:
+                                    description: Digest is a sha256 checksum value
+                                      identifying the version of the package and its
+                                      contents.
+                                    type: string
                                   name:
                                     description: Name is a human-friendly description
                                       of the version, e.g. "v1.0".
                                     type: string
-                                  tag:
-                                    description: Tag is a sha256 checksum value identifying
-                                      the version of the package and its contents.
-                                    type: string
                                 required:
+                                - digest
                                 - name
-                                - tag
                                 type: object
                               minItems: 1
                               type: array
