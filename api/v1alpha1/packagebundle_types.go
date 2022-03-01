@@ -78,9 +78,8 @@ type SourceVersion struct {
 	Name string `json:"name"`
 
 	// +kubebuilder:validation:Required
-	// Tag is a sha256 checksum value identifying the version of the package and
-	// its contents.
-	Tag string `json:"tag"`
+	// Digest is a checksum value identifying the version of the package and its contents.
+	Digest string `json:"digest"`
 }
 
 // PackageBundleStatus defines the observed state of PackageBundle

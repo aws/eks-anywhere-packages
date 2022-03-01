@@ -16,6 +16,6 @@ fi
 fixed=$(yq ${file} \
     "del(${alwaysexcludes}$([ ! -z ${excludes} ] && echo , ${excludes})) | walk( if type == \"object\" then with_entries(select(.value != \"\" and .value != null and .value != [])) else . end)" "--indentless-lists -Y -S")
 digest=$(openssl dgst -sha256 -binary <<<"${fixed}")
-signature=$(openssl pkeyutl -inkey pkg/signature/testdata/private.ec.key -sign -in <(echo "${digest}") | base64 -w0)
+signature=$(openssl pkeyutl -inkey pkg/signature/testdata/private.ec.key -sign -in <(echo "${digest}") | base64 | tr -d '\n')
 yq "${file}" ".metadata.annotations.\"eksa.aws.com/signature\" = \"${signature}\"" -Y > "${file}.signed"
-echo -n "${digest}" | base64 -w0 > ${file}.digest
+echo -n "${digest}" | base64 | tr -d '\n' > ${file}.digest

@@ -72,10 +72,10 @@ func (d *helmDriver) Install(ctx context.Context,
 
 func (d *helmDriver) getChart(source api.PackageOCISource) (*chart.Chart, error) {
 	url := getChartURL(source)
-	cpo := action.ChartPathOptions{Version: source.Tag}
+	cpo := action.ChartPathOptions{Version: source.Digest}
 	chartPath, err := cpo.LocateChart(url, d.settings)
 	if err != nil {
-		return nil, fmt.Errorf("locating helm chart %s tag %s: %w", url, source.Tag, err)
+		return nil, fmt.Errorf("locating helm chart %s tag %s: %w", url, source.Digest, err)
 	}
 	return loader.Load(chartPath)
 }
