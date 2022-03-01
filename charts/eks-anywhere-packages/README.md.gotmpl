@@ -1,0 +1,30 @@
+{{ template "chart.header" . }}
+{{ template "chart.description" . }}
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+## Installing the Chart
+
+Before the chart can be installed the we need to install cert-manager.
+
+```bash
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.yaml
+```
+
+To do a simple install run:
+
+```bash
+helm upgrade --install --namespace eksa-packages --create-namespace \
+  eksa-packages {{ template "chart.name" . }}/ \
+  --values values.yaml
+```
+
+To Uninstall:
+
+```
+helm delete eksa-packages
+```
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

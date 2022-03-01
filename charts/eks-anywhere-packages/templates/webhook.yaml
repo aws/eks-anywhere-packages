@@ -1,0 +1,30 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ include "eks-anywhere-packages.fullname" . }}-validating-webhook-configuration
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "eks-anywhere-packages.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/inject-ca-from:  "{{ .Values.namespace }}/{{ include "eks-anywhere-packages.fullname" . }}-serving-cert"
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: {{ .Release.Name }}-eks-anywhere-packages-webhook-service
+      namespace: {{ .Values.namespace }}
+      path: /validate-packages-eks-amazonaws-com-v1alpha1-packagebundle
+  failurePolicy: Fail
+  name: vpackagebundle.kb.io
+  rules:
+  - apiGroups:
+    - packages.eks.amazonaws.com
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - packagebundles
+  sideEffects: None

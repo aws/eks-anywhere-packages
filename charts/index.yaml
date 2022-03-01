@@ -1,0 +1,17 @@
+apiVersion: v1
+entries:
+  eks-anywhere-packages:
+  - apiVersion: v2
+    appVersion: 0.0.0
+    created: "2022-03-01T17:48:32.133071-06:00"
+    description: A Helm chart for eks-anywhere-packages, a controller for managing
+      the lifecycle of EKS Anywhere packages.
+    digest: 30a319fcf3e0ace7deaf9724bf7f11789aefa1f64a7fd5d56334dbd5e22182c8
+    name: eks-anywhere-packages
+    sources:
+    - https://github.com/aws/eks-anywhere-packages/
+    type: application
+    urls:
+    - eks-anywhere-packages-0.0.0.tgz
+    version: 0.0.0
+generated: "2022-03-01T17:48:32.131684-06:00"

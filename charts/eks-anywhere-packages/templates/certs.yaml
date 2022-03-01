@@ -1,0 +1,35 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "eks-anywhere-packages.fullname" . }}-serving-cert
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "eks-anywhere-packages.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  dnsNames:
+  - {{ .Release.Name }}-eks-anywhere-packages.eksa-packages.svc
+  - {{ .Release.Name }}-eks-anywhere-packages.eksa-packages.svc.cluster.local
+  - {{ .Release.Name }}-eks-anywhere-packages-webhook-service.eksa-packages.svc
+  - {{ .Release.Name }}-eks-anywhere-packages-webhook-service.eksa-packages.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: {{ include "eks-anywhere-packages.fullname" . }}-selfsigned-issuer
+  secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "eks-anywhere-packages.fullname" . }}-selfsigned-issuer
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "eks-anywhere-packages.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selfSigned: {}
