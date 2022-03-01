@@ -35,14 +35,10 @@ type PackageControllerReconciler struct {
 }
 
 func NewPackageControllerReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger) *PackageControllerReconciler {
-	if log == nil {
-		log = ctrl.Log.WithName(packageControllerName)
-	}
-
 	return &PackageControllerReconciler{
 		Client: client,
 		Scheme: scheme,
-		Log:    log,
+		Log:    log.WithName(packageControllerName),
 	}
 }
 

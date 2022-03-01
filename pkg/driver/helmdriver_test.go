@@ -2,6 +2,9 @@ package driver
 
 import (
 	"testing"
+
+	"github.com/go-logr/logr"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHelmChartURLIsPrefixed(t *testing.T) {
@@ -35,13 +38,9 @@ func TestHelmChartURLIsPrefixed(t *testing.T) {
 }
 
 func TestNewHelm(t *testing.T) {
-	helm, err := NewHelm(nil)
-	if err != nil {
-		t.Fatalf("expected no error, got %s", err)
-	}
-	if helm.log != nil {
-		t.Errorf("expected nil, got %+v", helm.log)
-	}
+	helm, err := NewHelm(logr.Discard())
+	assert.NoError(t, err)
+	assert.NotNil(t, helm.log)
 }
 
 func TestPrefixName(t *testing.T) {

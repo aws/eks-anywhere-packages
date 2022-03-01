@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,7 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
@@ -25,7 +25,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 	discovery := testutil.NewFakeDiscoveryWithDefaults()
 
 	puller := testutil.NewMockPuller()
-	bm := bundle.NewBundleManager(log.NullLogger{}, discovery, puller)
+	bm := bundle.NewBundleManager(logr.Discard(), discovery, puller)
 
 	controllerNN := types.NamespacedName{
 		Namespace: bundle.ActiveBundleNamespace,
@@ -90,7 +90,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			})
 
 		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
-			log.NullLogger{})
+			logr.Discard())
 		result, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: inactiveController})
 		if err != nil {
 			t.Fatalf("expected no error, got %s", err)
@@ -141,9 +141,9 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 
 		mockPuller := testutil.NewMockPuller()
 		mockPuller.WithFileData(t, "../api/testdata/bundle_one.yaml")
-		bm := bundle.NewBundleManager(log.NullLogger{}, discovery, mockPuller)
+		bm := bundle.NewBundleManager(logr.Discard(), discovery, mockPuller)
 		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
-			log.NullLogger{})
+			logr.Discard())
 		_, err := r.Reconcile(ctx, req)
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
@@ -165,7 +165,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			Return(notFoundError)
 
 		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
-			log.NullLogger{})
+			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
 		if err != nil {
 			t.Fatalf("expected no error, got %s", err)

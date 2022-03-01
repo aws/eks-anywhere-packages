@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	"gotest.tools/assert"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -26,7 +27,7 @@ func TestPackageBundleReconciler_mapBundleReconcileReqeusts(t *testing.T) {
 			return nil
 		})
 	bm := bundlefake.NewBundleManager()
-	sut := NewPackageBundleReconciler(mockClient, nil, bm, nil)
+	sut := NewPackageBundleReconciler(mockClient, nil, bm, logr.Discard())
 
 	requests := sut.mapBundleReconcileRequests(&api.PackageBundleController{})
 
