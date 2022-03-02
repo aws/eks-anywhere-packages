@@ -8,7 +8,7 @@
 Before the chart can be installed the we need to install cert-manager.
 
 ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.yaml
+helm install cert-manager oci://public.ecr.aws/l0g8r8j6/jetstack/cert-manager --version v1.5.3-8b3810e1514b7432e032794842425accc837757a-helm
 ```
 
 To do a simple install run:

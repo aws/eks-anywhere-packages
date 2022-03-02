@@ -9,15 +9,14 @@ A Helm chart for eks-anywhere-packages, a controller for managing the lifecycle 
 Before the chart can be installed the we need to install cert-manager.
 
 ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.yaml
+helm install cert-manager oci://public.ecr.aws/l0g8r8j6/jetstack/cert-manager --version v1.5.3-8b3810e1514b7432e032794842425accc837757a-helm
 ```
 
 To do a simple install run:
 
 ```bash
 helm upgrade --install --namespace eksa-packages --create-namespace \
-  eksa-packages eks-anywhere-packages/ \
-  --values values.yaml
+  eksa-packages eks-anywhere-packages/
 ```
 
 To Uninstall:
@@ -32,19 +31,20 @@ helm delete eksa-packages
 |-----|------|---------|-------------|
 | additionalAnnotations | object | `{}` | Additional annotations to add into metadata. |
 | additionalLabels | object | `{}` | Additional labels to add into metadata. |
-| aws.defaultInstanceProfile | string | `""` | The default instance profile to use when launching nodes on AWS |
-| clusterEndpoint | string | `""` | Cluster endpoint. |
-| clusterName | string | `""` | Cluster name. |
 | controller.env | list | `[{"name":"ENABLE_WEBHOOKS","value":"true"}]` | Additional environment variables for the controller pod. |
-| controller.image | string | `"public.ecr.aws/f5b7k4z5/eks-anywhere-packages"` | Controller image. |
 | controller.livenessProbe | object | `{"initialDelaySeconds":15,"path":"/healthz","periodSeconds":20,"port":8081}` | livenessProbe controls the values for controller container readiness. TODO Add in templating later |
 | controller.readinessProbe | object | `{"initialDelaySeconds":5,"path":"/readyz","periodSeconds":10,"port":8081}` | readinessProbe controls the values for controller container readiness. TODO Add in templating later |
+| controller.registry | string | `"public.ecr.aws/l0g8r8j6"` | Controller registry. |
+| controller.repository | string | `"eks-anywhere-packages"` | Controller repository name. |
 | controller.resources | object | `{"limits":{"cpu":"500m","memory":"100Mi"},"requests":{"cpu":"100m","memory":"50Mi"}}` | Resources for the controller pod. |
 | controller.securityContext | object | `{"allowPrivilegeEscalation":false}` | SecurityContext for the controller container. |
+| controller.tag | string | `"latest"` | Controller image tag, or sha sum. |
 | fullnameOverride | string | `""` | Overrides the chart's computed fullname. |
 | imagePullPolicy | string | `"IfNotPresent"` | Image pull policy for Docker images. |
 | kuberbacproxy.env | list | `[]` | Additional environment variables for the webhook pod. |
-| kuberbacproxy.image | string | `"gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0"` | Webhook image. |
+| kuberbacproxy.registry | string | `"public.ecr.aws/l0g8r8j6"` | Controller registry. |
+| kuberbacproxy.repository | string | `"brancz/kube-rbac-proxy"` | Controller repository name. |
+| kuberbacproxy.tag | string | `"latest"` | Controller image tag, or sha sum. |
 | nameOverride | string | `""` | Overrides the chart's name. |
 | namespace | string | `"eksa-packages"` | The namespace to deploy the resources into |
 | nodeSelector | object | `{"kubernetes.io/os":"linux"}` | Node selectors to schedule the pod to nodes with labels. |

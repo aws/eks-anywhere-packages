@@ -61,8 +61,12 @@ controller:
     port: 8081
     initialDelaySeconds: 5
     periodSeconds: 10
-  # -- Controller image.
-  image: "public.ecr.aws/l0g8r8j6/eks-anywhere-packages"
+  # -- Controller registry.
+  registry: "public.ecr.aws/l0g8r8j6"
+  # -- Controller repository name.
+  repository: "eks-anywhere-packages"
+  # -- Controller image tag, or sha sum.
+  tag: "latest"
   # -- Additional environment variables for the controller pod.
   env:
     - name: ENABLE_WEBHOOKS
@@ -76,7 +80,11 @@ controller:
       cpu: 500m
       memory: 100Mi
 kuberbacproxy:
-  # -- Webhook image.
-  image: "gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0"
+  # -- Controller registry.
+  registry: "public.ecr.aws/eks-anywhere/brancz"
+  # -- Controller repository name.
+  repository: "brancz/kube-rbac-proxy"
+  # -- Controller image tag, or sha sum.
+  tag: "v0.8.0-eks-a-7"
   # -- Additional environment variables for the webhook pod.
   env:  []

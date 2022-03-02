@@ -75,3 +75,15 @@ Define the eks-anywhere-packages.namespace template if set with namespace or .Re
 {{ printf "namespace: %s" .Release.Namespace }}
 {{- end -}}
 {{- end -}}
+
+
+{{/*
+Create image name
+*/}}
+{{- define "template.tag" -}}
+{{- if eq (substr 0 7 . ) "sha256:" -}}
+{{- printf "@%s" . -}}
+{{- else -}}
+{{- printf ":%s" . -}}
+{{- end -}}
+{{- end -}}
