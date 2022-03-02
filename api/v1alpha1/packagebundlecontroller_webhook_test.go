@@ -83,7 +83,6 @@ func TestHandleInner(t *testing.T) {
 		}
 		pbcBytes, err := json.Marshal(pbc)
 		require.NoError(t, err)
-		log.Printf("marshaled %d bytes", len(pbcBytes))
 		scheme := runtime.NewScheme()
 		require.NoError(t, AddToScheme(scheme))
 		decoder, err := admission.NewDecoder(scheme)
