@@ -97,6 +97,9 @@ docker-build: test ## Build docker image with the package-manager.
 docker-push: ## Push docker image with the package-manager.
 	docker push ${IMG}
 
+helm-build:
+	hack/helm.sh
+
 ##@ Deployment
 
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
@@ -114,6 +117,11 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
+helm-deploy:
+	helm upgrade --install --namespace eksa-packages --create-namespace eksa-packages charts/eks-anywhere-packages/
+
+helm-delete:
+	helm delete eksa-packages
 
 CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.

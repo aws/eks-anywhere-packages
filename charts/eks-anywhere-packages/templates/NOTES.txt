@@ -1,0 +1,4 @@
+Thanks for installing, for any bugs or issues please file them at https://github.com/aws/eks-anywhere-packages/issues
+
+For more information on running eks-anywhere-packages, visit:
+https://github.com/aws/eks-anywhere-packages

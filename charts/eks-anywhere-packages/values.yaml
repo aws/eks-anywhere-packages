@@ -1,0 +1,90 @@
+# Default values for eks-anywhere-packages.
+# This is a YAML-formatted file.
+
+# -- The namespace to deploy the resources into
+namespace: eksa-packages
+# -- Overrides the chart's name.
+nameOverride: ""
+# -- Overrides the chart's computed fullname.
+fullnameOverride: ""
+# -- Additional labels to add into metadata.
+additionalLabels: {}
+# app: eks-anywhere-packages
+# -- Additional annotations to add into metadata.
+additionalAnnotations: {}
+# -- Image pull policy for Docker images.
+imagePullPolicy: IfNotPresent
+serviceAccount:
+  # -- The name of the ServiceAccount to use.
+  name: "eks-anywhere-packages-serviceaccount"
+  # -- Additional annotations for the ServiceAccount.
+  annotations: {}
+serviceMonitor:
+  # -- Specifies whether a ServiceMonitor should be created.
+  enabled: false
+  # -- Additional labels for the ServiceMonitor.
+  additionalLabels: {}
+  # -- Endpoint configuration for the ServiceMonitor.
+  endpointConfig: {}
+# -- Number of replicas.
+replicaCount: 1
+# -- Strategy for updating the pod.
+strategy:
+  type: Recreate
+# -- Additional labels for the pod.
+podLabels: {}
+# -- Additional annotatiimagePullSecretsons for the pod.
+podAnnotations: {}
+# -- SecurityContext for the pod.
+podSecurityContext:
+  runAsNonRoot: true
+# -- Override the default termination grace period for the pod.
+terminationGracePeriodSeconds: 10
+# -- Node selectors to schedule the pod to nodes with labels.
+nodeSelector:
+  kubernetes.io/os: linux
+# -- Tolerations to allow the pod to be scheduled to nodes with taints.
+tolerations: []
+controller:
+  # -- SecurityContext for the controller container.
+  securityContext:
+    allowPrivilegeEscalation: false
+  # -- livenessProbe controls the values for controller container readiness. TODO Add in templating later
+  livenessProbe:
+    path: /healthz
+    port: 8081
+    initialDelaySeconds: 15
+    periodSeconds: 20
+  # -- readinessProbe controls the values for controller container readiness. TODO Add in templating later
+  readinessProbe:
+    path: /readyz
+    port: 8081
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  # -- Controller registry.
+  registry: "public.ecr.aws/l0g8r8j6"
+  # -- Controller repository name.
+  repository: "eks-anywhere-packages"
+  # -- Controller image tag, or sha sum.
+  tag: "latest"
+  # -- Additional environment variables for the controller pod.
+  env:
+    - name: ENABLE_WEBHOOKS
+      value: "true"
+  # -- Resources for the controller pod.
+  resources:
+    requests:
+      cpu: 100m
+      memory: 50Mi
+    limits:
+      cpu: 500m
+      memory: 100Mi
+kuberbacproxy:
+  # -- Controller registry.
+  registry: "public.ecr.aws/eks-anywhere/brancz"
+  # -- Controller repository name.
+  repository: "brancz/kube-rbac-proxy"
+  # -- Controller image tag, or sha sum.
+  tag: "v0.8.0-eks-a-7"
+  # -- Additional environment variables for the webhook pod.
+  env:  []
