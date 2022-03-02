@@ -12,6 +12,7 @@ import (
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/cli"
+	"helm.sh/helm/v3/pkg/registry"
 	"helm.sh/helm/v3/pkg/storage/driver"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
@@ -28,8 +29,14 @@ var _ PackageDriver = (*helmDriver)(nil)
 
 func NewHelm(log logr.Logger) (*helmDriver, error) {
 	settings := cli.New()
-	cfg := &action.Configuration{}
-	err := cfg.Init(settings.RESTClientGetter(), settings.Namespace(),
+	//TODO: Allow configuring the client's credentials from a secret
+	//see: https://github.com/aws/eks-anywhere-packages/issues/20
+	client, err := registry.NewClient()
+	if err != nil {
+		return nil, fmt.Errorf("Error creating registry client while initializing helm driver: %w", err)
+	}
+	cfg := &action.Configuration{RegistryClient: client}
+	err = cfg.Init(settings.RESTClientGetter(), settings.Namespace(),
 		os.Getenv("HELM_DRIVER"), helmLog(log))
 	if err != nil {
 		return nil, fmt.Errorf("initializing helm driver: %w", err)
@@ -46,8 +53,13 @@ func (d *helmDriver) Install(ctx context.Context,
 	name string, namespace string, source api.PackageOCISource, values map[string]interface{}) error {
 	var err error
 
+	install := action.NewInstall(d.cfg)
 	fullName := d.prefixName(name)
-	helmChart, err := d.getChart(source)
+
+	install.ReleaseName = fullName
+	install.Namespace = namespace
+
+	helmChart, err := d.getChart(install, source)
 	if err != nil {
 		return fmt.Errorf("loading helm chart %s: %w", fullName, err)
 	}
@@ -57,7 +69,7 @@ func (d *helmDriver) Install(ctx context.Context,
 	_, err = get.Run(fullName)
 	if err != nil {
 		if errors.Is(err, driver.ErrReleaseNotFound) {
-			return d.createRelease(ctx, fullName, namespace, helmChart, values)
+			return d.createRelease(ctx, install, helmChart, values)
 		}
 		return fmt.Errorf("getting helm release %s: %w", fullName, err)
 	}
@@ -70,10 +82,9 @@ func (d *helmDriver) Install(ctx context.Context,
 	return nil
 }
 
-func (d *helmDriver) getChart(source api.PackageOCISource) (*chart.Chart, error) {
+func (d *helmDriver) getChart(install *action.Install, source api.PackageOCISource) (*chart.Chart, error) {
 	url := getChartURL(source)
-	cpo := action.ChartPathOptions{Version: source.Digest}
-	chartPath, err := cpo.LocateChart(url, d.settings)
+	chartPath, err := install.LocateChart(url, d.settings)
 	if err != nil {
 		return nil, fmt.Errorf("locating helm chart %s tag %s: %w", url, source.Digest, err)
 	}
@@ -85,14 +96,10 @@ func getChartURL(source api.PackageOCISource) string {
 }
 
 func (d *helmDriver) createRelease(ctx context.Context,
-	name string, namespace string, helmChart *chart.Chart, values map[string]interface{}) error {
-
-	install := action.NewInstall(d.cfg)
-	install.ReleaseName = name
-	install.Namespace = namespace
+	install *action.Install, helmChart *chart.Chart, values map[string]interface{}) error {
 	_, err := install.RunWithContext(ctx, helmChart, values)
 	if err != nil {
-		return fmt.Errorf("installing helm chart %s: %w", name, err)
+		return fmt.Errorf("installing helm chart %s: %w", install.ReleaseName, err)
 	}
 
 	return nil
