@@ -88,7 +88,7 @@ func (v *activeBundleValidator) handleInner(ctx context.Context,
 			Status:  metav1.StatusFailure,
 			Code:    http.StatusNotFound,
 			Message: msg,
-			Reason:  metav1.StatusReasonInvalid,
+			Reason:  metav1.StatusReasonNotFound,
 		}
 	}
 
