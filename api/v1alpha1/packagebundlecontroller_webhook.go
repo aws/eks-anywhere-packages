@@ -86,7 +86,7 @@ func (v *activeBundleValidator) handleInner(ctx context.Context,
 		msg := fmt.Sprintf("package bundle not found with name: %q", pbc.Spec.ActiveBundle)
 		resp.AdmissionResponse.Result = &metav1.Status{
 			Status:  metav1.StatusFailure,
-			Code:    http.StatusUnprocessableEntity,
+			Code:    http.StatusNotFound,
 			Message: msg,
 			Reason:  metav1.StatusReasonInvalid,
 		}
