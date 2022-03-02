@@ -80,10 +80,3 @@ kuberbacproxy:
   image: "gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0"
   # -- Additional environment variables for the webhook pod.
   env:  []
-# -- Cluster name.
-clusterName: ""
-# -- Cluster endpoint.
-clusterEndpoint: ""
-aws:
-  # -- The default instance profile to use when launching nodes on AWS
-  defaultInstanceProfile: ""
