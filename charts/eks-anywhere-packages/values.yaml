@@ -81,7 +81,7 @@ controller:
       memory: 100Mi
 kuberbacproxy:
   # -- Controller registry.
-  registry: "public.ecr.aws/eks-anywhere/brancz"
+  registry: "public.ecr.aws/eks-anywhere"
   # -- Controller repository name.
   repository: "brancz/kube-rbac-proxy"
   # -- Controller image tag, or sha sum.
