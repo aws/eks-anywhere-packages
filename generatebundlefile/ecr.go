@@ -58,7 +58,7 @@ func (c *ecrClient) GetShaForTags(project Project) ([]api.SourceVersion, error) 
 			matchingTags := project.Matches(tag)
 			switch {
 			case len(matchingTags) == 1:
-				v := &api.SourceVersion{Name: matchingTags[0], Tag: *images.ImageDigest}
+				v := &api.SourceVersion{Name: matchingTags[0], Digest: *images.ImageDigest}
 				sourceVersion = append(sourceVersion, *v)
 			// If we get more than 1 tag match, we lookup whichever was the most recent push ex: two images are labeled with v1.1 we used the most recent one.
 			case len(matchingTags) > 1:
@@ -84,7 +84,7 @@ func removeDuplicates(s []api.SourceVersion) []api.SourceVersion {
 	for _, i := range s {
 		if _, j := k[i.Name]; !j {
 			k[i.Name] = true
-			l = append(l, api.SourceVersion{Name: i.Name, Tag: i.Tag})
+			l = append(l, api.SourceVersion{Name: i.Name, Digest: i.Digest})
 		}
 	}
 	return l
@@ -111,5 +111,5 @@ func getLastestImageSha(details []types.ImageDetail) (*api.SourceVersion, error)
 	if reflect.ValueOf(latest).Interface() == reflect.ValueOf(types.ImageDetail{}).Interface() {
 		return nil, fmt.Errorf("error no images found")
 	}
-	return &api.SourceVersion{Name: latest.ImageTags[0], Tag: *latest.ImageDigest}, nil
+	return &api.SourceVersion{Name: latest.ImageTags[0], Digest: *latest.ImageDigest}, nil
 }
