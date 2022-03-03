@@ -47,9 +47,9 @@ spec:
       repository: jetstack/cert-manager-controller
       versions:
       - name: v1.1.0-eks-a-4
-        tag: sha256:273fe866f82e7278a16ef4d32c5a4cb31b688aae48290080dd8f2f7f44485c5c
+        digest: sha256:273fe866f82e7278a16ef4d32c5a4cb31b688aae48290080dd8f2f7f44485c5c
       - name: v1.1.0-eks-a-3
-        tag: sha256:c3516d93fa52bdb459f46839d708c113d127895468ef6d6a86ec44003cc85c4d
+        digest: sha256:c3516d93fa52bdb459f46839d708c113d127895468ef6d6a86ec44003cc85c4d
   kubernetesVersion: "1.21"
 status:
   upgradesavailable: []
@@ -109,6 +109,6 @@ spec:
       repository: sample-Repository
       versions:
       - name: v0.0
-        tag: sha256:da25f5fdff88c259bb2ce7c0f1e9edddaf102dc4fb9cf5159ad6b902b5194e66
+        digest: sha256:da25f5fdff88c259bb2ce7c0f1e9edddaf102dc4fb9cf5159ad6b902b5194e66
   kubeVersion: "1.21"
 ```
