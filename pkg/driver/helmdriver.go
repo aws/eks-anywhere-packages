@@ -33,7 +33,7 @@ func NewHelm(log logr.Logger) (*helmDriver, error) {
 	//see: https://github.com/aws/eks-anywhere-packages/issues/20
 	client, err := registry.NewClient()
 	if err != nil {
-		return nil, fmt.Errorf("Error creating registry client while initializing helm driver: %w", err)
+		return nil, fmt.Errorf("creating registry client while initializing helm driver: %w", err)
 	}
 	cfg := &action.Configuration{RegistryClient: client}
 	err = cfg.Init(settings.RESTClientGetter(), settings.Namespace(),
