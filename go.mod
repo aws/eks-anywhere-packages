@@ -3,8 +3,8 @@ module github.com/aws/eks-anywhere-packages
 go 1.17
 
 require (
-	github.com/containerd/containerd v1.5.9
-	github.com/go-logr/logr v1.2.0
+	github.com/containerd/containerd v1.6.1
+	github.com/go-logr/logr v1.2.2
 	github.com/golang/mock v1.6.0
 	github.com/itchyny/gojq v0.12.6
 	github.com/onsi/ginkgo v1.16.5
@@ -66,7 +66,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
-	github.com/google/gofuzz v1.1.0 // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
@@ -108,8 +108,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.11.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.28.0 // indirect
-	github.com/prometheus/procfs v0.6.0 // indirect
+	github.com/prometheus/common v0.30.0 // indirect
+	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc // indirect
 	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
@@ -158,6 +158,6 @@ require (
 )
 
 replace (
-	github.com/containerd/containerd => github.com/containerd/containerd v1.5.9
+	github.com/containerd/containerd => github.com/containerd/containerd v1.6.1
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20220207154021-dcf66392d606
 )
