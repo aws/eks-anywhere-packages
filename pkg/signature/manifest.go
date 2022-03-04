@@ -18,9 +18,10 @@ import (
 )
 
 const (
-	PublicKey           = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAETP8OUc6rTZHJs98X1aJfDIO0BXihHnSBDJhacdxZwk9RVzq28OIxQSVXXhD5ATEqWcNSWLnCG/GrZY9W2NfoMw=="
-	SignatureAnnotation = "signature"
-	ExcludesAnnotation  = "excludes"
+	PublicKey               = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAETP8OUc6rTZHJs98X1aJfDIO0BXihHnSBDJhacdxZwk9RVzq28OIxQSVXXhD5ATEqWcNSWLnCG/GrZY9W2NfoMw=="
+	SignatureAnnotation     = "signature"
+	ExcludesAnnotation      = "excludes"
+	FullSignatureAnnotation = "eksa.aws.com/signature"
 )
 
 var EksaDomain = Domain{Name: "eksa.aws.com", Pubkey: PublicKey}

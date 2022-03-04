@@ -22,12 +22,13 @@ type BundleGenerate struct {
 // Input is the schema for the Input file
 type Input struct {
 	Packages          []Org  `json:"packages,omitempty"`
+	Name              string `json:"name,omitempty"`
 	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
 }
 
 // Projects object containing the input file github org and repo locations
 type Org struct {
-	Name     string    `json:"name,omitempty"`
+	Org      string    `json:"org,omitempty"`
 	Projects []Project `json:"projects,omitempty"`
 }
 
