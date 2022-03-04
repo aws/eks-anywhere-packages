@@ -10,6 +10,7 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
 )
 
 var (
@@ -65,9 +66,12 @@ func (projects Project) NewPackageFromInput() (*api.BundlePackage, error) {
 	if err != nil {
 		return nil, err
 	}
-	versionList, err := ecrClient.GetShaForTags(projects)
+	versionList, err := ecrClient.GetShaForInputs(projects)
 	if err != nil {
 		return nil, err
+	}
+	if len(versionList) < 1 {
+		return nil, fmt.Errorf("unable to find SHA sum for given input tag %v", projects.Versions)
 	}
 	bundlePkg := &api.BundlePackage{
 		Name: projects.Name,
@@ -81,28 +85,63 @@ func (projects Project) NewPackageFromInput() (*api.BundlePackage, error) {
 }
 
 // AddMetadata adds the corresponding metadata to the crd files.
-func AddMetadata(s api.PackageBundleSpec) BundleGenerate {
-	return BundleGenerate{
+func AddMetadata(s api.PackageBundleSpec, name string) api.PackageBundle {
+	bundleName := name
+	return api.PackageBundle{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       api.PackageBundleKind,
 			APIVersion: SchemeBuilder.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.KubeVersion,
+			Name:      bundleName,
 			Namespace: bundle.ActiveBundleNamespace,
 		},
 		Spec: s,
 	}
 }
 
-// MarshalBundleSpec will create yaml objects from bundlespecs
-func (bundleSpec BundleGenerate) MarshalBundleSpec() ([]byte, error) {
-	marshallables := []interface{}{bundleSpec}
+func IfSignature(bundle *api.PackageBundle) (bool, error) {
+	annotations := bundle.ObjectMeta.Annotations
+	if annotations != nil {
+		return true, nil
+	}
+	return false, nil
+}
+
+func AddSignature(bundle *api.PackageBundle, signature string) (*api.PackageBundle, error) {
+	annotations := map[string]string{}
+	if signature == "" || bundle == nil {
+		return nil, fmt.Errorf("Error adding signature to bundle, empty signature, or bundle entry\n")
+	}
+	annotations = map[string]string{
+		sig.FullSignatureAnnotation: signature,
+	}
+	bundle.ObjectMeta.Annotations = annotations
+	return bundle, nil
+}
+
+func CheckSignature(bundle *api.PackageBundle, signature string) (bool, error) {
+	if signature == "" || bundle == nil {
+		return false, fmt.Errorf("either signature or bundle is missing, but are required")
+	}
+	annotations := map[string]string{
+		sig.FullSignatureAnnotation: signature,
+	}
+	//  If current signature on file isn't at the --signature input return false, otherwsie true
+	if annotations[sig.FullSignatureAnnotation] != bundle.ObjectMeta.Annotations[sig.FullSignatureAnnotation] {
+		return false, fmt.Errorf("A signature already exists on the input file signatue")
+	}
+	return true, nil
+}
+
+// MarshalBundleSpec will create yaml objects from bundlespecs TODO look into https://pkg.go.dev/encoding/json#example-package-CustomMarshalJSON
+func MarshalBundleSpec(bundle api.PackageBundle) ([]byte, error) {
+	marshallables := []interface{}{bundle}
 	resources := make([][]byte, len(marshallables))
 	for _, marshallable := range marshallables {
 		resource, err := yaml.Marshal(marshallable)
 		if err != nil {
-			return nil, fmt.Errorf("failed marshalling resource for bundle spec: %v", err)
+			return nil, fmt.Errorf("marshalling resource for bundle: %w", err)
 		}
 		resources = append(resources, resource)
 	}
@@ -110,14 +149,13 @@ func (bundleSpec BundleGenerate) MarshalBundleSpec() ([]byte, error) {
 }
 
 // WriteBundleConfig writes the yaml objects to files in your defined dir
-func WriteBundleConfig(pkgBundleSpec api.PackageBundleSpec, writer FileWriter) error {
-	bundle := AddMetadata(pkgBundleSpec)
-	crdContent, err := bundle.MarshalBundleSpec()
+func WriteBundleConfig(bundle api.PackageBundle, writer FileWriter) error {
+	crdContent, err := MarshalBundleSpec(bundle)
 	if err != nil {
 		return err
 	}
-	if filePath, err := writer.Write(fmt.Sprintf("bundle-%s.yaml", pkgBundleSpec.KubeVersion), crdContent, PersistentFile); err != nil {
-		err = fmt.Errorf("error writing bundle crd file into %s: %v", filePath, err)
+	if filePath, err := writer.Write(fmt.Sprintf("bundle-%s.yaml", bundle.Spec.KubeVersion), crdContent, PersistentFile); err != nil {
+		err = fmt.Errorf("writing bundle crd file into %q: %w", filePath, err)
 		return err
 	}
 	return nil

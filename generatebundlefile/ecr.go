@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"regexp"
+	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
@@ -18,7 +21,7 @@ type ecrClient struct {
 	*ecrpublic.Client
 }
 
-// Create ECR Client Public client
+// NewECRClient Creates a new ECR Client Public client
 func NewECRClient() (*ecrClient, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
 	if err != nil {
@@ -31,43 +34,80 @@ func NewECRClient() (*ecrClient, error) {
 	return ecrClient, nil
 }
 
-// GetShaForTags returns a list of an images version/sha for given inputs to lookup
-func (c *ecrClient) GetShaForTags(project Project) ([]api.SourceVersion, error) {
-	resp, err := c.DescribeImages(context.TODO(), &ecrpublic.DescribeImagesInput{
-		RepositoryName: aws.String(project.Name),
-	})
+// Describe returns a list of ECR describe results, with Pagination from DescribeImages SDK request
+func (c *ecrClient) Describe(describeInput *ecrpublic.DescribeImagesInput) ([]types.ImageDetail, error) {
+	var images []types.ImageDetail
+	resp, err := c.DescribeImages(context.TODO(), describeInput)
 	if err != nil {
 		return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
 	}
-	// Lookup of the tags and corresponding sha's from the name matches from the input files.
-	// EX input file has tag `v1.1.0-eks-a-4` this will check the ECR describe command to see if tag
-	// `v1.1.0-eks-a-4` is present. If so it will return that chart's sha256 sum, if multiple tags of
-	// `v1.1.0-eks-a-4` are present from the ecr lookup it will find whichever one was the most recently pushed and return that.
+	images = append(images, resp.ImageDetails...)
+	if resp.NextToken != nil {
+		next := describeInput
+		next.NextToken = resp.NextToken
+		nextdetails, _ := c.Describe(next)
+		images = append(images, nextdetails...)
+	}
+	return images, nil
+}
+
+// GetShaForInputs returns a list of an images version/sha for given inputs to lookup
+func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error) {
 	sourceVersion := []api.SourceVersion{}
-	for _, images := range resp.ImageDetails {
-		// Check for Helm Chart Media Type
-		// Helm = application/vnd.oci.image.manifest.v1+json
-		if *images.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" {
+	for _, tag := range project.Versions {
+		if !strings.Contains(tag.Name, "latest") {
+			var imagelookup []types.ImageIdentifier
+			imagelookup = append(imagelookup, types.ImageIdentifier{ImageTag: &tag.Name})
+			ImageDetails, err := c.Describe(&ecrpublic.DescribeImagesInput{
+				RepositoryName: aws.String(project.Repository),
+				ImageIds:       imagelookup,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
+			}
+			for _, images := range ImageDetails {
+				if *images.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" || len(images.ImageTags) == 0 {
+					continue
+				}
+				if len(images.ImageTags) == 1 {
+					v := &api.SourceVersion{Name: tag.Name, Digest: *images.ImageDigest}
+					sourceVersion = append(sourceVersion, *v)
+					continue
+				}
+			}
+		}
+		//
+		if tag.Name == "latest" {
+			ImageDetails, err := c.Describe(&ecrpublic.DescribeImagesInput{
+				RepositoryName: aws.String(project.Repository),
+			})
+			if err != nil {
+				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
+			}
+			sha, err := getLastestImageSha(ImageDetails)
+			if err != nil {
+				return nil, err
+			}
+			sourceVersion = append(sourceVersion, *sha)
 			continue
 		}
-		for _, tag := range images.ImageTags {
-			// if it is nil, we don't do to check for matches
-			if tag == "" || images.ImageDigest == nil {
-				continue
+		//
+		if strings.Contains(tag.Name, "-latest") {
+			regex := regexp.MustCompile(`-latest`)
+			splitVersion := regex.Split(tag.Name, -1) //extract out the version without the latest
+			ImageDetails, err := c.Describe(&ecrpublic.DescribeImagesInput{
+				RepositoryName: aws.String(project.Repository),
+			})
+			if err != nil {
+				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
 			}
-			matchingTags := project.Matches(tag)
-			switch {
-			case len(matchingTags) == 1:
-				v := &api.SourceVersion{Name: matchingTags[0], Digest: *images.ImageDigest}
-				sourceVersion = append(sourceVersion, *v)
-			// If we get more than 1 tag match, we lookup whichever was the most recent push ex: two images are labeled with v1.1 we used the most recent one.
-			case len(matchingTags) > 1:
-				sha, err := getLastestImageSha(resp.ImageDetails)
-				if err != nil {
-					return nil, err
-				}
-				sourceVersion = append(sourceVersion, *sha)
+			filteredImageDetails := imageTagFilter(ImageDetails, splitVersion[0])
+			sha, err := getLastestImageSha(filteredImageDetails)
+			if err != nil {
+				return nil, err
 			}
+			sourceVersion = append(sourceVersion, *sha)
+			continue
 		}
 	}
 	sourceVersion = removeDuplicates(sourceVersion)
@@ -99,8 +139,9 @@ func getLastestImageSha(details []types.ImageDetail) (*api.SourceVersion, error)
 		return nil, fmt.Errorf("no details provided")
 	}
 	var latest types.ImageDetail
+	latest.ImagePushedAt = &time.Time{}
 	for _, detail := range details {
-		if len(details) < 1 || detail.ImagePushedAt == nil || detail.ImageDigest == nil || detail.ImageTags == nil || len(detail.ImageTags) == 0 {
+		if len(details) < 1 || detail.ImagePushedAt == nil || detail.ImageDigest == nil || detail.ImageTags == nil || len(detail.ImageTags) == 0 || *detail.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" {
 			continue
 		}
 		if detail.ImagePushedAt != nil && latest.ImagePushedAt.Before(*detail.ImagePushedAt) {
@@ -108,8 +149,50 @@ func getLastestImageSha(details []types.ImageDetail) (*api.SourceVersion, error)
 		}
 	}
 	// Check if latest is equal to empty struct, and return error if that's the case.
-	if reflect.ValueOf(latest).Interface() == reflect.ValueOf(types.ImageDetail{}).Interface() {
+	if reflect.DeepEqual(latest, types.ImageDetail{}) {
 		return nil, fmt.Errorf("error no images found")
 	}
 	return &api.SourceVersion{Name: latest.ImageTags[0], Digest: *latest.ImageDigest}, nil
 }
+
+func imageTagFilter(details []types.ImageDetail, version string) []types.ImageDetail {
+	var filteredDetails []types.ImageDetail
+	for _, detail := range details {
+		for _, tag := range detail.ImageTags {
+			if strings.Contains(tag, version) {
+				filteredDetails = append(filteredDetails, detail)
+			}
+		}
+	}
+	return filteredDetails
+}
+
+// stringInSlice checks to see if a string is in a slice
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+// removeStringSlice removes a named string from a slice, without knowing it's index or it being ordered.
+func removeStringSlice(l []string, item string) []string {
+	for i, other := range l {
+		if other == item {
+			return append(l[:i], l[i+1:]...)
+		}
+	}
+	return l
+}
+
+// Go 1.18 support for generics makes the above function more generic
+// func remove[T comparable](l []T, item T) []T {
+// 	for i, other := range l {
+// 		if other == item {
+// 			return append(l[:i], l[i+1:]...)
+// 		}
+// 	}
+// 	return l
+// }

@@ -83,8 +83,5 @@ helm pull oci://646717423341.dkr.ecr.us-west-2.amazonaws.com/jetstack/cert-manag
 helm push cert-manager-v1.5.3-4ae27c6a1df646736d9e276358d0a6b2daf99f55.tgz "oci://$local_ecr_public"
 # sha256:a507b9e9e739f6a2363b8739b1ad8f801b67768578867b9fae7d303f9e8918e8
 
-
-public.ecr.aws/l0g8r8j6/eks-anywhere-test:latest
-
 helm pull oci://public.ecr.aws/l0g8r8j6/eks-anywhere-test --version v0.1.1-4280284ae5696ef42fd2a890d083b88f75d4978a-helm
 helm push eks-anywhere-test-v0.1.1-4280284ae5696ef42fd2a890d083b88f75d4978a-helm.tgz "oci://$local_ecr_public"

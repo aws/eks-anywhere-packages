@@ -29,7 +29,7 @@ func main() {
 	// If using --generatesample flag we skip the yaml input portion
 	if o.generateSample {
 		sample := NewBundleGenerate("generatesample")
-		err := WriteBundleConfig(sample.Spec, outputPath)
+		err := WriteBundleConfig(*sample, outputPath)
 		if err != nil {
 			BundleLog.Error(err, "Unable to create CRD skaffolding from generatesample command")
 		}
@@ -43,6 +43,38 @@ func main() {
 		os.Exit(1)
 	}
 
+	//One input file, and a --signature input
+	if o.signature != "" && len(files) == 1 {
+		BundleLog.Info("In Progress: Checking Bundles for Signatures")
+		bundle, err := ValidateBundle(files[0])
+		if err != nil {
+			BundleLog.Error(err, "Unable to validate bundle file")
+			os.Exit(1)
+		}
+		// Check if there is annotations on the bundle
+		// If no annotations, add them
+		// If annotations, check for signatures and compare with input
+		check, err := IfSignature(bundle)
+		if !check {
+			BundleLog.Info("Adding Signature to bundle and exiting...")
+			bundle, err = AddSignature(bundle, o.signature)
+		} else {
+			// If annotations do currently exist then compare the current signature vs the input signature
+			BundleLog.Info("Signature already exists on bundle checking it's contents...")
+			check, err := CheckSignature(bundle, o.signature)
+			if err != nil || !check {
+				BundleLog.Error(err, "Unable to compare signatures")
+				os.Exit(1)
+			}
+		}
+		err = WriteBundleConfig(*bundle, outputPath)
+		if err != nil {
+			BundleLog.Error(err, "Unable to write Bundle")
+			os.Exit(1)
+		}
+		return
+	}
+
 	// Validate Input config, and turn into Input struct
 	BundleLog.Info("Using input file to create bundle crds.", "Input file", o.inputFile)
 
@@ -53,16 +85,17 @@ func main() {
 			os.Exit(1)
 		}
 		BundleLog.Info("In Progress: Populating Bundles and looking up Sha256 tags")
-		crd, err := Inputs.NewBundleFromInput()
+		addOnBundleSpec, name, err := Inputs.NewBundleFromInput()
 		if err != nil {
 			BundleLog.Error(err, "Unable to create CRD skaffolding of AddoOBundle from input file")
 			os.Exit(1)
 		}
 		// Write list of bundle structs into Bundle CRD files
 		BundleLog.Info("In Progress: Writing output files")
-		err = WriteBundleConfig(crd, outputPath)
+		bundle := AddMetadata(addOnBundleSpec, name)
+		err = WriteBundleConfig(bundle, outputPath)
 		if err != nil {
-			BundleLog.Error(err, "Unable to write bundleconfig from Bundle struct")
+			BundleLog.Error(err, "Unable to write Bundle")
 			os.Exit(1)
 		}
 		BundleLog.Info("Finished writing output crd files.", "Output path", fmt.Sprintf("%s%s", o.outputFolder, "/"))

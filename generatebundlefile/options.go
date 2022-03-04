@@ -15,6 +15,7 @@ import (
 type Options struct {
 	inputFile      string
 	outputFolder   string
+	signature      string
 	generateSample bool
 }
 
@@ -67,6 +68,7 @@ func NewOptions() *Options {
 	fs.BoolVar(&o.generateSample, "generate-sample", false, "Whether you want to generate a sample bundle for yourself")
 	fs.StringVar(&o.inputFile, "input", "", "The path where the input bundle generation file lives")
 	fs.StringVar(&o.outputFolder, "output", "output", "The path where to write the output bundle files")
+	fs.StringVar(&o.signature, "signature", "", "The Signature of the bundle to be added as an annotation")
 	err := fs.Parse(os.Args[1:])
 	if err != nil {
 		BundleLog.Error(err, "Error parsing input flags")
