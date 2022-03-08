@@ -20,4 +20,10 @@ spec:
       versions:
         - name: v0.25.1-7fb396bd0be3769162a408aa4d22a48fd74a9db7-helm
           digest: sha256:ab067969310f3f237c716d6f348dab9cfdce8cc2c188dfdd6b5cfa0e2cd63939
-
+  - name: harbor
+    source:
+      registry: public.ecr.aws/y8n6a2y0
+      repository: harbor/harbor-helm
+      versions:
+      - name: v2.4.1-c47074c1d3d92a2359f6b379e6688c323338ec18-helm
+        digest: sha256:02d7873facdc2f4539b21dc81bec1c673a13383b4405858603918822f3c38d3a
