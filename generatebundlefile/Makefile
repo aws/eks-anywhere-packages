@@ -41,5 +41,9 @@ build: ## Build release binary.
 	go mod tidy -compat=1.17
 	go build -o bin/generatebundlefile *.go
 
+build-linux:
+	[ -d bin ] || mkdir bin
+	env GOOS=linux GOARCH=amd64 $(MAKE) build
+
 run:
 	go run .

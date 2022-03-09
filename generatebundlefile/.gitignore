@@ -4,3 +4,4 @@ dist/
 # directory of output from build and run of tool
 output/
 bin/
+hack/pullpush.sh

@@ -6,54 +6,13 @@ This binary takes in an input file with different fields for curated packages we
 
 Example Input file format
 
-```yaml
-#input.yaml
-kubernetesVersion: "1.21"
-packages:
-  - name: jetstack
-    projects:
-      - name: cert-manager-controller
-        registry: public.ecr.aws/eks-anywhere
-        repository: jetstack/cert-manager-controller
-        versions:
-            - name: v1.1.0-eks-a-4
-            - name: v1.1.0-eks-a-3
-  - name: cilium
-    projects:
-      - name: cilium
-        registry: gallery.ecr.aws/isovalent
-        repository: cilium
-        versions:
-            - name: v1.9.10-eksa-enterprise.1
-```
+There are 3 types of helm version tags we can input 
+
+1. Exact Name match, a tag named `v1.0.1.1345` will return the sha if there is exact name match.
+2. A substring version with `-latest` at the end of the name. In this case we'll search for the most recent helm chart starting with `v0.1.1` and return that sha.
+3. A tag of `latest` will return the last helm chart pushed to this repo, and it's tag and sha.
 
 This will output 2 crd objects for the projects. One named after item in the project list.
-
-Here is one of the corresponding output crd files.
-
-```yaml
-apiversion: packages.eks.amazonaws.com/v1alpha1
-kind: PackageBundle
-metadata:
-  name: cert-manager-controller
-  namespace: eksa-packages
-  annotations: {}
-spec:
-  name: cert-manager-controller
-  packages:
-  - name: cert-manager-controller
-    source:
-      registry: public.ecr.aws/eks-anywhere
-      repository: jetstack/cert-manager-controller
-      versions:
-      - name: v1.1.0-eks-a-4
-        digest: sha256:273fe866f82e7278a16ef4d32c5a4cb31b688aae48290080dd8f2f7f44485c5c
-      - name: v1.1.0-eks-a-3
-        digest: sha256:c3516d93fa52bdb459f46839d708c113d127895468ef6d6a86ec44003cc85c4d
-  kubernetesVersion: "1.21"
-status:
-  upgradesavailable: []
-```
 
 ## How to run
 
@@ -74,7 +33,7 @@ make run
 
 To Run for a single file
 ```bash
-go run . --input "bundle.yaml"
+go run . --input "data/input_120.yaml"
 ```
 
 This will output all the corresponding CRD's in the `output` folder
@@ -91,24 +50,35 @@ First you must pull any corresponding images from the main ECR gallery repo's an
 go run . --generate-sample true
 ```
 
-You will see the sample file at `output/1.21-bundle-crd.yaml` with the following content
+You will see the sample file at `output/1.21-bundle-crd.yaml`
+
+## How to sign a file
+
+We can use the input of a valid bundle file with the `--signature` command to annotate it with it's signature. This will fail if there is already another signature on the file.
+
+```bash
+go run . --input output/bundle-1.20.yaml --signature "signature-123"
+```
 
 ```yaml
----
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: PackageBundle
 metadata:
   creationTimestamp: null
-  name: "1.21"
+  name: "v1-20-1001"
   namespace: eksa-packages
-spec:
-  packages:
-  - name: sample-package
-    source:
-      registry: sample-Registry
-      repository: sample-Repository
-      versions:
-      - name: v0.0
-        digest: sha256:da25f5fdff88c259bb2ce7c0f1e9edddaf102dc4fb9cf5159ad6b902b5194e66
-  kubeVersion: "1.21"
+...
+``` 
+Becomes...
+
+```yaml
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: PackageBundle
+metadata:
+  creationTimestamp: null
+  name: "v1-20-1001"
+  namespace: eksa-packages
+  annotations:
+    eksa.aws.com/signature: signature-123
+...
 ```
