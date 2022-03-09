@@ -37,7 +37,7 @@ func TestLatestBundle(t *testing.T) {
 			t.Errorf("expected bundle to be non-nil")
 		}
 
-		if bundle != nil && len(bundle.Spec.Packages) != 2 {
+		if bundle != nil && len(bundle.Spec.Packages) != 3 {
 			t.Errorf("expected two packages to be defined, found %d",
 				len(bundle.Spec.Packages))
 		}
@@ -48,6 +48,10 @@ func TestLatestBundle(t *testing.T) {
 		if bundle.Spec.Packages[1].Name != "Flux" {
 			t.Errorf("expected second package name to be \"Flux\", got: %q",
 				bundle.Spec.Packages[1].Name)
+		}
+		if bundle.Spec.Packages[2].Name != "Harbor" {
+			t.Errorf("expected second package name to be \"Harbor\", got: %q",
+				bundle.Spec.Packages[2].Name)
 		}
 	})
 

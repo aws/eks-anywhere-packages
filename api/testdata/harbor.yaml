@@ -1,0 +1,7 @@
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: Package
+metadata:
+  name: my-harbor
+spec:
+  packageName: Harbor
+  packageVersion: v2.4.1-c47074c1d3d92a2359f6b379e6688c323338ec18-helm
