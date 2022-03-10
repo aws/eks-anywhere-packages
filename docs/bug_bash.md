@@ -10,7 +10,7 @@ You must create a EKS Anywhere cluster The easiest thing to do is create a [loca
 
 Right now, EKS Anywhere Packages is installed using a helm chart. 
 
-         helm install cert-manager oci://public.ecr.aws/j0a1m4z9/aws/eks-anywhere-packages --version v0.1.0
+         helm install package-controller oci://public.ecr.aws/j0a1m4z9/aws/eks-anywhere-packages --version v0.1.0
 
 ## Install eksctl-anywhere
 
