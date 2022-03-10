@@ -6,6 +6,8 @@ RELEASE_CONTAINER_REGISTRY?=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.co
 BUILD_REPO_BRANCH_NAME?=main
 CLI_REPO_BRANCH_NAME?=main
 
+ECR_PUBLIC_URI?=$(shell AWS_REGION=us-east-1 && aws ecr-public describe-registries --query 'registries[*].registryUri' --output text)
+
 ifeq ($(CODEBUILD_CI),)
 DRY_RUN=true
 SOURCE_BUCKET=projectbuildpipeline-857-pipelineoutputartifactsb-10ajmk30khe3f
@@ -47,3 +49,8 @@ build-linux:
 
 run:
 	go run .
+
+# CI for Bundle Creation and Signing
+
+dev-release: build
+	scripts/generate_bundle.sh $(ECR_PUBLIC_URI)

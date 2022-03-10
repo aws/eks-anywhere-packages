@@ -7,13 +7,4 @@ packages:
         repository: eks-anywhere-test
         registry: public.ecr.aws/f5b7k4z5
         versions:
-            - name: v1.0.1-helm
             - name: v0.1.1-latest
-            - name: latest
-  - org: jetstack
-    projects:
-      - name: cert-manager
-        repository: jetstack/cert-manager
-        registry: public.ecr.aws/f5b7k4z5
-        versions:
-            - name: v1.5.3-latest
