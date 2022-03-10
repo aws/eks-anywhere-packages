@@ -40,8 +40,8 @@ clean: ## Clean output directory, and the built binary
 
 build: ## Build release binary.
 	mkdir -p bin
-	go mod tidy -compat=1.17
-	go build -o bin/generatebundlefile *.go
+	go1.17.5 mod tidy -compat=1.17
+	go1.17.5 build -o bin/generatebundlefile *.go
 
 build-linux:
 	[ -d bin ] || mkdir bin
