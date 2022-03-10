@@ -14,9 +14,9 @@ GO ?= $(shell source ./scripts/common.sh && build::common::get_go_path $(GOLANG_
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
+GOBIN=$(shell $(GO) env GOPATH)/bin
 else
-GOBIN=$(shell go env GOBIN)
+GOBIN=$(shell $(GO) env GOBIN)
 endif
 
 all: presubmit
@@ -150,16 +150,20 @@ endef
 mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/packages/mocks/manager.go
 
 pkg/packages/mocks/manager.go: pkg/packages/manager.go
-	$(MOCKGEN) -source pkg/packages/manager.go -destination=pkg/packages/mocks/manager.go -package=mocks Manager
+	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
+		$(MOCKGEN) -source pkg/packages/manager.go -destination=pkg/packages/mocks/manager.go -package=mocks Manager
 
 pkg/driver/mocks/packagedriver.go: pkg/driver/packagedriver.go
-	$(MOCKGEN) -source pkg/driver/packagedriver.go -destination=pkg/driver/mocks/packagedriver.go -package=mocks PackageDriver
+	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
+		$(MOCKGEN) -source pkg/driver/packagedriver.go -destination=pkg/driver/mocks/packagedriver.go -package=mocks PackageDriver
 
 controllers/mocks/client.go: go.mod
-	$(MOCKGEN) -destination=controllers/mocks/client.go -package=mocks "sigs.k8s.io/controller-runtime/pkg/client" Client,StatusWriter
+	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
+		$(MOCKGEN) -destination=controllers/mocks/client.go -package=mocks "sigs.k8s.io/controller-runtime/pkg/client" Client,StatusWriter
 
 controllers/mocks/manager.go: go.mod
-	$(MOCKGEN) -destination=controllers/mocks/manager.go -package=mocks "sigs.k8s.io/controller-runtime/pkg/manager" Manager
+	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
+		$(MOCKGEN) -destination=controllers/mocks/manager.go -package=mocks "sigs.k8s.io/controller-runtime/pkg/manager" Manager
 
 E2E_EKSA_PROVIDER ?= docker
 
