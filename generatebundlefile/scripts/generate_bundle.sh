@@ -47,15 +47,15 @@ BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 IMAGE_REGISTRY="${1?Specify first argument - image registry}"
 
 # Create the bundle
-${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_120.yaml
+${BASE_DIRECTORY}/bin/generatebundlefile  \
+    --input ${BASE_DIRECTORY}/data/input_120.yaml
 
 # Sign the Bundle
 export AWS_REGION="us-west-2"
 SIGNATURE=$(cosign sign-blob --key awskms:///alias/signingPackagesKey output/bundle-1.20.yaml)
 
 # Add signature annotation
-${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
+${BASE_DIRECTORY}/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/output/bundle-1.20.yaml \
      --signature ${SIGNATURE}
 

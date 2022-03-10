@@ -17,6 +17,8 @@ set -x
 set -e
 set -o pipefail
 
+USR_BIN=/usr/bin
+
 if [ ! -d "/root/.docker" ]; then
     mkdir -p /root/.docker
 fi
@@ -24,4 +26,13 @@ mv generatebundlefile/scripts/docker-ecr-config.json /root/.docker/config.json
 git config --global credential.helper '!aws codecommit credential-helper $@'
 git config --global credential.UseHttpPath true
 
-go install github.com/sigstore/cosign/cmd/cosign@v1.5.1
+#go install github.com/sigstore/cosign/cmd/cosign@v1.5.1
+
+curl -s https://api.github.com/repos/sigstore/cosign/releases/latest \
+| grep 'browser_download_url.*cosign-linux-amd64"' \
+| cut -d '"' -f 4 \
+| tr -d \" \
+| wget -qi -
+
+mv cosign-linux-amd64 $USR_BIN/
+chmod +x $USR_BIN/cosign-linux-amd64
