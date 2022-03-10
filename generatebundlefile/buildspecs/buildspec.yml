@@ -7,4 +7,4 @@ phases:
 
   build:
     commands:
-    - cd generatebundlefile && make dev-release -C $PROJECT_PATH
+    - cd generatebundlefile && make dev-release
