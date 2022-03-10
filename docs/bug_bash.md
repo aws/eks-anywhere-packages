@@ -66,7 +66,7 @@ Once you have create the port forward, connect to it using the domain you create
 
 In order to upgrade harbor, run the following command:
 
-        kubectl upgrade package my-harbor v2.4.2-c47074c1d3d92a2359f6b379e6688c323338ec18-helm
+        eksctl anywhere upgrade package my-harbor v2.4.2-c47074c1d3d92a2359f6b379e6688c323338ec18-helm
 
 Use the this command or something like it to monitor the upgrade
 
