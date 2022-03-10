@@ -4,7 +4,7 @@ EKS Anywhere curated packages is a framework to manage installation, configurati
 
 ## Before you start
 
-You must create a EKS Anywhere cluster The easiest thing to do is create a (local EKS Anywhere cluster)[https://anywhere.eks.amazonaws.com/docs/getting-started/local-environment/] on your Mac or Linux machine using the Docker provider.
+You must create a EKS Anywhere cluster The easiest thing to do is create a [local EKS Anywhere cluster](https://anywhere.eks.amazonaws.com/docs/getting-started/local-environment/) on your Mac or Linux machine using the Docker provider.
 
 ## Install package controller
 
@@ -60,7 +60,7 @@ You will need to use port forwarding to connect to Harbor:
 
         kubectl port-forward harbor-something
 
-Once you have create the port forward, connect to it using the domain you create (https://my-harbor.local)[https://my-harbor.local]. Verify the version of Harbor installed is what you expected.
+Once you have create the port forward, connect to it using the domain you create [https://my-harbor.local](https://my-harbor.local). Verify the version of Harbor installed is what you expected.
 
 ## Upgrade Harbor
 
