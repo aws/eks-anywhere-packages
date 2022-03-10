@@ -1,6 +1,6 @@
 
 
-EKS Anywhere curated packages is a framework to manage installation, configuration and maintenance of components that provide general operational capabilities for Kubernetes applications. This guide describe the steps to install EKS Anywhere package controller and install, configure, upgrade and delete a package.
+EKS Anywhere curated packages is a framework to manage installation, configuration and maintenance of components that provide general operational capabilities for Kubernetes applications. This guide describes the steps to install EKS Anywhere package controller and install, configure, upgrade and delete a package.
 
 ## Before you start
 
