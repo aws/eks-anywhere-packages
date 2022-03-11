@@ -55,4 +55,4 @@ run:
 dev-release: build
 	pwd
 	ls -la
-	$(REPO_ROOT)/scripts/generate_bundle.sh $(ECR_PUBLIC_URI)
+	$(REPO_ROOT)/generatebundlefile/scripts/generate_bundle.sh $(ECR_PUBLIC_URI)
