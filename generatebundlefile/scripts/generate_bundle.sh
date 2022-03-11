@@ -59,7 +59,7 @@ tree
 
 # Add signature annotation
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/output/bundle-1.20.yaml \
+    --input ${BASE_DIRECTORY}/generatebundlefile/output/bundle-1.20.yaml \
     --signature ${SIGNATURE}
 
 # Oras Download
@@ -72,4 +72,4 @@ rm -rf oras_0.12.0_*.tar.gz oras-install/
 # Push Oras Bundle
 ECR_PASSWORD=$(aws ecr-public get-login-password --region us-east-1 | tr -d '\n')
 cd output/
-oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1" output/bundle-1.20.yaml
+oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1" bundle-1.20.yaml
