@@ -26,9 +26,7 @@ mv generatebundlefile/scripts/docker-ecr-config.json /root/.docker/config.json
 git config --global credential.helper '!aws codecommit credential-helper $@'
 git config --global credential.UseHttpPath true
 
-#go install github.com/sigstore/cosign/cmd/cosign@v1.5.1
-
-# Faster way to install Cosign compared to go install
+# Faster way to install Cosign compared to go install github.com/sigstore/cosign/cmd/cosign@v1.5.1
 curl -s https://api.github.com/repos/sigstore/cosign/releases/latest \
 | grep 'browser_download_url.*cosign-linux-amd64"' \
 | cut -d '"' -f 4 \

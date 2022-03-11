@@ -38,12 +38,7 @@ set -e
 set -x
 set -o pipefail
 
-
-
 export LANG=C.UTF-8
-
-pwd
-ls -la
 
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 
@@ -57,11 +52,11 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
 
 # Sign the Bundle
 export AWS_REGION="us-west-2"
-SIGNATURE=$(cosign sign-blob --key awskms:///alias/signingPackagesKey generatebundlefile/output/bundle-1.20.yaml)
+SIGNATURE=$(cosign sign-blob --key awskms:///alias/signingPackagesKey output/bundle-1.20.yaml)
 
 # Add signature annotation
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/output/bundle-1.20.yaml \
+    --input ${BASE_DIRECTORY}/output/bundle-1.20.yaml \
     --signature ${SIGNATURE}
 
 # Oras Download
@@ -74,4 +69,4 @@ rm -rf oras_0.12.0_*.tar.gz oras-install/
 # Push Oras Bundle
 ECR_PASSWORD=$(aws ecr-public get-login-password --region us-east-1 | tr -d '\n')
 cd output/
-oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1" generatebundlefile/output/bundle-1.20.yaml
+oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1" output/bundle-1.20.yaml

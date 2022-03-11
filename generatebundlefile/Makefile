@@ -53,6 +53,4 @@ run:
 # CI for Bundle Creation and Signing
 
 dev-release: build
-	pwd
-	ls -la
 	$(REPO_ROOT)/generatebundlefile/scripts/generate_bundle.sh $(ECR_PUBLIC_URI)
