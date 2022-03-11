@@ -28,6 +28,7 @@ git config --global credential.UseHttpPath true
 
 #go install github.com/sigstore/cosign/cmd/cosign@v1.5.1
 
+# Faster way to install Cosign compared to go install
 curl -s https://api.github.com/repos/sigstore/cosign/releases/latest \
 | grep 'browser_download_url.*cosign-linux-amd64"' \
 | cut -d '"' -f 4 \
@@ -35,4 +36,6 @@ curl -s https://api.github.com/repos/sigstore/cosign/releases/latest \
 | wget -qi -
 
 mv cosign-linux-amd64 $USR_BIN/
-chmod +x $USR_BIN/cosign-linux-amd64
+chmod +x cosign-linux-amd64
+cp cosign-linux-amd64 $USR_BIN/cosign
+cosign version
