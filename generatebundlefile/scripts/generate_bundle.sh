@@ -49,20 +49,20 @@ BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 
 IMAGE_REGISTRY="${1?Specify first argument - image registry}"
 
-chmod +x ${BASE_DIRECTORY}/bin/generatebundlefile 
+chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile 
 
 # Create the bundle
-${BASE_DIRECTORY}/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/data/input_120.yaml
+${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_120.yaml
 
 # Sign the Bundle
 export AWS_REGION="us-west-2"
-SIGNATURE=$(cosign sign-blob --key awskms:///alias/signingPackagesKey output/bundle-1.20.yaml)
+SIGNATURE=$(cosign sign-blob --key awskms:///alias/signingPackagesKey generatebundlefile/output/bundle-1.20.yaml)
 
 # Add signature annotation
-${BASE_DIRECTORY}/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/output/bundle-1.20.yaml \
-     --signature ${SIGNATURE}
+${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
+    --input ${BASE_DIRECTORY}/generatebundlefile/output/bundle-1.20.yaml \
+    --signature ${SIGNATURE}
 
 # Oras Download
 curl -LO https://github.com/oras-project/oras/releases/download/v0.12.0/oras_0.12.0_linux_amd64.tar.gz
@@ -74,4 +74,4 @@ rm -rf oras_0.12.0_*.tar.gz oras-install/
 # Push Oras Bundle
 ECR_PASSWORD=$(aws ecr-public get-login-password --region us-east-1 | tr -d '\n')
 cd output/
-oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1" output/bundle-1.20.yaml
+oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1" generatebundlefile/output/bundle-1.20.yaml
