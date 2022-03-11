@@ -42,9 +42,14 @@ set -o pipefail
 
 export LANG=C.UTF-8
 
+pwd
+ls -la
+
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 
 IMAGE_REGISTRY="${1?Specify first argument - image registry}"
+
+chmod +x ${BASE_DIRECTORY}/bin/generatebundlefile 
 
 # Create the bundle
 ${BASE_DIRECTORY}/bin/generatebundlefile  \

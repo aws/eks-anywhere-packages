@@ -39,9 +39,9 @@ clean: ## Clean output directory, and the built binary
 ##@ Build
 
 build: ## Build release binary.
-	mkdir -p bin
+	mkdir -p $(REPO_ROOT)/bin
 	go1.17.5 mod tidy -compat=1.17
-	go1.17.5 build -o bin/generatebundlefile *.go
+	go1.17.5 build -o $(REPO_ROOT)/bin/generatebundlefile *.go
 
 build-linux:
 	[ -d bin ] || mkdir bin
@@ -53,4 +53,6 @@ run:
 # CI for Bundle Creation and Signing
 
 dev-release: build
-	scripts/generate_bundle.sh $(ECR_PUBLIC_URI)
+	pwd
+	ls -la
+	$(REPO_ROOT)/scripts/generate_bundle.sh $(ECR_PUBLIC_URI)
