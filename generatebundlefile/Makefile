@@ -54,3 +54,6 @@ run:
 
 dev-release: build
 	$(REPO_ROOT)/generatebundlefile/scripts/generate_bundle.sh $(ECR_PUBLIC_URI)
+
+dev-promotion:
+	$(REPO_ROOT)/generatebundlefile/scripts/promotion.sh $(AWS_ACCOUNT_ID) $(ECR_PUBLIC_URI)
