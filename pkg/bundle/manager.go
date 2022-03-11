@@ -58,17 +58,17 @@ type Manager interface {
 }
 
 type bundleManager struct {
-	log       logr.Logger
-	discovery discovery.DiscoveryInterface
-	puller    artifacts.Puller
+	log               logr.Logger
+	kubeServerVersion discovery.ServerVersionInterface
+	puller            artifacts.Puller
 }
 
-func NewBundleManager(log logr.Logger, discovery discovery.DiscoveryInterface,
+func NewBundleManager(log logr.Logger, serverVersion discovery.ServerVersionInterface,
 	puller artifacts.Puller) (manager *bundleManager) {
 	manager = &bundleManager{
-		log:       log,
-		discovery: discovery,
-		puller:    puller,
+		log:               log,
+		kubeServerVersion: serverVersion,
+		puller:            puller,
 	}
 
 	// This is temporary
@@ -131,7 +131,7 @@ func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 	// allBundles should never be nil or empty in production, but for testing
 	// it's much easier to handle a nil case.
 	if active && allBundles != nil && len(allBundles) > 0 {
-		m.sortBundlesNewestFirst(allBundles)
+		m.SortBundlesNewestFirst(allBundles)
 		if allBundles[0].Name != newBundle.Name {
 			newBundle.Status.State = api.PackageBundleStateUpgradeAvailable
 		}
@@ -141,8 +141,8 @@ func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 	return true
 }
 
-// sortBundlesNewestFirst will sort a slice of bundles so that the newest is first.
-func (m bundleManager) sortBundlesNewestFirst(bundles []api.PackageBundle) {
+// SortBundlesNewestFirst will sort a slice of bundles so that the newest is first.
+func (m bundleManager) SortBundlesNewestFirst(bundles []api.PackageBundle) {
 	sortFn := func(i, j int) bool {
 		older, err := m.IsBundleOlderThan(bundles[i].Name, bundles[j].Name)
 		if err != nil {
@@ -261,7 +261,7 @@ func buildNumber(name string) (int, error) {
 var bundleNameRe = regexp.MustCompile(`^.*-(\d+)$`)
 
 func (m *bundleManager) apiVersion() (string, error) {
-	info, err := m.discovery.ServerVersion()
+	info, err := m.kubeServerVersion.ServerVersion()
 	if err != nil {
 		return "", fmt.Errorf("getting server version: %s", err)
 	}
