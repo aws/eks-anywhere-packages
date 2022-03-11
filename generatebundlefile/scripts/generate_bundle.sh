@@ -54,6 +54,9 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
 export AWS_REGION="us-west-2"
 SIGNATURE=$(cosign sign-blob --key awskms:///alias/signingPackagesKey output/bundle-1.20.yaml)
 
+yum install tree -y
+tree 
+
 # Add signature annotation
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/output/bundle-1.20.yaml \
