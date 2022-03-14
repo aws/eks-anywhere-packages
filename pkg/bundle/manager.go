@@ -55,6 +55,8 @@ type Manager interface {
 	// IsActiveController returns true if the given namespace and name matches
 	// the active bundle controller's.
 	IsActiveController(namespacedName types.NamespacedName) bool
+
+	SortBundlesNewestFirst(bundles []api.PackageBundle)
 }
 
 type bundleManager struct {
