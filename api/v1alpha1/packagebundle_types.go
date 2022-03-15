@@ -80,6 +80,20 @@ type SourceVersion struct {
 	// +kubebuilder:validation:Required
 	// Digest is a checksum value identifying the version of the package and its contents.
 	Digest string `json:"digest"`
+
+	// Images is a list of images used by this version of the package
+	Images []VersionImages `json:"images"`
+}
+
+// SourceVersion describes a version of an package within a repository.
+type VersionImages struct {
+	// +kubebuilder:validation:Required
+	// Repository is source in the registry for the image
+	Repository string `json:"repository"`
+
+	// +kubebuilder:validation:Required
+	// Digest is a checksum value identifying the version of the package and its contents.
+	Digest string `json:"digest"`
 }
 
 // PackageBundleStatus defines the observed state of PackageBundle
