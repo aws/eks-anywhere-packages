@@ -25,13 +25,12 @@ ACCOUNT_ID="${1?Specify first argument - account id}"
 IMAGE_REGISTRY="${2?Specify first argument - image registry}"
 
 
-echo ${PROJECT_PATH}
-export PROJECT_NAME=$(echo ${PROJECT_PATH##*/})
+echo ${ECR_REPO}
 echo ${GIT_TAG}
 
 # Pull Helm chart from private ECR
 aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
-helm pull oci://${ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/${PROJECT_NAME} --version ${GIT_TAG}-helm
+helm pull oci://${ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/${ECR_REPO} --version ${GIT_TAG}-helm
 
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
-helm push ${PROJECT_NAME}-${GIT_TAG}-helm.tgz oci://${IMAGE_REGISTRY}
+helm push ${ECR_REPO}-${GIT_TAG}-helm.tgz oci://${IMAGE_REGISTRY}
