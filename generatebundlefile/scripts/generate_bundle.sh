@@ -32,7 +32,7 @@ curl -s https://api.github.com/repos/sigstore/cosign/releases/latest \
 | wget -qi -
 
 chmod +x cosign-linux-amd64
-cp cosign-linux-amd64 $USR_BIN/cosign
+cp cosign-linux-amd64 ${USR_BIN}/cosign
 cosign version
 
 # Create the bundle
