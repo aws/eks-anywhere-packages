@@ -69,7 +69,7 @@ spec:
                         versions:
                           description: Versions of the package supported by this bundle.
                           items:
-                            description: SourceVersion describes a version of an package
+                            description: SourceVersion describes a version of a package
                               within a repository.
                             properties:
                               digest:
@@ -80,8 +80,8 @@ spec:
                                 description: Images is a list of images used by this
                                   version of the package
                                 items:
-                                  description: SourceVersion describes a version of
-                                    an package within a repository.
+                                  description: VersionImages is an image used by a
+                                    version of a package.
                                   properties:
                                     digest:
                                       description: Digest is a checksum value identifying
@@ -102,7 +102,6 @@ spec:
                                 type: string
                             required:
                             - digest
-                            - images
                             - name
                             type: object
                           minItems: 1
@@ -153,7 +152,7 @@ spec:
                                 bundle.
                               items:
                                 description: SourceVersion describes a version of
-                                  an package within a repository.
+                                  a package within a repository.
                                 properties:
                                   digest:
                                     description: Digest is a checksum value identifying
@@ -163,8 +162,8 @@ spec:
                                     description: Images is a list of images used by
                                       this version of the package
                                     items:
-                                      description: SourceVersion describes a version
-                                        of an package within a repository.
+                                      description: VersionImages is an image used
+                                        by a version of a package.
                                       properties:
                                         digest:
                                           description: Digest is a checksum value
@@ -186,7 +185,6 @@ spec:
                                     type: string
                                 required:
                                 - digest
-                                - images
                                 - name
                                 type: object
                               minItems: 1
