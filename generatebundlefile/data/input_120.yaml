@@ -1,3 +1,4 @@
+# This info is hardcoded and comes from https://github.com/aws/eks-anywhere-build-tooling
 name: "v1-20-1001"
 kubernetesVersion: "1.20"
 packages:
@@ -7,4 +8,4 @@ packages:
         repository: eks-anywhere-test
         registry: public.ecr.aws/f5b7k4z5
         versions:
-            - name: v0.1.1-latest
+            - name: v0.1.1-latest #https://github.com/aws/eks-anywhere-build-tooling/blob/main/projects/aws/eks-anywhere-test/GIT_TAG

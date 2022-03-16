@@ -7,6 +7,7 @@ BUILD_REPO_BRANCH_NAME?=main
 CLI_REPO_BRANCH_NAME?=main
 
 ECR_PUBLIC_URI?=$(shell AWS_REGION=us-east-1 && aws ecr-public describe-registries --query 'registries[*].registryUri' --output text)
+KMS_KEY=signingPackagesKey
 
 ifeq ($(CODEBUILD_CI),)
 DRY_RUN=true
@@ -53,7 +54,4 @@ run:
 # CI for Bundle Creation and Signing
 
 dev-release: build
-	$(REPO_ROOT)/generatebundlefile/scripts/generate_bundle.sh $(ECR_PUBLIC_URI)
-
-dev-promotion:
-	$(REPO_ROOT)/generatebundlefile/scripts/promotion.sh $(AWS_ACCOUNT_ID) $(ECR_PUBLIC_URI)
+	$(REPO_ROOT)/generatebundlefile/scripts/generate_bundle.sh $(ECR_PUBLIC_URI) $(KMS_KEY)

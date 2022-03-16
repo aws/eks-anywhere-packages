@@ -20,8 +20,10 @@ set -o pipefail
 
 export LANG=C.UTF-8
 
-BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 IMAGE_REGISTRY="${1?Specify first argument - image registry}"
+KMS_KEY="${2?Specify second argument - kms key alias}"
+
+BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile 
 
 # Faster way to install Cosign compared to go install github.com/sigstore/cosign/cmd/cosign@v1.5.1
@@ -41,10 +43,7 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
 
 # Sign the Bundle
 export AWS_REGION="us-west-2"
-SIGNATURE=$(cosign sign-blob --key awskms:///alias/signingPackagesKey output/bundle-1.20.yaml)
-
-yum install tree -y
-tree 
+SIGNATURE=$(cosign sign-blob --key awskms:///alias/${KMS_KEY} output/bundle-1.20.yaml)
 
 # Add signature annotation
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
@@ -60,5 +59,6 @@ rm -rf oras_0.12.0_*.tar.gz oras-install/
 
 # Push Oras Bundle
 ECR_PASSWORD=$(aws ecr-public get-login-password --region us-east-1 | tr -d '\n')
+# Go into same directory as the file when performing ORAS push otherwise it expands the pull with full directory structure
 cd output/
 oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1" bundle-1.20.yaml
