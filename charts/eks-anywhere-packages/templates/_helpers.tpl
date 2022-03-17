@@ -80,10 +80,10 @@ Define the eks-anywhere-packages.namespace template if set with namespace or .Re
 {{/*
 Create image name
 */}}
-{{- define "template.tag" -}}
-{{- if eq (substr 0 7 . ) "sha256:" -}}
-{{- printf "@%s" . -}}
+{{- define "template.image" -}}
+{{- if eq (substr 0 7 .tag) "sha256:" -}}
+{{- printf "%s/%s@%s" .registry .repository .tag -}}
 {{- else -}}
-{{- printf ":%s" . -}}
+{{- printf "%s/%s:%s" .registry .repository .tag -}}
 {{- end -}}
 {{- end -}}
