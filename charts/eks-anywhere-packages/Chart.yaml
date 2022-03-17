@@ -1,8 +1,9 @@
 apiVersion: v2
+appVersion: 0.1.0
+description: A Helm chart for eks-anywhere-packages, a controller for managing the
+  lifecycle of EKS Anywhere packages.
 name: eks-anywhere-packages
-description: A Helm chart for eks-anywhere-packages, a controller for managing the lifecycle of EKS Anywhere packages.
-type: application
-version: 0.0.0
-appVersion: 0.0.0
 sources:
-  - https://github.com/aws/eks-anywhere-packages/
+- https://github.com/aws/eks-anywhere-packages/
+type: application
+version: 0.1.0
