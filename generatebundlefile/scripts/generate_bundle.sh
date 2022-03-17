@@ -52,9 +52,6 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
 
 make oras-install
 
-aws ecr-public get-login-password --region us-east-1 | oras login \
-    --username AWS \
-    --password-stdin public.ecr.aws
-
+ECR_PASSWORD=$(aws ecr-public get-login-password --region us-east-1 | tr -d '\n')
 cd output/
-oras push "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1" bundle-1.20.yaml
+oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1" bundle-1.20.yaml
