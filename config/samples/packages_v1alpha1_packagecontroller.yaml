@@ -1,6 +1,0 @@
-apiVersion: packages.eks.amazonaws.com/v1alpha1
-kind: PackageController
-metadata:
-  name: packagecontroller-sample
-spec:
-  logLevel: 4
