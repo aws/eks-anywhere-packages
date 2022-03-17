@@ -4,7 +4,7 @@ metadata:
   name: v1-21-1002
   namespace: eksa-packages
   annotations:
-    eksa.aws.com/signature: MEYCIQDlONKjmblSvSaOgoHaNlkyOaCuUoAezAT+8iie/ouLrwIhALLWvX9GHvyKn8cIdw/L6MkJZmGhqp3hHFI+9oojfZKe
+    eksa.aws.com/signature: MEUCIFEYMRdaNF9ExyZcD9VHDVoZ0pr70IremWEQ6rjJwQJYAiEApuz3qVryiVdPyTyLonnbJ5iq3o+wlQBXlfg0na2fAO4=
 spec:
   kubeVersion: v1.21
   packages:
