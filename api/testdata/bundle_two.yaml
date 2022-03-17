@@ -3,27 +3,29 @@ kind: PackageBundle
 metadata:
   name: v1-21-1002
   namespace: eksa-packages
+  annotations:
+    eksa.aws.com/signature: MEYCIQDlONKjmblSvSaOgoHaNlkyOaCuUoAezAT+8iie/ouLrwIhALLWvX9GHvyKn8cIdw/L6MkJZmGhqp3hHFI+9oojfZKe
 spec:
   kubeVersion: v1.21
   packages:
-  - name: Test
-    source:
-      registry: public.ecr.aws/l0g8r8j6
-      repository: eks-anywhere-test
-      versions:
-        - name: v0.1.1
-          digest: sha256:64ea03b119d2421f9206252ff4af4bf7cdc2823c343420763e0e6fc20bf03b68
-  - name: Flux
-    source:
-      registry: public.ecr.aws/j0a1m4z9
-      repository: fluxcd/flux2
-      versions:
-        - name: v0.25.1-7fb396bd0be3769162a408aa4d22a48fd74a9db7-helm
-          digest: sha256:ab067969310f3f237c716d6f348dab9cfdce8cc2c188dfdd6b5cfa0e2cd63939
-  - name: Harbor
-    source:
-      registry: public.ecr.aws/y8n6a2y0
-      repository: harbor/harbor-helm
-      versions:
-        - name: v2.4.2-f47374093e8a9c48aca8c7a7f06ae185eb7506f3-helm
-          digest: sha256:53f0c5dcd47c27072c027fd4d94a6658208378a233cb5a528a9454ad6a5e4eb8
+    - name: Test
+      source:
+        registry: public.ecr.aws/l0g8r8j6
+        repository: eks-anywhere-test
+        versions:
+          - name: v0.1.1
+            digest: sha256:64ea03b119d2421f9206252ff4af4bf7cdc2823c343420763e0e6fc20bf03b68
+    - name: Flux
+      source:
+        registry: public.ecr.aws/j0a1m4z9
+        repository: fluxcd/flux2
+        versions:
+          - name: v0.25.1-7fb396bd0be3769162a408aa4d22a48fd74a9db7-helm
+            digest: sha256:ab067969310f3f237c716d6f348dab9cfdce8cc2c188dfdd6b5cfa0e2cd63939
+    - name: Harbor
+      source:
+        registry: public.ecr.aws/y8n6a2y0
+        repository: harbor/harbor-helm
+        versions:
+          - name: v2.4.2-f47374093e8a9c48aca8c7a7f06ae185eb7506f3-helm
+            digest: sha256:53f0c5dcd47c27072c027fd4d94a6658208378a233cb5a528a9454ad6a5e4eb8
