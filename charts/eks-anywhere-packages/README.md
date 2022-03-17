@@ -2,21 +2,14 @@
 
 A Helm chart for eks-anywhere-packages, a controller for managing the lifecycle of EKS Anywhere packages.
 
-![Version: 0.0.0](https://img.shields.io/badge/Version-0.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 ## Installing the Chart
 
-Before the chart can be installed the we need to install cert-manager.
+Prior to installing this chart, make sure cert-manager is not running on your cluster.
 
 ```bash
-helm install cert-manager oci://public.ecr.aws/l0g8r8j6/jetstack/cert-manager --version v1.5.3-8b3810e1514b7432e032794842425accc837757a-helm
-```
-
-To do a simple install run:
-
-```bash
-helm upgrade --install --namespace eksa-packages --create-namespace \
-  eksa-packages eks-anywhere-packages/
+helm install eksa-packages eks-anywhere-packages --values values.yaml
 ```
 
 To Uninstall:
@@ -42,9 +35,9 @@ helm delete eksa-packages
 | fullnameOverride | string | `""` | Overrides the chart's computed fullname. |
 | imagePullPolicy | string | `"IfNotPresent"` | Image pull policy for Docker images. |
 | kuberbacproxy.env | list | `[]` | Additional environment variables for the webhook pod. |
-| kuberbacproxy.registry | string | `"public.ecr.aws/l0g8r8j6"` | Controller registry. |
+| kuberbacproxy.registry | string | `"public.ecr.aws/eks-anywhere"` | Controller registry. |
 | kuberbacproxy.repository | string | `"brancz/kube-rbac-proxy"` | Controller repository name. |
-| kuberbacproxy.tag | string | `"latest"` | Controller image tag, or sha sum. |
+| kuberbacproxy.tag | string | `"v0.8.0-eks-a-7"` | Controller image tag, or sha sum. |
 | nameOverride | string | `""` | Overrides the chart's name. |
 | namespace | string | `"eksa-packages"` | The namespace to deploy the resources into |
 | nodeSelector | object | `{"kubernetes.io/os":"linux"}` | Node selectors to schedule the pod to nodes with labels. |

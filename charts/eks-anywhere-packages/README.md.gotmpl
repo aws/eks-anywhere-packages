@@ -5,18 +5,10 @@
 
 ## Installing the Chart
 
-Before the chart can be installed the we need to install cert-manager.
+Prior to installing this chart, make sure cert-manager is not running on your cluster.
 
 ```bash
-helm install cert-manager oci://public.ecr.aws/l0g8r8j6/jetstack/cert-manager --version v1.5.3-8b3810e1514b7432e032794842425accc837757a-helm
-```
-
-To do a simple install run:
-
-```bash
-helm upgrade --install --namespace eksa-packages --create-namespace \
-  eksa-packages {{ template "chart.name" . }}/ \
-  --values values.yaml
+helm install eksa-packages {{ template "chart.name" . }} --values values.yaml
 ```
 
 To Uninstall:
