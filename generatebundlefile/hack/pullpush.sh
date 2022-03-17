@@ -1,4 +1,19 @@
 #!/usr/bin/env bash
+# Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#!/usr/bin/env bash
 set -e
 
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
@@ -18,6 +33,9 @@ aws ecr-public describe-images --region us-east-1 --repository-name cert-manager
 
 aws ecr-public create-repository --repository-name cert-manager-controller
 aws ecr-public create-repository --repository-name eks-anywhere-test
+
+aws ecr-public create-repository --repository-name eks-anywhere-packages
+aws ecr create-repository --repository-name eks-anywhere-packages
 
 docker pull public.ecr.aws/eks-anywhere/jetstack/$name:$tag_1
 docker pull public.ecr.aws/eks-anywhere/jetstack/$name:$tag_2
@@ -89,7 +107,14 @@ mv eks-anywhere-test-v0.1.1-4280284ae5696ef42fd2a890d083b88f75d4978a-helm.tgz ek
 helm push eks-anywhere-test-v1.0.1-helm.tgz "oci://$local_ecr_public"
 
 
+helm push eks-anywhere-test-1.0.1.tgz "oci://$local_ecr_public"
+
+
 # Oras
-echo "${ECR_PASSWORD}" | oras login -u AWS --password-stdin "${IMAGE_REGISTRY}/${HELM_DESTINATION_REPOSITORY}"
-oras push -u AWS -p "${ECR_PASSWORD}" "public.ecr.aws/f5b7k4z5/eks-anywhere-test:v1.0.0-bundle" bundle-1.20.yaml
-oras pull public.ecr.aws/f5b7k4z5/eks-anywhere-test:v1.0.0-bundleclear
+
+aws ecr-public get-login-password --region us-east-1 | oras login \
+    --username AWS \
+    --password-stdin public.ecr.aws
+
+cd output/
+oras push "public.ecr.aws/f5b7k4z5/eks-anywhere-test:v1.0.0-bundle" bundle-1.20.yaml

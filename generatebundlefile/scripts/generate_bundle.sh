@@ -50,15 +50,11 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/output/bundle-1.20.yaml \
     --signature ${SIGNATURE}
 
-# Oras Download
-curl -LO https://github.com/oras-project/oras/releases/download/v0.12.0/oras_0.12.0_linux_amd64.tar.gz
-mkdir -p oras-install/
-tar -zxf oras_0.12.0_*.tar.gz -C oras-install/
-mv oras-install/oras /usr/local/bin/
-rm -rf oras_0.12.0_*.tar.gz oras-install/
+make oras-install
 
-# Push Oras Bundle
-ECR_PASSWORD=$(aws ecr-public get-login-password --region us-east-1 | tr -d '\n')
-# Go into same directory as the file when performing ORAS push otherwise it expands the pull with full directory structure
+aws ecr-public get-login-password --region us-east-1 | oras login \
+    --username AWS \
+    --password-stdin public.ecr.aws
+
 cd output/
-oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1" bundle-1.20.yaml
+oras push "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1" bundle-1.20.yaml

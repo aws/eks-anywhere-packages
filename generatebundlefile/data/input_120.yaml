@@ -8,4 +8,4 @@ packages:
         repository: eks-anywhere-test
         registry: public.ecr.aws/f5b7k4z5
         versions:
-            - name: v0.1.1-latest #https://github.com/aws/eks-anywhere-build-tooling/blob/main/projects/aws/eks-anywhere-test/GIT_TAG
+            - name: 0.1.1-latest #https://github.com/aws/eks-anywhere-build-tooling/blob/main/projects/aws/eks-anywhere-test/GIT_TAG
