@@ -25,5 +25,5 @@ spec:
       registry: public.ecr.aws/y8n6a2y0
       repository: harbor/harbor-helm
       versions:
-      - name: v2.4.1-c47074c1d3d92a2359f6b379e6688c323338ec18-helm
-        digest: sha256:02d7873facdc2f4539b21dc81bec1c673a13383b4405858603918822f3c38d3a
+      - name: v0.0.0-f47374093e8a9c48aca8c7a7f06ae185eb7506f3-helm 
+        digest: sha256:138dd8549fb533577cf937b84b239c4a7914e7c5ac808d3dec54c80e85c37dda 
