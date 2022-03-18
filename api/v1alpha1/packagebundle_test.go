@@ -34,6 +34,7 @@ func TestPackageBundle_Find(t *testing.T) {
 	expected := api.PackageOCISource{
 		Registry:   "public.ecr.aws/l0g8r8j6",
 		Repository: "eks-anywhere-test",
+		Name:       "v0.1.0",
 		Digest:     "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
 	}
 	expectedVersion := "v0.1.0"

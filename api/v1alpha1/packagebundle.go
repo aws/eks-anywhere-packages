@@ -8,6 +8,7 @@ import (
 type PackageOCISource struct {
 	Registry   string `json:"registry"`
 	Repository string `json:"repository"`
+	Name       string `json:"name"`
 	Digest     string `json:"digest"`
 }
 
@@ -29,7 +30,7 @@ func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource P
 			source := pkg.Source
 			for _, version := range source.Versions {
 				if version.Name == pkgVersion || version.Digest == pkgVersion {
-					retSource = PackageOCISource{Registry: source.Registry, Repository: source.Repository, Digest: version.Digest}
+					retSource = PackageOCISource{Registry: source.Registry, Repository: source.Repository, Name: version.Name, Digest: version.Digest}
 					return retSource, version.Name, nil
 				}
 			}
