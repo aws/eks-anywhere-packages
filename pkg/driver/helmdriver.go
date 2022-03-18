@@ -54,6 +54,7 @@ func (d *helmDriver) Install(ctx context.Context,
 	var err error
 
 	install := action.NewInstall(d.cfg)
+	install.ChartPathOptions.Version = source.Name
 	fullName := d.prefixName(name)
 
 	install.ReleaseName = fullName
