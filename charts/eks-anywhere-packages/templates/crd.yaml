@@ -420,12 +420,15 @@ spec:
                 properties:
                   digest:
                     type: string
+                  name:
+                    type: string
                   registry:
                     type: string
                   repository:
                     type: string
                 required:
                 - digest
+                - name
                 - registry
                 - repository
                 type: object
