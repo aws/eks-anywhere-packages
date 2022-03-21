@@ -64,7 +64,7 @@ vet: ## Run go vet against code.
 	$(GO) mod tidy
 	$(GO) vet ./...
 
-SIGNED_ARTIFACTS = pkg/signature/testdata/packagebundle_valid.yaml.signed pkg/signature/testdata/pod_valid.yaml.signed
+SIGNED_ARTIFACTS = pkg/signature/testdata/packagebundle_valid.yaml.signed pkg/signature/testdata/pod_valid.yaml.signed api/testdata/bundle_one.yaml.signed api/testdata/bundle_two.yaml.signed
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 # Test a specific package with something like ./api/... see go help packages for
 # full syntax details.

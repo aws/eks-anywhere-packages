@@ -3,18 +3,13 @@ package signature_test
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	v1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/yaml"
 
-	"github.com/aws/eks-anywhere-packages/api"
-	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/signature"
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
 const (
@@ -41,7 +36,7 @@ func encodedSelectors(selectors []string) (encoded string) {
 
 func TestValidateSignature(t *testing.T) {
 	t.Run("valid signature on valid manifest", func(t *testing.T) {
-		bundle, _, err := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, err := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		if err != nil {
 			t.Fatal("Unable to get bundle", err)
 		}
@@ -52,7 +47,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("invalid signature on valid manifest", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		annotations[EksaDomain.Name+"/"+SignatureAnnotation] = "XEQCIForAHp6tPUhkfqLfAzbmq0v7p/hgJEqrB5ScWNB4rOOAiBlNtJUzTWNKGxpTepnm8co0YzoNX2HjXRTvaBYQy54Tg=="
 		valid, _, _, err := ValidateSignature(bundle, EksaDomain)
@@ -62,7 +57,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("request for different domain, valid eksa signature, missing requested signature", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		valid, _, _, err := ValidateSignature(bundle, Domain{Name: "eksx.amazon.com", Pubkey: "notakey"})
 
 		assert.False(t, valid, "Signature should be invalid for the provided domain")
@@ -70,7 +65,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("request for different domain, missing eksa signature, requested signature invalid", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		domain := Domain{Name: "fakedomain.com", Pubkey: EksaDomain.Pubkey}
 		annotations[domain.Name+"/signature"] = annotations[EksaDomain.Name+"/signature"]
@@ -87,7 +82,7 @@ func TestValidateSignature(t *testing.T) {
 		assert.EqualError(t, err, "Missing signature")
 	})
 	t.Run("Valid document with all fields excluded must fail signature validation", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		excludes := []string{".apiVersion", ".kind", ".metadata", ".spec"}
 		annotations[EksaDomain.Name+"/excludes"] = encodedSelectors(excludes)
@@ -102,7 +97,7 @@ func TestValidateSignature(t *testing.T) {
 		assert.Nil(t, err, "No error should occur when validating this signature")
 	})
 	t.Run("Removing the signature causes validation to fail", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		delete(annotations, EksaDomain.Name+"/signature")
 
@@ -112,7 +107,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("Invalid signature format causes validation to fail with an helpful message", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		annotations[EksaDomain.Name+"/signature"] = annotations[EksaDomain.Name+"/signature"] + "="
 
@@ -122,7 +117,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("An otherwise valid signature invalid for the provided excludes fails verification", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		excludes := []string{".spec.packages[].source.repository", ".spec.packages[].source.registry", ".spec.packages[].source.name"}
 		annotations[EksaDomain.Name+"/excludes"] = encodedSelectors(excludes)
@@ -133,7 +128,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("Any modification to excludes, even no-op renders the signature invalid", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		excludes := []string{".spec.packages[].source.repository", ".spec.packages[].source.registry", ".potato"}
 		annotations[EksaDomain.Name+"/excludes"] = encodedSelectors(excludes)
@@ -144,7 +139,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("A pod could also be signed", func(t *testing.T) {
-		pod, _, _ := givenPod("pod_valid.yaml")
+		pod, _, _ := testutil.GivenPod("testdata/pod_valid.yaml")
 		valid, _, _, err := ValidateSignature(pod, EksaDomain)
 		assert.True(t, valid, "Signature should be valid")
 		assert.Nil(t, err, "No error, the signature should be valid")
@@ -153,7 +148,7 @@ func TestValidateSignature(t *testing.T) {
 
 func TestMetadata(t *testing.T) {
 	t.Run("Basic metadata on valid manifest", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		sig, excludes, _ := GetMetadataInformation(bundle, EksaDomain)
 
 		assert.ElementsMatchf(t, excludes, []string{".spec.packages[].source.registry", ".spec.packages[].source.repository"}, "Excludes doesn't match the expected value")
@@ -162,7 +157,7 @@ func TestMetadata(t *testing.T) {
 	})
 
 	t.Run("Invalid excludes fails", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		annotations[EksaDomain.Name+"/"+ExcludesAnnotation] = encodedSelectors([]string{"invalid"})
 		_, excludes, err := GetMetadataInformation(bundle, EksaDomain)
@@ -179,7 +174,7 @@ func TestMetadata(t *testing.T) {
 	})
 
 	t.Run("jq imports fail validation", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		annotations[EksaDomain.Name+"/"+ExcludesAnnotation] = encodedSelectors([]string{"import \"test\""})
 		_, excludes, err := GetMetadataInformation(bundle, EksaDomain)
@@ -191,7 +186,7 @@ func TestMetadata(t *testing.T) {
 
 func TestDigest(t *testing.T) {
 	t.Run("Basic digest on valid manifest", func(t *testing.T) {
-		bundle, expectedDigest, err := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, expectedDigest, err := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		assert.NoError(t, err)
 		digest, _, err := GetDigest(bundle, EksaDomain)
 		if err != nil {
@@ -201,7 +196,7 @@ func TestDigest(t *testing.T) {
 	})
 
 	t.Run("Basic digest on valid manifest with no excludes", func(t *testing.T) {
-		bundle, expectedDigest, err := givenPod("pod_valid.yaml")
+		bundle, expectedDigest, err := testutil.GivenPod("testdata/pod_valid.yaml")
 		assert.NoError(t, err)
 		annotations := bundle.GetAnnotations()
 		delete(annotations, EksaDomain.Name+"/excludes")
@@ -213,7 +208,7 @@ func TestDigest(t *testing.T) {
 	})
 
 	t.Run("Getting digest on manifest with invalid metadata fails", func(t *testing.T) {
-		bundle, _, _ := givenPackageBundle("packagebundle_valid.yaml")
+		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		annotations[EksaDomain.Name+"/"+ExcludesAnnotation] = "X"
 		digest, _, err := GetDigest(bundle, EksaDomain)
@@ -221,41 +216,4 @@ func TestDigest(t *testing.T) {
 		assert.ErrorIs(t, err, b64error)
 		assert.Equal(t, digest, [32]byte{})
 	})
-}
-
-func givenPackageBundle(name string) (*v1alpha1.PackageBundle, string, error) {
-	config := &v1alpha1.PackageBundle{}
-	filename := fmt.Sprintf("./testdata/%s", name)
-	reader := api.NewFileReader(filename + ".signed")
-	initError := reader.Initialize(config)
-	if initError != nil {
-		return nil, "", initError
-	}
-	actual := reader.Parse(config)
-	if actual != nil {
-		return nil, "", actual
-	}
-	digest, err := os.ReadFile(filename + ".digest")
-	if err != nil {
-		return nil, "", err
-	}
-	return config, string(digest), nil
-}
-
-func givenPod(name string) (*v1.Pod, string, error) {
-	filename := fmt.Sprintf("./testdata/%s", name)
-	content, err := os.ReadFile(filename + ".signed")
-	if err != nil {
-		return nil, "", err
-	}
-	pod := &v1.Pod{}
-	err = yaml.UnmarshalStrict(content, pod)
-	if err != nil {
-		return nil, "", err
-	}
-	digest, err := os.ReadFile(filename + ".digest")
-	if err != nil {
-		return nil, "", err
-	}
-	return pod, string(digest), nil
 }

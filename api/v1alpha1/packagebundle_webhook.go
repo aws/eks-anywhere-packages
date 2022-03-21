@@ -17,12 +17,17 @@ package v1alpha1
 import (
 	"encoding/base64"
 	"errors"
+	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/aws/eks-anywhere-packages/pkg/signature"
+)
+
+const (
+	PublicKeyEnvVar = "EKSA_PUBLIC_KEY"
 )
 
 // apilog is for logging in this package.
@@ -50,10 +55,19 @@ func (r *PackageBundle) ValidateDelete() error {
 }
 
 func (r *PackageBundle) validate() error {
-	valid, digest, yml, err := signature.ValidateSignature(r, signature.EksaDomain)
-	if err == nil && !valid {
-		apilog.Info("Invalid signature", "Error", err, "Digest", base64.StdEncoding.EncodeToString(digest[:]), "Manifest", string(yml))
-		err = errors.New("The signature is invalid for the configured public key")
+	//TODO Turn this into fields in a new CRD used for signature validation configuration
+	keyOverride := os.Getenv(PublicKeyEnvVar)
+	domain := signature.EksaDomain
+	if keyOverride != "" {
+		domain = signature.Domain{Name: signature.DomainName, Pubkey: keyOverride}
 	}
-	return err
+	valid, digest, yml, err := signature.ValidateSignature(r, domain)
+	if err != nil {
+		return err
+	}
+	if !valid {
+		apilog.Info("Invalid signature", "Error", err, "Digest", base64.StdEncoding.EncodeToString(digest[:]), "Manifest", string(yml))
+		return errors.New("The signature is invalid for the configured public key: " + domain.Pubkey)
+	}
+	return nil
 }
