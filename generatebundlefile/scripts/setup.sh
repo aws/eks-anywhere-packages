@@ -17,8 +17,6 @@ set -x
 set -e
 set -o pipefail
 
-USR_BIN=/usr/bin
-
 if [ ! -d "/root/.docker" ]; then
     mkdir -p /root/.docker
 fi

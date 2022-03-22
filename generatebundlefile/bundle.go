@@ -48,7 +48,7 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.Packag
 						Repository: "sample-Repository",
 						Versions: []api.SourceVersion{
 							{
-								Name:   "0.0",
+								Name:   "v0.0",
 								Digest: "sha256:da25f5fdff88c259bb2ce7c0f1e9edddaf102dc4fb9cf5159ad6b902b5194e66",
 							},
 						},

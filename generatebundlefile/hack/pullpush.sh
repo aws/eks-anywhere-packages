@@ -14,6 +14,14 @@
 # limitations under the License.
 
 #!/usr/bin/env bash
+
+
+###################
+
+# This file is NOT meant to be run as a script, or in CI. It's for useful commands when developing/testing generatebundle.
+
+####################
+
 set -e
 
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
@@ -27,15 +35,21 @@ export tag_2="v1.1.0-eks-a-3"
 export tag_3="v1.1.0-eks-a-2"
 export tag_4="v1.1.0-eks-a-1"
 
+function repoExists () {
+    aws ecr-public describe-repositories \
+        | jq -r ".repositories[].repositoryName" \
+        | grep -q "^$1\$"
+}
 
-export JSONPATH="imageDetails[?(@.imageTags[?(@ == '"${IMAGE_TAG}"')])].imageDigest"
-aws ecr-public describe-images --region us-east-1 --repository-name cert-manager-controller  --output text  --query "${JSONPATH}"
+REPO_1=eks-anywhere-test
+REPO_2=eks-anywhere-packages
+if ! repoExists ${REPO_1}; then
+      aws ecr-public  create-repository --repository-name ${REPO_1}
+fi
 
-aws ecr-public create-repository --repository-name cert-manager-controller
-aws ecr-public create-repository --repository-name eks-anywhere-test
-
-aws ecr-public create-repository --repository-name eks-anywhere-packages
-aws ecr create-repository --repository-name eks-anywhere-packages
+if ! repoExists ${REPO_2}; then
+      aws ecr-public create-repository --repository-name ${REPO_2}
+fi
 
 docker pull public.ecr.aws/eks-anywhere/jetstack/$name:$tag_1
 docker pull public.ecr.aws/eks-anywhere/jetstack/$name:$tag_2
@@ -82,8 +96,6 @@ aws ecr-public batch-delete-image \
       --region us-east-1
 
 
-
-
 ### Helm charts
 export HELM_EXPERIMENTAL_OCI=1
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
@@ -102,8 +114,10 @@ helm push cert-manager-v1.5.3-4ae27c6a1df646736d9e276358d0a6b2daf99f55.tgz "oci:
 # sha256:a507b9e9e739f6a2363b8739b1ad8f801b67768578867b9fae7d303f9e8918e8
 
 # Populate test cases
-helm pull oci://public.ecr.aws/l0g8r8j6/eks-anywhere-test --version v0.1.1-4280284ae5696ef42fd2a890d083b88f75d4978a-helm
-mv eks-anywhere-test-v0.1.1-4280284ae5696ef42fd2a890d083b88f75d4978a-helm.tgz eks-anywhere-test-v1.0.1-helm.tgz
+public.ecr.aws/j0a1m4z9/eks-anywhere-packages --version 0.1.2-5010d89023bc2cdc520395b48d354c80ce2ad831-helm
+
+helm pull oci://public.ecr.aws/l0g8r8j6/eks-anywhere-test --version 0.1.1-4280284ae5696ef42fd2a890d083b88f75d4978a-helm
+mv eks-anywhere-test-0.1.1-4280284ae5696ef42fd2a890d083b88f75d4978a-helm.tgz eks-anywhere-test-v1.0.1-helm.tgz
 helm push eks-anywhere-test-v1.0.1-helm.tgz "oci://$local_ecr_public"
 
 
@@ -111,7 +125,6 @@ helm push eks-anywhere-test-1.0.1.tgz "oci://$local_ecr_public"
 
 
 # Oras
-
 aws ecr-public get-login-password --region us-east-1 | oras login \
     --username AWS \
     --password-stdin public.ecr.aws
