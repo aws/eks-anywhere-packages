@@ -71,11 +71,25 @@ type BundlePackageSource struct {
 	Versions []SourceVersion `json:"versions"`
 }
 
-// SourceVersion describes a version of an package within a repository.
+// SourceVersion describes a version of a package within a repository.
 type SourceVersion struct {
 	// +kubebuilder:validation:Required
 	// Name is a human-friendly description of the version, e.g. "v1.0".
 	Name string `json:"name"`
+
+	// +kubebuilder:validation:Required
+	// Digest is a checksum value identifying the version of the package and its contents.
+	Digest string `json:"digest"`
+
+	// Images is a list of images used by this version of the package
+	Images []VersionImages `json:"images,omitempty"`
+}
+
+// VersionImages is an image used by a version of a package.
+type VersionImages struct {
+	// +kubebuilder:validation:Required
+	// Repository is source in the registry for the image
+	Repository string `json:"repository"`
 
 	// +kubebuilder:validation:Required
 	// Digest is a checksum value identifying the version of the package and its contents.
