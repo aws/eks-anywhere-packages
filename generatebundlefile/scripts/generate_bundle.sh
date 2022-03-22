@@ -32,9 +32,9 @@ COSIGN_URL=$(curl -s https://api.github.com/repos/sigstore/cosign/releases/lates
 | cut -d '"' -f 4 \
 | tr -d \")
 
-curl -OL $COSIGN_URL cosign-linux-amd64
+curl -OL $COSIGN_URL
 chmod +x cosign-linux-amd64
-mv cosign-linux-amd64$ ${BASE_DIRECTORY}/bin/cosign
+mv cosign-linux-amd64 ${BASE_DIRECTORY}/bin/cosign
 ${BASE_DIRECTORY}/bin/cosign version
 
 # Create the bundle
