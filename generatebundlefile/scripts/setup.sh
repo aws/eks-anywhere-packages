@@ -17,6 +17,10 @@ set -x
 set -e
 set -o pipefail
 
+# More Information about the Docker Cred Helper https://github.com/docker/docker-credential-helpers
+# ECR credential helper automatically uses the same credentials as the AWS CLI and the AWS SDKs 
+# to first retrieve an ECR authentication token for each account for secure access to repositories,
+# then lets the Docker daemon use this token when familiar Docker commands such as docker push or docker pull
 if [ ! -d "/root/.docker" ]; then
     mkdir -p /root/.docker
 fi
