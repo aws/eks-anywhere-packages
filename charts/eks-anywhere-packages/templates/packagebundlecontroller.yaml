@@ -1,0 +1,11 @@
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: PackageBundleController
+metadata:
+  name: eksa-packages-bundle-controller
+  namespace: {{ .Values.namespace }}
+spec:
+  logLevel: 4
+  upgradeCheckInterval: "24h"
+  source:
+    registry: public.ecr.aws/l0g8r8j6
+    repository: eksa-package-bundles
