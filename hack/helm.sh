@@ -16,7 +16,7 @@
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 cd ${SCRIPT_ROOT}/..
 
-cat config/crd/bases/packages.eks.amazonaws.com_package* >charts/eks-anywhere-packages/templates/crd.yaml
+cat config/crd/bases/packages.eks.amazonaws.com_package* >charts/eks-anywhere-packages/crds/crd.yaml
 cd charts
 helm lint eks-anywhere-packages
 helm package eks-anywhere-packages
