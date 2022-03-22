@@ -72,9 +72,11 @@ GOTESTS ?= ./...
 # Use "-short" to skip long tests, or "-verbose" for more verbose reporting. Run
 # go help testflags to see all options.
 GOTESTFLAGS ?= ""
-test: manifests generate vet mocks ${SIGNED_ARTIFACTS} ## Run tests.
-	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+test: manifests generate vet mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ## Run tests.
 	$(GO) test $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks` -coverprofile cover.out
+
+$(GOBIN)/setup-envtest: ## Install setup-envtest
+	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 clean: ## Clean up resources created by make targets
 	rm -rf ./bin/*
