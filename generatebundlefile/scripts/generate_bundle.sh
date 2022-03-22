@@ -34,6 +34,7 @@ COSIGN_URL=$(curl -s https://api.github.com/repos/sigstore/cosign/releases/lates
 
 curl -OL $COSIGN_URL
 chmod +x cosign-linux-amd64
+mkdir -p ${BASE_DIRECTORY}/bin
 mv cosign-linux-amd64 ${BASE_DIRECTORY}/bin/cosign
 ${BASE_DIRECTORY}/bin/cosign version
 
