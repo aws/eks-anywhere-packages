@@ -164,13 +164,33 @@ spec:
                         versions:
                           description: Versions of the package supported by this bundle.
                           items:
-                            description: SourceVersion describes a version of an package
+                            description: SourceVersion describes a version of a package
                               within a repository.
                             properties:
                               digest:
                                 description: Digest is a checksum value identifying
                                   the version of the package and its contents.
                                 type: string
+                              images:
+                                description: Images is a list of images used by this
+                                  version of the package
+                                items:
+                                  description: VersionImages is an image used by a
+                                    version of a package.
+                                  properties:
+                                    digest:
+                                      description: Digest is a checksum value identifying
+                                        the version of the package and its contents.
+                                      type: string
+                                    repository:
+                                      description: Repository is source in the registry
+                                        for the image
+                                      type: string
+                                  required:
+                                  - digest
+                                  - repository
+                                  type: object
+                                type: array
                               name:
                                 description: Name is a human-friendly description
                                   of the version, e.g. "v1.0".
@@ -227,12 +247,33 @@ spec:
                                 bundle.
                               items:
                                 description: SourceVersion describes a version of
-                                  an package within a repository.
+                                  a package within a repository.
                                 properties:
                                   digest:
                                     description: Digest is a checksum value identifying
                                       the version of the package and its contents.
                                     type: string
+                                  images:
+                                    description: Images is a list of images used by
+                                      this version of the package
+                                    items:
+                                      description: VersionImages is an image used
+                                        by a version of a package.
+                                      properties:
+                                        digest:
+                                          description: Digest is a checksum value
+                                            identifying the version of the package
+                                            and its contents.
+                                          type: string
+                                        repository:
+                                          description: Repository is source in the
+                                            registry for the image
+                                          type: string
+                                      required:
+                                      - digest
+                                      - repository
+                                      type: object
+                                    type: array
                                   name:
                                     description: Name is a human-friendly description
                                       of the version, e.g. "v1.0".
