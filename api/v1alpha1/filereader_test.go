@@ -24,7 +24,7 @@ func GivenPackageController(config *PackageController) error {
 }
 
 func GivenBundleController(config *PackageBundleController) error {
-	err := givenFile("../testdata/bundlecontroller.yaml", config)
+	err := givenFile("../testdata/packagebundlecontroller.yaml", config)
 	return err
 }
 

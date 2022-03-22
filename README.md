@@ -17,7 +17,7 @@ Create a cluster with EKS Anywhere and set and export with KUBECONFIG.
 1. Load the controller resources:
 
         kubectl apply -f api/testdata/packagecontroller.yaml
-        kubectl apply -f api/testdata/bundlecontroller.yaml
+        kubectl apply -f api/testdata/packagebundlecontroller.yaml
 
 1. Load a bundle resource:
 

@@ -13,10 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -x
+set -o errexit
+set -o nounset
+set -o pipefail
+
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 cd ${SCRIPT_ROOT}/..
 
 cat config/crd/bases/packages.eks.amazonaws.com_package* >charts/eks-anywhere-packages/crds/crd.yaml
+cp api/testdata/packagebundlecontroller.yaml api/testdata/packagecontroller.yaml charts/eks-anywhere-packages/templates
 cd charts
 helm lint eks-anywhere-packages
 helm package eks-anywhere-packages
