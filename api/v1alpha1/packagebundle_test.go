@@ -39,6 +39,7 @@ func TestPackageBundle_Find(t *testing.T) {
 		Registry:   "public.ecr.aws/l0g8r8j6",
 		Repository: "eks-anywhere-test",
 		Digest:     "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
+		Version:    "0.1.0",
 	}
 
 	actual, err := sut.FindSource("eks-anywhere-test", "0.1.0")
@@ -66,30 +67,36 @@ func TestPackageBundle_Find(t *testing.T) {
 				},
 			},
 		)
-	expected := api.PackageOCISource{
-		Registry:   "public.ecr.aws/l0g8r8j6",
-		Repository: "eks-anywhere-test",
-		Digest:     "sha256:deadbeef",
-        Version: "0.1.1",
-	}
+		expected := api.PackageOCISource{
+			Registry:   "public.ecr.aws/l0g8r8j6",
+			Repository: "eks-anywhere-test",
+			Digest:     "sha256:deadbeef",
+			Version:    "0.1.1",
+		}
 		actual, err = latest.FindSource("eks-anywhere-test", api.Latest)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
 
-	t.Run("Get latest version", func(t *testing.T) {
+	t.Run("Get latest version returns the first item even if the name describes a later version", func(t *testing.T) {
 		latest := givenBundle(
 			[]api.SourceVersion{
-				{
-					Name:   "0.1.1",
-					Digest: "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
-				},
 				{
 					Name:   "0.1.0",
 					Digest: "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
 				},
+				{
+					Name:   "0.1.1",
+					Digest: "sha256:deadbeef",
+				},
 			},
 		)
+		expected := api.PackageOCISource{
+			Registry:   "public.ecr.aws/l0g8r8j6",
+			Repository: "eks-anywhere-test",
+			Digest:     "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
+			Version:    "0.1.0",
+		}
 		actual, err = latest.FindSource("eks-anywhere-test", api.Latest)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)

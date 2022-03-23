@@ -176,7 +176,7 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 func printableTargetVersion(source api.PackageOCISource, targetVersion string) string {
     ret := targetVersion
     if targetVersion == api.Latest {
-        ret = fmt.Sprintf("%s (%s)", ret, targetVersion)
+        ret = fmt.Sprintf("%s (%s)", source.Version, targetVersion)
     }
     return ret
 }

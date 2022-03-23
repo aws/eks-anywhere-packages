@@ -92,10 +92,13 @@ spec:
                     type: string
                   repository:
                     type: string
+                  version:
+                    type: string
                 required:
                 - digest
                 - registry
                 - repository
+                - version
                 type: object
               state:
                 description: State of the installation

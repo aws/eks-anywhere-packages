@@ -56,6 +56,7 @@ func (d *helmDriver) Install(ctx context.Context,
 	install := action.NewInstall(d.cfg)
 	fullName := d.prefixName(name)
 
+    install.Version = source.Version
 	install.ReleaseName = fullName
 	install.Namespace = namespace
 

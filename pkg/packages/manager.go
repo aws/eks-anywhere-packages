@@ -59,7 +59,7 @@ func processInstalling(mc *ManagerContext) bool {
 	}
 	mc.Log.Info("Installed", "name", mc.Package.Name, "chart", mc.Package.Status.Source)
 	mc.Package.Status.State = api.StateInstalled
-	mc.Package.Status.CurrentVersion = mc.Package.Spec.PackageVersion
+	mc.Package.Status.CurrentVersion = mc.Source.Version
 	mc.Package.Status.Detail = ""
 	return true
 }
