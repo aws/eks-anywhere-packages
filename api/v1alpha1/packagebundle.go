@@ -13,6 +13,7 @@ type PackageOCISource struct {
 
 const (
 	PackageBundleKind = "PackageBundle"
+	Latest            = "latest"
 )
 
 func (config *PackageBundle) MetaKind() string {
@@ -28,7 +29,9 @@ func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource P
 		if pkg.Name == pkgName {
 			source := pkg.Source
 			for _, version := range source.Versions {
-				if version.Name == pkgVersion || version.Digest == pkgVersion {
+				//We do not sort before getting `latest` because there will be only a single version per release in normal cases. For edge cases which may require multiple
+				//versions, the order in the file will be ordered according to what we want `latest` to point to
+				if version.Name == pkgVersion || version.Digest == pkgVersion || pkgVersion == Latest {
 					retSource = PackageOCISource{Registry: source.Registry, Repository: source.Repository, Digest: version.Digest}
 					return retSource, nil
 				}

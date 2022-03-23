@@ -22,9 +22,13 @@ import (
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
@@ -87,8 +91,30 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.Package{}).
+        Watches(&source.Kind{Type: &api.PackageBundle{}},
+		handler.EnqueueRequestsFromMapFunc(reconciler.mapBundleChangesToPackageUpdate)).
 		Complete(reconciler)
 }
+
+func (r *PackageReconciler) mapBundleChangesToPackageUpdate(obj client.Object) (req []reconcile.Request) {
+	ctx := context.Background()
+	objs := &api.PackageList{}
+	err := r.List(ctx, objs)
+	if err != nil {
+		return req
+	}
+
+	for _, o := range objs.Items {
+		req = append(req, reconcile.Request{
+            NamespacedName: types.NamespacedName{
+			Namespace: o.GetNamespace(),
+			Name:      o.GetName(),
+		}})
+	}
+
+    return req
+}
+
 
 //+kubebuilder:rbac:groups=packages.eks.amazonaws.com,resources=packages,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=packages.eks.amazonaws.com,resources=packages/status,verbs=get;update;patch
@@ -120,9 +146,12 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 
 		targetVersion := managerContext.Package.Spec.PackageVersion
-		pkgName := managerContext.Package.Spec.PackageName
-		managerContext.Package.Status.TargetVersion = targetVersion
+        if targetVersion == "" {
+            targetVersion = api.Latest
+        }
+        pkgName := managerContext.Package.Spec.PackageName
 		managerContext.Source, err = bundle.FindSource(pkgName, targetVersion)
+        managerContext.Package.Status.TargetVersion = printableTargetVersion(managerContext.Source, targetVersion)
 		if err != nil {
 			//TODO add a link to documentation on how to make a bundle active.
 			managerContext.Package.Status.Detail = fmt.Sprintf("Package %s@%s is not in the current active bundle. Did you forget to activate the new bundle?", pkgName, targetVersion)
@@ -142,6 +171,14 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	return ctrl.Result{RequeueAfter: managerContext.RequeueAfter}, nil
+}
+
+func printableTargetVersion(source api.PackageOCISource, targetVersion string) string {
+    ret := targetVersion
+    if targetVersion == api.Latest {
+        ret = fmt.Sprintf("%s (%s)", ret, targetVersion)
+    }
+    return ret
 }
 
 // SetupWithManager sets up the controller with the Manager.
