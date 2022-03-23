@@ -18,13 +18,14 @@ import (
 )
 
 const (
-	PublicKey               = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAETP8OUc6rTZHJs98X1aJfDIO0BXihHnSBDJhacdxZwk9RVzq28OIxQSVXXhD5ATEqWcNSWLnCG/GrZY9W2NfoMw=="
+	PublicKey               = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw=="
+	DomainName              = "eksa.aws.com"
 	SignatureAnnotation     = "signature"
 	ExcludesAnnotation      = "excludes"
 	FullSignatureAnnotation = "eksa.aws.com/signature"
 )
 
-var EksaDomain = Domain{Name: "eksa.aws.com", Pubkey: PublicKey}
+var EksaDomain = Domain{Name: DomainName, Pubkey: PublicKey}
 
 type GojqParams struct {
 	Excludes []string
@@ -133,20 +134,9 @@ func GetDigest(manifest Manifest, domain Domain) (digest [32]byte, yml []byte, e
 	return digest, yml, err
 }
 
+//See ./testdata/sign_file.sh for a shell script implementation.
+//This here differs in that it normalizes quoting while the shell script doesnt (yet).
 func ValidateSignature(manifest Manifest, domain Domain) (valid bool, digest [32]byte, yml []byte, err error) {
-	// Shell equivalent
-	// Obtain the yaml
-	//    < bundle.yaml yq -y --indentless-lists --sort-keys   \
-	//    '.spec | .bundles = (.bundles | [.[] | walk( if type == "object" then with_entries(select(.value != "" and .value != null and .value != [])) else . end)])' \
-	//        | sha256sum
-	//
-	// Sign with kms
-	//AWS_REGION=us-east-2 aws kms sign --key-id alias/demo --message \
-	// file://<(< ~/dev/proj/eks-anywhere-packages/api/v1alpha1/testdata/addons_v1alpha_addonbundle_signature_good.yaml \
-	//   yq --indentless-lists -y -S 'del(.spec.bundles[].chart.registry, .spec.bundles[].chart.repository, .metadata.annotations) |  \
-	//      walk( if type == "object" then with_entries(select(.value != "" and .value != null and .value != [])) else . end)'  \
-	//          --message-type RAW --signing-algorithm ECDSA_SHA_256
-
 	metaSig, _, err := GetMetadataInformation(manifest, domain)
 	if err != nil {
 		return false, [32]byte{}, yml, err

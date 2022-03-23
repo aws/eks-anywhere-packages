@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package v1alpha1_test
 
 import (
 	"context"
@@ -29,15 +29,20 @@ import (
 	admissionv1beta1 "k8s.io/api/admission/v1beta1"
 
 	//+kubebuilder:scaffold:imports
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-
-	//	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	. "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	"github.com/aws/eks-anywhere-packages/pkg/signature"
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
@@ -69,6 +74,40 @@ func TestAPIs(t *testing.T) {
 		[]Reporter{printer.NewlineReporter{}})
 }
 
+var _ = Context("Releases signatures are validated against the correct public key", func() {
+	ctx := context.Background()
+	When("a release is applied", func() {
+		It("validates the signature against the default key (production)", func() {
+			bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = k8sClient.Create(ctx, bundle)
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("The signature is invalid"))
+			Expect(err.Error()).Should(ContainSubstring(signature.EksaDomain.Pubkey))
+		})
+
+		It("validates the signature against the overriden key (using env var)", func() {
+			//Test public key
+			err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
+			Expect(err).ShouldNot(HaveOccurred())
+			bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = k8sClient.Create(ctx, bundle)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("validates the signature against the default key if the environment variable exists but is empty", func() {
+			err := os.Setenv(PublicKeyEnvVar, "")
+			Expect(err).ShouldNot(HaveOccurred())
+			bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = k8sClient.Create(ctx, bundle)
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("The signature is invalid"))
+			Expect(err.Error()).Should(ContainSubstring(signature.EksaDomain.Pubkey))
+		})
+	})
+})
 var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
@@ -89,6 +128,8 @@ var _ = BeforeSuite(func() {
 
 	scheme := runtime.NewScheme()
 	err = AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+	err = corev1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = admissionv1beta1.AddToScheme(scheme)
@@ -134,6 +175,11 @@ var _ = BeforeSuite(func() {
 		conn.Close()
 		return nil
 	}).Should(Succeed())
+
+	ns := corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{Name: bundle.ActiveBundleNamespace},
+	}
+	Expect(k8sClient.Create(ctx, &ns)).Should(Succeed())
 }, 60)
 
 var _ = AfterSuite(func() {

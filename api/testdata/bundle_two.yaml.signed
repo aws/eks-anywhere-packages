@@ -3,7 +3,7 @@ kind: PackageBundle
 metadata:
   name: v1-21-1002
   namespace: eksa-packages
-  annotations: {}
+  annotations: {eksa.aws.com/signature: MEQCIFjkZDN7bd4hCI8pB4EvoPpJzVRMW4t7vl0ef/D/YhaiAiBb4QJXmiw1DXrvXcqIX1cWaWbWTRo7R496EWsCIL+2lg==}
 spec:
   kubeVersion: v1.21
   packages:
