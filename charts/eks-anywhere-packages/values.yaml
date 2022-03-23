@@ -12,6 +12,8 @@ additionalLabels: {}
 # app: eks-anywhere-packages
 # -- Additional annotations to add into metadata.
 additionalAnnotations: {}
+# -- sourceRegistry for all container images in chart
+sourceRegistry: "public.ecr.aws/eks-anywhere"
 # -- Image pull policy for Docker images.
 imagePullPolicy: IfNotPresent
 serviceAccount:
@@ -61,8 +63,6 @@ controller:
     port: 8081
     initialDelaySeconds: 5
     periodSeconds: 10
-  # -- Controller registry.
-  registry: "public.ecr.aws/l0g8r8j6"
   # -- Controller repository name.
   repository: "eks-anywhere-packages"
   # -- Controller image tag, or sha sum.
@@ -80,8 +80,6 @@ controller:
       cpu: 500m
       memory: 100Mi
 kuberbacproxy:
-  # -- Controller registry.
-  registry: "public.ecr.aws/eks-anywhere"
   # -- Controller repository name.
   repository: "brancz/kube-rbac-proxy"
   # -- Controller image tag, or sha sum.
