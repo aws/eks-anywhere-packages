@@ -47,7 +47,7 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: {{ template "template.image" .Values.controller }}
+          image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.controller }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
           {{- with .Values.controller.env }}
@@ -83,7 +83,7 @@ spec:
           - --upstream=http://127.0.0.1:8080/
           - --logtostderr=true
           - --v=10
-          image: {{ template "template.image" .Values.kuberbacproxy }}
+          image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.kuberbacproxy }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             {{- with .Values.kuberbacproxy.env }}

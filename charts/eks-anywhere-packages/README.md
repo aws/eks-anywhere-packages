@@ -27,7 +27,6 @@ helm delete eksa-packages
 | controller.env | list | `[{"name":"ENABLE_WEBHOOKS","value":"true"}]` | Additional environment variables for the controller pod. |
 | controller.livenessProbe | object | `{"initialDelaySeconds":15,"path":"/healthz","periodSeconds":20,"port":8081}` | livenessProbe controls the values for controller container readiness. TODO Add in templating later |
 | controller.readinessProbe | object | `{"initialDelaySeconds":5,"path":"/readyz","periodSeconds":10,"port":8081}` | readinessProbe controls the values for controller container readiness. TODO Add in templating later |
-| controller.registry | string | `"public.ecr.aws/l0g8r8j6"` | Controller registry. |
 | controller.repository | string | `"eks-anywhere-packages"` | Controller repository name. |
 | controller.resources | object | `{"limits":{"cpu":"500m","memory":"100Mi"},"requests":{"cpu":"100m","memory":"50Mi"}}` | Resources for the controller pod. |
 | controller.securityContext | object | `{"allowPrivilegeEscalation":false}` | SecurityContext for the controller container. |
@@ -35,7 +34,6 @@ helm delete eksa-packages
 | fullnameOverride | string | `""` | Overrides the chart's computed fullname. |
 | imagePullPolicy | string | `"IfNotPresent"` | Image pull policy for Docker images. |
 | kuberbacproxy.env | list | `[]` | Additional environment variables for the webhook pod. |
-| kuberbacproxy.registry | string | `"public.ecr.aws/eks-anywhere"` | Controller registry. |
 | kuberbacproxy.repository | string | `"brancz/kube-rbac-proxy"` | Controller repository name. |
 | kuberbacproxy.tag | string | `"v0.8.0-eks-a-7"` | Controller image tag, or sha sum. |
 | nameOverride | string | `""` | Overrides the chart's name. |
@@ -50,6 +48,7 @@ helm delete eksa-packages
 | serviceMonitor.additionalLabels | object | `{}` | Additional labels for the ServiceMonitor. |
 | serviceMonitor.enabled | bool | `false` | Specifies whether a ServiceMonitor should be created. |
 | serviceMonitor.endpointConfig | object | `{}` | Endpoint configuration for the ServiceMonitor. |
+| sourceRegistry | string | `"public.ecr.aws/eks-anywhere"` | sourceRegistry for all container images in chart |
 | strategy | object | `{"type":"Recreate"}` | Strategy for updating the pod. |
 | terminationGracePeriodSeconds | int | `10` | Override the default termination grace period for the pod. |
 | tolerations | list | `[]` | Tolerations to allow the pod to be scheduled to nodes with taints. |
