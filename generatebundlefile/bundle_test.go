@@ -37,7 +37,7 @@ func TestNewBundleGenerate(t *testing.T) {
 								Repository: "sample-Repository",
 								Versions: []api.SourceVersion{
 									{
-										Name:   "v0.0",
+										Name:   "0.0",
 										Digest: "sha256:da25f5fdff88c259bb2ce7c0f1e9edddaf102dc4fb9cf5159ad6b902b5194e66",
 									},
 								},
@@ -160,8 +160,8 @@ func TestNewPackageFromInput(t *testing.T) {
 				Registry:   "public.ecr.aws/f5b7k4z5",
 				Repository: "eks-anywhere-test",
 				Versions: []Tag{
-					{Name: "v0.1.1-latest"},
-					{Name: "v1.0.1-helm"},
+					{Name: "0.1.1-latest"},
+					{Name: "1.0.1-helm"},
 				},
 			},
 			wantErr: false,
@@ -172,7 +172,7 @@ func TestNewPackageFromInput(t *testing.T) {
 					Repository: "eks-anywhere-test",
 					Versions: []api.SourceVersion{
 						{
-							Name:   "v0.1.1-54cc8ae386951ae75e2ff426006cc011ef9d30c4-helm",
+							Name:   "0.1.1-54cc8ae386951ae75e2ff426006cc011ef9d30c4-helm",
 							Digest: "sha256:74096aed500c0dac5bf4a320eab381bfb9c6490baa7a3912958c01c62a1608e7",
 						},
 						{
@@ -215,7 +215,7 @@ func TestNewPackageFromInput(t *testing.T) {
 				Registry:   "public.ecr.aws/f5b7k4z5",
 				Repository: "eks-anywhere-test",
 				Versions: []Tag{
-					{Name: "v0.1.1-latest"},
+					{Name: "0.1.1-latest"},
 					{Name: "v1.0.1-helm"},
 				},
 			},
@@ -227,7 +227,7 @@ func TestNewPackageFromInput(t *testing.T) {
 					Repository: "eks-anywhere-test",
 					Versions: []api.SourceVersion{
 						{
-							Name:   "v0.1.1-54cc8ae386951ae75e2ff426006cc011ef9d30c4-helm",
+							Name:   "0.1.1-54cc8ae386951ae75e2ff426006cc011ef9d30c4-helm",
 							Digest: "sha256:74096aed500c0dac5bf4a320eab381bfb9c6490baa7a3912958c01c62a1608e7",
 						},
 						{
