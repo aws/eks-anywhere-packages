@@ -3,11 +3,13 @@ package controllers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -16,6 +18,7 @@ import (
 	ctrlmocks "github.com/aws/eks-anywhere-packages/controllers/mocks"
 	bundlefake "github.com/aws/eks-anywhere-packages/pkg/bundle/fake"
 	drivermocks "github.com/aws/eks-anywhere-packages/pkg/driver/mocks"
+	"github.com/aws/eks-anywhere-packages/pkg/packages"
 	packageMocks "github.com/aws/eks-anywhere-packages/pkg/packages/mocks"
 )
 
@@ -35,6 +38,7 @@ func TestReconcile(t *testing.T) {
 			Return(true)
 
 		status := tf.mockStatusWriter()
+		pkg.Status.TargetVersion = "0.1.1"
 		status.EXPECT().
 			Update(ctx, pkg).
 			Return(nil)
@@ -145,6 +149,7 @@ func TestReconcile(t *testing.T) {
 
 		testErr := errors.New("status update test error")
 		status := tf.mockStatusWriter()
+		pkg.Status.TargetVersion = "0.1.1"
 		status.EXPECT().
 			Update(ctx, pkg).
 			Return(testErr)
@@ -164,6 +169,90 @@ func TestReconcile(t *testing.T) {
 		if got.RequeueAfter != expected {
 			t.Errorf("expected <%s> got <%s>", expected, got.RequeueAfter)
 		}
+	})
+
+	t.Run("Reports error when requested package version is not in the bundle", func(t *testing.T) {
+		tf, ctx := newTestFixtures(t)
+
+		fn, pkg := tf.mockGetFnPkg()
+		tf.ctrlClient.EXPECT().
+			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
+			DoAndReturn(fn)
+
+		tf.bundleManager.FakeActiveBundle = tf.mockBundle()
+		tf.bundleManager.FakeActiveBundle.ObjectMeta.Name = "fake bundle"
+
+		testErr := errors.New("status update test error")
+		status := tf.mockStatusWriter()
+
+		pkg.Spec.PackageVersion = "2.0.0"
+		pkg.Status.TargetVersion = "2.0.0"
+		pkg.Status.Detail = fmt.Sprintf("Package %s@%s is not in the active bundle (%s). Did you forget to activate the new bundle?", pkg.Spec.PackageName, pkg.Spec.PackageVersion, "fake bundle")
+		status.EXPECT().
+			Update(ctx, pkg).
+			Return(testErr)
+
+		tf.ctrlClient.EXPECT().
+			Status().
+			Return(status)
+
+		sut := tf.newReconciler()
+		req := tf.mockRequest()
+		got, err := sut.Reconcile(ctx, req)
+
+		assert.Error(t, err, testErr)
+		expected := time.Duration(0)
+		assert.Equal(t, expected, got.RequeueAfter)
+
+	})
+
+	t.Run("Packages without version hold upgrade to latest", func(t *testing.T) {
+		tf, ctx := newTestFixtures(t)
+
+		fn, pkg := tf.mockGetFnPkg()
+		tf.ctrlClient.EXPECT().
+			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
+			DoAndReturn(fn).Times(2)
+
+		pkg.Spec.PackageVersion = ""
+
+		tf.bundleManager.FakeActiveBundle = tf.mockBundle()
+
+		newBundle := tf.mockBundle()
+		newBundle.Spec.Packages[0].Source.Versions = []api.SourceVersion{{
+			Name:   "0.2.0",
+			Digest: "sha256:deadbeef020",
+		}}
+
+		tf.packageManager.EXPECT().
+			Process(gomock.Any()).
+			Return(false).Do(func(mctx *packages.ManagerContext) {
+			assert.Equal(t,
+				api.PackageOCISource(api.PackageOCISource{Version: "0.1.1", Registry: "public.ecr.aws/l0g8r8j6", Repository: "eks-anywhere-test", Digest: "sha256:deadbeef"}),
+				mctx.Source)
+		})
+
+		sut := tf.newReconciler()
+		req := tf.mockRequest()
+		got, err := sut.Reconcile(ctx, req)
+		assert.NoError(t, err)
+		expected := time.Duration(0)
+		assert.Equal(t, expected, got.RequeueAfter)
+
+		tf.bundleManager.FakeActiveBundle = newBundle
+		tf.packageManager.EXPECT().
+			Process(gomock.Any()).
+			Return(false).Do(func(mctx *packages.ManagerContext) {
+			assert.Equal(t,
+				api.PackageOCISource(api.PackageOCISource{Version: "0.2.0", Registry: "public.ecr.aws/l0g8r8j6", Repository: "eks-anywhere-test", Digest: "sha256:deadbeef020"}),
+				mctx.Source)
+		})
+
+		got, err = sut.Reconcile(ctx, req)
+		assert.NoError(t, err)
+		expected = time.Duration(0)
+		assert.Equal(t, expected, got.RequeueAfter)
+
 	})
 }
 
@@ -205,7 +294,7 @@ func newTestFixtures(t *testing.T) (*testFixtures, context.Context) {
 func (tf *testFixtures) mockSpec() api.PackageSpec {
 	return api.PackageSpec{
 		PackageName:    "eks-anywhere-test",
-		PackageVersion: "v0.1.1",
+		PackageVersion: "0.1.1",
 		Config: map[string]string{
 			"config.foo": configValue,
 			"secret.bar": secretValue,
@@ -230,8 +319,8 @@ func (tf *testFixtures) mockBundle() *api.PackageBundle {
 						Registry:   "public.ecr.aws/l0g8r8j6",
 						Repository: "eks-anywhere-test",
 						Versions: []api.SourceVersion{
-							{Name: "v0.1.1", Digest: "sha256:deadbeef"},
-							{Name: "v0.1.0", Digest: "sha256:cafebabe"},
+							{Name: "0.1.1", Digest: "sha256:deadbeef"},
+							{Name: "0.1.0", Digest: "sha256:cafebabe"},
 						},
 					},
 				},

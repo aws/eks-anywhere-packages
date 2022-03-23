@@ -22,9 +22,13 @@ import (
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
@@ -87,7 +91,28 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.Package{}).
+		Watches(&source.Kind{Type: &api.PackageBundle{}},
+			handler.EnqueueRequestsFromMapFunc(reconciler.mapBundleChangesToPackageUpdate)).
 		Complete(reconciler)
+}
+
+func (r *PackageReconciler) mapBundleChangesToPackageUpdate(obj client.Object) (req []reconcile.Request) {
+	ctx := context.Background()
+	objs := &api.PackageList{}
+	err := r.List(ctx, objs)
+	if err != nil {
+		return req
+	}
+
+	for _, o := range objs.Items {
+		req = append(req, reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Namespace: o.GetNamespace(),
+				Name:      o.GetName(),
+			}})
+	}
+
+	return req
 }
 
 //+kubebuilder:rbac:groups=packages.eks.amazonaws.com,resources=packages,verbs=get;list;watch;create;update;patch;delete
@@ -97,12 +122,6 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Package object against the actual cluster state, and then perform
-// operations to make the cluster state reflect the state specified by the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.8.3/pkg/reconcile
 func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.V(6).Info("Reconcile:", "NamespacedName", req.NamespacedName)
 
@@ -113,6 +132,7 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		Log:           r.Log,
 		PackageDriver: r.PackageDriver,
 	}
+
 	if err = r.Get(ctx, req.NamespacedName, &managerContext.Package); err != nil {
 		if !apierrors.IsNotFound(err) {
 			return ctrl.Result{}, err
@@ -124,8 +144,19 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			return ctrl.Result{RequeueAfter: retryLong}, err
 		}
 
-		managerContext.Source, managerContext.Version, err = bundle.FindSource(managerContext.Package.Spec.PackageName, managerContext.Package.Spec.PackageVersion)
+		targetVersion := managerContext.Package.Spec.PackageVersion
+		if targetVersion == "" {
+			targetVersion = api.Latest
+		}
+		pkgName := managerContext.Package.Spec.PackageName
+		managerContext.Source, err = bundle.FindSource(pkgName, targetVersion)
+		managerContext.Package.Status.TargetVersion = printableTargetVersion(managerContext.Source, targetVersion)
 		if err != nil {
+			//TODO add a link to documentation on how to make a bundle active.
+			managerContext.Package.Status.Detail = fmt.Sprintf("Package %s@%s is not in the active bundle (%s). Did you forget to activate the new bundle?", pkgName, targetVersion, bundle.ObjectMeta.Name)
+			if err = r.Status().Update(ctx, &managerContext.Package); err != nil {
+				return ctrl.Result{RequeueAfter: managerContext.RequeueAfter}, err
+			}
 			return ctrl.Result{RequeueAfter: retryLong}, err
 		}
 	}
@@ -139,6 +170,14 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	return ctrl.Result{RequeueAfter: managerContext.RequeueAfter}, nil
+}
+
+func printableTargetVersion(source api.PackageOCISource, targetVersion string) string {
+	ret := targetVersion
+	if targetVersion == api.Latest {
+		ret = fmt.Sprintf("%s (%s)", source.Version, targetVersion)
+	}
+	return ret
 }
 
 // SetupWithManager sets up the controller with the Manager.

@@ -6,6 +6,7 @@ import (
 )
 
 type PackageOCISource struct {
+	Version    string `json:"version"`
 	Registry   string `json:"registry"`
 	Repository string `json:"repository"`
 	Digest     string `json:"digest"`
@@ -13,6 +14,7 @@ type PackageOCISource struct {
 
 const (
 	PackageBundleKind = "PackageBundle"
+	Latest            = "latest"
 )
 
 func (config *PackageBundle) MetaKind() string {
@@ -23,20 +25,22 @@ func (config *PackageBundle) ExpectedKind() string {
 	return PackageBundleKind
 }
 
-func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource PackageOCISource, version string, err error) {
+func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource PackageOCISource, err error) {
 	for _, pkg := range config.Spec.Packages {
 		if pkg.Name == pkgName {
 			source := pkg.Source
 			for _, version := range source.Versions {
-				if version.Name == pkgVersion || version.Digest == pkgVersion {
-					retSource = PackageOCISource{Registry: source.Registry, Repository: source.Repository, Digest: version.Digest}
-					return retSource, version.Name, nil
+				//We do not sort before getting `latest` because there will be only a single version per release in normal cases. For edge cases which may require multiple
+				//versions, the order in the file will be ordered according to what we want `latest` to point to
+				if version.Name == pkgVersion || version.Digest == pkgVersion || pkgVersion == Latest {
+					retSource = PackageOCISource{Registry: source.Registry, Repository: source.Repository, Digest: version.Digest, Version: version.Name}
+					return retSource, nil
 				}
 			}
 		}
 	}
 
-	return retSource, "", fmt.Errorf("package not found: %s @ %s", pkgName, pkgVersion)
+	return retSource, fmt.Errorf("package not found in bundle (%s): %s @ %s", config.ObjectMeta.Name, pkgName, pkgVersion)
 }
 
 func (s PackageOCISource) AsRepoURI() string {
