@@ -184,7 +184,7 @@ test-e2e-smoke:
 	bash -c 'aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws'
 	kubectl create namespace eksa-packages
 	kubectl apply -f api/testdata/packagecontroller.yaml
-	kubectl apply -f api/testdata/bundlecontroller.yaml
+	kubectl apply -f api/testdata/packagebundlecontroller.yaml
 	kubectl apply -f api/testdata/bundle_one.yaml
 	kubectl apply -f api/testdata/test.yaml
 	@echo -E
