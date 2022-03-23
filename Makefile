@@ -118,8 +118,8 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
 helm-deploy:
-	helm upgrade --install --namespace eksa-packages --create-namespace eksa-packages charts/eks-anywhere-packages/
-
+	helm upgrade --install eksa-packages charts/eks-anywhere-packages/
+	
 helm-delete:
 	helm delete eksa-packages
 

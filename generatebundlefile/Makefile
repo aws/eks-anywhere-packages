@@ -6,7 +6,7 @@ RELEASE_CONTAINER_REGISTRY?=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.co
 BUILD_REPO_BRANCH_NAME?=main
 CLI_REPO_BRANCH_NAME?=main
 GOLANG_VERSION?="1.17"
-GO ?= $(shell source $(REPO_ROOT)/generatebundlefile/scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
+GO ?= $(shell source $(REPO_ROOT)/scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
 ECR_PUBLIC_URI?=$(shell AWS_REGION=us-east-1 && aws ecr-public describe-registries --query 'registries[*].registryUri' --output text)
 KMS_KEY=signingPackagesKey
 
@@ -76,14 +76,7 @@ else
 	endif
 endif
 
-.PHONY: test-oras
-test-oras:
-	@echo oras_$(ORAS_VERSION)_$(ORAS_OSARCH).tar.gz
-
 .PHONY: oras-install
-oras-install: test-oras
-	curl -LO https://github.com/oras-project/oras/releases/download/v$(ORAS_VERSION)/oras_$(ORAS_VERSION)_$(ORAS_OSARCH).tar.gz
-	mkdir -p oras-install/
-	tar -zxf oras_0.12.0_*.tar.gz -C oras-install/
-	mv oras-install/oras ${REPO_ROOT}/bin/oras
-	rm -rf oras_0.12.0_*.tar.gz oras-install/
+oras-install:
+	curl -L -s https://github.com/oras-project/oras/releases/download/v$(ORAS_VERSION)/oras_$(ORAS_VERSION)_$(ORAS_OSARCH).tar.gz \
+		| tar zx -C $(REPO_ROOT)/bin oras

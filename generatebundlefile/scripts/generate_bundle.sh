@@ -27,12 +27,12 @@ BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile 
 
 # Faster way to install Cosign compared to go install github.com/sigstore/cosign/cmd/cosign@v1.5.1
-COSIGN_URL=$(curl -s https://api.github.com/repos/sigstore/cosign/releases/latest \
+curl -s https://api.github.com/repos/sigstore/cosign/releases/latest \
 | grep 'browser_download_url.*cosign-linux-amd64"' \
 | cut -d '"' -f 4 \
-| tr -d \")
+| tr -d \" \
+| xargs curl -OL
 
-curl -OL $COSIGN_URL
 chmod +x cosign-linux-amd64
 mkdir -p ${BASE_DIRECTORY}/bin
 mv cosign-linux-amd64 ${BASE_DIRECTORY}/bin/cosign
