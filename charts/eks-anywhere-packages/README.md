@@ -24,18 +24,18 @@ helm delete eksa-packages
 |-----|------|---------|-------------|
 | additionalAnnotations | object | `{}` | Additional annotations to add into metadata. |
 | additionalLabels | object | `{}` | Additional labels to add into metadata. |
-| controller.env | list | `[{"name":"ENABLE_WEBHOOKS","value":"true"}]` | Additional environment variables for the controller pod. |
+| controller.env | list | `[{"name":"ENABLE_WEBHOOKS","value":"true"},{"name":"EKSA_PUBLIC_KEY","value":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw=="}]` | Additional environment variables for the controller pod. |
 | controller.livenessProbe | object | `{"initialDelaySeconds":15,"path":"/healthz","periodSeconds":20,"port":8081}` | livenessProbe controls the values for controller container readiness. TODO Add in templating later |
 | controller.readinessProbe | object | `{"initialDelaySeconds":5,"path":"/readyz","periodSeconds":10,"port":8081}` | readinessProbe controls the values for controller container readiness. TODO Add in templating later |
 | controller.repository | string | `"eks-anywhere-packages"` | Controller repository name. |
 | controller.resources | object | `{"limits":{"cpu":"500m","memory":"100Mi"},"requests":{"cpu":"100m","memory":"50Mi"}}` | Resources for the controller pod. |
 | controller.securityContext | object | `{"allowPrivilegeEscalation":false}` | SecurityContext for the controller container. |
-| controller.tag | string | `"latest"` | Controller image tag, or sha sum. |
+| controller.tag | string | `"v0.1.2-eks-a-v0.0.0-dev-build.1944"` | Controller image tag, or sha sum. |
 | fullnameOverride | string | `""` | Overrides the chart's computed fullname. |
 | imagePullPolicy | string | `"IfNotPresent"` | Image pull policy for Docker images. |
 | kuberbacproxy.env | list | `[]` | Additional environment variables for the webhook pod. |
 | kuberbacproxy.repository | string | `"brancz/kube-rbac-proxy"` | Controller repository name. |
-| kuberbacproxy.tag | string | `"v0.8.0-eks-a-7"` | Controller image tag, or sha sum. |
+| kuberbacproxy.tag | string | `"v0.8.0-eks-a-v0.0.0-dev-release-0.8-build.0"` | Controller image tag, or sha sum. |
 | nameOverride | string | `""` | Overrides the chart's name. |
 | namespace | string | `"eksa-packages"` | The namespace to deploy the resources into |
 | nodeSelector | object | `{"kubernetes.io/os":"linux"}` | Node selectors to schedule the pod to nodes with labels. |
@@ -48,7 +48,7 @@ helm delete eksa-packages
 | serviceMonitor.additionalLabels | object | `{}` | Additional labels for the ServiceMonitor. |
 | serviceMonitor.enabled | bool | `false` | Specifies whether a ServiceMonitor should be created. |
 | serviceMonitor.endpointConfig | object | `{}` | Endpoint configuration for the ServiceMonitor. |
-| sourceRegistry | string | `"public.ecr.aws/eks-anywhere"` | sourceRegistry for all container images in chart |
+| sourceRegistry | string | `"public.ecr.aws/l0g8r8j6"` | sourceRegistry for all container images in chart |
 | strategy | object | `{"type":"Recreate"}` | Strategy for updating the pod. |
 | terminationGracePeriodSeconds | int | `10` | Override the default termination grace period for the pod. |
 | tolerations | list | `[]` | Tolerations to allow the pod to be scheduled to nodes with taints. |
