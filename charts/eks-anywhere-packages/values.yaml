@@ -67,12 +67,15 @@ controller:
   repository: "eks-anywhere-packages"
   # -- Controller image tag, or sha sum.
   tag: "v0.1.2-eks-a-v0.0.0-dev-build.1944"
+  # -- Whether to turn on Webhooks for the controller image
+  enableWebhooks: "true"
   # -- Additional environment variables for the controller pod.
-  env:
-    - name: ENABLE_WEBHOOKS
-      value: "true"
-    - name: EKSA_PUBLIC_KEY
-      value: "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw=="
+  # - name: EKSA_PUBLIC_KEY
+  #   value: ""
+  env: []
+  # env:
+  #   - name: EKSA_PUBLIC_KEY,
+  #     value: "12345"
   # -- Resources for the controller pod.
   resources:
     requests:
