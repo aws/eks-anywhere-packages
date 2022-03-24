@@ -13,7 +13,7 @@ additionalLabels: {}
 # -- Additional annotations to add into metadata.
 additionalAnnotations: {}
 # -- sourceRegistry for all container images in chart
-sourceRegistry: "public.ecr.aws/eks-anywhere"
+sourceRegistry: "public.ecr.aws/l0g8r8j6"
 # -- Image pull policy for Docker images.
 imagePullPolicy: IfNotPresent
 serviceAccount:
@@ -66,11 +66,16 @@ controller:
   # -- Controller repository name.
   repository: "eks-anywhere-packages"
   # -- Controller image tag, or sha sum.
-  tag: "latest"
+  tag: "v0.1.2-eks-a-v0.0.0-dev-build.1944"
+  # -- Whether to turn on Webhooks for the controller image
+  enableWebhooks: "true"
   # -- Additional environment variables for the controller pod.
-  env:
-    - name: ENABLE_WEBHOOKS
-      value: "true"
+  # - name: EKSA_PUBLIC_KEY
+  #   value: ""
+  env: []
+  # env:
+  #   - name: EKSA_PUBLIC_KEY,
+  #     value: "12345"
   # -- Resources for the controller pod.
   resources:
     requests:
@@ -83,6 +88,6 @@ kuberbacproxy:
   # -- Controller repository name.
   repository: "brancz/kube-rbac-proxy"
   # -- Controller image tag, or sha sum.
-  tag: "v0.8.0-eks-a-7"
+  tag: "v0.8.0-eks-a-v0.0.0-dev-release-0.8-build.0"
   # -- Additional environment variables for the webhook pod.
   env:  []

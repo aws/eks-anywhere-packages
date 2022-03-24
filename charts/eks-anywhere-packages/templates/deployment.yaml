@@ -50,9 +50,13 @@ spec:
           image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.controller }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
-          {{- with .Values.controller.env }}
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            - name: ENABLE_WEBHOOKS
+              value: {{ .Values.controller.enableWebhooks }}
+            {{- if .Values.controller.env }}
+            {{- with .Values.controller.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- end }}
           ports:
             - name: webhook-server
               containerPort: 9443
