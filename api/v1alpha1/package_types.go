@@ -23,7 +23,8 @@ import (
 // +kubebuilder:printcolumn:name="Package",type=string,JSONPath=`.spec.packageName`
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
-// +kubebuilder:printcolumn:name="Version",type=string,JSONPath=`.status.version`
+// +kubebuilder:printcolumn:name="CurrentVersion",type=string,JSONPath=`.status.currentVersion`
+// +kubebuilder:printcolumn:name="TargetVersion",type=string,JSONPath=`.status.targetVersion`
 // +kubebuilder:printcolumn:name="Detail",type=string,JSONPath=`.status.detail`
 // Package is the Schema for the package API
 type Package struct {
@@ -70,7 +71,11 @@ type PackageStatus struct {
 
 	// +kubebuilder:validation:Required
 	// Version currently installed
-	Version string `json:"version"`
+	CurrentVersion string `json:"currentVersion"`
+
+	// +kubebuilder:validation:Required
+	// Version to be installed
+	TargetVersion string `json:"targetVersion"`
 
 	// State of the installation
 	State StateEnum `json:"state,omitempty"`
