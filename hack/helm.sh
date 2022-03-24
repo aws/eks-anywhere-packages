@@ -18,10 +18,11 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-cd ${SCRIPT_ROOT}/..
+ROOT_DIR="$(git rev-parse --show-toplevel)"
 
-cat config/crd/bases/packages.eks.amazonaws.com_package* >charts/eks-anywhere-packages/crds/crd.yaml
+cd ${ROOT_DIR}
+./bin/kustomize build config/crd > charts/eks-anywhere-packages/crds/crd.yaml
+
 cp api/testdata/packagebundlecontroller.yaml api/testdata/packagecontroller.yaml charts/eks-anywhere-packages/templates
 cd charts
 helm lint eks-anywhere-packages
