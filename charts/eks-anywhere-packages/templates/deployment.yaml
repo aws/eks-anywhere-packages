@@ -51,7 +51,7 @@ spec:
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: ENABLE_WEBHOOKS
-              value: {{ .Values.controller.enableWebhooks }}
+              value: {{ .Values.controller.enableWebhooks | quote}}
             {{- if .Values.controller.env }}
             {{- with .Values.controller.env }}
               {{- toYaml . | nindent 12 }}
