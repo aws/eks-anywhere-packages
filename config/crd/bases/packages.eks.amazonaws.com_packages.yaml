@@ -56,10 +56,8 @@ spec:
             description: PackageSpec defines the desired state of an package.
             properties:
               config:
-                additionalProperties:
-                  type: string
                 description: Config for the package
-                type: object
+                type: string
               packageName:
                 description: PackageName is the name of the package as specified in
                   the bundle.

@@ -261,10 +261,8 @@ func TestReconcile(t *testing.T) {
 //
 
 const (
-	name        string = "Yoda"
-	namespace   string = "Jedi"
-	configValue string = "foo"
-	secretValue string = "bar"
+	name      string = "Yoda"
+	namespace string = "Jedi"
 )
 
 type testFixtures struct {
@@ -295,10 +293,12 @@ func (tf *testFixtures) mockSpec() api.PackageSpec {
 	return api.PackageSpec{
 		PackageName:    "eks-anywhere-test",
 		PackageVersion: "0.1.1",
-		Config: map[string]string{
-			"config.foo": configValue,
-			"secret.bar": secretValue,
-		},
+		Config: `
+config:
+  foo: foo
+secret:
+  bar: bar
+`,
 	}
 }
 
