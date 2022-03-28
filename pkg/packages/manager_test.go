@@ -18,7 +18,6 @@ import (
 type PackageOCISource = api.PackageOCISource
 
 func givenPackage() api.Package {
-	config := map[string]string{"make": "willys", "models.mb": "41", "models.cj2a.year": "45"}
 	return api.Package{
 		TypeMeta: metav1.TypeMeta{
 			Kind: "Package",
@@ -26,7 +25,13 @@ func givenPackage() api.Package {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "bobby",
 		},
-		Spec: api.PackageSpec{Config: config},
+		Spec: api.PackageSpec{Config: `
+make: willys
+models:
+  mb: "41"
+  cj2a:
+    year: "45"
+`},
 	}
 }
 

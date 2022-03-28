@@ -5,7 +5,11 @@ metadata:
 spec:
   packageName: Test
   packageVersion: v0.1.0
-  config:
-    config.foo: windom
-    secret.bar: eolus
-    pvc.storage: 1Mi
+  config: |
+    config:
+      - foo: windom
+      - baz: baz
+    secret:
+      bar: eolus
+    pvc:
+      storage: 1Mi

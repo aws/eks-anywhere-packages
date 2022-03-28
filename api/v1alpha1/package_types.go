@@ -45,7 +45,7 @@ type PackageSpec struct {
 	PackageVersion string `json:"packageVersion,omitempty"`
 
 	// Config for the package
-	Config map[string]string `json:"config,omitempty"`
+	Config string `json:"config,omitempty"`
 
 	// TargetNamespace where package resources will be deployed.
 	TargetNamespace string `json:"targetNamespace,omitempty"`
