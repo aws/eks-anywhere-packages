@@ -37,6 +37,7 @@ func (mc *ManagerContext) SetUninstalling(name string) {
 func processInitializing(mc *ManagerContext) bool {
 	mc.Log.Info("New installation", "name", mc.Package.Name)
 	mc.Package.Status.Source = mc.Source
+	mc.Package.Status.TargetVersion = mc.Package.Spec.PackageVersion
 	mc.Package.Status.State = api.StateInstalling
 	mc.RequeueAfter = retryNow
 	return true
