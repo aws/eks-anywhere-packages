@@ -65,8 +65,15 @@ spec:
                 - repository
                 type: object
               upgradeCheckInterval:
+                default: 1d
                 description: "UpgradeCheckInterval is the time between upgrade checks.
                   \n The format is that of time's ParseDuration."
+                type: string
+              upgradeCheckShortInterval:
+                default: 1h
+                description: "UpgradeCheckShortInterval if there is a problem this
+                  is the time between upgrade checks. \n The format is that of time's
+                  ParseDuration."
                 type: string
             required:
             - source

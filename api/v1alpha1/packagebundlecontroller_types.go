@@ -40,11 +40,19 @@ type PackageBundleControllerSpec struct {
 	// +optional
 	LogLevel *int32 `json:"logLevel,omitempty"`
 
+	// +kubebuilder:default:="1d"
 	// UpgradeCheckInterval is the time between upgrade checks.
 	//
 	// The format is that of time's ParseDuration.
 	// +optional
 	UpgradeCheckInterval metav1.Duration `json:"upgradeCheckInterval,omitempty"`
+
+	// +kubebuilder:default:="1h"
+	// UpgradeCheckShortInterval if there is a problem this is the time between upgrade checks.
+	//
+	// The format is that of time's ParseDuration.
+	// +optional
+	UpgradeCheckShortInterval metav1.Duration `json:"upgradeCheckShortInterval,omitempty"`
 
 	// ActiveBundle is name of the bundle from which packages should be sourced.
 	// +optional
