@@ -1,0 +1,30 @@
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: PackageBundle
+metadata:
+  name: v1-21-1001
+  namespace: eksa-packages
+  annotations: {}
+spec:
+  kubeVersion: v1.21
+  packages:
+    - name: Test
+      source:
+        registry: public.ecr.aws/l0g8r8j6
+        repository: eks-anywhere-test
+        versions:
+          - name: v0.1.0
+            digest: sha256:481b5faa9c89967c3363d6b3c6c6695fe283ad5e51bacff0260601f745051e60
+    - name: Flux
+      source:
+        registry: public.ecr.aws/j0a1m4z9
+        repository: fluxcd/flux2
+        versions:
+          - name: v0.23.0-0b585d5986a1cfcee67b7a956eeef687f00ae468-helm
+            digest: sha256:5fb61d0b650483851ce3892e30f1d2c4c1372aafd51be24f37bbb0056db04012
+    - name: Harbor
+      source:
+        registry: public.ecr.aws/y8n6a2y0
+        repository: harbor/harbor-helm
+        versions:
+          - name: v2.4.1-f47374093e8a9c48aca8c7a7f06ae185eb7506f3-helm
+            digest: sha256:423eb28b0586376f4d1d30b492370a4e215f2b0210a587fff6f358efc41dda4c

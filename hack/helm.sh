@@ -23,7 +23,7 @@ ROOT_DIR="$(git rev-parse --show-toplevel)"
 cd ${ROOT_DIR}
 ./bin/kustomize build config/crd > charts/eks-anywhere-packages/crds/crd.yaml
 
-cp api/testdata/packagebundlecontroller.yaml api/testdata/packagecontroller.yaml charts/eks-anywhere-packages/templates
+cp api/testdata/packagebundlecontroller.yaml api/testdata/packagecontroller.yaml api/testdata/bundle_one.yaml charts/eks-anywhere-packages/templates
 cd charts
 helm lint eks-anywhere-packages
 helm package eks-anywhere-packages
