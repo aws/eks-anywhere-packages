@@ -75,7 +75,7 @@ type PackageStatus struct {
 
 	// +kubebuilder:validation:Required
 	// Version to be installed
-	TargetVersion string `json:"targetVersion"`
+	TargetVersion string `json:"targetVersion,omitempty"`
 
 	// State of the installation
 	State StateEnum `json:"state,omitempty"`
