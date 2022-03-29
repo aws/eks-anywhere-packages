@@ -213,6 +213,7 @@ func (in *PackageBundleControllerSpec) DeepCopyInto(out *PackageBundleController
 		**out = **in
 	}
 	out.UpgradeCheckInterval = in.UpgradeCheckInterval
+	out.UpgradeCheckShortInterval = in.UpgradeCheckShortInterval
 	out.Source = in.Source
 }
 
