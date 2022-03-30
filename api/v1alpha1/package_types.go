@@ -51,7 +51,7 @@ type PackageSpec struct {
 	TargetNamespace string `json:"targetNamespace,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=initializing;installing;installed;updating;uninstalling
+// +kubebuilder:validation:Enum=initializing;installing;installed;updating;uninstalling;unknown
 type StateEnum string
 
 const (
