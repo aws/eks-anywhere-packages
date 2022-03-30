@@ -23,7 +23,8 @@ func givenPackage() api.Package {
 			Kind: "Package",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "bobby",
+			Name:      "bobby",
+			Namespace: "eksa-packages",
 		},
 		Spec: api.PackageSpec{Config: `
 make: willys
@@ -171,5 +172,15 @@ func TestManagerLifecycle(t *testing.T) {
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateUnknown, expectedUpdate, expectedRequeue, "Unknown state: unknown")
+	})
+
+	mc = givenManagerContext(driver)
+	mc.Package.Namespace = "default"
+	t.Run("Package in wrong namespace should be ignored", func(t *testing.T) {
+		assert.Equal(t, api.StateEnum(""), mc.Package.Status.State)
+		expectedRequeue := time.Duration(0)
+		result := sut.Process(mc)
+		assert.True(t, result)
+		thenManagerContext(t, mc, api.StateUnknown, expectedSource, expectedRequeue, "Packages must be in namespace: eksa-packages")
 	})
 }
