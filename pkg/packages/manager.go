@@ -11,12 +11,13 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/driver"
 )
 
-const ( // coordinate state names to enum values
-	retryNever    = time.Duration(0)
-	retryNow      = time.Duration(1)
-	retryShort    = time.Duration(30) * time.Second
-	retryLong     = time.Duration(60) * time.Second
-	retryVeryLong = time.Duration(180) * time.Second
+const (
+	PackageNamespace = "eksa-packages"
+	retryNever       = time.Duration(0)
+	retryNow         = time.Duration(1)
+	retryShort       = time.Duration(30) * time.Second
+	retryLong        = time.Duration(60) * time.Second
+	retryVeryLong    = time.Duration(180) * time.Second
 )
 
 type ManagerContext struct {
@@ -37,6 +38,12 @@ func (mc *ManagerContext) SetUninstalling(name string) {
 func processInitializing(mc *ManagerContext) bool {
 	mc.Log.Info("New installation", "name", mc.Package.Name)
 	mc.Package.Status.Source = mc.Source
+	if mc.Package.Namespace != PackageNamespace {
+		mc.Package.Status.State = api.StateUnknown
+		mc.Package.Status.Detail = "Packages must be in namespace: " + PackageNamespace
+		mc.RequeueAfter = retryNever
+		return true
+	}
 	mc.Package.Status.State = api.StateInstalling
 	mc.RequeueAfter = retryNow
 	return true
