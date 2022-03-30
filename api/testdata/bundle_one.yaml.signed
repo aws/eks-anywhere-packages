@@ -3,7 +3,7 @@ kind: PackageBundle
 metadata:
   name: v1-21-1001
   namespace: eksa-packages
-  annotations: {eksa.aws.com/signature: MEYCIQCxV8kWMXPfAc4ZXnvLZTZCBAOTU6Hs1/KmS0pWRvB6zQIhAM3l1zllf+rUDMXkh4CzQzat1bl/VSsaZozO44dWfEtg}
+  annotations: {eksa.aws.com/signature: MEYCIQCN+aixNfPk23zgun52NBvAl8HdVt4ggVuQg7uyUW1zjwIhAPa/wZPUffz827Jq8PkwCV/ktAPqR4rnZvT1nRNcFs7y}
 spec:
   kubeVersion: v1.21
   packages:
@@ -12,8 +12,8 @@ spec:
         registry: public.ecr.aws/l0g8r8j6
         repository: eks-anywhere-test
         versions:
-          - name: v0.1.0
-            digest: sha256:481b5faa9c89967c3363d6b3c6c6695fe283ad5e51bacff0260601f745051e60
+          - name: v0.1.1-8b3810e1514b7432e032794842425accc837757a-helm
+            digest: sha256:64ea03b119d2421f9206252ff4af4bf7cdc2823c343420763e0e6fc20bf03b68
     - name: Flux
       source:
         registry: public.ecr.aws/j0a1m4z9
