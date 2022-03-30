@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"fmt"
 	"path"
+	"strings"
 )
 
 type PackageOCISource struct {
@@ -27,7 +28,7 @@ func (config *PackageBundle) ExpectedKind() string {
 
 func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource PackageOCISource, err error) {
 	for _, pkg := range config.Spec.Packages {
-		if pkg.Name == pkgName {
+		if strings.EqualFold(pkg.Name, pkgName) {
 			source := pkg.Source
 			for _, version := range source.Versions {
 				//We do not sort before getting `latest` because there will be only a single version per release in normal cases. For edge cases which may require multiple
