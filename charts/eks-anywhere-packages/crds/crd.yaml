@@ -55,7 +55,12 @@ spec:
                 - repository
                 type: object
               upgradeCheckInterval:
+                default: 1d
                 description: "UpgradeCheckInterval is the time between upgrade checks. \n The format is that of time's ParseDuration."
+                type: string
+              upgradeCheckShortInterval:
+                default: 1h
+                description: "UpgradeCheckShortInterval if there is a problem this is the time between upgrade checks. \n The format is that of time's ParseDuration."
                 type: string
             required:
             - source
@@ -156,6 +161,22 @@ spec:
                           items:
                             description: SourceVersion describes a version of a package within a repository.
                             properties:
+                              configurations:
+                                description: Configurations is a list of configurations used by this version of the package. The configurations are used for configuration validation and to generate sample configurations for users.
+                                items:
+                                  description: VersionConfiguration is a configuration used by a version of a package.
+                                  properties:
+                                    name:
+                                      description: Name is the name of the configuration
+                                      type: string
+                                    required:
+                                      description: Required configuration parameter the user must specify
+                                      type: boolean
+                                  required:
+                                  - name
+                                  - required
+                                  type: object
+                                type: array
                               digest:
                                 description: Digest is a checksum value identifying the version of the package and its contents.
                                 type: string
@@ -227,6 +248,22 @@ spec:
                               items:
                                 description: SourceVersion describes a version of a package within a repository.
                                 properties:
+                                  configurations:
+                                    description: Configurations is a list of configurations used by this version of the package. The configurations are used for configuration validation and to generate sample configurations for users.
+                                    items:
+                                      description: VersionConfiguration is a configuration used by a version of a package.
+                                      properties:
+                                        name:
+                                          description: Name is the name of the configuration
+                                          type: string
+                                        required:
+                                          description: Required configuration parameter the user must specify
+                                          type: boolean
+                                      required:
+                                      - name
+                                      - required
+                                      type: object
+                                    type: array
                                   digest:
                                     description: Digest is a checksum value identifying the version of the package and its contents.
                                     type: string
@@ -443,6 +480,7 @@ spec:
                 - installed
                 - updating
                 - uninstalling
+                - unknown
                 type: string
               targetVersion:
                 description: Version to be installed
@@ -466,7 +504,6 @@ spec:
             required:
             - currentVersion
             - source
-            - targetVersion
             type: object
         type: object
     served: true
