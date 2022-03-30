@@ -106,6 +106,7 @@ spec:
                 - installed
                 - updating
                 - uninstalling
+                - unknown
                 type: string
               targetVersion:
                 description: Version to be installed
