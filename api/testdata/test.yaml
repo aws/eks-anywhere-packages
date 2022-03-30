@@ -2,6 +2,7 @@ apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: Package
 metadata:
   name: my-test
+  namespace: eksa-packages
 spec:
   packageName: Test
   packageVersion: v0.1.0
