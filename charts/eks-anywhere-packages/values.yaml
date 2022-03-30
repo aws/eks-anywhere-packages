@@ -85,9 +85,9 @@ controller:
       cpu: 500m
       memory: 100Mi
 kuberbacproxy:
-  # -- Controller repository name.
+  # -- Kube rbac proxy repository name.
   repository: "brancz/kube-rbac-proxy"
-  # -- Controller image tag, or sha sum.
+  # -- Kube rbac proxy image tag, or sha sum.
   tag: "v0.8.0-eks-a-v0.0.0-dev-release-0.8-build.0"
   # -- Additional environment variables for the webhook pod.
   env:  []

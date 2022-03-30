@@ -35,8 +35,8 @@ helm delete eksa-packages
 | fullnameOverride | string | `""` | Overrides the chart's computed fullname. |
 | imagePullPolicy | string | `"IfNotPresent"` | Image pull policy for Docker images. |
 | kuberbacproxy.env | list | `[]` | Additional environment variables for the webhook pod. |
-| kuberbacproxy.repository | string | `"brancz/kube-rbac-proxy"` | Controller repository name. |
-| kuberbacproxy.tag | string | `"v0.8.0-eks-a-v0.0.0-dev-release-0.8-build.0"` | Controller image tag, or sha sum. |
+| kuberbacproxy.repository | string | `"brancz/kube-rbac-proxy"` | Kube rbac proxy repository name. |
+| kuberbacproxy.tag | string | `"v0.8.0-eks-a-v0.0.0-dev-release-0.8-build.0"` | Kube rbac proxy image tag, or sha sum. |
 | nameOverride | string | `""` | Overrides the chart's name. |
 | namespace | string | `"eksa-packages"` | The namespace to deploy the resources into |
 | nodeSelector | object | `{"kubernetes.io/os":"linux"}` | Node selectors to schedule the pod to nodes with labels. |
