@@ -42,13 +42,3 @@ func TestNewHelm(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, helm.log)
 }
-
-func TestPrefixName(t *testing.T) {
-	d := &helmDriver{}
-
-	expected := "eks-anywhere-test-foo"
-	got := d.prefixName("foo")
-	if got != expected {
-		t.Errorf("expected %q, got %q", expected, got)
-	}
-}

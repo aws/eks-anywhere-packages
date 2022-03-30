@@ -54,28 +54,26 @@ func (d *helmDriver) Install(ctx context.Context,
 	var err error
 
 	install := action.NewInstall(d.cfg)
-	fullName := d.prefixName(name)
-
 	install.Version = source.Version
-	install.ReleaseName = fullName
+	install.ReleaseName = name
 	install.Namespace = namespace
 
 	helmChart, err := d.getChart(install, source)
 	if err != nil {
-		return fmt.Errorf("loading helm chart %s: %w", fullName, err)
+		return fmt.Errorf("loading helm chart %s: %w", name, err)
 	}
 
 	// Check if there exists a matching helm release.
 	get := action.NewGet(d.cfg)
-	_, err = get.Run(fullName)
+	_, err = get.Run(name)
 	if err != nil {
 		if errors.Is(err, driver.ErrReleaseNotFound) {
 			return d.createRelease(ctx, install, helmChart, values)
 		}
-		return fmt.Errorf("getting helm release %s: %w", fullName, err)
+		return fmt.Errorf("getting helm release %s: %w", name, err)
 	}
 
-	err = d.upgradeRelease(ctx, fullName, helmChart, values)
+	err = d.upgradeRelease(ctx, name, helmChart, values)
 	if err != nil {
 		return fmt.Errorf("upgrading helm chart %s: %w", name, err)
 	}
@@ -132,7 +130,7 @@ func (d *helmDriver) upgradeRelease(ctx context.Context, name string,
 
 func (d *helmDriver) Uninstall(_ context.Context, name string) (err error) {
 	uninstall := action.NewUninstall(d.cfg)
-	_, err = uninstall.Run(d.prefixName(name))
+	_, err = uninstall.Run(name)
 	if err != nil {
 		if errors.Is(err, driver.ErrReleaseNotFound) {
 			return nil
@@ -148,12 +146,4 @@ func helmLog(log logr.Logger) action.DebugLog {
 	return func(template string, args ...interface{}) {
 		log.Info(fmt.Sprintf(template, args...))
 	}
-}
-
-// helmPrefix is a prefix prepending to EKS Anywhere Package helm release names.
-const helmPrefix = "eks-anywhere-test"
-
-// helmReleaseName is a helper function for building a prefixed release name.
-func (d *helmDriver) prefixName(name string) string {
-	return fmt.Sprintf("%s-%s", helmPrefix, name)
 }
