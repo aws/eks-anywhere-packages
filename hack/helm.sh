@@ -25,5 +25,7 @@ cd ${ROOT_DIR}
 
 cd charts
 helm lint eks-anywhere-packages
-helm package eks-anywhere-packages
 helm-docs
+RESULT=$(helm package eks-anywhere-packages| sed -e 's/Successfully packaged chart and saved it to: //g')
+echo "helm install eks-anywhere-packages ${RESULT}"
+
