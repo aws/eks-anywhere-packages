@@ -72,7 +72,9 @@ controller:
   # -- Additional environment variables for the controller pod.
   # - name: EKSA_PUBLIC_KEY
   #   value: ""
-  env: []
+  env: 
+    - name: EKSA_PUBLIC_KEY
+      value: "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg=="
   # env:
   #   - name: EKSA_PUBLIC_KEY,
   #     value: "12345"
