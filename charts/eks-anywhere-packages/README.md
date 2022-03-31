@@ -25,7 +25,7 @@ helm delete eksa-packages
 | additionalAnnotations | object | `{}` | Additional annotations to add into metadata. |
 | additionalLabels | object | `{}` | Additional labels to add into metadata. |
 | controller.enableWebhooks | string | `"true"` | Whether to turn on Webhooks for the controller image |
-| controller.env | list | `[]` | Additional environment variables for the controller pod. - name: EKSA_PUBLIC_KEY   value: "" |
+| controller.env | list | `[{"name":"EKSA_PUBLIC_KEY","value":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg=="}]` | Additional environment variables for the controller pod. - name: EKSA_PUBLIC_KEY   value: "" |
 | controller.livenessProbe | object | `{"initialDelaySeconds":15,"path":"/healthz","periodSeconds":20,"port":8081}` | livenessProbe controls the values for controller container readiness. TODO Add in templating later |
 | controller.readinessProbe | object | `{"initialDelaySeconds":5,"path":"/readyz","periodSeconds":10,"port":8081}` | readinessProbe controls the values for controller container readiness. TODO Add in templating later |
 | controller.repository | string | `"eks-anywhere-packages"` | Controller repository name. |
