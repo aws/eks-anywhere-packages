@@ -25,5 +25,15 @@ cd ${ROOT_DIR}
 
 cd charts
 helm lint eks-anywhere-packages
-helm package eks-anywhere-packages
+OUTDIR=_output
+rm -rf $OUTDIR
+mkdir $OUTDIR
+cp -r eks-anywhere-packages $OUTDIR
+sed \
+        -e 's,{{eks-anywhere-packages}},latest,' \
+        -e 's,{{brancz/kube-rbac-proxy}},v0.8.0-eks-a-v0.0.0-dev-release-0.8-build.0,' \
+        eks-anywhere-packages/values.yaml >${OUTDIR}/eks-anywhere-packages/values.yaml
+cd $OUTDIR
 helm-docs
+RESULT=$(helm package eks-anywhere-packages| sed -e 's/Successfully packaged chart and saved it to: //g')
+echo "helm install eks-anywhere-packages ${RESULT}"

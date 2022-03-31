@@ -66,7 +66,7 @@ controller:
   # -- Controller repository name.
   repository: "eks-anywhere-packages"
   # -- Controller image tag, or sha sum.
-  tag: "v0.1.2-eks-a-v0.0.0-dev-build.1944"
+  tag: "{{eks-anywhere-packages}}"
   # -- Whether to turn on Webhooks for the controller image
   enableWebhooks: "true"
   # -- Additional environment variables for the controller pod.
@@ -90,6 +90,6 @@ kuberbacproxy:
   # -- Kube rbac proxy repository name.
   repository: "brancz/kube-rbac-proxy"
   # -- Kube rbac proxy image tag, or sha sum.
-  tag: "v0.8.0-eks-a-v0.0.0-dev-release-0.8-build.0"
+  tag: "{{brancz/kube-rbac-proxy}}"
   # -- Additional environment variables for the webhook pod.
   env:  []
