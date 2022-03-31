@@ -198,7 +198,7 @@ kubetest-plugins: kubetest2
 	$(MAKE) -C kubetest-plugins build
 
 .PHONY: presubmit
-presubmit: vet generate manifests build test # lint is run via github action
+presubmit: vet generate manifests build helm-build test # lint is run via github action
 
 %.yaml.signed: %.yaml
 	pkg/signature/testdata/sign_file.sh $?
