@@ -81,6 +81,7 @@ clean: ## Clean up resources created by make targets
 	rm -rf ./bin/*
 	rm -rf cover.out
 	rm -rf testbin
+	rm -rf charts/_output
 	$(MAKE) -C kubetest-plugins clean
 
 ##@ Build
