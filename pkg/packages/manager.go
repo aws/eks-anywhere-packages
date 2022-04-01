@@ -101,6 +101,11 @@ func processUnknown(mc *ManagerContext) bool {
 	return true
 }
 
+func processDone(mc *ManagerContext) bool {
+	mc.RequeueAfter = retryNever
+	return false
+}
+
 type Manager interface {
 	// Process package events returns true if status update
 	Process(mc *ManagerContext) bool
@@ -124,6 +129,7 @@ func NewManager() Manager {
 				api.StateInstalled:    processInstalled,
 				api.StateUpdating:     processInstalling,
 				api.StateUninstalling: processUninstalling,
+				api.StateUnknown:      processDone,
 			},
 		})
 	})

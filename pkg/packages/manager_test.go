@@ -168,10 +168,10 @@ func TestManagerLifecycle(t *testing.T) {
 
 	t.Run("Unknown state is reported", func(t *testing.T) {
 		expectedRequeue := time.Duration(0)
-		mc.Package.Status.State = api.StateUnknown
+		mc.Package.Status.State = "bogus"
 		result := sut.Process(mc)
 		assert.True(t, result)
-		thenManagerContext(t, mc, api.StateUnknown, expectedUpdate, expectedRequeue, "Unknown state: unknown")
+		thenManagerContext(t, mc, "bogus", expectedUpdate, expectedRequeue, "Unknown state: bogus")
 	})
 
 	mc = givenManagerContext(driver)
@@ -181,6 +181,13 @@ func TestManagerLifecycle(t *testing.T) {
 		expectedRequeue := time.Duration(0)
 		result := sut.Process(mc)
 		assert.True(t, result)
+		thenManagerContext(t, mc, api.StateUnknown, expectedSource, expectedRequeue, "Packages must be in namespace: eksa-packages")
+	})
+
+	t.Run("Package in wrong namespace should be ignored again", func(t *testing.T) {
+		expectedRequeue := time.Duration(0)
+		result := sut.Process(mc)
+		assert.False(t, result)
 		thenManagerContext(t, mc, api.StateUnknown, expectedSource, expectedRequeue, "Packages must be in namespace: eksa-packages")
 	})
 }
