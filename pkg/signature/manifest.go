@@ -2,12 +2,13 @@ package signature
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/ecdsa"
-	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"path"
 	"strings"
 	"text/template"
@@ -57,12 +58,19 @@ func filter(in []string) []string {
 	return filtered
 }
 
+const (
+	ExcludesSep = "\n"
+	DefaultHash = crypto.SHA256
+)
+
+var Encoding = base64.StdEncoding
+
 func decodeSelectors(selectorsB64Encoded string) (selectors []string, err error) {
-	decoded, err := base64.StdEncoding.DecodeString(selectorsB64Encoded)
+	decoded, err := Encoding.DecodeString(selectorsB64Encoded)
 	if err != nil {
 		return selectors, err
 	}
-	selectors = filter(strings.Split(string(decoded), "\n"))
+	selectors = filter(strings.Split(string(decoded), ExcludesSep))
 	for _, arg := range selectors {
 		parsed, err := gojq.Parse(arg)
 		if err != nil {
@@ -94,11 +102,11 @@ func GetMetadataInformation(manifest Manifest, domain Domain) (signature string,
 	return signature, excludes, err
 }
 
-func GetDigest(manifest Manifest, domain Domain) (digest [32]byte, yml []byte, err error) {
+func GetDigest(manifest Manifest, domain Domain) (digest []byte, yml []byte, err error) {
 	var query *gojq.Query
 	_, excludes, err := GetMetadataInformation(manifest, domain)
 	if err != nil {
-		return [32]byte{}, nil, err
+		return nil, nil, err
 	}
 
 	renderedQuery := &bytes.Buffer{}
@@ -107,11 +115,11 @@ func GetDigest(manifest Manifest, domain Domain) (digest [32]byte, yml []byte, e
 		domain,
 	})
 	if err != nil {
-		return [32]byte{}, nil, err
+		return nil, nil, err
 	}
 	query, err = gojq.Parse(renderedQuery.String())
 	if err != nil {
-		return [32]byte{}, nil, err
+		return nil, nil, err
 	}
 	// gojq requires running on raw types, marshal and unmarshall to allow it.
 	asjson, _ := json.Marshal(manifest)
@@ -122,43 +130,49 @@ func GetDigest(manifest Manifest, domain Domain) (digest [32]byte, yml []byte, e
 	if remaining {
 		second, rem := jsonIt.Next()
 		if second != nil && !rem {
-			return [32]byte{}, nil, errors.New("Multiple result from the query should never happen")
+			return nil, nil, errors.New("Multiple result from the query should never happen")
 		}
 	}
 
 	yml, err = yaml.Marshal(filtered)
 	if err != nil {
-		return [32]byte{}, nil, errors.New("Manifest could not be marshaled to yaml")
+		return nil, nil, errors.New("Manifest could not be marshaled to yaml")
 	}
-	digest = sha256.Sum256(yml)
-	return digest, yml, err
+
+	h := DefaultHash.New()
+	_, err = h.Write(yml)
+	if err != nil {
+		return nil, nil, fmt.Errorf("calculating checksum: %w", err)
+	}
+
+	return h.Sum(nil), yml, err
 }
 
 //See ./testdata/sign_file.sh for a shell script implementation.
 //This here differs in that it normalizes quoting while the shell script doesnt (yet).
-func ValidateSignature(manifest Manifest, domain Domain) (valid bool, digest [32]byte, yml []byte, err error) {
+func ValidateSignature(manifest Manifest, domain Domain) (valid bool, digest []byte, yml []byte, err error) {
 	metaSig, _, err := GetMetadataInformation(manifest, domain)
 	if err != nil {
-		return false, [32]byte{}, yml, err
+		return false, nil, yml, err
 	}
 	digest, yml, err = GetDigest(manifest, domain)
 	if err != nil {
-		return false, [32]byte{}, yml, err
+		return false, nil, yml, err
 	}
 
-	sig, err := base64.StdEncoding.DecodeString(metaSig)
+	sig, err := Encoding.DecodeString(metaSig)
 	if err != nil {
-		return false, digest, yml, errors.New("Signature in metadata isn't base64 encoded")
+		return false, nil, nil, errors.New("Signature in metadata isn't base64 encoded")
 	}
-	pubdecoded, err := base64.StdEncoding.DecodeString(domain.Pubkey)
+	pubdecoded, err := Encoding.DecodeString(domain.Pubkey)
 	if err != nil {
-		return false, digest, yml, errors.New("Unable to decode the public key (not base 64)")
+		return false, nil, nil, errors.New("Unable to decode the public key (not base 64)")
 	}
 	pubparsed, err := x509.ParsePKIXPublicKey(pubdecoded)
 	if err != nil {
-		return false, digest, yml, errors.New("Unable parse the public key (not PKIX)")
+		return false, nil, yml, errors.New("Unable parse the public key (not PKIX)")
 	}
 	pubkey := pubparsed.(*ecdsa.PublicKey)
 
-	return ecdsa.VerifyASN1(pubkey, digest[:], sig), digest, yml, nil
+	return ecdsa.VerifyASN1(pubkey, digest, sig), digest, yml, nil
 }
