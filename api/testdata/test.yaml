@@ -5,11 +5,10 @@ metadata:
   namespace: eksa-packages
 spec:
   packageName: Test
-  packageVersion: v0.1.0
   config: |
     config:
-      - foo: windom
-      - baz: baz
+      foo: windom
+      baz: baz
     secret:
       bar: eolus
     pvc:
