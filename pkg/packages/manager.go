@@ -18,6 +18,7 @@ const (
 	retryShort       = time.Duration(30) * time.Second
 	retryLong        = time.Duration(60) * time.Second
 	retryVeryLong    = time.Duration(180) * time.Second
+	sourceRegistry   = "sourceRegistry"
 )
 
 type ManagerContext struct {
@@ -59,6 +60,7 @@ func processInstalling(mc *ManagerContext) bool {
 		mc.Log.Error(err, "Install failed")
 		return true
 	}
+	values[sourceRegistry] = mc.Source.Registry
 	if err := mc.PackageDriver.Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, mc.Source, values); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Install failed")
