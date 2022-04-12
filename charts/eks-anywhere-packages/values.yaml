@@ -13,7 +13,7 @@ additionalLabels: {}
 # -- Additional annotations to add into metadata.
 additionalAnnotations: {}
 # -- sourceRegistry for all container images in chart
-sourceRegistry: "public.ecr.aws/l0g8r8j6"
+sourceRegistry: public.ecr.aws/eks-anywhere
 # -- Image pull policy for Docker images.
 imagePullPolicy: IfNotPresent
 serviceAccount:
