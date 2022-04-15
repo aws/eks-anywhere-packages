@@ -45,6 +45,27 @@ type Tag struct {
 	Name string `json:"name,omitempty"`
 }
 
+type Requires struct {
+	Kind              string `json:"kind,omitempty"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              RequiresSpec `json:"spec,omitempty"`
+}
+
+type RequiresSpec struct {
+	Images         []Image `json:"images,omitempty"`
+	Configurations []Tag   `json:"configurations,omitempty"`
+}
+
+type Image struct {
+	Repository string `json:"repository,omitempty"`
+	Tag        string `json:"tag,omitempty"`
+	Digest     string `json:"digest,omitempty"`
+}
+
+type Values struct {
+	SourceRegistry string `json:"sourceRegistry,omitempty"`
+}
+
 // Matches returns a list of inputs which align with ECR tags that exist
 func (project Project) Matches(tag string) []string {
 	matchlist := []string{}

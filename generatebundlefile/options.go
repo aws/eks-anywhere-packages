@@ -17,6 +17,7 @@ type Options struct {
 	outputFolder   string
 	signature      string
 	generateSample bool
+	promote        string
 }
 
 // Validate validates the receiving options.
@@ -69,6 +70,7 @@ func NewOptions() *Options {
 	fs.StringVar(&o.inputFile, "input", "", "The path where the input bundle generation file lives")
 	fs.StringVar(&o.outputFolder, "output", "output", "The path where to write the output bundle files")
 	fs.StringVar(&o.signature, "signature", "", "The Signature of the bundle to be added as an annotation")
+	fs.StringVar(&o.promote, "promote", "", "The Helm chart private ECR OCI uri to pull and promote")
 	err := fs.Parse(os.Args[1:])
 	if err != nil {
 		BundleLog.Error(err, "Error parsing input flags")

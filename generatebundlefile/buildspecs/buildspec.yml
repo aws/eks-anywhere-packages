@@ -7,4 +7,6 @@ phases:
 
   build:
     commands:
-    - cd generatebundlefile && make dev-release
+    - cd generatebundlefile
+    - make dev-promote
+    - make dev-release

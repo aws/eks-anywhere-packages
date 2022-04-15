@@ -62,11 +62,11 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.Packag
 
 // NewPackageFromInput finds the SHA tags for any images in your BundlePackage
 func (projects Project) NewPackageFromInput() (*api.BundlePackage, error) {
-	ecrClient, err := NewECRClient()
+	ecrPublicClient, err := NewECRPublicClient(false)
 	if err != nil {
 		return nil, err
 	}
-	versionList, err := ecrClient.GetShaForInputs(projects)
+	versionList, err := ecrPublicClient.GetShaForInputs(projects)
 	if err != nil {
 		return nil, err
 	}

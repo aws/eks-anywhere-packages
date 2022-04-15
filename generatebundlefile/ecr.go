@@ -2,44 +2,104 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
+	"os/exec"
 	"reflect"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
-	"github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
+	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
 	"github.com/aws/aws-sdk-go/aws"
+	docker "github.com/fsouza/go-dockerclient"
+	"github.com/pkg/errors"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
-type ecrClient struct {
+type ecrPublicClient struct {
 	*ecrpublic.Client
+	AuthConfig     string
+	SourceRegistry string
 }
 
-// NewECRClient Creates a new ECR Client Public client
-func NewECRClient() (*ecrClient, error) {
+type ecrClient struct {
+	*ecr.Client
+	AuthConfig string
+}
+
+// NewECRPublicClient Creates a new ECR Client Public client
+func NewECRPublicClient(creds bool) (*ecrPublicClient, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	ecrClient := &ecrClient{Client: ecrpublic.NewFromConfig(cfg)}
+	ecrPublicClient := &ecrPublicClient{Client: ecrpublic.NewFromConfig(cfg)}
 	if err != nil {
 		return nil, err
+	}
+	if creds {
+		sourceAuthConfig, err := ecrPublicClient.GetPublicAuthConfig()
+		if err != nil {
+			return nil, err
+		}
+		ecrPublicClient.AuthConfig = fmt.Sprintf("%s:%s", sourceAuthConfig.Username, sourceAuthConfig.Password)
+		return ecrPublicClient, nil
+	}
+	return ecrPublicClient, nil
+}
+
+// NewECRClient Creates a new ECR Client Public client
+func NewECRClient(creds bool) (*ecrClient, error) {
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	ecrClient := &ecrClient{Client: ecr.NewFromConfig(cfg)}
+	if err != nil {
+		return nil, err
+	}
+	if creds {
+		sourceAuthConfig, err := ecrClient.GetAuthConfig()
+		if err != nil {
+			return nil, err
+		}
+		ecrClient.AuthConfig = fmt.Sprintf("%s:%s", sourceAuthConfig.Username, sourceAuthConfig.Password)
+		return ecrClient, nil
 	}
 	return ecrClient, nil
 }
 
 // Describe returns a list of ECR describe results, with Pagination from DescribeImages SDK request
-func (c *ecrClient) Describe(describeInput *ecrpublic.DescribeImagesInput) ([]types.ImageDetail, error) {
-	var images []types.ImageDetail
+func (c *ecrPublicClient) DescribePublic(describeInput *ecrpublic.DescribeImagesInput) ([]ecrpublictypes.ImageDetail, error) {
+	var images []ecrpublictypes.ImageDetail
 	resp, err := c.DescribeImages(context.TODO(), describeInput)
 	if err != nil {
 		return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
+	}
+	images = append(images, resp.ImageDetails...)
+	if resp.NextToken != nil {
+		next := describeInput
+		next.NextToken = resp.NextToken
+		nextdetails, _ := c.DescribePublic(next)
+		images = append(images, nextdetails...)
+	}
+	return images, nil
+}
+
+// Describe returns a list of ECR describe results, with Pagination from DescribeImages SDK request
+func (c *ecrClient) Describe(describeInput *ecr.DescribeImagesInput) ([]types.ImageDetail, error) {
+	var images []types.ImageDetail
+	resp, err := c.DescribeImages(context.TODO(), describeInput)
+	if err != nil {
+		return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR. %s", err)
 	}
 	images = append(images, resp.ImageDetails...)
 	if resp.NextToken != nil {
@@ -52,13 +112,13 @@ func (c *ecrClient) Describe(describeInput *ecrpublic.DescribeImagesInput) ([]ty
 }
 
 // GetShaForInputs returns a list of an images version/sha for given inputs to lookup
-func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error) {
+func (c *ecrPublicClient) GetShaForInputs(project Project) ([]api.SourceVersion, error) {
 	sourceVersion := []api.SourceVersion{}
 	for _, tag := range project.Versions {
 		if !strings.Contains(tag.Name, "latest") {
-			var imagelookup []types.ImageIdentifier
-			imagelookup = append(imagelookup, types.ImageIdentifier{ImageTag: &tag.Name})
-			ImageDetails, err := c.Describe(&ecrpublic.DescribeImagesInput{
+			var imagelookup []ecrpublictypes.ImageIdentifier
+			imagelookup = append(imagelookup, ecrpublictypes.ImageIdentifier{ImageTag: &tag.Name})
+			ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
 				RepositoryName: aws.String(project.Repository),
 				ImageIds:       imagelookup,
 			})
@@ -78,7 +138,7 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 		}
 		//
 		if tag.Name == "latest" {
-			ImageDetails, err := c.Describe(&ecrpublic.DescribeImagesInput{
+			ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
 				RepositoryName: aws.String(project.Repository),
 			})
 			if err != nil {
@@ -95,7 +155,7 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 		if strings.Contains(tag.Name, "-latest") {
 			regex := regexp.MustCompile(`-latest`)
 			splitVersion := regex.Split(tag.Name, -1) //extract out the version without the latest
-			ImageDetails, err := c.Describe(&ecrpublic.DescribeImagesInput{
+			ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
 				RepositoryName: aws.String(project.Repository),
 			})
 			if err != nil {
@@ -130,15 +190,12 @@ func removeDuplicates(s []api.SourceVersion) []api.SourceVersion {
 	return l
 }
 
-// getLastestImageSha returns the tag and SHA-256 checksum of the latest pushed image
-// It returns an error if an empty slice is provided, or if the latest image's
-// name or SHA-256 checksum are nil.
-// getLastestImageSha Iterates list of images, to find latest pushed image and return tag/sha
-func getLastestImageSha(details []types.ImageDetail) (*api.SourceVersion, error) {
+// getLastestImageSha Iterates list of ECR Public Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
+func getLastestImageSha(details []ecrpublictypes.ImageDetail) (*api.SourceVersion, error) {
 	if len(details) == 0 {
 		return nil, fmt.Errorf("no details provided")
 	}
-	var latest types.ImageDetail
+	var latest ecrpublictypes.ImageDetail
 	latest.ImagePushedAt = &time.Time{}
 	for _, detail := range details {
 		if len(details) < 1 || detail.ImagePushedAt == nil || detail.ImageDigest == nil || detail.ImageTags == nil || len(detail.ImageTags) == 0 || *detail.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" {
@@ -149,14 +206,37 @@ func getLastestImageSha(details []types.ImageDetail) (*api.SourceVersion, error)
 		}
 	}
 	// Check if latest is equal to empty struct, and return error if that's the case.
-	if reflect.DeepEqual(latest, types.ImageDetail{}) {
+	if reflect.DeepEqual(latest, ecrpublictypes.ImageDetail{}) {
 		return nil, fmt.Errorf("error no images found")
 	}
 	return &api.SourceVersion{Name: latest.ImageTags[0], Digest: *latest.ImageDigest}, nil
 }
 
-func imageTagFilter(details []types.ImageDetail, version string) []types.ImageDetail {
-	var filteredDetails []types.ImageDetail
+// getLastestImageSha Iterates list of ECR Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
+func getLastestHelmTag(details []ecrtypes.ImageDetail) (string, error) {
+	if len(details) == 0 {
+		return "", fmt.Errorf("no details provided")
+	}
+	var latest ecrtypes.ImageDetail
+	latest.ImagePushedAt = &time.Time{}
+	for _, detail := range details {
+		if len(details) < 1 || detail.ImagePushedAt == nil || detail.ImageDigest == nil || detail.ImageTags == nil || len(detail.ImageTags) == 0 || *detail.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" {
+			continue
+		}
+		if detail.ImagePushedAt != nil && latest.ImagePushedAt.Before(*detail.ImagePushedAt) {
+			latest = detail
+		}
+	}
+	// Check if latest is equal to empty struct, and return error if that's the case.
+	if reflect.DeepEqual(latest, ecrtypes.ImageDetail{}) {
+		return "", fmt.Errorf("error no images found")
+	}
+	return latest.ImageTags[0], nil
+}
+
+// imageTagFilter is used when filtering a list of images for a specific tag or tag substring
+func imageTagFilter(details []ecrpublictypes.ImageDetail, version string) []ecrpublictypes.ImageDetail {
+	var filteredDetails []ecrpublictypes.ImageDetail
 	for _, detail := range details {
 		for _, tag := range detail.ImageTags {
 			if strings.Contains(tag, version) {
@@ -165,6 +245,66 @@ func imageTagFilter(details []types.ImageDetail, version string) []types.ImageDe
 		}
 	}
 	return filteredDetails
+}
+
+// shaExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
+func (c *ecrPublicClient) shaExistsInRepository(repository, sha string) (bool, error) {
+	var imagelookup []ecrpublictypes.ImageIdentifier
+	imagelookup = append(imagelookup, ecrpublictypes.ImageIdentifier{ImageDigest: &sha})
+	ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
+		RepositoryName: aws.String(repository),
+		ImageIds:       imagelookup,
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "does not exist within the repository") == true {
+			return false, nil
+		} else {
+			return false, fmt.Errorf("looking up image details %v", err)
+		}
+	}
+	for _, images := range ImageDetails {
+		if *images.ImageDigest == sha {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// GetRegistryURI gets the current account's AWS ECR Public registry URI
+func (c *ecrPublicClient) GetRegistryURI() (string, error) {
+	registries, err := c.DescribeRegistries(context.TODO(), (&ecrpublic.DescribeRegistriesInput{}))
+	if err != nil {
+		return "", err
+	}
+	if *registries.Registries[0].RegistryUri != "" {
+		return *registries.Registries[0].RegistryUri, nil
+	}
+	return "", fmt.Errorf("Emtpy list of registries for the account")
+}
+
+// tagFromSha Looks up the Tag of an ECR artifact from a sha
+func (c *ecrClient) tagFromSha(repository, sha string) (string, error) {
+	var imagelookup []types.ImageIdentifier
+	imagelookup = append(imagelookup, types.ImageIdentifier{ImageDigest: &sha})
+	ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
+		RepositoryName: aws.String(repository),
+		ImageIds:       imagelookup,
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "does not exist within the repository") == true {
+			return "", nil
+		} else {
+			return "", fmt.Errorf("looking up image details %v", err)
+		}
+	}
+	for _, images := range ImageDetails {
+		// We can return the first tag for an image, if it has multiple tags
+		if len(images.ImageTags) > 0 {
+			images.ImageTags = removeStringSlice(images.ImageTags, "latest")
+			return images.ImageTags[0], nil
+		}
+	}
+	return "", nil
 }
 
 // stringInSlice checks to see if a string is in a slice
@@ -187,12 +327,130 @@ func removeStringSlice(l []string, item string) []string {
 	return l
 }
 
-// Go 1.18 support for generics makes the above function more generic
-// func remove[T comparable](l []T, item T) []T {
-// 	for i, other := range l {
-// 		if other == item {
-// 			return append(l[:i], l[i+1:]...)
-// 		}
-// 	}
-// 	return l
-// }
+// GetPublicAuthToken gets an authorization token from ECR public
+func (c *ecrPublicClient) GetPublicAuthToken() (string, error) {
+	authTokenOutput, err := c.GetAuthorizationToken(context.TODO(), &ecrpublic.GetAuthorizationTokenInput{})
+	if err != nil {
+		return "", errors.Cause(err)
+	}
+	authToken := *authTokenOutput.AuthorizationData.AuthorizationToken
+
+	return authToken, nil
+}
+
+// GetPublicAuthConfig formats the Auth token to skopeo format, and adds to the ECR Public client struct
+func (c *ecrPublicClient) GetPublicAuthConfig() (*docker.AuthConfiguration, error) {
+	authToken, err := c.GetPublicAuthToken()
+	if err != nil {
+		return nil, errors.Cause(err)
+	}
+	// Decode authorization token to get credential pair
+	creds, err := base64.StdEncoding.DecodeString(authToken)
+	if err != nil {
+		return nil, errors.Cause(err)
+	}
+	// Get password from credential pair
+	credsSplit := strings.Split(string(creds), ":")
+	password := credsSplit[1]
+
+	// Construct docker auth configuration
+	authConfig := &docker.AuthConfiguration{
+		Username: "AWS",
+		Password: password,
+	}
+
+	return authConfig, nil
+}
+
+// GetAuthToken gets an authorization token from ECR
+func (c *ecrClient) GetAuthToken() (string, error) {
+	authTokenOutput, err := c.GetAuthorizationToken(context.TODO(), &ecr.GetAuthorizationTokenInput{})
+	if err != nil {
+		return "", errors.Cause(err)
+	}
+	authToken := *authTokenOutput.AuthorizationData[0].AuthorizationToken
+	return authToken, nil
+}
+
+// GetAuthConfig formats the Auth token to skopeo format, and adds to the ECR client struct
+func (c *ecrClient) GetAuthConfig() (*docker.AuthConfiguration, error) {
+	// Get ECR authorization token
+	authToken, err := c.GetAuthToken()
+	if err != nil {
+		return nil, errors.Cause(err)
+	}
+
+	// Decode authorization token to get credential pair
+	creds, err := base64.StdEncoding.DecodeString(authToken)
+	if err != nil {
+		return nil, errors.Cause(err)
+	}
+
+	// Get password from credential pair
+	credsSplit := strings.Split(string(creds), ":")
+	password := credsSplit[1]
+
+	// Construct docker auth configuration
+	authConfig := &docker.AuthConfiguration{
+		Username: "AWS",
+		Password: password,
+	}
+	return authConfig, nil
+}
+
+// copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
+func copyImagePrivPubSameAcct(stsClient *stsClient, ecr *ecrClient, ecrPublic *ecrPublicClient, image Image) error {
+	source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", stsClient.AccountID, image.Repository, image.Digest)
+	destination := fmt.Sprintf("docker://%s/%s:%s", ecrPublic.SourceRegistry, image.Repository, image.Digest)
+	fmt.Printf("Promoting %s\n to %s\n", source, destination)
+	cmd := exec.Command("skopeo", "copy", "--src-creds", ecr.AuthConfig, "--dest-creds", ecrPublic.AuthConfig, source, destination, "-f", "oci", "--all")
+	_, err := ExecCommand(cmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// ExecCommand runs a given command, and constructs the log/output.
+func ExecCommand(cmd *exec.Cmd) (string, error) {
+	stdout, err := cmd.Output()
+	if err != nil {
+		return string(stdout), errors.Cause(err)
+	}
+	return string(stdout), nil
+}
+
+// splitECRName is a helper function where some ECR repo's are formatted with "org/repo", and for aws repos it's just "repo"
+func splitECRName(s string) (string, string, error) {
+	chartNameList := strings.Split(s, "/")
+	if len(chartNameList) == 2 {
+		return chartNameList[1], chartNameList[1], nil
+	}
+	if len(chartNameList) == 3 {
+		return fmt.Sprintf("%s/%s", chartNameList[1], chartNameList[2]), chartNameList[2], nil
+	}
+	return "", "", fmt.Errorf("Error: %s", "Failed parsing chartName, check the input URI is a valid ECR URI")
+}
+
+// getNameAndVersion looks up the latest pushed helm chart's tag from a given repo name.
+func (c *ecrClient) getNameAndVersion(s, accountID string) (string, string, error) {
+	var version string
+	splitname := strings.Split(s, ":") // TODO add a regex filter
+	name := splitname[0]
+	if len(splitname) == 1 {
+		ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
+			RepositoryName: aws.String(s),
+		})
+		if err != nil {
+			return "", "", err
+		}
+		version, err = getLastestHelmTag(ImageDetails)
+		if err != nil {
+			return "", "", err
+		}
+		ecrname := fmt.Sprintf("%s.dkr.ecr.us-west-2.amazonaws.com/%s", accountID, name)
+		return ecrname, version, err
+	}
+	version = splitname[1]
+	return name, version, nil
+}

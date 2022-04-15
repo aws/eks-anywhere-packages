@@ -1,0 +1,10 @@
+curl -s https://api.github.com/repos/aws/eks-anywhere/releases/latest \
+| grep 'browser_download_url.*-linux-amd64"' \
+| cut -d '"' -f 4 \
+| tr -d \" \
+| xargs curl -OL
+
+
+
+
+v0.8.0-linux-amd64.tar.gz

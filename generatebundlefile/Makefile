@@ -10,6 +10,10 @@ GO ?= $(shell source $(REPO_ROOT)/scripts/common.sh && build::common::get_go_pat
 ECR_PUBLIC_URI?=$(shell AWS_REGION=us-east-1 && aws ecr-public describe-registries --query 'registries[*].registryUri' --output text)
 KMS_KEY=signingPackagesKey
 
+BASE_DIRECTORY=$(shell git rev-parse --show-toplevel)
+GIT_HASH=$(shell git -C $(BASE_DIRECTORY) rev-parse HEAD)
+
+
 ifeq ($(CODEBUILD_CI),)
 DRY_RUN=true
 SOURCE_BUCKET=projectbuildpipeline-857-pipelineoutputartifactsb-10ajmk30khe3f
@@ -54,8 +58,20 @@ run:
 
 # CI for Bundle Creation and Signing
 
-dev-release: build
+priv-login:
+	aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin 646717423341.dkr.ecr.us-west-2.amazonaws.com
+
+public-login:
+	aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
+
+dev-promote: build priv-login public-login
+	$(REPO_ROOT)/generatebundlefile/scripts/promote.sh
+
+dev-release:
 	$(REPO_ROOT)/generatebundlefile/scripts/generate_bundle.sh $(ECR_PUBLIC_URI) $(KMS_KEY)
+
+test:
+	$(GO) test
 
 ## ORAS Make commands
 ORAS_VERSION := "0.12.0"

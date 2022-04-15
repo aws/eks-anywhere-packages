@@ -37,7 +37,7 @@ func TestNewBundleGenerate(t *testing.T) {
 								Repository: "sample-Repository",
 								Versions: []api.SourceVersion{
 									{
-										Name:   "0.0",
+										Name:   "v0.0",
 										Digest: "sha256:da25f5fdff88c259bb2ce7c0f1e9edddaf102dc4fb9cf5159ad6b902b5194e66",
 									},
 								},
@@ -68,171 +68,58 @@ func TestNewPackageFromInput(t *testing.T) {
 		{
 			testname: "Test no tags",
 			testproject: Project{
-				Name:       "cert-manager",
+				Name:       "hello-eks-anywhere",
 				Registry:   "public.ecr.aws/f5b7k4z5",
-				Repository: "cert-manager",
+				Repository: "aws-containers/hello-eks-anywhere",
 				Versions:   []Tag{},
 			},
 			wantErr: true,
 		},
 		{
-			testname: "Test 1 tag",
+			testname: "Test named tag",
 			testproject: Project{
-				Name:       "cert-manager",
+				Name:       "hello-eks-anywhere",
 				Registry:   "public.ecr.aws/f5b7k4z5",
-				Repository: "cert-manager",
-				Versions:   []Tag{{Name: "v1.0"}},
+				Repository: "aws-containers/hello-eks-anywhere",
+				Versions: []Tag{
+					{Name: "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214"},
+				},
 			},
 			wantErr: false,
 			wantBundle: &api.BundlePackage{
-				Name: "cert-manager",
+				Name: "hello-eks-anywhere",
 				Source: api.BundlePackageSource{
 					Registry:   "public.ecr.aws/f5b7k4z5",
-					Repository: "cert-manager",
+					Repository: "aws-containers/hello-eks-anywhere",
 					Versions: []api.SourceVersion{
 						{
-							Name:   "v1.0",
-							Digest: "sha256:950385098ceafc5fb510b1d203fa18165047598a09292a8f040b7812a882c256",
+							Name:   "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214",
+							Digest: "sha256:d5467083c4d175e7e9bba823e95570d28fff86a2fbccb03f5ec3093db6f039be",
 						},
 					},
 				},
 			},
 		},
 		{
-			testname: "Test 2 tag",
+			testname: "Test 'latest' tag",
 			testproject: Project{
-				Name:       "cert-manager",
+				Name:       "hello-eks-anywhere",
 				Registry:   "public.ecr.aws/f5b7k4z5",
-				Repository: "cert-manager",
+				Repository: "aws-containers/hello-eks-anywhere",
 				Versions: []Tag{
-					{Name: "v1.0"},
-					{Name: "v1.1"},
+					{Name: "latest"},
 				},
 			},
 			wantErr: false,
 			wantBundle: &api.BundlePackage{
-				Name: "cert-manager",
+				Name: "hello-eks-anywhere",
 				Source: api.BundlePackageSource{
 					Registry:   "public.ecr.aws/f5b7k4z5",
-					Repository: "cert-manager",
+					Repository: "aws-containers/hello-eks-anywhere",
 					Versions: []api.SourceVersion{
 						{
-							Name:   "v1.0",
-							Digest: "sha256:950385098ceafc5fb510b1d203fa18165047598a09292a8f040b7812a882c256",
-						},
-						{
-							Name:   "v1.1",
-							Digest: "sha256:ce0e42ab4f362252fd7706d4abe017a2c52743c4b3c6e56a9554c912ffddebcd",
-						},
-					},
-				},
-			},
-		},
-		{
-			testname: "Test '-latest' tag",
-			testproject: Project{
-				Name:       "cert-manager",
-				Registry:   "public.ecr.aws/f5b7k4z5",
-				Repository: "cert-manager",
-				Versions: []Tag{
-					{Name: "v1.5.3-latest"},
-				},
-			},
-			wantErr: false,
-			wantBundle: &api.BundlePackage{
-				Name: "cert-manager",
-				Source: api.BundlePackageSource{
-					Registry:   "public.ecr.aws/f5b7k4z5",
-					Repository: "cert-manager",
-					Versions: []api.SourceVersion{
-						{
-							Name:   "v1.5.3-be3ed4927699227709b7d3e222c301d56de94737-helm",
-							Digest: "sha256:7116035805cde83b06dd47fde3eb6e09bbb52656e2c5d10777d140515a4825f9",
-						},
-					},
-				},
-			},
-		},
-		{
-			testname: "Test '-latest' && 'named' tag",
-			testproject: Project{
-				Name:       "eks-anywhere-test",
-				Registry:   "public.ecr.aws/f5b7k4z5",
-				Repository: "eks-anywhere-test",
-				Versions: []Tag{
-					{Name: "0.1.1-latest"},
-					{Name: "1.0.1-helm"},
-				},
-			},
-			wantErr: false,
-			wantBundle: &api.BundlePackage{
-				Name: "eks-anywhere-test",
-				Source: api.BundlePackageSource{
-					Registry:   "public.ecr.aws/f5b7k4z5",
-					Repository: "eks-anywhere-test",
-					Versions: []api.SourceVersion{
-						{
-							Name:   "0.1.1-54cc8ae386951ae75e2ff426006cc011ef9d30c4-helm",
-							Digest: "sha256:74096aed500c0dac5bf4a320eab381bfb9c6490baa7a3912958c01c62a1608e7",
-						},
-						{
-							Name:   "v1.0.1-helm",
-							Digest: "sha256:11005ae0828d7b323ddf3eed46d0e4ce5b6784183867f10af9169ff376d04333",
-						},
-					},
-				},
-			},
-		},
-		{
-			testname: "Test '-latest' tag",
-			testproject: Project{
-				Name:       "cert-manager",
-				Registry:   "public.ecr.aws/f5b7k4z5",
-				Repository: "cert-manager",
-				Versions: []Tag{
-					{Name: "v1.5.3-latest"},
-				},
-			},
-			wantErr: false,
-			wantBundle: &api.BundlePackage{
-				Name: "cert-manager",
-				Source: api.BundlePackageSource{
-					Registry:   "public.ecr.aws/f5b7k4z5",
-					Repository: "cert-manager",
-					Versions: []api.SourceVersion{
-						{
-							Name:   "v1.5.3-be3ed4927699227709b7d3e222c301d56de94737-helm",
-							Digest: "sha256:7116035805cde83b06dd47fde3eb6e09bbb52656e2c5d10777d140515a4825f9",
-						},
-					},
-				},
-			},
-		},
-		{
-			testname: "Test '-latest' && 'named' tag",
-			testproject: Project{
-				Name:       "eks-anywhere-test",
-				Registry:   "public.ecr.aws/f5b7k4z5",
-				Repository: "eks-anywhere-test",
-				Versions: []Tag{
-					{Name: "0.1.1-latest"},
-					{Name: "v1.0.1-helm"},
-				},
-			},
-			wantErr: false,
-			wantBundle: &api.BundlePackage{
-				Name: "eks-anywhere-test",
-				Source: api.BundlePackageSource{
-					Registry:   "public.ecr.aws/f5b7k4z5",
-					Repository: "eks-anywhere-test",
-					Versions: []api.SourceVersion{
-						{
-							Name:   "0.1.1-54cc8ae386951ae75e2ff426006cc011ef9d30c4-helm",
-							Digest: "sha256:74096aed500c0dac5bf4a320eab381bfb9c6490baa7a3912958c01c62a1608e7",
-						},
-						{
-							Name:   "v1.0.1-helm",
-							Digest: "sha256:11005ae0828d7b323ddf3eed46d0e4ce5b6784183867f10af9169ff376d04333",
+							Name:   "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214",
+							Digest: "sha256:d5467083c4d175e7e9bba823e95570d28fff86a2fbccb03f5ec3093db6f039be",
 						},
 					},
 				},
