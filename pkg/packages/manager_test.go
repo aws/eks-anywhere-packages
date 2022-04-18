@@ -32,7 +32,8 @@ models:
   mb: "41"
   cj2a:
     year: "45"
-`},
+`,
+		},
 	}
 }
 
@@ -120,6 +121,7 @@ func TestManagerLifecycle(t *testing.T) {
 
 	t.Run("Successfully installed packages are re-checked every 180s", func(t *testing.T) {
 		expectedRequeue := time.Duration(180 * time.Second)
+		driver.EXPECT().IsConfigChanged(mc.Ctx, gomock.Any(), gomock.Any())
 		result := sut.Process(mc)
 		assert.False(t, result)
 		thenManagerContext(t, mc, api.StateInstalled, expectedSource, expectedRequeue, "")
@@ -131,6 +133,24 @@ func TestManagerLifecycle(t *testing.T) {
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateUpdating, expectedUpdate, expectedRequeue, "")
+	})
+
+	t.Run("Updating the Config triggers an upgrade", func(t *testing.T) {
+		driver.EXPECT().
+			IsConfigChanged(mc.Ctx, mc.Package.Name, gomock.Any()).
+			Return(true, nil)
+		mc.Package.Status.State = api.StateInstalled
+		mc.Package.Spec.Config = `
+make: willys
+models:
+  mc: "49"
+  cj3a:
+    year: "49"
+`
+
+		result := sut.Process(mc)
+		assert.True(t, result)
+		thenManagerContext(t, mc, api.StateUpdating, mc.Source, retryShort, "")
 	})
 
 	t.Run("Update crashes, error is reported", func(t *testing.T) {

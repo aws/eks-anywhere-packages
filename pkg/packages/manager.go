@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"sigs.k8s.io/yaml"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/driver"
@@ -79,8 +80,36 @@ func processInstalled(mc *ManagerContext) bool {
 		mc.Package.Status.State = api.StateUpdating
 		mc.RequeueAfter = retryShort
 		return true
+	} else {
+		var err error
+		newValues := make(map[string]interface{})
+
+		err = yaml.Unmarshal([]byte(mc.Package.Spec.Config), &newValues)
+		if err != nil {
+			mc.Log.Error(err, "unmarshaling current package configuration")
+			mc.Package.Status.Detail = err.Error()
+			mc.RequeueAfter = retryShort
+			return true
+		}
+
+		newValues[sourceRegistry] = mc.Source.Registry
+		needs, err := mc.PackageDriver.IsConfigChanged(mc.Ctx, mc.Package.Name,
+			newValues)
+		if err != nil {
+			mc.Log.Error(err, "checking necessity of reconfiguration")
+			mc.Package.Status.Detail = err.Error()
+			mc.RequeueAfter = retryLong
+			return true
+		}
+		if needs {
+			mc.Log.Info("configuration change detected, upgrading")
+			mc.Package.Status.State = api.StateUpdating
+			mc.RequeueAfter = retryShort
+			return true
+		}
 	}
 	mc.RequeueAfter = retryVeryLong
+
 	return false
 }
 
