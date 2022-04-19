@@ -59,7 +59,7 @@ run:
 # CI for Bundle Creation and Signing
 
 priv-login:
-	aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin 646717423341.dkr.ecr.us-west-2.amazonaws.com
+	aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.us-west-2.amazonaws.com
 
 public-login:
 	aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
