@@ -86,7 +86,6 @@ build: ## Build release binary.
 	mkdir -p $(REPO_ROOT)/generatebundlefile/bin
 	$(GO) build -mod vendor -o $(REPO_ROOT)/generatebundlefile/bin/generatebundlefile *.go
 
-
 # Change the `make dev-promote` to use build-linux instead of build
 dev-promote: build-linux priv-login public-login
 

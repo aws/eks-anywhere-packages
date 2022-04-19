@@ -228,7 +228,7 @@ func TestReconcile(t *testing.T) {
 			Process(gomock.Any()).
 			Return(false).Do(func(mctx *packages.ManagerContext) {
 			assert.Equal(t,
-				api.PackageOCISource(api.PackageOCISource{Version: "0.1.1", Registry: "public.ecr.aws/l0g8r8j6", Repository: "eks-anywhere-test", Digest: "sha256:deadbeef"}),
+				api.PackageOCISource(api.PackageOCISource{Version: "0.1.1", Registry: "public.ecr.aws/l0g8r8j6", Repository: "hello-eks-anywhere", Digest: "sha256:deadbeef"}),
 				mctx.Source)
 		})
 
@@ -244,7 +244,7 @@ func TestReconcile(t *testing.T) {
 			Process(gomock.Any()).
 			Return(false).Do(func(mctx *packages.ManagerContext) {
 			assert.Equal(t,
-				api.PackageOCISource(api.PackageOCISource{Version: "0.2.0", Registry: "public.ecr.aws/l0g8r8j6", Repository: "eks-anywhere-test", Digest: "sha256:deadbeef020"}),
+				api.PackageOCISource(api.PackageOCISource{Version: "0.2.0", Registry: "public.ecr.aws/l0g8r8j6", Repository: "hello-eks-anywhere", Digest: "sha256:deadbeef020"}),
 				mctx.Source)
 		})
 
@@ -291,7 +291,7 @@ func newTestFixtures(t *testing.T) (*testFixtures, context.Context) {
 
 func (tf *testFixtures) mockSpec() api.PackageSpec {
 	return api.PackageSpec{
-		PackageName:    "eks-anywhere-test",
+		PackageName:    "hello-eks-anywhere",
 		PackageVersion: "0.1.1",
 		Config: `
 config:
@@ -314,10 +314,10 @@ func (tf *testFixtures) mockBundle() *api.PackageBundle {
 		Spec: api.PackageBundleSpec{
 			Packages: []api.BundlePackage{
 				{
-					Name: "eks-anywhere-test",
+					Name: "hello-eks-anywhere",
 					Source: api.BundlePackageSource{
 						Registry:   "public.ecr.aws/l0g8r8j6",
-						Repository: "eks-anywhere-test",
+						Repository: "hello-eks-anywhere",
 						Versions: []api.SourceVersion{
 							{Name: "0.1.1", Digest: "sha256:deadbeef"},
 							{Name: "0.1.0", Digest: "sha256:cafebabe"},

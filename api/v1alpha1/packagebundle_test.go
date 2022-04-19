@@ -16,10 +16,10 @@ func TestPackageBundle_Find(t *testing.T) {
 			Spec: api.PackageBundleSpec{
 				Packages: []api.BundlePackage{
 					{
-						Name: "eks-anywhere-test",
+						Name: "hello-eks-anywhere",
 						Source: api.BundlePackageSource{
 							Registry:   "public.ecr.aws/l0g8r8j6",
-							Repository: "eks-anywhere-test",
+							Repository: "hello-eks-anywhere",
 							Versions:   versions,
 						},
 					},
@@ -38,16 +38,16 @@ func TestPackageBundle_Find(t *testing.T) {
 
 	expected := api.PackageOCISource{
 		Registry:   "public.ecr.aws/l0g8r8j6",
-		Repository: "eks-anywhere-test",
+		Repository: "hello-eks-anywhere",
 		Digest:     "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
 		Version:    "0.1.0",
 	}
 
-	actual, err := sut.FindSource("eks-anywhere-test", "0.1.0")
+	actual, err := sut.FindSource("hello-eks-anywhere", "0.1.0")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	actual, err = sut.FindSource("eks-anywhere-test", "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7")
+	actual, err = sut.FindSource("hello-eks-anywhere", "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -71,11 +71,11 @@ func TestPackageBundle_Find(t *testing.T) {
 		)
 		expected := api.PackageOCISource{
 			Registry:   "public.ecr.aws/l0g8r8j6",
-			Repository: "eks-anywhere-test",
+			Repository: "hello-eks-anywhere",
 			Digest:     "sha256:deadbeef",
 			Version:    "0.1.1",
 		}
-		actual, err = latest.FindSource("eks-anywhere-test", api.Latest)
+		actual, err = latest.FindSource("hello-eks-anywhere", api.Latest)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
@@ -95,11 +95,11 @@ func TestPackageBundle_Find(t *testing.T) {
 		)
 		expected := api.PackageOCISource{
 			Registry:   "public.ecr.aws/l0g8r8j6",
-			Repository: "eks-anywhere-test",
+			Repository: "hello-eks-anywhere",
 			Digest:     "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
 			Version:    "0.1.0",
 		}
-		actual, err = latest.FindSource("eks-anywhere-test", api.Latest)
+		actual, err = latest.FindSource("hello-eks-anywhere", api.Latest)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
