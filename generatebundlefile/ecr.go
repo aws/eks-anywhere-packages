@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -19,7 +18,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
 	"github.com/aws/aws-sdk-go/aws"
-	docker "github.com/fsouza/go-dockerclient"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 
@@ -340,30 +338,6 @@ func (c *ecrPublicClient) GetPublicAuthToken() (string, error) {
 	return authToken, nil
 }
 
-// GetPublicAuthConfig formats the Auth token to skopeo format, and adds to the ECR Public client struct
-func (c *ecrPublicClient) GetPublicAuthConfig() (*docker.AuthConfiguration, error) {
-	authToken, err := c.GetPublicAuthToken()
-	if err != nil {
-		return nil, errors.Cause(err)
-	}
-	// Decode authorization token to get credential pair
-	creds, err := base64.StdEncoding.DecodeString(authToken)
-	if err != nil {
-		return nil, errors.Cause(err)
-	}
-	// Get password from credential pair
-	credsSplit := strings.Split(string(creds), ":")
-	password := credsSplit[1]
-
-	// Construct docker auth configuration
-	authConfig := &docker.AuthConfiguration{
-		Username: "AWS",
-		Password: password,
-	}
-
-	return authConfig, nil
-}
-
 // GetAuthToken gets an authorization token from ECR
 func (c *ecrClient) GetAuthToken() (string, error) {
 	authTokenOutput, err := c.GetAuthorizationToken(context.TODO(), &ecr.GetAuthorizationTokenInput{})
@@ -401,33 +375,6 @@ func NewAuthFile(privToken, publicToken, accountID string) (string, error) {
 	defer f.Close()
 	fmt.Fprint(f, string(jsonbytes))
 	return f.Name(), nil
-}
-
-// GetAuthConfig formats the Auth token to skopeo format, and adds to the ECR client struct
-func (c *ecrClient) GetAuthConfig() (*docker.AuthConfiguration, error) {
-	// Get ECR authorization token
-	authToken, err := c.GetAuthToken()
-	if err != nil {
-		return nil, errors.Cause(err)
-	}
-
-	// Decode authorization token to get credential pair
-	creds, err := base64.StdEncoding.DecodeString(authToken)
-	if err != nil {
-		return nil, errors.Cause(err)
-	}
-
-	// Get password from credential pair
-	credsSplit := strings.Split(string(creds), ":")
-	password := credsSplit[1]
-
-	// Construct docker auth configuration
-	authConfig := &docker.AuthConfiguration{
-		Username: "AWS",
-		Password: password,
-	}
-
-	return authConfig, nil
 }
 
 // copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
