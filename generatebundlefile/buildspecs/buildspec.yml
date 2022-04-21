@@ -3,8 +3,10 @@ version: 0.2
 phases:
   pre_build:
     commands:
-    - ./generatebundlefile/scripts/setup.sh
+    - ./generatebundlefile/hack/setup.sh
 
   build:
     commands:
-    - cd generatebundlefile && make dev-release
+    - cd generatebundlefile
+    - ./hack/promote.sh
+    - ./hack/generate_bundle.sh

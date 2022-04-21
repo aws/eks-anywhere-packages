@@ -24,6 +24,12 @@ set -o pipefail
 if [ ! -d "/root/.docker" ]; then
     mkdir -p /root/.docker
 fi
-mv generatebundlefile/scripts/docker-ecr-config.json /root/.docker/config.json
+
+if [ ! -d "/root/.config/containers" ]; then
+    mkdir -p /root/.config/containers
+fi
+
+mv generatebundlefile/hack/policy.json /root/.config/containers/policy.json
+mv generatebundlefile/hack/docker-ecr-config.json /root/.docker/config.json
 git config --global credential.helper '!aws codecommit credential-helper $@'
 git config --global credential.UseHttpPath true

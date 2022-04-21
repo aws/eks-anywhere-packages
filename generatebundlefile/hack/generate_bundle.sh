@@ -20,11 +20,11 @@ set -o pipefail
 
 export LANG=C.UTF-8
 
-IMAGE_REGISTRY="${1?Specify first argument - image registry}"
-KMS_KEY="${2?Specify second argument - kms key alias}"
-
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile 
+
+IMAGE_REGISTRY=$(AWS_REGION=us-east-1 && aws ecr-public describe-registries --query 'registries[*].registryUri' --output text)
+KMS_KEY=signingPackagesKey
 
 # Faster way to install Cosign compared to go install github.com/sigstore/cosign/cmd/cosign@v1.5.1
 curl -s https://api.github.com/repos/sigstore/cosign/releases/latest \

@@ -4,8 +4,8 @@ kubernetesVersion: "1.20"
 packages:
   - org: aws
     projects:
-      - name: eks-anywhere-test
-        repository: eks-anywhere-test
+      - name: hello-eks-anywhere
+        repository: aws-containers/hello-eks-anywhere
         registry: public.ecr.aws/f5b7k4z5
         versions:
-            - name: 0.1.1-latest #https://github.com/aws/eks-anywhere-build-tooling/blob/main/projects/aws/eks-anywhere-test/GIT_TAG
+            - name: latest #https://github.com/aws/eks-anywhere-build-tooling/blob/main/projects/aws/hello-eks-anywhere/GIT_TAG

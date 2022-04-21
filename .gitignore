@@ -8,3 +8,4 @@ cover.out
 .dir-locals.el
 /_artifacts
 /kubetest-plugins/bin
+/generatebundlefile/vendor
