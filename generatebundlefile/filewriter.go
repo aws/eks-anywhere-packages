@@ -75,7 +75,7 @@ func (t *writer) Dir() string {
 func (t *writer) CleanUp() {
 	_, err := os.Stat(t.dir)
 	if err == nil {
-		os.RemoveAll(t.dir)
+		_ = os.RemoveAll(t.dir)
 	}
 }
 

@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"os"
+	"path/filepath"
 
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/yaml"
@@ -21,7 +22,7 @@ func GivenPackageBundle(filename string) (*v1alpha1.PackageBundle, string, error
 	if actual != nil {
 		return nil, "", actual
 	}
-	digest, err := os.ReadFile(filename + ".digest")
+	digest, err := os.ReadFile(filepath.Clean(filename) + ".digest")
 	if err != nil {
 		return nil, "", err
 	}
@@ -29,7 +30,7 @@ func GivenPackageBundle(filename string) (*v1alpha1.PackageBundle, string, error
 }
 
 func GivenPod(filename string) (*v1.Pod, string, error) {
-	content, err := os.ReadFile(filename + ".signed")
+	content, err := os.ReadFile(filepath.Clean(filename) + ".signed")
 	if err != nil {
 		return nil, "", err
 	}
@@ -38,7 +39,7 @@ func GivenPod(filename string) (*v1.Pod, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	digest, err := os.ReadFile(filename + ".digest")
+	digest, err := os.ReadFile(filepath.Clean(filename) + ".digest")
 	if err != nil {
 		return nil, "", err
 	}
