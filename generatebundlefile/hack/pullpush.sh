@@ -62,10 +62,6 @@ helm push hello-eks-anywhere-0.1.0+c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214.tgz 
 # Oras examples
 #########################
 
-aws ecr-public get-login-password --region us-east-1 | oras login \
-    --username AWS \
-    --password-stdin public.ecr.aws
-
 # Manually push a local bundle
 cd output/
 oras push public.ecr.aws/f5b7k4z5/eks-anywhere-packages-bundles:v1.0.0-bundle bundle-1.20.yaml
@@ -81,7 +77,8 @@ go mod vendor
 docker run -d -v ${HOME}/.aws/credentials:/root/.aws/credentials:ro -v ${HOME}/go/src/github.com/modelrocket/eks-anywhere-packages:/go/src/github.com/aws/eks-distro/eks-anywhere-packages public.ecr.aws/eks-distro-build-tooling/builder-base:latest  tail -f /dev/null
 docker ps
 docker exec -it <CONTAINER_ID> /bin/bash
-./generateBundle/scripts/setup.sh
+cd eks-anywhere-packages/
+./generatebundlefile/hack/setup.sh
 
 # Change the `make build` command to use vendor
 
@@ -89,6 +86,10 @@ build: ## Build release binary.
 	mkdir -p $(REPO_ROOT)/generatebundlefile/bin
 	$(GO) build -mod vendor -o $(REPO_ROOT)/generatebundlefile/bin/generatebundlefile *.go
 
-make build-linux
+
+# Change the `make dev-promote` to use build-linux instead of build
+dev-promote: build-linux priv-login public-login
+
 export HELM_REPO=aws-containers/hello-eks-anywhere
+cd generatebundlefile/
 make dev-promote

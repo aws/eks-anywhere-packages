@@ -52,6 +52,12 @@ func main() {
 		if err != nil {
 			BundleLog.Error(err, "Unable to create SDK connection to STS")
 		}
+		authFile, err := NewAuthFile(ecrClient.AuthConfig, ecrPublicClient.AuthConfig, stsClient.AccountID)
+		if err != nil || authFile == "" {
+			BundleLog.Error(err, "Unable create AuthFile")
+		}
+		defer os.Remove(authFile)
+
 		name, version, err := ecrClient.getNameAndVersion(o.promote, stsClient.AccountID)
 		fmt.Printf("Promoting chart and image version %s:%s\n", name, version)
 		semVer := strings.Replace(version, "_", "+", 1) // TODO use the Semvar library instead of this hack.
@@ -109,7 +115,7 @@ func main() {
 						BundleLog.Error(err, "Unable to find Tag from Digest")
 					}
 				}
-				err := copyImagePrivPubSameAcct(stsClient, ecrClient, ecrPublicClient, images)
+				err := copyImagePrivPubSameAcct(BundleLog, authFile, stsClient, ecrPublicClient, images)
 				if err != nil {
 					BundleLog.Error(err, "Unable to copy image from source to destination repo")
 				}

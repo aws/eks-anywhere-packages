@@ -1,7 +1,7 @@
-# Default values for eks-anywhere-packages.
+# Default values for eks-anywhere-packages. The chart will work out of the box, but these are the tweakable values for the helm chart.
 # This is a YAML-formatted file.
 
-# -- The namespace to deploy the resources into
+# -- The namespace to deploy the resources into.
 namespace: eksa-packages
 # -- Overrides the chart's name.
 nameOverride: ""
@@ -12,7 +12,7 @@ additionalLabels: {}
 # app: eks-anywhere-packages
 # -- Additional annotations to add into metadata.
 additionalAnnotations: {}
-# -- sourceRegistry for all container images in chart
+# -- sourceRegistry for all container images in chart.
 sourceRegistry: public.ecr.aws/eks-anywhere
 # -- Image pull policy for Docker images.
 imagePullPolicy: IfNotPresent
@@ -35,7 +35,7 @@ strategy:
   type: Recreate
 # -- Additional labels for the pod.
 podLabels: {}
-# -- Additional annotatiimagePullSecretsons for the pod.
+# -- Additional annotations for the pod.
 podAnnotations: {}
 # -- SecurityContext for the pod.
 podSecurityContext:
@@ -65,7 +65,7 @@ controller:
     periodSeconds: 10
   # -- Controller repository name.
   repository: "eks-anywhere-packages"
-  # -- Controller image tag, or sha sum.
+  # -- Controller image tag, or SHA256 checksum.
   tag: "{{eks-anywhere-packages}}"
   # -- Whether to turn on Webhooks for the controller image
   enableWebhooks: "true"

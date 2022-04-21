@@ -52,7 +52,7 @@ func TestNewBundleGenerate(t *testing.T) {
 		t.Run(tc.testname, func(tt *testing.T) {
 			got := NewBundleGenerate(tc.bundleName)
 			if !reflect.DeepEqual(got, tc.wantBundle) {
-				t.Fatalf("GetClusterConfig() = %#v, want %#v", got, tc.wantBundle)
+				tt.Fatalf("GetClusterConfig() = %#v, want %#v", got, tc.wantBundle)
 			}
 		})
 	}
@@ -130,10 +130,10 @@ func TestNewPackageFromInput(t *testing.T) {
 		t.Run(tc.testname, func(tt *testing.T) {
 			got, err := tc.testproject.NewPackageFromInput()
 			if (err != nil) != tc.wantErr {
-				t.Fatalf("NewPackageFromInput() error = %v, wantErr %v", err, tc.wantErr)
+				tt.Fatalf("NewPackageFromInput() error = %v, wantErr %v", err, tc.wantErr)
 			}
 			if !reflect.DeepEqual(got, tc.wantBundle) {
-				t.Fatalf("NewPackageFromInput() = %#v\n\n\n, want %#v", got, tc.wantBundle)
+				tt.Fatalf("NewPackageFromInput() = %#v\n\n\n, want %#v", got, tc.wantBundle)
 			}
 		})
 	}
@@ -181,10 +181,10 @@ func TestIfSignature(t *testing.T) {
 		t.Run(tc.testname, func(tt *testing.T) {
 			got, err := IfSignature(tc.testbundle)
 			if err != nil {
-				t.Fatalf("IfSignature() error = %v", err)
+				tt.Fatalf("IfSignature() error = %v", err)
 			}
 			if got != tc.wantBool {
-				t.Fatalf("IfSignature() = %#v\n\n\n, want %#v", got, tc.wantBool)
+				tt.Fatalf("IfSignature() = %#v\n\n\n, want %#v", got, tc.wantBool)
 			}
 		})
 	}
@@ -252,10 +252,10 @@ func TestAddSignature(t *testing.T) {
 		t.Run(tc.testname, func(tt *testing.T) {
 			got, err := AddSignature(tc.testbundle, tc.signature)
 			if (err != nil) != tc.wantErr {
-				t.Fatalf("AddSignature() error = %v, wantErr %v", err, tc.wantErr)
+				tt.Fatalf("AddSignature() error = %v, wantErr %v", err, tc.wantErr)
 			}
 			if !reflect.DeepEqual(got, tc.wantPackageBundle) {
-				t.Fatalf("AddSignature() = %#v\n\n\n, want %#v", got, tc.wantPackageBundle)
+				tt.Fatalf("AddSignature() = %#v\n\n\n, want %#v", got, tc.wantPackageBundle)
 			}
 		})
 	}
@@ -333,10 +333,10 @@ func TestCheckSignature(t *testing.T) {
 		t.Run(tc.testname, func(tt *testing.T) {
 			got, err := CheckSignature(tc.testbundle, tc.signature)
 			if (err != nil) != tc.wantErr {
-				t.Fatalf("CheckSignature() error = %v, wantErr %v", err, tc.wantErr)
+				tt.Fatalf("CheckSignature() error = %v, wantErr %v", err, tc.wantErr)
 			}
 			if got != tc.wantBool {
-				t.Fatalf("CheckSignature() = %#v\n\n\n, want %#v", got, tc.wantBool)
+				tt.Fatalf("CheckSignature() = %#v\n\n\n, want %#v", got, tc.wantBool)
 			}
 		})
 	}

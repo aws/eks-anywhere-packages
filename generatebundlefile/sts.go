@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -16,7 +16,7 @@ type stsClient struct {
 func NewStsClient(account bool) (*stsClient, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("Creating AWS STS config %w", err)
 	}
 	stsClient := &stsClient{Client: sts.NewFromConfig(cfg)}
 	if err != nil {

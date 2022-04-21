@@ -25,5 +25,11 @@ echo ${HELM_REPO}
 BASE_DIRECTORY=$(pwd)
 chmod +x ${BASE_DIRECTORY}/bin/generatebundlefile 
 
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
+aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
+
+make build
+
 ${BASE_DIRECTORY}/bin/generatebundlefile  \
     --promote ${HELM_REPO}

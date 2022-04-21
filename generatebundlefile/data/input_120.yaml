@@ -8,4 +8,4 @@ packages:
         repository: aws-containers/hello-eks-anywhere
         registry: public.ecr.aws/f5b7k4z5
         versions:
-            - name: latest #https://github.com/aws/eks-anywhere-build-tooling/blob/main/projects/aws/eks-anywhere-test/GIT_TAG
+            - name: latest #https://github.com/aws/eks-anywhere-build-tooling/blob/main/projects/aws/hello-eks-anywhere/GIT_TAG

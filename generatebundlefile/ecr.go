@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"log"
+	"os"
 	"os/exec"
 	"reflect"
 	"regexp"
@@ -19,9 +20,15 @@ import (
 	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
 	"github.com/aws/aws-sdk-go/aws"
 	docker "github.com/fsouza/go-dockerclient"
+	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+)
+
+const (
+	ecrRegion       = "us-west-2"
+	ecrPublicRegion = "us-east-1"
 )
 
 type ecrPublicClient struct {
@@ -37,20 +44,17 @@ type ecrClient struct {
 
 // NewECRPublicClient Creates a new ECR Client Public client
 func NewECRPublicClient(creds bool) (*ecrPublicClient, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("Creating AWS ECR Public config %w", err)
 	}
 	ecrPublicClient := &ecrPublicClient{Client: ecrpublic.NewFromConfig(cfg)}
-	if err != nil {
-		return nil, err
-	}
 	if creds {
-		sourceAuthConfig, err := ecrPublicClient.GetPublicAuthConfig()
+		authorizationToken, err := ecrPublicClient.GetPublicAuthToken()
 		if err != nil {
 			return nil, err
 		}
-		ecrPublicClient.AuthConfig = fmt.Sprintf("%s:%s", sourceAuthConfig.Username, sourceAuthConfig.Password)
+		ecrPublicClient.AuthConfig = authorizationToken
 		return ecrPublicClient, nil
 	}
 	return ecrPublicClient, nil
@@ -58,20 +62,17 @@ func NewECRPublicClient(creds bool) (*ecrPublicClient, error) {
 
 // NewECRClient Creates a new ECR Client Public client
 func NewECRClient(creds bool) (*ecrClient, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("Creating AWS ECR config %w", err)
 	}
 	ecrClient := &ecrClient{Client: ecr.NewFromConfig(cfg)}
-	if err != nil {
-		return nil, err
-	}
 	if creds {
-		sourceAuthConfig, err := ecrClient.GetAuthConfig()
+		authorizationToken, err := ecrClient.GetAuthToken()
 		if err != nil {
 			return nil, err
 		}
-		ecrClient.AuthConfig = fmt.Sprintf("%s:%s", sourceAuthConfig.Username, sourceAuthConfig.Password)
+		ecrClient.AuthConfig = authorizationToken
 		return ecrClient, nil
 	}
 	return ecrClient, nil
@@ -249,6 +250,9 @@ func imageTagFilter(details []ecrpublictypes.ImageDetail, version string) []ecrp
 
 // shaExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
 func (c *ecrPublicClient) shaExistsInRepository(repository, sha string) (bool, error) {
+	if repository == "" || sha == "" {
+		return false, fmt.Errorf("Emtpy repository, or sha passed to the function")
+	}
 	var imagelookup []ecrpublictypes.ImageIdentifier
 	imagelookup = append(imagelookup, ecrpublictypes.ImageIdentifier{ImageDigest: &sha})
 	ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
@@ -258,12 +262,10 @@ func (c *ecrPublicClient) shaExistsInRepository(repository, sha string) (bool, e
 	if err != nil {
 		if strings.Contains(err.Error(), "does not exist within the repository") == true {
 			return false, nil
-		} else {
-			return false, fmt.Errorf("looking up image details %v", err)
 		}
 	}
-	for _, images := range ImageDetails {
-		if *images.ImageDigest == sha {
+	for _, detail := range ImageDetails {
+		if detail.ImageDigest != nil && *detail.ImageDigest == sha {
 			return true, nil
 		}
 	}
@@ -276,7 +278,7 @@ func (c *ecrPublicClient) GetRegistryURI() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if *registries.Registries[0].RegistryUri != "" {
+	if len(registries.Registries) > 0 && registries.Registries[0].RegistryUri != nil && *registries.Registries[0].RegistryUri != "" {
 		return *registries.Registries[0].RegistryUri, nil
 	}
 	return "", fmt.Errorf("Emtpy list of registries for the account")
@@ -297,11 +299,11 @@ func (c *ecrClient) tagFromSha(repository, sha string) (string, error) {
 			return "", fmt.Errorf("looking up image details %v", err)
 		}
 	}
-	for _, images := range ImageDetails {
+	for _, detail := range ImageDetails {
 		// We can return the first tag for an image, if it has multiple tags
-		if len(images.ImageTags) > 0 {
-			images.ImageTags = removeStringSlice(images.ImageTags, "latest")
-			return images.ImageTags[0], nil
+		if len(detail.ImageTags) > 0 {
+			detail.ImageTags = removeStringSlice(detail.ImageTags, "latest")
+			return detail.ImageTags[0], nil
 		}
 	}
 	return "", nil
@@ -372,6 +374,35 @@ func (c *ecrClient) GetAuthToken() (string, error) {
 	return authToken, nil
 }
 
+type DockerAuth struct {
+	Auths map[string]DockerAuthRegistry `json:"auths,omitempty"`
+}
+
+type DockerAuthRegistry struct {
+	Auth string `json:"auth"`
+}
+
+func NewAuthFile(privToken, publicToken, accountID string) (string, error) {
+	// {auths:{\"${REGISTRY}\":{auth:\$in}}}
+	dockerStruct := &DockerAuth{
+		Auths: map[string]DockerAuthRegistry{
+			fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", accountID, ecrRegion): DockerAuthRegistry{privToken},
+			"public.ecr.aws": DockerAuthRegistry{publicToken},
+		},
+	}
+	jsonbytes, err := json.Marshal(dockerStruct)
+	if err != nil {
+		return "", fmt.Errorf("Marshalling docker auth file to json %w", err)
+	}
+	f, err := os.CreateTemp("", "dockerAuth")
+	if err != nil {
+		return "", fmt.Errorf("Creating tempfile %w", err)
+	}
+	defer f.Close()
+	fmt.Fprint(f, string(jsonbytes))
+	return f.Name(), nil
+}
+
 // GetAuthConfig formats the Auth token to skopeo format, and adds to the ECR client struct
 func (c *ecrClient) GetAuthConfig() (*docker.AuthConfiguration, error) {
 	// Get ECR authorization token
@@ -395,15 +426,16 @@ func (c *ecrClient) GetAuthConfig() (*docker.AuthConfiguration, error) {
 		Username: "AWS",
 		Password: password,
 	}
+
 	return authConfig, nil
 }
 
 // copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
-func copyImagePrivPubSameAcct(stsClient *stsClient, ecr *ecrClient, ecrPublic *ecrPublicClient, image Image) error {
+func copyImagePrivPubSameAcct(log logr.Logger, authFile string, stsClient *stsClient, ecrPublic *ecrPublicClient, image Image) error {
 	source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", stsClient.AccountID, image.Repository, image.Digest)
 	destination := fmt.Sprintf("docker://%s/%s:%s", ecrPublic.SourceRegistry, image.Repository, image.Digest)
-	fmt.Printf("Promoting %s\n to %s\n", source, destination)
-	cmd := exec.Command("skopeo", "copy", "--src-creds", ecr.AuthConfig, "--dest-creds", ecrPublic.AuthConfig, source, destination, "-f", "oci", "--all")
+	log.Info("Promoting...", source, destination)
+	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
 	_, err := ExecCommand(cmd)
 	if err != nil {
 		return err
