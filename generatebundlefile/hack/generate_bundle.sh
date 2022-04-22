@@ -26,12 +26,7 @@ chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile
 IMAGE_REGISTRY=$(AWS_REGION=us-east-1 && aws ecr-public describe-registries --query 'registries[*].registryUri' --output text)
 KMS_KEY=signingPackagesKey
 
-# Faster way to install Cosign compared to go install github.com/sigstore/cosign/cmd/cosign@v1.5.1
-curl -s https://api.github.com/repos/sigstore/cosign/releases/latest \
-| grep 'browser_download_url.*cosign-linux-amd64"' \
-| cut -d '"' -f 4 \
-| tr -d \" \
-| xargs curl -OL
+curl -OL https://github.com/sigstore/cosign/releases/download/v1.7.2/cosign-linux-amd64
 
 chmod +x cosign-linux-amd64
 mkdir -p ${BASE_DIRECTORY}/bin
