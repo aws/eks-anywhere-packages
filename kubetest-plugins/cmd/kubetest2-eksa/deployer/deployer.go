@@ -73,11 +73,10 @@ func (d *deployer) generate() (string, error) {
 		name = d.ClusterName
 	}
 	d.ClusterConfigPath = filepath.Join(d.commonOptions.RunDir(), name+".yaml")
-	f, err := os.OpenFile(d.ClusterConfigPath, os.O_RDWR|os.O_CREATE, 0o644)
+	f, err := os.OpenFile(d.ClusterConfigPath, os.O_RDWR|os.O_CREATE, 0o600)
 	if err != nil {
 		return "", fmt.Errorf("error creating file for eks-a cluster config: %s", err)
 	}
-	defer f.Close()
 
 	origStdout := os.Stdout
 	os.Stdout = f
@@ -94,14 +93,17 @@ func (d *deployer) generate() (string, error) {
 
 	err = os.Chdir(d.commonOptions.RunDir())
 	if err != nil {
+		_ = f.Close()
 		return "", fmt.Errorf("error changing to RunDir: %s", err)
 	}
 
 	klog.V(0).Infof("Up(): generating eks anywhere cluster config...\n")
 	err = process.ExecJUnit("eksctl", args, os.Environ())
 	if err != nil {
+		_ = f.Close()
 		return "", fmt.Errorf("error generating eks-a cluster config: %s", err)
 	}
+	_ = f.Close()
 
 	return d.ClusterConfigPath, nil
 }

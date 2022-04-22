@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -38,7 +39,7 @@ func (p *mockPuller) WithData(data []byte) *mockPuller {
 }
 
 func (p *mockPuller) WithFileData(t *testing.T, filename string) *mockPuller {
-	data, err := os.ReadFile(filename)
+	data, err := os.ReadFile(filepath.Clean(filename))
 	if err != nil {
 		t.Errorf("loading test file: %s", err)
 		t.FailNow()

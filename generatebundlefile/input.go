@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 
 	"sigs.k8s.io/yaml"
@@ -99,7 +100,7 @@ func ValidateBundleNoSignature(bundle *api.PackageBundle) error {
 }
 
 func ParseBundle(fileName string, bundle *api.PackageBundle) error {
-	content, err := ioutil.ReadFile(fileName)
+	content, err := ioutil.ReadFile(filepath.Clean(fileName))
 	if err != nil {
 		return fmt.Errorf("unable to read file due to: %v", err)
 	}
@@ -117,7 +118,7 @@ func ParseBundle(fileName string, bundle *api.PackageBundle) error {
 }
 
 func ParseInputConfig(fileName string, inputConfig *Input) error {
-	content, err := ioutil.ReadFile(fileName)
+	content, err := ioutil.ReadFile(filepath.Clean(fileName))
 	if err != nil {
 		return fmt.Errorf("unable to read file due to: %v", err)
 	}

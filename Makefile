@@ -64,6 +64,10 @@ vet: ## Run go vet against code.
 	$(GO) mod tidy
 	$(GO) vet ./...
 
+gosec: ## Run gosec against code.
+	$(GO) install github.com/securego/gosec/v2/cmd/gosec@latest
+	gosec --exclude-dir=kubetest-plugins --exclude-dir generatebundlefile  ./...
+
 SIGNED_ARTIFACTS = pkg/signature/testdata/packagebundle_valid.yaml.signed pkg/signature/testdata/pod_valid.yaml.signed api/testdata/bundle_one.yaml.signed api/testdata/bundle_two.yaml.signed
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 # Test a specific package with something like ./api/... see go help packages for
