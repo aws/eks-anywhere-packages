@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	v1alpha1 "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,7 +36,7 @@ func (m *MockPackageDriver) EXPECT() *MockPackageDriverMockRecorder {
 }
 
 // Install mocks base method.
-func (m *MockPackageDriver) Install(ctx context.Context, name, namespace string, source api.PackageOCISource, values map[string]interface{}) error {
+func (m *MockPackageDriver) Install(ctx context.Context, name, namespace string, source v1alpha1.PackageOCISource, values map[string]interface{}) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Install", ctx, name, namespace, source, values)
 	ret0, _ := ret[0].(error)
@@ -47,6 +47,21 @@ func (m *MockPackageDriver) Install(ctx context.Context, name, namespace string,
 func (mr *MockPackageDriverMockRecorder) Install(ctx, name, namespace, source, values interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Install", reflect.TypeOf((*MockPackageDriver)(nil).Install), ctx, name, namespace, source, values)
+}
+
+// IsConfigChanged mocks base method.
+func (m *MockPackageDriver) IsConfigChanged(ctx context.Context, name string, values map[string]interface{}) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsConfigChanged", ctx, name, values)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsConfigChanged indicates an expected call of IsConfigChanged.
+func (mr *MockPackageDriverMockRecorder) IsConfigChanged(ctx, name, values interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsConfigChanged", reflect.TypeOf((*MockPackageDriver)(nil).IsConfigChanged), ctx, name, values)
 }
 
 // Uninstall mocks base method.

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -146,4 +147,16 @@ func helmLog(log logr.Logger) action.DebugLog {
 	return func(template string, args ...interface{}) {
 		log.Info(fmt.Sprintf(template, args...))
 	}
+}
+
+func (d *helmDriver) IsConfigChanged(ctx context.Context, name string,
+	values map[string]interface{}) (bool, error) {
+
+	get := action.NewGet(d.cfg)
+	rel, err := get.Run(name)
+	if err != nil {
+		return false, fmt.Errorf("installation not found %q: %w", name, err)
+	}
+
+	return !reflect.DeepEqual(values, rel.Config), nil
 }

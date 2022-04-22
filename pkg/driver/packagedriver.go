@@ -17,4 +17,9 @@ type PackageDriver interface {
 
 	// Uninstall an package.
 	Uninstall(ctx context.Context, name string) error
+
+	// IsConfigChanged indicates that the values passed differ from
+	// those currently running.
+	IsConfigChanged(ctx context.Context, name string,
+		values map[string]interface{}) (bool, error)
 }
