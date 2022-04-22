@@ -61,6 +61,7 @@ bin/golangci-lint:
 
 .PHONY: vet
 vet: ## Run go vet against code.
+	$(GO) version
 	$(GO) mod tidy
 	$(GO) vet ./...
 

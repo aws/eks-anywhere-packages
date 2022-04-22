@@ -70,7 +70,7 @@ func TestNewPackageFromInput(t *testing.T) {
 			testproject: Project{
 				Name:       "hello-eks-anywhere",
 				Registry:   "public.ecr.aws/f5b7k4z5",
-				Repository: "aws-containers/hello-eks-anywhere",
+				Repository: "hello-eks-anywhere",
 				Versions:   []Tag{},
 			},
 			wantErr: true,
@@ -78,8 +78,9 @@ func TestNewPackageFromInput(t *testing.T) {
 		{
 			testname: "Test named tag",
 			testproject: Project{
-				Name:     "hello-eks-anywhere",
-				Registry: "public.ecr.aws/f5b7k4z5",
+				Name:       "hello-eks-anywhere",
+				Registry:   "public.ecr.aws/f5b7k4z5",
+				Repository: "hello-eks-anywhere",
 				Versions: []Tag{
 					{Name: "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214"},
 				},
@@ -89,7 +90,7 @@ func TestNewPackageFromInput(t *testing.T) {
 				Name: "hello-eks-anywhere",
 				Source: api.BundlePackageSource{
 					Registry:   "public.ecr.aws/f5b7k4z5",
-					Repository: "aws-containers/hello-eks-anywhere",
+					Repository: "hello-eks-anywhere",
 					Versions: []api.SourceVersion{
 						{
 							Name:   "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214",
