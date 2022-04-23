@@ -6,7 +6,7 @@ require (
 	github.com/go-logr/logr v1.2.2
 	github.com/golang/mock v1.6.0
 	github.com/itchyny/gojq v0.12.6
-	github.com/onsi/ginkgo/v2 v2.1.3
+	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
 	github.com/stretchr/testify v1.7.0
 	gotest.tools v2.2.0+incompatible

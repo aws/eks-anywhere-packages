@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	admissionv1beta1 "k8s.io/api/admission/v1beta1"
 
@@ -68,12 +68,9 @@ func TestAPIs(t *testing.T) {
 	}
 	RegisterFailHandler(Fail)
 
-	// fetch the current config
-	suiteConfig, reporterConfig := GinkgoConfiguration()
-	// adjust it
-	suiteConfig.SkipStrings = []string{"NEVER-RUN"}
-	reporterConfig.FullTrace = true
-	RunSpecs(t, "Webhook Suite", suiteConfig, reporterConfig)
+	RunSpecsWithDefaultAndCustomReporters(t,
+		"Webhook Suite",
+		[]Reporter{printer.NewlineReporter{}})
 }
 
 var _ = Context("Releases signatures are validated against the correct public key", func() {
@@ -182,7 +179,7 @@ var _ = BeforeSuite(func() {
 		ObjectMeta: metav1.ObjectMeta{Name: bundle.ActiveBundleNamespace},
 	}
 	Expect(k8sClient.Create(ctx, &ns)).Should(Succeed())
-})
+}, 60)
 
 var _ = AfterSuite(func() {
 	cancel()
