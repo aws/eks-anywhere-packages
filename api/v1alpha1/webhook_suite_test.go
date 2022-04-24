@@ -40,7 +40,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	. "github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"github.com/aws/eks-anywhere-packages/pkg/signature"
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
@@ -177,7 +176,7 @@ var _ = BeforeSuite(func() {
 	}).Should(Succeed())
 
 	ns := corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{Name: bundle.ActiveBundleNamespace},
+		ObjectMeta: metav1.ObjectMeta{Name: PackageNamespace},
 	}
 	Expect(k8sClient.Create(ctx, &ns)).Should(Succeed())
 }, 60)

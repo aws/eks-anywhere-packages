@@ -4,7 +4,10 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const PackageKind = "Package"
+const (
+	PackageKind      = "Package"
+	PackageNamespace = "eksa-packages"
+)
 
 func (config *Package) MetaKind() string {
 	return config.TypeMeta.Kind

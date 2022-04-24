@@ -3,6 +3,7 @@ package controllers_test
 import (
 	"context"
 	"fmt"
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/aws/eks-anywhere-packages/controllers"
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
-	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	bundlefake "github.com/aws/eks-anywhere-packages/pkg/bundle/fake"
 )
 
@@ -22,7 +22,7 @@ func givenRequest() ctrl.Request {
 	return ctrl.Request{
 		NamespacedName: types.NamespacedName{
 			Name:      "some-bundle",
-			Namespace: bundle.ActiveBundleNamespace,
+			Namespace: v1alpha1.PackageNamespace,
 		},
 	}
 }

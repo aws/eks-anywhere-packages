@@ -9,7 +9,6 @@ import (
 	"sigs.k8s.io/yaml"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
 )
 
@@ -36,7 +35,7 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.Packag
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      bundleName,
-			Namespace: bundle.ActiveBundleNamespace,
+			Namespace: api.PackageNamespace,
 		},
 		Spec: api.PackageBundleSpec{
 			KubeVersion: DefaultKubernetesVersion,
@@ -94,7 +93,7 @@ func AddMetadata(s api.PackageBundleSpec, name string) api.PackageBundle {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      bundleName,
-			Namespace: bundle.ActiveBundleNamespace,
+			Namespace: api.PackageNamespace,
 		},
 		Spec: s,
 	}

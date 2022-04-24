@@ -21,7 +21,6 @@ import (
 )
 
 const (
-	ActiveBundleNamespace       = "eksa-packages"
 	PackageBundleControllerName = "eksa-packages-bundle-controller"
 )
 
@@ -90,14 +89,14 @@ func (m bundleManager) IsActive(ctx context.Context,
 		return false, err
 	}
 
-	return key.Namespace == ActiveBundleNamespace && key.Name == abc.Spec.ActiveBundle, nil
+	return key.Namespace == api.PackageNamespace && key.Name == abc.Spec.ActiveBundle, nil
 }
 
 func (m bundleManager) getPackageBundleController(ctx context.Context,
 	client client.Client) (*api.PackageBundleController, error) {
 	abc := &api.PackageBundleController{}
 	key := types.NamespacedName{
-		Namespace: ActiveBundleNamespace,
+		Namespace: api.PackageNamespace,
 		Name:      PackageBundleControllerName,
 	}
 	err := client.Get(ctx, key, abc)
@@ -286,7 +285,7 @@ func (m bundleManager) ActiveBundle(ctx context.Context, client client.Client) (
 	}
 
 	nn := types.NamespacedName{
-		Namespace: ActiveBundleNamespace,
+		Namespace: api.PackageNamespace,
 		Name:      abc.Spec.ActiveBundle,
 	}
 	bundle := &api.PackageBundle{}
@@ -300,5 +299,5 @@ func (m bundleManager) ActiveBundle(ctx context.Context, client client.Client) (
 
 func (m bundleManager) IsActiveController(namespacedName types.NamespacedName) bool {
 	return namespacedName.Name == PackageBundleControllerName &&
-		namespacedName.Namespace == ActiveBundleNamespace
+		namespacedName.Namespace == api.PackageNamespace
 }
