@@ -6,7 +6,7 @@ require (
 	github.com/go-logr/logr v1.2.2
 	github.com/golang/mock v1.6.0
 	github.com/itchyny/gojq v0.12.6
-	github.com/onsi/ginkgo v1.16.5
+	github.com/onsi/ginkgo/v2 v2.1.3
 	github.com/onsi/gomega v1.17.0
 	github.com/stretchr/testify v1.7.0
 	gotest.tools v2.2.0+incompatible
@@ -100,7 +100,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
@@ -140,7 +139,6 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/apiextensions-apiserver v0.23.4 // indirect
