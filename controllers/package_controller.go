@@ -137,7 +137,7 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		if !apierrors.IsNotFound(err) {
 			return ctrl.Result{}, err
 		}
-		if req.Namespace == bundle.ActiveBundleNamespace {
+		if req.Namespace == api.PackageNamespace {
 			managerContext.SetUninstalling(req.Name)
 		}
 	} else {

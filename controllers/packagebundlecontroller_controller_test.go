@@ -28,8 +28,8 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 	bm := bundle.NewBundleManager(logr.Discard(), discovery, puller)
 
 	controllerNN := types.NamespacedName{
-		Namespace: bundle.ActiveBundleNamespace,
-		Name:      bundle.PackageBundleControllerName,
+		Namespace: api.PackageNamespace,
+		Name:      api.PackageBundleControllerName,
 	}
 	req := ctrl.Request{
 		NamespacedName: controllerNN,
@@ -60,7 +60,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
 		mockABC := &api.PackageBundleController{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      bundle.PackageBundleControllerName,
+				Name:      api.PackageBundleControllerName,
 				Namespace: "blah",
 			},
 			Spec: api.PackageBundleControllerSpec{
@@ -73,7 +73,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 
 		inactiveController := types.NamespacedName{
 			Name:      "blah",
-			Namespace: bundle.ActiveBundleNamespace,
+			Namespace: api.PackageNamespace,
 		}
 		mockClient.EXPECT().Get(ctx, inactiveController, gomock.Any()).
 			DoAndReturn(setMockABC(mockABC))
@@ -107,8 +107,8 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
 		mockABC := &api.PackageBundleController{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      bundle.PackageBundleControllerName,
-				Namespace: bundle.ActiveBundleNamespace,
+				Name:      api.PackageBundleControllerName,
+				Namespace: api.PackageNamespace,
 			},
 			Spec: api.PackageBundleControllerSpec{
 				ActiveBundle: "v1.21-1001",

@@ -12,9 +12,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/controllers"
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
-	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	bundlefake "github.com/aws/eks-anywhere-packages/pkg/bundle/fake"
 )
 
@@ -22,7 +22,7 @@ func givenRequest() ctrl.Request {
 	return ctrl.Request{
 		NamespacedName: types.NamespacedName{
 			Name:      "some-bundle",
-			Namespace: bundle.ActiveBundleNamespace,
+			Namespace: v1alpha1.PackageNamespace,
 		},
 	}
 }
