@@ -73,14 +73,14 @@ func TestSplitECRName(t *testing.T) {
 		},
 		{
 			testName:     "Test valid name w/ prefix",
-			testHelmName: "646717423341.dkr.ecr.us-west-2.amazonaws.com/aws-containers/hello-eks-anywhere",
-			chartName:    "aws-containers/hello-eks-anywhere",
+			testHelmName: "646717423341.dkr.ecr.us-west-2.amazonaws.com/hello-eks-anywhere",
+			chartName:    "hello-eks-anywhere",
 			helmName:     "hello-eks-anywhere",
 			wantErr:      false,
 		},
 		{
 			testName:     "Test invalid name w/ multiple prefixes",
-			testHelmName: "646717423341.dkr.ecr.us-west-2.amazonaws.com/test/aws-containers/hello-eks-anywhere",
+			testHelmName: "646717423341.dkr.ecr.us-west-2.amazonaws.com/test/hello-eks-anywhere",
 			chartName:    "",
 			helmName:     "",
 			wantErr:      true,

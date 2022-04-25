@@ -12,7 +12,7 @@ spec:
     - name: Package
       source:
         registry: public.ecr.aws/l0g8r8j6
-        repository: eks-anywhere-test
+        repository: hello-eks-anywhere
         versions:
           - name: test
             digest: sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7

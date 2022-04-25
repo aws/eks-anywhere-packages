@@ -3,14 +3,14 @@ kind: PackageBundle
 metadata:
   name: v1-21-1001
   namespace: eksa-packages
-  annotations: {eksa.aws.com/signature: MEYCIQCN+aixNfPk23zgun52NBvAl8HdVt4ggVuQg7uyUW1zjwIhAPa/wZPUffz827Jq8PkwCV/ktAPqR4rnZvT1nRNcFs7y}
+  annotations: {eksa.aws.com/signature: MEUCIGsQ7qlrlR5Rvzu84N47DtOoC+zVTrUThdXLJxVuo3SHAiEAzw3zqpid+4H7Due71JlNrL8wyaxGROXtng0b4ynv3mk=}
 spec:
   kubeVersion: v1.21
   packages:
     - name: Test
       source:
         registry: public.ecr.aws/l0g8r8j6
-        repository: eks-anywhere-test
+        repository: hello-eks-anywhere
         versions:
           - name: v0.1.1-8b3810e1514b7432e032794842425accc837757a-helm
             digest: sha256:64ea03b119d2421f9206252ff4af4bf7cdc2823c343420763e0e6fc20bf03b68

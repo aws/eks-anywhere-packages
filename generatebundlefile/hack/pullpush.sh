@@ -55,7 +55,7 @@ aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm reg
 # TODO replace version this with an upstream version from the dev Account once it's published.
 #################################################
 
-helm pull oci://646717423341.dkr.ecr.us-west-2.amazonaws.com/aws-containers/hello-eks-anywhere --version 0.1.0+c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214
+helm pull oci://646717423341.dkr.ecr.us-west-2.amazonaws.com/hello-eks-anywhere --version 0.1.0+c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214
 helm push hello-eks-anywhere-0.1.0+c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214.tgz "oci://$local_ecr_public"
 
 ########################
@@ -86,10 +86,9 @@ build: ## Build release binary.
 	mkdir -p $(REPO_ROOT)/generatebundlefile/bin
 	$(GO) build -mod vendor -o $(REPO_ROOT)/generatebundlefile/bin/generatebundlefile *.go
 
-
 # Change the `make dev-promote` to use build-linux instead of build
 dev-promote: build-linux priv-login public-login
 
-export HELM_REPO=aws-containers/hello-eks-anywhere
+export HELM_REPO=hello-eks-anywhere
 cd generatebundlefile/
 make dev-promote

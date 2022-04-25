@@ -50,7 +50,7 @@ func givenManagerContext(driver *mocks.MockPackageDriver) *ManagerContext {
 		PackageDriver: driver,
 		Source: PackageOCISource{
 			Registry:   "public.ecr.aws/j0a1m4z9/",
-			Repository: "eks-anywhere-test",
+			Repository: "hello-eks-anywhere",
 			Digest:     "sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
 		},
 		RequeueAfter: time.Duration(100),
@@ -94,12 +94,12 @@ func TestManagerLifecycle(t *testing.T) {
 	sut := NewManager()
 	expectedSource := PackageOCISource{
 		Registry:   "public.ecr.aws/j0a1m4z9/",
-		Repository: "eks-anywhere-test",
+		Repository: "hello-eks-anywhere",
 		Digest:     "sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
 	}
 	expectedUpdate := PackageOCISource{
 		Registry:   "public.ecr.aws/j0a1m4z9/",
-		Repository: "eks-anywhere-test",
+		Repository: "hello-eks-anywhere",
 		Digest:     "sha256:deadbeefc7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
 	}
 
