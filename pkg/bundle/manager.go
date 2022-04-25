@@ -111,19 +111,6 @@ func (m bundleManager) getPackageBundleController(ctx context.Context,
 func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 	allBundles []api.PackageBundle) bool {
 
-	var pkg api.BundlePackage
-	originals := make(map[string]api.BundlePackage)
-	for _, pkg = range newBundle.Status.Spec.Packages {
-		originals[pkg.Source.Repository] = pkg
-	}
-	for _, pkg = range newBundle.Spec.Packages {
-		if original, ok := originals[pkg.Source.Repository]; ok {
-			if !original.Source.Matches(pkg.Source) {
-				m.log.Info("Chart update found for: " + pkg.Name)
-			}
-		}
-	}
-
 	if active && newBundle.Status.State != api.PackageBundleStateActive {
 		newBundle.Status.State = api.PackageBundleStateActive
 	} else if !active && newBundle.Status.State != api.PackageBundleStateInactive {
