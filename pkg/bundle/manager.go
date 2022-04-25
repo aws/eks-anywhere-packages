@@ -20,10 +20,6 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
 )
 
-const (
-	PackageBundleControllerName = "eksa-packages-bundle-controller"
-)
-
 type Manager interface {
 	// IsActive returns true if the given namespace and name matche the active
 	// bundle's.
@@ -97,7 +93,7 @@ func (m bundleManager) getPackageBundleController(ctx context.Context,
 	abc := &api.PackageBundleController{}
 	key := types.NamespacedName{
 		Namespace: api.PackageNamespace,
-		Name:      PackageBundleControllerName,
+		Name:      api.PackageBundleControllerName,
 	}
 	err := client.Get(ctx, key, abc)
 	if err != nil {
@@ -298,6 +294,6 @@ func (m bundleManager) ActiveBundle(ctx context.Context, client client.Client) (
 }
 
 func (m bundleManager) IsActiveController(namespacedName types.NamespacedName) bool {
-	return namespacedName.Name == PackageBundleControllerName &&
+	return namespacedName.Name == api.PackageBundleControllerName &&
 		namespacedName.Namespace == api.PackageNamespace
 }

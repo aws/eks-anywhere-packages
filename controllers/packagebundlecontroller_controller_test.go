@@ -29,7 +29,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 
 	controllerNN := types.NamespacedName{
 		Namespace: api.PackageNamespace,
-		Name:      bundle.PackageBundleControllerName,
+		Name:      api.PackageBundleControllerName,
 	}
 	req := ctrl.Request{
 		NamespacedName: controllerNN,
@@ -60,7 +60,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
 		mockABC := &api.PackageBundleController{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      bundle.PackageBundleControllerName,
+				Name:      api.PackageBundleControllerName,
 				Namespace: "blah",
 			},
 			Spec: api.PackageBundleControllerSpec{
@@ -107,7 +107,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
 		mockABC := &api.PackageBundleController{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      bundle.PackageBundleControllerName,
+				Name:      api.PackageBundleControllerName,
 				Namespace: api.PackageNamespace,
 			},
 			Spec: api.PackageBundleControllerSpec{

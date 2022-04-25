@@ -14,8 +14,9 @@ type PackageOCISource struct {
 }
 
 const (
-	PackageBundleKind = "PackageBundle"
-	Latest            = "latest"
+	PackageBundleKind           = "PackageBundle"
+	PackageBundleControllerName = "eksa-packages-bundle-controller"
+	Latest                      = "latest"
 )
 
 func (config *PackageBundle) MetaKind() string {
