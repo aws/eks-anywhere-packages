@@ -153,7 +153,7 @@ func WriteBundleConfig(bundle api.PackageBundle, writer FileWriter) error {
 	if err != nil {
 		return err
 	}
-	if filePath, err := writer.Write(fmt.Sprintf("bundle-%s.yaml", bundle.Spec.KubeVersion), crdContent, PersistentFile); err != nil {
+	if filePath, err := writer.Write("bundle.yaml", crdContent, PersistentFile); err != nil {
 		err = fmt.Errorf("writing bundle crd file into %q: %w", filePath, err)
 		return err
 	}

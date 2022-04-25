@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -140,7 +141,16 @@ func (Input *Input) NewBundleFromInput() (api.PackageBundleSpec, string, error) 
 	if Input.Name == "" || Input.KubernetesVersion == "" {
 		return packageBundleSpec, "", fmt.Errorf("error: Empty input field from `Name` or `KubernetesVersion`.")
 	}
+	var name string
+	name, ok := os.LookupEnv("CODEBUILD_BUILD_NUMBER")
+	if !ok {
+		name = Input.Name
+	} else {
+		version := strings.Split(Input.KubernetesVersion, ".")
+		name = fmt.Sprintf("v1-%s-%s", version[1], name)
+	}
 	packageBundleSpec.KubeVersion = Input.KubernetesVersion
+
 	for _, org := range Input.Packages {
 		fmt.Printf("org=%v\n", org)
 		for _, project := range org.Projects {
@@ -152,5 +162,5 @@ func (Input *Input) NewBundleFromInput() (api.PackageBundleSpec, string, error) 
 			packageBundleSpec.Packages = append(packageBundleSpec.Packages, *bundlePkg)
 		}
 	}
-	return packageBundleSpec, Input.Name, nil
+	return packageBundleSpec, name, nil
 }
