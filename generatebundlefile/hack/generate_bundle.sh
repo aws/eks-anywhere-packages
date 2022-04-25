@@ -39,15 +39,16 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
 
 # Sign the Bundle
 export AWS_REGION="us-west-2"
-SIGNATURE=$(${BASE_DIRECTORY}/bin/cosign sign-blob --key awskms:///alias/${KMS_KEY} output/bundle-1.21.yaml)
+SIGNATURE=$(${BASE_DIRECTORY}/bin/cosign sign-blob --key awskms:///alias/${KMS_KEY} output/bundle.yaml)
 
 # Add signature annotation
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/output/bundle-1.21.yaml \
+    --input ${BASE_DIRECTORY}/generatebundlefile/output/bundle.yaml \
     --signature ${SIGNATURE}
 
 make oras-install
 
 ECR_PASSWORD=$(aws ecr-public get-login-password --region us-east-1)
 cd output/
-${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-${CODEBUILD_BUILD_NUMBER}" bundle-1.21.yaml
+${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-latest" bundle.yaml
