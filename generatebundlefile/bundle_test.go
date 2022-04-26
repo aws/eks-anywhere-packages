@@ -28,7 +28,6 @@ func TestNewBundleGenerate(t *testing.T) {
 					Namespace: "eksa-packages",
 				},
 				Spec: api.PackageBundleSpec{
-					KubeVersion: "1.21",
 					Packages: []api.BundlePackage{
 						{
 							Name: "sample-package",

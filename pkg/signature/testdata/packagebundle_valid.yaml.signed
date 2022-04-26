@@ -5,9 +5,8 @@ metadata:
   namespace: eks-anywhere-packages-system
   annotations:
     eksa.aws.com/excludes: LnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVnaXN0cnkKLnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVwb3NpdG9yeQo=
-    eksa.aws.com/signature: MEQCIFmKsSfnHSxlkZEBV4XF96JE0v2yZ8Ic0UaJbhCemDUBAiBVVufClgTGlAjUmSM7uPGKj02ugPl0jN8boyTEzhi4Pg==
+    eksa.aws.com/signature: MEUCICbCZWnJd1tvHx3k5j7E1MO5eak+SzrqmVQCv1ZwiEHCAiEAyaTFV4VP3Nvf+tU7deD4VAYMWHVj3sj6wVLHYSMRcRc=
 spec:
-  kubeVersion: v1.21
   packages:
     - name: Package
       source:

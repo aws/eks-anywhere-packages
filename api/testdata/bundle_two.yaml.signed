@@ -3,9 +3,8 @@ kind: PackageBundle
 metadata:
   name: v1-21-1002
   namespace: eksa-packages
-  annotations: {eksa.aws.com/signature: MEYCIQCK0PUh2WMV5QU1eTGcU1mcHDy1RgwMcdWdd7xjkMolDwIhALVeZ02Qst6QCEPFhlVcUaX3ZX6I1njzz9PgYzVp5CyP}
+  annotations: {eksa.aws.com/signature: MEUCIQD6oooNKuGq5e31ybrXZnhPsHJkwrlKyB8Jj7S0O5sV1QIgGys1VQXrI54durC9D9FHIUlOOrrVivtyJgdWawHakAU=}
 spec:
-  kubeVersion: v1.21
   packages:
     - name: Test
       source:
