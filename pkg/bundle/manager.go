@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -38,10 +37,6 @@ type Manager interface {
 	// bundles.
 	IsBundleKnown(ctx context.Context,
 		knownBundles []api.PackageBundle, bundle *api.PackageBundle) bool
-
-	// IsBundleOlderThan returns true if the current name is older than the
-	// candidate.
-	IsBundleOlderThan(current, candidate string) (bool, error)
 
 	// LatestBundle pulls the bundle tagged with "latest" from the bundle source.
 	LatestBundle(ctx context.Context, baseRef string) (
@@ -128,11 +123,7 @@ func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 // SortBundlesNewestFirst will sort a slice of bundles so that the newest is first.
 func (m bundleManager) SortBundlesNewestFirst(bundles []api.PackageBundle) {
 	sortFn := func(i, j int) bool {
-		older, err := m.IsBundleOlderThan(bundles[i].Name, bundles[j].Name)
-		if err != nil {
-			return true
-		}
-		return !older
+		return bundles[j].IsNewer(&bundles[i])
 	}
 	sort.Slice(bundles, sortFn)
 }
@@ -185,38 +176,6 @@ func (m *bundleManager) IsBundleKnown(ctx context.Context,
 	return false
 }
 
-func (m *bundleManager) IsBundleOlderThan(current, candidate string) (bool, error) {
-	if current == "" {
-		return true, nil
-	}
-
-	curK8sVer, err := kubeVersion(current)
-	if err != nil {
-		return false, fmt.Errorf("parsing current kube version: %s", err)
-	}
-
-	newK8sVer, err := kubeVersion(candidate)
-	if err != nil {
-		return false, fmt.Errorf("parsing candidate kube version: %s", err)
-	}
-
-	if curK8sVer < newK8sVer {
-		return true, nil
-	}
-
-	curBuildNum, err := buildNumber(current)
-	if err != nil {
-		return false, fmt.Errorf("parsing current build number: %s", err)
-	}
-
-	newBuildNum, err := buildNumber(candidate)
-	if err != nil {
-		return false, fmt.Errorf("parsing candidate build number: %s", err)
-	}
-
-	return curBuildNum < newBuildNum, nil
-}
-
 func kubeVersion(name string) (string, error) {
 	matches := kubeVersionRe.FindStringSubmatch(name)
 	if len(matches) > 1 {
@@ -227,22 +186,6 @@ func kubeVersion(name string) (string, error) {
 }
 
 var kubeVersionRe = regexp.MustCompile(`^(v[^-]+)-.*$`)
-
-func buildNumber(name string) (int, error) {
-	matches := bundleNameRe.FindStringSubmatch(name)
-	if len(matches) > 1 {
-		buildNumber, err := strconv.Atoi(matches[1])
-		if err != nil {
-			return 0, fmt.Errorf("parsing build number: %s", err)
-		}
-
-		return buildNumber, nil
-	}
-
-	return 0, fmt.Errorf("no build number found in %q", name)
-}
-
-var bundleNameRe = regexp.MustCompile(`^.*-(\d+)$`)
 
 func (m *bundleManager) apiVersion() (string, error) {
 	info, err := m.kubeServerVersion.ServerVersion()

@@ -1,6 +1,7 @@
 package v1alpha1_test
 
 import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 	"testing"
 
@@ -236,6 +237,64 @@ func TestSourceVersionKey(t *testing.T) {
 		got := s.Key()
 		if !strings.Contains(got, "sha256:blah") {
 			t.Errorf("expected key to contain the tag, but it didn't")
+		}
+	})
+}
+
+func TestIsNewer(t *testing.T) {
+	t.Parallel()
+
+	givenBundle := func(name string) api.PackageBundle {
+		return api.PackageBundle{ObjectMeta: metav1.ObjectMeta{Name: name}}
+	}
+
+	t.Run("", func(t *testing.T) {
+		t.Parallel()
+
+		current := givenBundle("v1-21-10002")
+		candidate := givenBundle("v1-21-10003")
+		if newer := current.IsNewer(&candidate); !newer {
+			t.Errorf("expected %v to be newer than %v", current.Name, candidate.Name)
+		}
+	})
+
+	t.Run("older", func(t *testing.T) {
+		t.Parallel()
+
+		current := givenBundle("v1-21-10002")
+		candidate := givenBundle("v1-21-10001")
+		if newer := current.IsNewer(&candidate); newer {
+			t.Errorf("expected %v to not be newer than %v", current.Name, candidate.Name)
+		}
+	})
+
+	t.Run("equal values returns false", func(t *testing.T) {
+		t.Parallel()
+
+		current := givenBundle("v1-21-10002")
+		candidate := givenBundle("v1-21-10002")
+		if newer := current.IsNewer(&candidate); newer {
+			t.Errorf("expected %v to not be newer than %v", current.Name, candidate.Name)
+		}
+	})
+
+	t.Run("newer kube major versio", func(t *testing.T) {
+		t.Parallel()
+
+		current := givenBundle("v1-21-10002")
+		candidate := givenBundle("v2-21-10002")
+		if newer := current.IsNewer(&candidate); !newer {
+			t.Errorf("expected %v to be newer than %v", current.Name, candidate.Name)
+		}
+	})
+
+	t.Run("newer kube minor version", func(t *testing.T) {
+		t.Parallel()
+
+		current := givenBundle("v1-21-10002")
+		candidate := givenBundle("v1-22-10002")
+		if newer := current.IsNewer(&candidate); !newer {
+			t.Errorf("expected %v to be newer than %v", current.Name, candidate.Name)
 		}
 	})
 }
