@@ -1,11 +1,11 @@
 package v1alpha1_test
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
