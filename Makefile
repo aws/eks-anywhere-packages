@@ -160,7 +160,11 @@ endef
 
 ## Generate mocks
 .PHONY: mocks
-mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/packages/mocks/manager.go
+mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/bundle_client.go pkg/packages/mocks/manager.go
+
+pkg/bundle/mocks/bundle_client.go: pkg/bundle/bundle_client.go
+	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
+		$(MOCKGEN) -source pkg/bundle/bundle_client.go -destination=pkg/bundle/mocks/bundle_client.go -package=mocks BundleClient
 
 pkg/packages/mocks/manager.go: pkg/packages/manager.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
