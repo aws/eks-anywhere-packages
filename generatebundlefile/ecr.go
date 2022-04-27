@@ -13,7 +13,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
-	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
@@ -94,8 +93,8 @@ func (c *ecrPublicClient) DescribePublic(describeInput *ecrpublic.DescribeImages
 }
 
 // Describe returns a list of ECR describe results, with Pagination from DescribeImages SDK request
-func (c *ecrClient) Describe(describeInput *ecr.DescribeImagesInput) ([]types.ImageDetail, error) {
-	var images []types.ImageDetail
+func (c *ecrClient) Describe(describeInput *ecr.DescribeImagesInput) ([]ecrtypes.ImageDetail, error) {
+	var images []ecrtypes.ImageDetail
 	resp, err := c.DescribeImages(context.TODO(), describeInput)
 	if err != nil {
 		return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR. %s", err)
@@ -284,8 +283,8 @@ func (c *ecrPublicClient) GetRegistryURI() (string, error) {
 
 // tagFromSha Looks up the Tag of an ECR artifact from a sha
 func (c *ecrClient) tagFromSha(repository, sha string) (string, error) {
-	var imagelookup []types.ImageIdentifier
-	imagelookup = append(imagelookup, types.ImageIdentifier{ImageDigest: &sha})
+	var imagelookup []ecrtypes.ImageIdentifier
+	imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageDigest: &sha})
 	ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
 		RepositoryName: aws.String(repository),
 		ImageIds:       imagelookup,
