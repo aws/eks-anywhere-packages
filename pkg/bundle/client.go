@@ -10,7 +10,7 @@ import (
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
-type BundleClient interface {
+type Client interface {
 	// GetActiveBundle retrieves the currently active bundle.
 	GetActiveBundle(ctx context.Context) (activeBundle *api.PackageBundle, err error)
 }
@@ -25,7 +25,7 @@ func NewPackageBundleClient(client client.Client) *bundleClient {
 	})
 }
 
-var _ BundleClient = (*bundleClient)(nil)
+var _ Client = (*bundleClient)(nil)
 
 func (bc *bundleClient) getPackageBundleController(ctx context.Context) (*api.PackageBundleController, error) {
 	pbc := api.PackageBundleController{}

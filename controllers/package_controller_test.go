@@ -17,7 +17,7 @@ import (
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	ctrlmocks "github.com/aws/eks-anywhere-packages/controllers/mocks"
 	bundlefake "github.com/aws/eks-anywhere-packages/pkg/bundle/fake"
-	bundleClientMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
+	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
 	drivermocks "github.com/aws/eks-anywhere-packages/pkg/driver/mocks"
 	"github.com/aws/eks-anywhere-packages/pkg/packages"
 	packageMocks "github.com/aws/eks-anywhere-packages/pkg/packages/mocks"
@@ -277,7 +277,7 @@ type testFixtures struct {
 	packageDriver  *drivermocks.MockPackageDriver
 	packageManager *packageMocks.MockManager
 	bundleManager  *bundlefake.FakeBundleManager
-	bundleClient   *bundleClientMocks.MockBundleClient
+	bundleClient   *bundleMocks.MockClient
 }
 
 // newTestFixtures helps remove repetition in the tests by instantiating a lot of
@@ -291,7 +291,7 @@ func newTestFixtures(t *testing.T) (*testFixtures, context.Context) {
 		packageDriver:    drivermocks.NewMockPackageDriver(gomockController),
 		packageManager:   packageMocks.NewMockManager(gomockController),
 		bundleManager:    bundlefake.NewBundleManager(),
-		bundleClient:     bundleClientMocks.NewMockBundleClient(gomockController),
+		bundleClient:     bundleMocks.NewMockClient(gomockController),
 	}, context.Background()
 }
 

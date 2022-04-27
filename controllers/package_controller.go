@@ -50,12 +50,12 @@ type PackageReconciler struct {
 	PackageDriver driver.PackageDriver
 	Manager       packages.Manager
 	bundleManager bundle.Manager
-	bundleClient  bundle.BundleClient
+	bundleClient  bundle.Client
 }
 
 func NewPackageReconciler(client client.Client, scheme *runtime.Scheme,
 	driver driver.PackageDriver, manager packages.Manager,
-	bundleManager bundle.Manager, bundleClient bundle.BundleClient, log logr.Logger) *PackageReconciler {
+	bundleManager bundle.Manager, bundleClient bundle.Client, log logr.Logger) *PackageReconciler {
 
 	return &PackageReconciler{
 		Client:        client,
