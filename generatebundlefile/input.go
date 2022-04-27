@@ -149,7 +149,6 @@ func (Input *Input) NewBundleFromInput() (api.PackageBundleSpec, string, error) 
 		version := strings.Split(Input.KubernetesVersion, ".")
 		name = fmt.Sprintf("v1-%s-%s", version[1], name)
 	}
-	packageBundleSpec.KubeVersion = Input.KubernetesVersion
 
 	for _, org := range Input.Packages {
 		fmt.Printf("org=%v\n", org)

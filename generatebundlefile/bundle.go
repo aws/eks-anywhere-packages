@@ -18,9 +18,6 @@ var (
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
-
-	// Default version if one is not specified on the input
-	DefaultKubernetesVersion = "1.21"
 )
 
 // +kubebuilder:object:generate=false
@@ -38,7 +35,6 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.Packag
 			Namespace: api.PackageNamespace,
 		},
 		Spec: api.PackageBundleSpec{
-			KubeVersion: DefaultKubernetesVersion,
 			Packages: []api.BundlePackage{
 				{
 					Name: "sample-package",

@@ -23,7 +23,6 @@ import (
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="Version",type=string,JSONPath=`.spec.kubeVersion`
 //+kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // PackageBundle is the Schema for the packagebundles API
 type PackageBundle struct {
@@ -36,10 +35,6 @@ type PackageBundle struct {
 
 // PackageBundleSpec defines the desired state of PackageBundle
 type PackageBundleSpec struct {
-	// +kubebuilder:validation:Required
-	// KubeVersion is the Kubernetes version to which this bundle is compatible.
-	KubeVersion string `json:"kubeVersion,omitempty"`
-
 	// +kubebuilder:validation:Required
 	// Packages supported by this bundle.
 	Packages []BundlePackage `json:"packages"`

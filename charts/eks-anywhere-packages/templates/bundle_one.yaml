@@ -5,7 +5,6 @@ metadata:
   namespace: eksa-packages
   annotations: {}
 spec:
-  kubeVersion: v1.21
   packages:
     - name: harbor
       source:
