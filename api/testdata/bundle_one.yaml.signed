@@ -3,7 +3,7 @@ kind: PackageBundle
 metadata:
   name: v1-21-1001
   namespace: eksa-packages
-  annotations: {eksa.aws.com/signature: MEYCIQCLdT3ZETAl8yuTSvH8BWRPsD4boZxhaIMEmfPWQhT1DQIhAK+W/hcX3PriV13u6Ktt4WGCyzRWN0hs+b1x26nB4tG0}
+  annotations: {eksa.aws.com/signature: MEYCIQDvH+XuQnC2L2DmxsmzKos5EFRH28F7keZjEG7EAuQNEgIhAJQGe6jPj9cyVsTyCgOggWwFZn31XsvCPGGJkiAki8OZ}
 spec:
   packages:
     - name: Test

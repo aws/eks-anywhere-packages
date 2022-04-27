@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: nginx
-  annotations: {eksa.aws.com/signature: MEUCIEnz8tuQlXzVXDKH7qyN/M9vct7RJlQJP89eSX5hlvszAiEA5vAt8zyD/+3zoaryMYfJ/eeB7tIEd1en0Z6lVjy0cG4=}
+  annotations: {eksa.aws.com/signature: MEYCIQCpoAayHB0d7gWtfa7BuBl7mF6XmNMkgfmG2EWMLvQJvAIhAIvWQUC+JZjK1pJFsntJWgtaq9+2Q6xbc+hrs3KPvdW+}
 spec:
   containers:
     - name: nginx
