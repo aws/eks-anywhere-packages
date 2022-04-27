@@ -3,9 +3,11 @@ package bundle
 import (
 	"context"
 	"fmt"
-	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 type BundleClient interface {
