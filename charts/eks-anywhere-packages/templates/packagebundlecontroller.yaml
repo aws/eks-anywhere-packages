@@ -9,4 +9,4 @@ spec:
   upgradeCheckInterval: "24h"
   source:
     registry: {{.Values.sourceRegistry}}
-    repository: eksa-package-bundles
+    repository: eks-anywhere-packages-bundles
