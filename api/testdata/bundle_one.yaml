@@ -11,7 +11,7 @@ spec:
         registry: public.ecr.aws/l0g8r8j6
         repository: hello-eks-anywhere
         versions:
-          - name: v0.1.1-8b3810e1514b7432e032794842425accc837757a-helm
+          - name: 0.1.1_b41df7249b38548e535531d2e971ba85bb374434
             digest: sha256:64ea03b119d2421f9206252ff4af4bf7cdc2823c343420763e0e6fc20bf03b68
     - name: Flux
       source:
