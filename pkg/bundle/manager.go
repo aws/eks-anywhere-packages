@@ -123,7 +123,7 @@ func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 // SortBundlesNewestFirst will sort a slice of bundles so that the newest is first.
 func (m bundleManager) SortBundlesNewestFirst(bundles []api.PackageBundle) {
 	sortFn := func(i, j int) bool {
-		return bundles[j].IsNewer(&bundles[i])
+		return bundles[j].LessThan(&bundles[i])
 	}
 	sort.Slice(bundles, sortFn)
 }

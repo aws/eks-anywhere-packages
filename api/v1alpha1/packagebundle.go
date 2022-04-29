@@ -46,10 +46,15 @@ func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource P
 	return retSource, fmt.Errorf("package not found in bundle (%s): %s @ %s", config.ObjectMeta.Name, pkgName, pkgVersion)
 }
 
-func (config *PackageBundle) IsNewer(pkgBundle *PackageBundle) bool {
-	major, minor, build := config.GetMajorMinorBuild()
-	pkgMajor, pkgMinor, pkgBuild := pkgBundle.GetMajorMinorBuild()
-	return major < pkgMajor || minor < pkgMinor || build < pkgBuild
+// LessThan evaluates if the left calling bundle is less than the supplied parameter
+//
+// If the left hand side bundle is older than the right hand side, this
+// method returns true. If it is newer (greater) it returns false. If they are
+// the same it returns false.
+func (config *PackageBundle) LessThan(rhsBundle *PackageBundle) bool {
+	lhsMajor, lhsMinor, lhsBuild := config.GetMajorMinorBuild()
+	rhsMajor, rhsMinor, rhsBuild := rhsBundle.GetMajorMinorBuild()
+	return lhsMajor < rhsMajor || lhsMinor < rhsMinor || lhsBuild < rhsBuild
 }
 
 func (config *PackageBundle) GetMajorMinorBuild() (major int, minor int, build int) {
