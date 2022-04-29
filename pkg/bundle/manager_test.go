@@ -38,7 +38,7 @@ func TestLatestBundle(t *testing.T) {
 		}
 
 		if bundle != nil && len(bundle.Spec.Packages) != 3 {
-			t.Errorf("expected two packages to be defined, found %d",
+			t.Errorf("expected three packages to be defined, found %d",
 				len(bundle.Spec.Packages))
 		}
 		if bundle.Spec.Packages[0].Name != "Test" {
@@ -50,7 +50,7 @@ func TestLatestBundle(t *testing.T) {
 				bundle.Spec.Packages[1].Name)
 		}
 		if bundle.Spec.Packages[2].Name != "Harbor" {
-			t.Errorf("expected second package name to be \"Harbor\", got: %q",
+			t.Errorf("expected third package name to be \"Harbor\", got: %q",
 				bundle.Spec.Packages[2].Name)
 		}
 	})
@@ -93,6 +93,117 @@ func TestLatestBundle(t *testing.T) {
 
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
 		_, err := bm.LatestBundle(ctx, baseRef)
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+		// The k8s YAML library converts everything to JSON, so the error we'll
+		// get will be a JSON one.
+		if !strings.Contains(err.Error(), "JSON") {
+			t.Errorf("expected YAML-related error, got: %s", err)
+		}
+	})
+}
+
+func TestDownloadBundle(t *testing.T) {
+	t.Parallel()
+
+	baseRef := "example.com/org"
+	discovery := testutil.NewFakeDiscoveryWithDefaults()
+
+	t.Run("golden path", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		puller := testutil.NewMockPuller()
+		puller.WithFileData(t, "../../api/testdata/bundle_one.yaml")
+
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
+
+		kubeVersion := "v1-21"
+		tag := "latest"
+		ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
+
+		bundle, err := bm.DownloadBundle(ctx, ref)
+
+		if err != nil {
+			t.Fatalf("expected no error, got: %s", err)
+		}
+
+		if bundle == nil {
+			t.Errorf("expected bundle to be non-nil")
+		}
+
+		if bundle != nil && len(bundle.Spec.Packages) != 3 {
+			t.Errorf("expected three packages to be defined, found %d",
+				len(bundle.Spec.Packages))
+		}
+		if bundle.Spec.Packages[0].Name != "Test" {
+			t.Errorf("expected first package name to be \"Test\", got: %q",
+				bundle.Spec.Packages[0].Name)
+		}
+		if bundle.Spec.Packages[1].Name != "Flux" {
+			t.Errorf("expected second package name to be \"Flux\", got: %q",
+				bundle.Spec.Packages[1].Name)
+		}
+		if bundle.Spec.Packages[2].Name != "Harbor" {
+			t.Errorf("expected third package name to be \"Harbor\", got: %q",
+				bundle.Spec.Packages[2].Name)
+		}
+	})
+
+	t.Run("handles pull errors", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		puller := testutil.NewMockPuller()
+		puller.WithError(fmt.Errorf("test error"))
+
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
+
+		kubeVersion := "v1-21"
+		tag := "latest"
+		ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
+
+		_, err := bm.DownloadBundle(ctx, ref)
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+	})
+
+	t.Run("errors on empty repsonses", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		puller := testutil.NewMockPuller()
+		puller.WithData([]byte(""))
+
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
+
+		kubeVersion := "v1-21"
+		tag := "latest"
+		ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
+
+		_, err := bm.DownloadBundle(ctx, ref)
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+	})
+
+	t.Run("handles YAML unmarshaling errors", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		// stub oras.Pull
+		puller := testutil.NewMockPuller()
+		puller.WithData([]byte("invalid yaml"))
+
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
+
+		kubeVersion := "v1-21"
+		tag := "latest"
+		ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
+
+		_, err := bm.DownloadBundle(ctx, ref)
 		if err == nil {
 			t.Errorf("expected error, got nil")
 		}
