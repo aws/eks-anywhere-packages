@@ -1,12 +1,12 @@
 package v1alpha1_test
 
 import (
-	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 func TestPackageBundleController_IsValid(t *testing.T) {
