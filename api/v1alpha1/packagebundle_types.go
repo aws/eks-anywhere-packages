@@ -110,13 +110,14 @@ type PackageBundleStatus struct {
 	State PackageBundleStateEnum `json:"state"`
 }
 
-//+kubebuilder:validation:Enum={"inactive","active","active (upgrade available)"}
+//+kubebuilder:validation:Enum={"inactive","active","active (upgrade available)","ignored"}
 type PackageBundleStateEnum string
 
 const (
 	PackageBundleStateInactive         PackageBundleStateEnum = "inactive"
 	PackageBundleStateActive           PackageBundleStateEnum = "active"
 	PackageBundleStateUpgradeAvailable PackageBundleStateEnum = "active (upgrade available)"
+	PackageBundleStateIgnored          PackageBundleStateEnum = "ignored"
 )
 
 //+kubebuilder:object:root=true
