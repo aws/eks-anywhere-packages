@@ -156,13 +156,7 @@ func (m *bundleManager) LatestBundle(ctx context.Context, baseRef string) (
 	tag := "latest"
 	ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
 
-	bundle, err := m.DownloadBundle(ctx, ref)
-
-	if err != nil {
-		return nil, fmt.Errorf("downloading package bundle: %s", err)
-	}
-
-	return bundle, nil
+	return m.DownloadBundle(ctx, ref)
 }
 
 func (m *bundleManager) DownloadBundle(ctx context.Context, ref string) (*api.PackageBundle, error) {
