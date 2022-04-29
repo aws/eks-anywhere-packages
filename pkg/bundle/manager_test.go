@@ -14,7 +14,9 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
-func TestLatestBundle(t *testing.T) {
+// TODO(ivyostosh): Add a TestLatestBundle test that validates the latest bundle name is properly formatted.
+
+func TestDownloadBundle(t *testing.T) {
 	t.Parallel()
 
 	baseRef := "example.com/org"
@@ -28,7 +30,13 @@ func TestLatestBundle(t *testing.T) {
 		puller.WithFileData(t, "../../api/testdata/bundle_one.yaml")
 
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
-		bundle, err := bm.LatestBundle(ctx, baseRef)
+
+		kubeVersion := "v1-21"
+		tag := "latest"
+		ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
+
+		bundle, err := bm.DownloadBundle(ctx, ref)
+
 		if err != nil {
 			t.Fatalf("expected no error, got: %s", err)
 		}
@@ -38,7 +46,7 @@ func TestLatestBundle(t *testing.T) {
 		}
 
 		if bundle != nil && len(bundle.Spec.Packages) != 3 {
-			t.Errorf("expected two packages to be defined, found %d",
+			t.Errorf("expected three packages to be defined, found %d",
 				len(bundle.Spec.Packages))
 		}
 		if bundle.Spec.Packages[0].Name != "Test" {
@@ -50,7 +58,7 @@ func TestLatestBundle(t *testing.T) {
 				bundle.Spec.Packages[1].Name)
 		}
 		if bundle.Spec.Packages[2].Name != "Harbor" {
-			t.Errorf("expected second package name to be \"Harbor\", got: %q",
+			t.Errorf("expected third package name to be \"Harbor\", got: %q",
 				bundle.Spec.Packages[2].Name)
 		}
 	})
@@ -63,7 +71,12 @@ func TestLatestBundle(t *testing.T) {
 		puller.WithError(fmt.Errorf("test error"))
 
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
-		_, err := bm.LatestBundle(ctx, baseRef)
+
+		kubeVersion := "v1-21"
+		tag := "latest"
+		ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
+
+		_, err := bm.DownloadBundle(ctx, ref)
 		if err == nil {
 			t.Errorf("expected error, got nil")
 		}
@@ -77,7 +90,12 @@ func TestLatestBundle(t *testing.T) {
 		puller.WithData([]byte(""))
 
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
-		_, err := bm.LatestBundle(ctx, baseRef)
+
+		kubeVersion := "v1-21"
+		tag := "latest"
+		ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
+
+		_, err := bm.DownloadBundle(ctx, ref)
 		if err == nil {
 			t.Errorf("expected error, got nil")
 		}
@@ -92,7 +110,12 @@ func TestLatestBundle(t *testing.T) {
 		puller.WithData([]byte("invalid yaml"))
 
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
-		_, err := bm.LatestBundle(ctx, baseRef)
+
+		kubeVersion := "v1-21"
+		tag := "latest"
+		ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
+
+		_, err := bm.DownloadBundle(ctx, ref)
 		if err == nil {
 			t.Errorf("expected error, got nil")
 		}

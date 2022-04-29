@@ -47,6 +47,10 @@ type Manager interface {
 	LatestBundle(ctx context.Context, baseRef string) (
 		*api.PackageBundle, error)
 
+	// DownloadBundle downloads the bundle with a given tag.
+	DownloadBundle(ctx context.Context, ref string) (
+		*api.PackageBundle, error)
+
 	SortBundlesNewestFirst(bundles []api.PackageBundle)
 }
 
@@ -148,13 +152,18 @@ func (m *bundleManager) LatestBundle(ctx context.Context, baseRef string) (
 	tag := "latest"
 	ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
 
+	return m.DownloadBundle(ctx, ref)
+}
+
+func (m *bundleManager) DownloadBundle(ctx context.Context, ref string) (*api.PackageBundle, error) {
+
 	data, err := m.puller.Pull(ctx, ref)
 	if err != nil {
 		return nil, fmt.Errorf("pulling package bundle: %s", err)
 	}
 
 	if len(bytes.TrimSpace(data)) == 0 {
-		return nil, fmt.Errorf("latest package bundle artifact is empty")
+		return nil, fmt.Errorf("package bundle artifact is empty")
 	}
 
 	bundle := &api.PackageBundle{}
