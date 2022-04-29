@@ -102,7 +102,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 	}
 	result.RequeueAfter = abc.Spec.UpgradeCheckInterval.Duration
 
-	if !r.bundleManager.IsActiveController(req.NamespacedName) {
+	if abc.IsIgnored() {
 		if abc.Status.State != api.BundleControllerStateIgnored {
 			abc.Status.State = api.BundleControllerStateIgnored
 			err = r.Client.Status().Update(ctx, abc, &client.UpdateOptions{})

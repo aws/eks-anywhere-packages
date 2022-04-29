@@ -47,10 +47,6 @@ type Manager interface {
 	LatestBundle(ctx context.Context, baseRef string) (
 		*api.PackageBundle, error)
 
-	// IsActiveController returns true if the given namespace and name matches
-	// the active bundle controller's.
-	IsActiveController(namespacedName types.NamespacedName) bool
-
 	SortBundlesNewestFirst(bundles []api.PackageBundle)
 }
 
@@ -278,9 +274,4 @@ func (m bundleManager) ActiveBundle(ctx context.Context, client client.Client) (
 	}
 
 	return bundle, nil
-}
-
-func (m bundleManager) IsActiveController(namespacedName types.NamespacedName) bool {
-	return namespacedName.Name == api.PackageBundleControllerName &&
-		namespacedName.Namespace == api.PackageNamespace
 }
