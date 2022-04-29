@@ -237,6 +237,7 @@ spec:
                 - inactive
                 - active
                 - active (upgrade available)
+                - ignored
                 type: string
             required:
             - state
