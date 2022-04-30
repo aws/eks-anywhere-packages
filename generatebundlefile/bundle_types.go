@@ -16,6 +16,11 @@ type BundleGenerate struct {
 	Spec api.PackageBundleSpec `json:"spec,omitempty"`
 }
 
+type BundleNoStatus struct {
+	*api.PackageBundle
+	Status interface{} `json:"status,omitempty"`
+}
+
 // Types for input file format
 
 // +kubebuilder:object:root=true
