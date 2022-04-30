@@ -26,8 +26,9 @@ type BundleNoStatus struct {
 // +kubebuilder:object:root=true
 // Input is the schema for the Input file
 type Input struct {
-	Packages []Org  `json:"packages,omitempty"`
-	Name     string `json:"name,omitempty"`
+	Packages          []Org  `json:"packages,omitempty"`
+	Name              string `json:"name,omitempty"`
+	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
 }
 
 // Projects object containing the input file github org and repo locations

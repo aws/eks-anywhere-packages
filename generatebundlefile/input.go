@@ -58,8 +58,8 @@ func (inputConfig *Input) ValidateInputNotEmpty() error {
 	return nil
 }
 
-func ValidateBundle(fileName string) (*api.PackageBundle, error) {
-	bundle := &api.PackageBundle{}
+func ValidateBundle(fileName string) (*BundleNoStatus, error) {
+	bundle := &BundleNoStatus{}
 	err := ParseBundle(fileName, bundle)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func ValidateBundle(fileName string) (*api.PackageBundle, error) {
 	return bundle, err
 }
 
-func ValidateBundleContent(bundle *api.PackageBundle) error {
+func ValidateBundleContent(bundle *BundleNoStatus) error {
 	for _, v := range bundleValidations {
 		if err := v(bundle); err != nil {
 			return err
@@ -80,11 +80,11 @@ func ValidateBundleContent(bundle *api.PackageBundle) error {
 	return nil
 }
 
-var bundleValidations = []func(*api.PackageBundle) error{
+var bundleValidations = []func(*BundleNoStatus) error{
 	validateBundleName,
 }
 
-func validateBundleName(bundle *api.PackageBundle) error {
+func validateBundleName(bundle *BundleNoStatus) error {
 	err := ValidateBundleNoSignature(bundle)
 	if err != nil {
 		return err
@@ -92,15 +92,15 @@ func validateBundleName(bundle *api.PackageBundle) error {
 	return nil
 }
 
-func ValidateBundleNoSignature(bundle *api.PackageBundle) error {
+func ValidateBundleNoSignature(bundle *BundleNoStatus) error {
 	// Check if Projects are listed
-	if len(bundle.Spec.Packages) < 1 {
+	if len(bundle.PackageBundle.Spec.Packages) < 1 {
 		return fmt.Errorf("Should use non-empty list of projects for input")
 	}
 	return nil
 }
 
-func ParseBundle(fileName string, bundle *api.PackageBundle) error {
+func ParseBundle(fileName string, bundle *BundleNoStatus) error {
 	content, err := ioutil.ReadFile(filepath.Clean(fileName))
 	if err != nil {
 		return fmt.Errorf("unable to read file due to: %v", err)
@@ -149,7 +149,6 @@ func (Input *Input) NewBundleFromInput() (api.PackageBundleSpec, string, error) 
 		version := strings.Split(Input.KubernetesVersion, ".")
 		name = fmt.Sprintf("v1-%s-%s", version[1], name)
 	}
-
 	for _, org := range Input.Packages {
 		fmt.Printf("org=%v\n", org)
 		for _, project := range org.Projects {
