@@ -20,6 +20,9 @@ spec:
     - jsonPath: .status.state
       name: State
       type: string
+    - jsonPath: .status.detail
+      name: Detail
+      type: string
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -82,11 +85,15 @@ spec:
             description: PackageBundleControllerStatus defines the observed state
               of PackageBundleController
             properties:
+              detail:
+                description: Detail of the state
+                type: string
               state:
                 description: State of the bundle controller
                 enum:
                 - ignored
                 - active
+                - disconnected
                 type: string
             type: object
         type: object
