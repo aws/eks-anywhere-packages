@@ -50,11 +50,12 @@ type PackageReconciler struct {
 	PackageDriver driver.PackageDriver
 	Manager       packages.Manager
 	bundleManager bundle.Manager
+	bundleClient  bundle.Client
 }
 
 func NewPackageReconciler(client client.Client, scheme *runtime.Scheme,
 	driver driver.PackageDriver, manager packages.Manager,
-	bundleManager bundle.Manager, log logr.Logger) *PackageReconciler {
+	bundleManager bundle.Manager, bundleClient bundle.Client, log logr.Logger) *PackageReconciler {
 
 	return &PackageReconciler{
 		Client:        client,
@@ -62,6 +63,7 @@ func NewPackageReconciler(client client.Client, scheme *runtime.Scheme,
 		PackageDriver: driver,
 		Manager:       manager,
 		bundleManager: bundleManager,
+		bundleClient:  bundleClient,
 		Log:           log.WithName(packageName),
 	}
 }
@@ -80,12 +82,14 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	}
 	puller := artifacts.NewRegistryPuller()
 	bundleManager := bundle.NewBundleManager(log, discovery, puller)
+	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
 	reconciler := NewPackageReconciler(
 		mgr.GetClient(),
 		mgr.GetScheme(),
 		helmDriver,
 		manager,
 		bundleManager,
+		bundleClient,
 		log,
 	)
 
@@ -141,7 +145,7 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			managerContext.SetUninstalling(req.Name)
 		}
 	} else {
-		bundle, err := r.bundleManager.ActiveBundle(ctx, r.Client)
+		bundle, err := r.bundleClient.GetActiveBundle(ctx)
 		if err != nil {
 			return ctrl.Result{RequeueAfter: retryLong}, err
 		}

@@ -17,6 +17,7 @@ import (
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	ctrlmocks "github.com/aws/eks-anywhere-packages/controllers/mocks"
 	bundlefake "github.com/aws/eks-anywhere-packages/pkg/bundle/fake"
+	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
 	drivermocks "github.com/aws/eks-anywhere-packages/pkg/driver/mocks"
 	"github.com/aws/eks-anywhere-packages/pkg/packages"
 	packageMocks "github.com/aws/eks-anywhere-packages/pkg/packages/mocks"
@@ -26,13 +27,14 @@ func TestReconcile(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		tf, ctx := newTestFixtures(t)
 
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(tf.mockBundle(), nil)
+
 		fn, pkg := tf.mockGetFnPkg()
 		tf.ctrlClient.EXPECT().
 			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
 			DoAndReturn(fn)
 
 		tf.bundleManager.FakeActiveBundle = tf.mockBundle()
-
 		tf.packageManager.EXPECT().
 			Process(gomock.Any()).
 			Return(true)
@@ -62,6 +64,8 @@ func TestReconcile(t *testing.T) {
 
 	t.Run("happy path no status update", func(t *testing.T) {
 		tf, ctx := newTestFixtures(t)
+
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(tf.mockBundle(), nil)
 
 		fn, pkg := tf.mockGetFnPkg()
 		tf.ctrlClient.EXPECT().
@@ -112,13 +116,13 @@ func TestReconcile(t *testing.T) {
 	t.Run("handles errors getting the active bundle", func(t *testing.T) {
 		tf, ctx := newTestFixtures(t)
 
+		testErr := errors.New("active bundle test error")
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(nil, testErr)
+
 		fn, pkg := tf.mockGetFnPkg()
 		tf.ctrlClient.EXPECT().
 			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
 			DoAndReturn(fn)
-
-		testErr := errors.New("active bundle test error")
-		tf.bundleManager.FakeActiveBundleError = testErr
 
 		sut := tf.newReconciler()
 		req := tf.mockRequest()
@@ -140,8 +144,7 @@ func TestReconcile(t *testing.T) {
 		tf.ctrlClient.EXPECT().
 			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
 			DoAndReturn(fn)
-
-		tf.bundleManager.FakeActiveBundle = tf.mockBundle()
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(tf.mockBundle(), nil)
 
 		tf.packageManager.EXPECT().
 			Process(gomock.Any()).
@@ -179,8 +182,9 @@ func TestReconcile(t *testing.T) {
 			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
 			DoAndReturn(fn)
 
-		tf.bundleManager.FakeActiveBundle = tf.mockBundle()
-		tf.bundleManager.FakeActiveBundle.ObjectMeta.Name = "fake bundle"
+		newBundle := tf.mockBundle()
+		newBundle.ObjectMeta.Name = "fake bundle"
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(newBundle, nil)
 
 		testErr := errors.New("status update test error")
 		status := tf.mockStatusWriter()
@@ -213,16 +217,16 @@ func TestReconcile(t *testing.T) {
 		tf.ctrlClient.EXPECT().
 			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
 			DoAndReturn(fn).Times(2)
-
 		pkg.Spec.PackageVersion = ""
 
-		tf.bundleManager.FakeActiveBundle = tf.mockBundle()
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(tf.mockBundle(), nil)
 
 		newBundle := tf.mockBundle()
 		newBundle.Spec.Packages[0].Source.Versions = []api.SourceVersion{{
 			Name:   "0.2.0",
 			Digest: "sha256:deadbeef020",
 		}}
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(newBundle, nil)
 
 		tf.packageManager.EXPECT().
 			Process(gomock.Any()).
@@ -273,6 +277,7 @@ type testFixtures struct {
 	packageDriver  *drivermocks.MockPackageDriver
 	packageManager *packageMocks.MockManager
 	bundleManager  *bundlefake.FakeBundleManager
+	bundleClient   *bundleMocks.MockClient
 }
 
 // newTestFixtures helps remove repetition in the tests by instantiating a lot of
@@ -286,6 +291,7 @@ func newTestFixtures(t *testing.T) (*testFixtures, context.Context) {
 		packageDriver:    drivermocks.NewMockPackageDriver(gomockController),
 		packageManager:   packageMocks.NewMockManager(gomockController),
 		bundleManager:    bundlefake.NewBundleManager(),
+		bundleClient:     bundleMocks.NewMockClient(gomockController),
 	}, context.Background()
 }
 
@@ -344,6 +350,7 @@ func (tf *testFixtures) newReconciler() *PackageReconciler {
 	mockPackageDriver := tf.packageDriver
 	mockPackageManager := tf.packageManager
 	mockBundleManager := tf.bundleManager
+	mockBundleClient := tf.bundleClient
 
 	return &PackageReconciler{
 		Client:        mockCtrlClient,
@@ -352,6 +359,7 @@ func (tf *testFixtures) newReconciler() *PackageReconciler {
 		PackageDriver: mockPackageDriver,
 		Manager:       mockPackageManager,
 		bundleManager: mockBundleManager,
+		bundleClient:  mockBundleClient,
 	}
 }
 
