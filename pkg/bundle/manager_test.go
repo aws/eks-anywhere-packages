@@ -127,28 +127,6 @@ func TestDownloadBundle(t *testing.T) {
 	})
 }
 
-func TestBuildNumber(t *testing.T) {
-	t.Parallel()
-
-	t.Run("golden path", func(t *testing.T) {
-		t.Parallel()
-
-		expected := 42
-		if num, _ := buildNumber("v1.21-42"); num != expected {
-			t.Errorf("expected %d, got %d", expected, num)
-		}
-	})
-
-	t.Run("invalid int", func(t *testing.T) {
-		t.Parallel()
-
-		_, err := buildNumber("v1.21-abc")
-		if err == nil {
-			t.Errorf("expected error, got nil")
-		}
-	})
-}
-
 func TestKubeVersion(t *testing.T) {
 	t.Parallel()
 
@@ -158,53 +136,6 @@ func TestKubeVersion(t *testing.T) {
 		expected := "v1.21"
 		if ver, _ := kubeVersion("v1.21-42"); ver != expected {
 			t.Errorf("expected %q, got %q", expected, ver)
-		}
-	})
-}
-
-func TestIsBundleOlderthan(t *testing.T) {
-	t.Parallel()
-
-	discovery := testutil.NewFakeDiscoveryWithDefaults()
-
-	t.Run("golden path", func(t *testing.T) {
-		t.Parallel()
-
-		puller := testutil.NewMockPuller()
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
-		current := "v1.21-10002"
-		candidate := "v1.21-10003"
-		if older, _ := bm.IsBundleOlderThan(current, candidate); !older {
-			t.Errorf("expected %q to be older than %q", current, candidate)
-		}
-
-		candidate = "v1.21-10001"
-		if older, _ := bm.IsBundleOlderThan(current, candidate); older {
-			t.Errorf("expected %q to be newer than %q", current, candidate)
-		}
-	})
-
-	t.Run("newer kube version, older build is still true", func(t *testing.T) {
-		t.Parallel()
-
-		puller := testutil.NewMockPuller()
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
-		current := "v1.21-10002"
-		candidate := "v1.22-10001"
-		if older, _ := bm.IsBundleOlderThan(current, candidate); !older {
-			t.Errorf("expected %q to be older than %q", current, candidate)
-		}
-	})
-
-	t.Run("equal values returns false", func(t *testing.T) {
-		t.Parallel()
-
-		puller := testutil.NewMockPuller()
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
-		current := "v1.21-10002"
-		candidate := "v1.21-10002"
-		if older, _ := bm.IsBundleOlderThan(current, candidate); older {
-			t.Errorf("expected %q not to be older than %q", current, candidate)
 		}
 	})
 }
@@ -378,7 +309,7 @@ func TestSortBundleNewestFirst(t *testing.T) {
 		allBundles := []api.PackageBundle{
 			{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "funky",
+					Name: "v1-16-1003",
 				},
 				Status: api.PackageBundleStatus{
 					State: api.PackageBundleStateInactive,
@@ -391,7 +322,10 @@ func TestSortBundleNewestFirst(t *testing.T) {
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
 		_ = bm.Update(bundle, true, allBundles)
 		if assert.Greater(t, len(allBundles), 2) {
-			assert.Equal(t, "funky", allBundles[2].Name)
+			assert.Equal(t, "v1-21-1002", allBundles[0].Name)
+			assert.Equal(t, "v1-21-1001", allBundles[1].Name)
+			assert.Equal(t, "v1-16-1003", allBundles[2].Name)
+
 		}
 	})
 }

@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"fmt"
 	"path"
+	"strconv"
 	"strings"
 )
 
@@ -45,11 +46,32 @@ func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource P
 	return retSource, fmt.Errorf("package not found in bundle (%s): %s @ %s", config.ObjectMeta.Name, pkgName, pkgVersion)
 }
 
+// LessThan evaluates if the left calling bundle is less than the supplied parameter
+//
+// If the left hand side bundle is older than the right hand side, this
+// method returns true. If it is newer (greater) it returns false. If they are
+// the same it returns false.
+func (config *PackageBundle) LessThan(rhsBundle *PackageBundle) bool {
+	lhsMajor, lhsMinor, lhsBuild := config.GetMajorMinorBuild()
+	rhsMajor, rhsMinor, rhsBuild := rhsBundle.GetMajorMinorBuild()
+	return lhsMajor < rhsMajor || lhsMinor < rhsMinor || lhsBuild < rhsBuild
+}
+
+func (config *PackageBundle) GetMajorMinorBuild() (major int, minor int, build int) {
+	s := strings.Split(config.Name, "-")
+	s = append(s, "", "", "")
+	s[0] = strings.TrimPrefix(s[0], "v")
+	major, _ = strconv.Atoi(s[0])
+	minor, _ = strconv.Atoi(s[1])
+	build, _ = strconv.Atoi(s[2])
+	return major, minor, build
+}
+
 func (s PackageOCISource) AsRepoURI() string {
 	return path.Join(s.Registry, s.Repository)
 }
 
-// VersionsMatch returns true if the given source locations match one another.
+// Matches returns true if the given source locations match one another.
 func (s BundlePackageSource) Matches(other BundlePackageSource) bool {
 	if s.Registry != other.Registry {
 		return false
