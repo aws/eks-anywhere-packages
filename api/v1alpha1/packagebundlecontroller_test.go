@@ -19,7 +19,7 @@ func TestPackageBundleController_IsValid(t *testing.T) {
 		}
 	}
 
-	assert.Equal(t, false, givenBundleController(api.PackageBundleControllerName, api.PackageNamespace).IsIgnored())
-	assert.Equal(t, true, givenBundleController("billy", api.PackageNamespace).IsIgnored())
-	assert.Equal(t, true, givenBundleController(api.PackageBundleControllerName, "default").IsIgnored())
+	assert.False(t, givenBundleController(api.PackageBundleControllerName, api.PackageNamespace).IsIgnored())
+	assert.True(t, givenBundleController("billy", api.PackageNamespace).IsIgnored())
+	assert.True(t, givenBundleController(api.PackageBundleControllerName, "default").IsIgnored())
 }
