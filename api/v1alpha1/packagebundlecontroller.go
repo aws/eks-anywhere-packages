@@ -9,3 +9,7 @@ func (config *PackageBundleController) MetaKind() string {
 func (config *PackageBundleController) ExpectedKind() string {
 	return PackageBundleControllerKind
 }
+
+func (config *PackageBundleController) IsIgnored() bool {
+	return config.Name != PackageBundleControllerName || config.Namespace != PackageNamespace
+}
