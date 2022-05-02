@@ -24,6 +24,7 @@ import (
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
+// +kubebuilder:printcolumn:name="Detail",type=string,JSONPath=`.status.detail`
 // PackageBundleController is the Schema for the packagebundlecontrollers API
 type PackageBundleController struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -82,12 +83,13 @@ func (s *PackageBundleControllerSource) BaseRef() (baseRef string) {
 	return baseRef
 }
 
-// +kubebuilder:validation:Enum=ignored;active
+// +kubebuilder:validation:Enum=ignored;active;disconnected
 type BundleControllerStateEnum string
 
 const (
-	BundleControllerStateIgnored BundleControllerStateEnum = "ignored"
-	BundleControllerStateActive  BundleControllerStateEnum = "active"
+	BundleControllerStateIgnored      BundleControllerStateEnum = "ignored"
+	BundleControllerStateActive       BundleControllerStateEnum = "active"
+	BundleControllerStateDisconnected BundleControllerStateEnum = "disconnected"
 )
 
 // PackageBundleControllerStatus defines the observed state of
@@ -95,6 +97,9 @@ const (
 type PackageBundleControllerStatus struct {
 	// State of the bundle controller
 	State BundleControllerStateEnum `json:"state,omitempty"`
+
+	// Detail of the state
+	Detail string `json:"detail,omitempty"`
 }
 
 //+kubebuilder:object:root=true
