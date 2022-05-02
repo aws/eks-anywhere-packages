@@ -23,30 +23,28 @@ var (
 // +kubebuilder:object:generate=false
 type BundleGenerateOpt func(config *BundleGenerate)
 
-// Used for generating yaml for generating a new crd sample file
-func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *BundleNoStatus {
-	clusterConfig := &BundleNoStatus{
-		PackageBundle: &api.PackageBundle{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       api.PackageBundleKind,
-				APIVersion: SchemeBuilder.GroupVersion.String(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      bundleName,
-				Namespace: api.PackageNamespace,
-			},
-			Spec: api.PackageBundleSpec{
-				Packages: []api.BundlePackage{
-					{
-						Name: "sample-package",
-						Source: api.BundlePackageSource{
-							Registry:   "sample-Registry",
-							Repository: "sample-Repository",
-							Versions: []api.SourceVersion{
-								{
-									Name:   "v0.0",
-									Digest: "sha256:da25f5fdff88c259bb2ce7c0f1e9edddaf102dc4fb9cf5159ad6b902b5194e66",
-								},
+// Used for generating YAML for generating a new sample CRD file.
+func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.PackageBundle {
+	return &api.PackageBundle{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       api.PackageBundleKind,
+			APIVersion: SchemeBuilder.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      bundleName,
+			Namespace: api.PackageNamespace,
+		},
+		Spec: api.PackageBundleSpec{
+			Packages: []api.BundlePackage{
+				{
+					Name: "sample-package",
+					Source: api.BundlePackageSource{
+						Registry:   "sample-Registry",
+						Repository: "sample-Repository",
+						Versions: []api.SourceVersion{
+							{
+								Name:   "v0.0",
+								Digest: "sha256:da25f5fdff88c259bb2ce7c0f1e9edddaf102dc4fb9cf5159ad6b902b5194e66",
 							},
 						},
 					},
@@ -54,8 +52,6 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *BundleNoSt
 			},
 		},
 	}
-	clusterConfig.Status = nil
-	return clusterConfig
 }
 
 // NewPackageFromInput finds the SHA tags for any images in your BundlePackage
@@ -83,34 +79,29 @@ func (projects Project) NewPackageFromInput() (*api.BundlePackage, error) {
 }
 
 // AddMetadata adds the corresponding metadata to the crd files.
-func AddMetadata(s api.PackageBundleSpec, name string) BundleNoStatus {
-	bundleName := name
-	b := &BundleNoStatus{
-		PackageBundle: &api.PackageBundle{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       api.PackageBundleKind,
-				APIVersion: SchemeBuilder.GroupVersion.String(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      bundleName,
-				Namespace: api.PackageNamespace,
-			},
-			Spec: s,
+func AddMetadata(s api.PackageBundleSpec, name string) *api.PackageBundle {
+	return &api.PackageBundle{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       api.PackageBundleKind,
+			APIVersion: SchemeBuilder.GroupVersion.String(),
 		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: api.PackageNamespace,
+		},
+		Spec: s,
 	}
-	b.Status = nil
-	return *b
 }
 
-func IfSignature(bundle *BundleNoStatus) (bool, error) {
-	annotations := bundle.PackageBundle.ObjectMeta.Annotations
+func IfSignature(bundle *api.PackageBundle) (bool, error) {
+	annotations := bundle.Annotations
 	if annotations != nil {
 		return true, nil
 	}
 	return false, nil
 }
 
-func AddSignature(bundle *BundleNoStatus, signature string) (*BundleNoStatus, error) {
+func AddSignature(bundle *api.PackageBundle, signature string) (*api.PackageBundle, error) {
 	annotations := map[string]string{}
 	if signature == "" || bundle == nil {
 		return nil, fmt.Errorf("Error adding signature to bundle, empty signature, or bundle entry\n")
@@ -118,11 +109,11 @@ func AddSignature(bundle *BundleNoStatus, signature string) (*BundleNoStatus, er
 	annotations = map[string]string{
 		sig.FullSignatureAnnotation: signature,
 	}
-	bundle.PackageBundle.ObjectMeta.Annotations = annotations
+	bundle.Annotations = annotations
 	return bundle, nil
 }
 
-func CheckSignature(bundle *BundleNoStatus, signature string) (bool, error) {
+func CheckSignature(bundle *api.PackageBundle, signature string) (bool, error) {
 	if signature == "" || bundle == nil {
 		return false, fmt.Errorf("either signature or bundle is missing, but are required")
 	}
@@ -130,20 +121,25 @@ func CheckSignature(bundle *BundleNoStatus, signature string) (bool, error) {
 		sig.FullSignatureAnnotation: signature,
 	}
 	//  If current signature on file isn't at the --signature input return false, otherwsie true
-	if annotations[sig.FullSignatureAnnotation] != bundle.PackageBundle.ObjectMeta.Annotations[sig.FullSignatureAnnotation] {
+	if annotations[sig.FullSignatureAnnotation] != bundle.Annotations[sig.FullSignatureAnnotation] {
 		return false, fmt.Errorf("A signature already exists on the input file signatue")
 	}
 	return true, nil
 }
 
-// MarshalBundleSpec will create yaml objects from bundlespecs TODO look into https://pkg.go.dev/encoding/json#example-package-CustomMarshalJSON
-func MarshalBundleSpec(bundle BundleNoStatus) ([]byte, error) {
-	marshallables := []interface{}{bundle}
+// MarshalPackageBundle will create yaml objects from bundlespecs.
+//
+// TODO look into
+// https://pkg.go.dev/encoding/json#example-package-CustomMarshalJSON
+func MarshalPackageBundle(bundle *api.PackageBundle) ([]byte, error) {
+	marshallables := []interface{}{
+		newSigningPackageBundle(bundle),
+	}
 	resources := make([][]byte, len(marshallables))
 	for _, marshallable := range marshallables {
 		resource, err := yaml.Marshal(marshallable)
 		if err != nil {
-			return nil, fmt.Errorf("marshalling resource for bundle: %w", err)
+			return nil, fmt.Errorf("marshaling package bundle: %w", err)
 		}
 		resources = append(resources, resource)
 	}
@@ -151,8 +147,8 @@ func MarshalBundleSpec(bundle BundleNoStatus) ([]byte, error) {
 }
 
 // WriteBundleConfig writes the yaml objects to files in your defined dir
-func WriteBundleConfig(bundle BundleNoStatus, writer FileWriter) error {
-	crdContent, err := MarshalBundleSpec(bundle)
+func WriteBundleConfig(bundle *api.PackageBundle, writer FileWriter) error {
+	crdContent, err := MarshalPackageBundle(bundle)
 	if err != nil {
 		return err
 	}

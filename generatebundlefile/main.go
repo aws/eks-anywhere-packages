@@ -30,7 +30,7 @@ func main() {
 	// If using --generatesample flag we skip the yaml input portion
 	if o.generateSample {
 		sample := NewBundleGenerate("generatesample")
-		err := WriteBundleConfig(*sample, outputPath)
+		err := WriteBundleConfig(sample, outputPath)
 		if err != nil {
 			BundleLog.Error(err, "Unable to create CRD skaffolding from generatesample command")
 		}
@@ -132,7 +132,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	//One input file, and a --signature input
+	// One input file, and a --signature input
 	if o.signature != "" && len(files) == 1 {
 		BundleLog.Info("In Progress: Checking Bundles for Signatures")
 		bundle, err := ValidateBundle(files[0])
@@ -156,7 +156,7 @@ func main() {
 				os.Exit(1)
 			}
 		}
-		err = WriteBundleConfig(*bundle, outputPath)
+		err = WriteBundleConfig(bundle, outputPath)
 		if err != nil {
 			BundleLog.Error(err, "Unable to write Bundle")
 			os.Exit(1)
