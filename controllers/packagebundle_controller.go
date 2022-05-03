@@ -105,7 +105,32 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if client.IgnoreNotFound(err) != nil {
 			return ctrl.Result{}, err
 		}
-		r.Log.Info("Bundle deleted (ignoring)", "bundle", req.NamespacedName)
+
+		// If the bundle controller detects that the active bundle is deleted,
+		// the bundle controller will validate the active bundle by namespace
+		// and name, and re-download the bundle.
+		nn, err := r.bundleManager.GetActiveBundleNamespacedName(ctx, r.Client)
+
+		if err != nil {
+			r.Log.Info("Unable to get active bundle namespace and name",
+				"NamespaceName", nn)
+			return ctrl.Result{}, nil
+		}
+
+		if nn.Namespace == req.Namespace && nn.Name == req.Name {
+			r.Log.Info("Bundle deleted", "bundle", req.NamespacedName)
+		}
+
+		ref := fmt.Sprintf("%s:%s", req.Namespace, req.Name)
+		_, err = r.bundleManager.DownloadBundle(ctx, ref)
+
+		if err != nil {
+			r.Log.Info("Unable to download deleted bundle", "bundle",
+				req.NamespacedName)
+			return ctrl.Result{}, nil
+		}
+
+		r.Log.Info("Bundle downloaded", "bundle", req.NamespacedName)
 		return ctrl.Result{}, nil
 	}
 

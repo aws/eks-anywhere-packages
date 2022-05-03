@@ -29,6 +29,11 @@ type Manager interface {
 	ActiveBundle(ctx context.Context, client client.Client) (
 		*api.PackageBundle, error)
 
+	// GetActiveBundleNamespacedName retrieves the namespace and name of the
+	// currently active bundle.
+	GetActiveBundleNamespacedName(ctx context.Context, client client.Client) (
+		types.NamespacedName, error)
+
 	// Update the bundle returns true if there are changes
 	Update(newBundle *api.PackageBundle, isActive bool,
 		allBundles []api.PackageBundle) bool
@@ -226,4 +231,21 @@ func (m bundleManager) ActiveBundle(ctx context.Context, client client.Client) (
 	}
 
 	return bundle, nil
+}
+
+// GetActiveBundleNamespacedName retrieves the namespace and name of the
+// currently active bundle from the PackageBundleController.
+func (m bundleManager) GetActiveBundleNamespacedName(ctx context.Context,
+	client client.Client) (types.NamespacedName, error) {
+	abc, err := m.getPackageBundleController(ctx, client)
+	if err != nil {
+		return types.NamespacedName{}, err
+	}
+
+	nn := types.NamespacedName{
+		Namespace: api.PackageNamespace,
+		Name:      abc.Spec.ActiveBundle,
+	}
+
+	return nn, nil
 }
