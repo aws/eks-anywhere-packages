@@ -12,10 +12,12 @@ import (
 
 type FakeBundleManager struct {
 	bundle.Manager
-	FakeActiveBundleError error
-	FakeActiveBundle      *api.PackageBundle
-	FakeIsActive          bool
-	FakeUpdate            bool
+	FakeActiveBundleError             error
+	FakeActiveBundle                  *api.PackageBundle
+	FakeDownloadBundle                *api.PackageBundle
+	FakeIsActive                      bool
+	FakeUpdate                        bool
+	FakeGetActiveBundleNamespacedName types.NamespacedName
 }
 
 var _ bundle.Manager = (*FakeBundleManager)(nil)
@@ -33,6 +35,15 @@ func (bm *FakeBundleManager) ActiveBundle(ctx context.Context,
 	return bm.FakeActiveBundle, nil
 }
 
+func (bm *FakeBundleManager) DownloadBundle(ctx context.Context, ref string) (
+	*api.PackageBundle, error) {
+
+	if bm.FakeActiveBundleError != nil {
+		return nil, bm.FakeActiveBundleError
+	}
+	return bm.FakeDownloadBundle, nil
+}
+
 func (bm *FakeBundleManager) IsActive(ctx context.Context,
 	client client.Client, name types.NamespacedName) (bool, error) {
 	return bm.FakeIsActive, nil
@@ -41,4 +52,13 @@ func (bm *FakeBundleManager) IsActive(ctx context.Context,
 func (bm *FakeBundleManager) Update(bundle *api.PackageBundle, active bool,
 	allBundles []api.PackageBundle) bool {
 	return bm.FakeUpdate
+}
+
+func (bm *FakeBundleManager) GetActiveBundleNamespacedName(ctx context.Context,
+	client client.Client) (types.NamespacedName, error) {
+
+	if bm.FakeActiveBundleError != nil {
+		return types.NamespacedName{}, bm.FakeActiveBundleError
+	}
+	return bm.FakeGetActiveBundleNamespacedName, nil
 }
