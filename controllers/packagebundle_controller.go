@@ -110,7 +110,6 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		// the bundle controller will validate the active bundle by namespace
 		// and name, and re-download the bundle.
 		nn, err := r.bundleManager.GetActiveBundleNamespacedName(ctx, r.Client)
-
 		if err != nil {
 			r.Log.Info("Unable to get active bundle namespace and name",
 				"NamespaceName", nn)
