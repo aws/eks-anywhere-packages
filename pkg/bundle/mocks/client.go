@@ -10,6 +10,7 @@ import (
 
 	v1alpha1 "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	gomock "github.com/golang/mock/gomock"
+	types "k8s.io/apimachinery/pkg/types"
 )
 
 // MockClient is a mock of Client interface.
@@ -48,4 +49,19 @@ func (m *MockClient) GetActiveBundle(ctx context.Context) (*v1alpha1.PackageBund
 func (mr *MockClientMockRecorder) GetActiveBundle(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveBundle", reflect.TypeOf((*MockClient)(nil).GetActiveBundle), ctx)
+}
+
+// GetActiveBundleNamespacedName mocks base method.
+func (m *MockClient) GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetActiveBundleNamespacedName", ctx)
+	ret0, _ := ret[0].(types.NamespacedName)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetActiveBundleNamespacedName indicates an expected call of GetActiveBundleNamespacedName.
+func (mr *MockClientMockRecorder) GetActiveBundleNamespacedName(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveBundleNamespacedName", reflect.TypeOf((*MockClient)(nil).GetActiveBundleNamespacedName), ctx)
 }

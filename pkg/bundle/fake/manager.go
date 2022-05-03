@@ -53,12 +53,3 @@ func (bm *FakeBundleManager) Update(bundle *api.PackageBundle, active bool,
 	allBundles []api.PackageBundle) bool {
 	return bm.FakeUpdate
 }
-
-func (bm *FakeBundleManager) GetActiveBundleNamespacedName(ctx context.Context,
-	client client.Client) (types.NamespacedName, error) {
-
-	if bm.FakeActiveBundleError != nil {
-		return types.NamespacedName{}, bm.FakeActiveBundleError
-	}
-	return bm.FakeGetActiveBundleNamespacedName, nil
-}

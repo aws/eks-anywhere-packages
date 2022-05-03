@@ -43,16 +43,18 @@ type PackageBundleReconciler struct {
 	client.Client
 	Log           logr.Logger
 	Scheme        *runtime.Scheme
+	bundleClient  bundle.Client
 	bundleManager bundle.Manager
 }
 
 func NewPackageBundleReconciler(client client.Client, scheme *runtime.Scheme,
-	bundleManager bundle.Manager, log logr.Logger) *PackageBundleReconciler {
+	bundleClient bundle.Client, bundleManager bundle.Manager, log logr.Logger) *PackageBundleReconciler {
 
 	return &(PackageBundleReconciler{
 		Client:        client,
 		Scheme:        scheme,
 		Log:           log.WithName(packageBundleName),
+		bundleClient:  bundleClient,
 		bundleManager: bundleManager,
 	})
 }
@@ -66,8 +68,8 @@ func RegisterPackageBundleReconciler(mgr ctrl.Manager) error {
 	log := ctrl.Log.WithName(packageBundleName)
 	puller := artifacts.NewRegistryPuller()
 	bm := bundle.NewBundleManager(log, discovery, puller)
-
-	r := NewPackageBundleReconciler(mgr.GetClient(), mgr.GetScheme(), bm, log)
+	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
+	r := NewPackageBundleReconciler(mgr.GetClient(), mgr.GetScheme(), bundleClient, bm, log)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.PackageBundle{}).
 		// Watch for changes in the PackageBundleController, and reconcile
@@ -109,7 +111,7 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		// If the bundle controller detects that the active bundle is deleted,
 		// the bundle controller will validate the active bundle by namespace
 		// and name, redownload and recreate the bundle.
-		nn, err := r.bundleManager.GetActiveBundleNamespacedName(ctx, r.Client)
+		nn, err := r.bundleClient.GetActiveBundleNamespacedName(ctx)
 		if err != nil {
 			r.Log.Info("Unable to get active bundle namespace and name",
 				"NamespaceName", nn)
