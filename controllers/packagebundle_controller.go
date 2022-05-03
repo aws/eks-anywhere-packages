@@ -122,7 +122,7 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			return ctrl.Result{}, nil
 		}
 
-		_, err = r.bundleManager.DownloadBundle(ctx, req.Name))
+		_, err = r.bundleManager.DownloadBundle(ctx, req.Name)
 
 		if err != nil {
 			r.Log.Error(err, "Active bundle deleted and failed to download", "bundle",
