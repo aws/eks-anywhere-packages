@@ -78,12 +78,8 @@ func decodeSelectors(selectorsB64Encoded string) (selectors []string, err error)
 func GetMetadataInformation(manifest Manifest, domain Domain) (signature string, excludes []string, err error) {
 	meta := manifest.GetObjectMeta()
 	annotations := meta.GetAnnotations()
-	signature, sigExists := annotations[path.Join(domain.Name, SignatureAnnotation)]
+	signature, _ = annotations[path.Join(domain.Name, SignatureAnnotation)]
 	excludesB64, excludesExists := annotations[path.Join(domain.Name, ExcludesAnnotation)]
-	if !sigExists {
-		err = errors.New("Missing signature")
-		return signature, excludes, err
-	}
 
 	if excludesExists {
 		excludes, err = decodeSelectors(excludesB64)
@@ -141,6 +137,10 @@ func ValidateSignature(manifest Manifest, domain Domain) (valid bool, digest [32
 	if err != nil {
 		return false, [32]byte{}, yml, err
 	}
+	if metaSig == "" {
+		return false, [32]byte{}, yml, errors.New("Missing signature")
+	}
+
 	digest, yml, err = GetDigest(manifest, domain)
 	if err != nil {
 		return false, [32]byte{}, yml, err

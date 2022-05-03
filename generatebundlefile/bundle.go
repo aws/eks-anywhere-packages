@@ -6,7 +6,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/scheme"
-	"sigs.k8s.io/yaml"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
@@ -131,30 +130,31 @@ func CheckSignature(bundle *api.PackageBundle, signature string) (bool, error) {
 //
 // TODO look into
 // https://pkg.go.dev/encoding/json#example-package-CustomMarshalJSON
-func MarshalPackageBundle(bundle *api.PackageBundle) ([]byte, error) {
-	marshallables := []interface{}{
-		newSigningPackageBundle(bundle),
-	}
-	resources := make([][]byte, len(marshallables))
-	for _, marshallable := range marshallables {
-		resource, err := yaml.Marshal(marshallable)
-		if err != nil {
-			return nil, fmt.Errorf("marshaling package bundle: %w", err)
-		}
-		resources = append(resources, resource)
-	}
-	return ConcatYamlResources(resources...), nil
-}
 
-// WriteBundleConfig writes the yaml objects to files in your defined dir
-func WriteBundleConfig(bundle *api.PackageBundle, writer FileWriter) error {
-	crdContent, err := MarshalPackageBundle(bundle)
-	if err != nil {
-		return err
-	}
-	if filePath, err := writer.Write("bundle.yaml", crdContent, PersistentFile); err != nil {
-		err = fmt.Errorf("writing bundle crd file into %q: %w", filePath, err)
-		return err
-	}
-	return nil
-}
+// func MarshalPackageBundle(bundle *api.PackageBundle) ([]byte, error) {
+// 	marshallables := []interface{}{
+// 		newSigningPackageBundle(bundle),
+// 	}
+// 	resources := make([][]byte, len(marshallables))
+// 	for _, marshallable := range marshallables {
+// 		resource, err := yaml.Marshal(marshallable)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("marshaling package bundle: %w", err)
+// 		}
+// 		resources = append(resources, resource)
+// 	}
+// 	return ConcatYamlResources(resources...), nil
+// }
+
+// // WriteBundleConfig writes the yaml objects to files in your defined dir
+// func WriteBundleConfig(bundle *api.PackageBundle, writer FileWriter) error {
+// 	crdContent, err := MarshalPackageBundle(bundle)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if filePath, err := writer.Write("bundle.yaml", crdContent, PersistentFile); err != nil {
+// 		err = fmt.Errorf("writing bundle crd file into %q: %w", filePath, err)
+// 		return err
+// 	}
+// 	return nil
+// }

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -30,9 +31,15 @@ func main() {
 	// If using --generatesample flag we skip the yaml input portion
 	if o.generateSample {
 		sample := NewBundleGenerate("generatesample")
-		err := WriteBundleConfig(sample, outputPath)
+
+		_, yml, err := sig.GetDigest(sample, sig.EksaDomain)
 		if err != nil {
-			BundleLog.Error(err, "Unable to create CRD skaffolding from generatesample command")
+			BundleLog.Error(err, "Unable to convert Bundle to yaml via sig.GetDigest()")
+			os.Exit(1)
+		}
+		if _, err := outputPath.Write("bundle.yaml", yml, PersistentFile); err != nil {
+			BundleLog.Error(err, "Unable to write Bundle to yaml from generateSample")
+			os.Exit(1)
 		}
 		return
 	}
@@ -156,9 +163,13 @@ func main() {
 				os.Exit(1)
 			}
 		}
-		err = WriteBundleConfig(bundle, outputPath)
+		_, yml, err := sig.GetDigest(bundle, sig.EksaDomain)
 		if err != nil {
-			BundleLog.Error(err, "Unable to write Bundle")
+			BundleLog.Error(err, "Unable to convert Bundle to yaml via sig.GetDigest()")
+			os.Exit(1)
+		}
+		if _, err := outputPath.Write("bundle.yaml", yml, PersistentFile); err != nil {
+			BundleLog.Error(err, "Unable to write Bundle to yaml from signature flag")
 			os.Exit(1)
 		}
 		return
@@ -182,9 +193,16 @@ func main() {
 		// Write list of bundle structs into Bundle CRD files
 		BundleLog.Info("In Progress: Writing output files")
 		bundle := AddMetadata(addOnBundleSpec, name)
-		err = WriteBundleConfig(bundle, outputPath)
+		fmt.Printf("Bundle=%v\n", bundle)
+		_, yml, err := sig.GetDigest(bundle, sig.EksaDomain)
 		if err != nil {
-			BundleLog.Error(err, "Unable to write Bundle")
+			BundleLog.Error(err, "Unable to convert Bundle to yaml via sig.GetDigest()")
+			os.Exit(1)
+		}
+		fmt.Printf("err=%v\n", err)
+		fmt.Printf("Yaml=%v\n", yml)
+		if _, err := outputPath.Write("bundle.yaml", yml, PersistentFile); err != nil {
+			BundleLog.Error(err, "Unable to write Bundle to yaml")
 			os.Exit(1)
 		}
 		BundleLog.Info("Finished writing output crd files.", "Output path", fmt.Sprintf("%s%s", o.outputFolder, "/"))
