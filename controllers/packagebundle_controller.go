@@ -117,15 +117,15 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			return ctrl.Result{}, nil
 		}
 
-		if nn.Namespace == req.Namespace && nn.Name == req.Name {
+		if nn.Namespace != req.Namespace || nn.Name != req.Name {
 			r.Log.Info("Bundle deleted", "bundle", req.NamespacedName)
+			return ctrl.Result{}, nil
 		}
 
-		ref := fmt.Sprintf("%s:%s", req.Namespace, req.Name)
-		_, err = r.bundleManager.DownloadBundle(ctx, ref)
+		_, err = r.bundleManager.DownloadBundle(ctx, req.Name))
 
 		if err != nil {
-			r.Log.Info("Unable to download deleted bundle", "bundle",
+			r.Log.Error(err, "Active bundle deleted and failed to download", "bundle",
 				req.NamespacedName)
 			return ctrl.Result{}, nil
 		}
