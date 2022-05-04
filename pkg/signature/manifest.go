@@ -77,7 +77,7 @@ func decodeSelectors(selectorsB64Encoded string) (selectors []string, err error)
 func GetMetadataInformation(manifest Manifest, domain Domain) (signature string, excludes []string, err error) {
 	meta := manifest.GetObjectMeta()
 	annotations := meta.GetAnnotations()
-	signature, _ = annotations[path.Join(domain.Name, SignatureAnnotation)]
+	signature = annotations[path.Join(domain.Name, SignatureAnnotation)]
 	excludesB64, excludesExists := annotations[path.Join(domain.Name, ExcludesAnnotation)]
 
 	if excludesExists {
