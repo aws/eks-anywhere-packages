@@ -129,7 +129,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 	}
 
 	bundles := &api.PackageBundleList{}
-	err = r.Client.List(ctx, bundles, &client.ListOptions{Namespace: req.Namespace})
+	err = r.Client.List(ctx, bundles, &client.ListOptions{Namespace: api.PackageNamespace})
 	if err != nil {
 		return result, fmt.Errorf("listing package bundles: %s", err)
 	}
