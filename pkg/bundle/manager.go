@@ -64,10 +64,15 @@ var _ Manager = (*bundleManager)(nil)
 func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 	allBundles []api.PackageBundle) bool {
 
-	if active && newBundle.Status.State != api.PackageBundleStateActive {
+	if !active {
+		if newBundle.Status.State == api.PackageBundleStateActive {
+			newBundle.Status.State = api.PackageBundleStateInactive
+			return true
+		}
+		return false
+	}
+	if newBundle.Status.State != api.PackageBundleStateActive {
 		newBundle.Status.State = api.PackageBundleStateActive
-	} else if !active && newBundle.Status.State != api.PackageBundleStateInactive {
-		newBundle.Status.State = api.PackageBundleStateInactive
 	}
 
 	// allBundles should never be nil or empty in production, but for testing
