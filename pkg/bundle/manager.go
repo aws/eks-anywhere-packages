@@ -25,10 +25,6 @@ type Manager interface {
 	IsActive(ctx context.Context, client client.Client,
 		namespacedName types.NamespacedName) (bool, error)
 
-	// ActiveBundle retrieves the currently active bundle.
-	ActiveBundle(ctx context.Context, client client.Client) (
-		*api.PackageBundle, error)
-
 	// Update the bundle returns true if there are changes
 	Update(newBundle *api.PackageBundle, isActive bool,
 		allBundles []api.PackageBundle) bool
@@ -202,28 +198,4 @@ func (m *bundleManager) apiVersion() (string, error) {
 	version = strings.ReplaceAll(version, "+", "")
 
 	return version, nil
-}
-
-// ActiveBundle retrieves the bundle from which package are installed.
-//
-// It retrieves the name of the active bundle from the PackageBundleController,
-// then uses the K8s API to retrieve and return the CRD for the active bundle
-// itself.
-func (m bundleManager) ActiveBundle(ctx context.Context, client client.Client) (*api.PackageBundle, error) {
-	abc, err := m.getPackageBundleController(ctx, client)
-	if err != nil {
-		return nil, err
-	}
-
-	nn := types.NamespacedName{
-		Namespace: api.PackageNamespace,
-		Name:      abc.Spec.ActiveBundle,
-	}
-	bundle := &api.PackageBundle{}
-	err = client.Get(ctx, nn, bundle)
-	if err != nil {
-		return nil, err
-	}
-
-	return bundle, nil
 }
