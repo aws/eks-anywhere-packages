@@ -40,7 +40,7 @@ var (
 // +kubebuilder:object:generate=false
 type BundleGenerateOpt func(config *BundleGenerate)
 
-// Used for generating YAML for generating a new sample CRD file.
+// NewBundleGenerate is used for generating YAML for generating a new sample CRD file.
 func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.PackageBundle {
 	annotations := make(map[string]string)
 	annotations[FullExcludesAnnotation] = Excludes
@@ -114,6 +114,7 @@ func AddMetadata(s api.PackageBundleSpec, name string) *api.PackageBundle {
 	}
 }
 
+// IfSignature checks if a signature exsits on a Packagebundle
 func IfSignature(bundle *api.PackageBundle) (bool, error) {
 	annotations := bundle.Annotations
 	if annotations != nil {
@@ -122,6 +123,7 @@ func IfSignature(bundle *api.PackageBundle) (bool, error) {
 	return false, nil
 }
 
+// CheckSignature checks if current signature is equal to signature to added as an annotation, and skips if they are the same.
 func CheckSignature(bundle *api.PackageBundle, signature string) (bool, error) {
 	if signature == "" || bundle == nil {
 		return false, fmt.Errorf("either signature or bundle is missing, but are required")
@@ -136,6 +138,7 @@ func CheckSignature(bundle *api.PackageBundle, signature string) (bool, error) {
 	return true, nil
 }
 
+// GetBundleSignature calls KMS and retrieves a signature, then base64 decodes it and returns that back
 func GetBundleSignature(ctx context.Context, bundle *api.PackageBundle, key string) (string, error) {
 	digest, _, err := sig.GetDigest(bundle, sig.EksaDomain)
 	if err != nil {
