@@ -66,6 +66,7 @@ func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 
 	if newBundle.Namespace != api.PackageNamespace {
 		if newBundle.Status.State != api.PackageBundleStateIgnored {
+			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateIgnored
 			return true
 		}
@@ -73,6 +74,7 @@ func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 	}
 	if !active {
 		if newBundle.Status.State == api.PackageBundleStateActive {
+			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateInactive
 			return true
 		}
