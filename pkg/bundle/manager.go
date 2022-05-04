@@ -71,27 +71,27 @@ var _ Manager = (*bundleManager)(nil)
 func (m bundleManager) IsActive(ctx context.Context,
 	client client.Client, key types.NamespacedName) (bool, error) {
 
-	abc, err := m.getPackageBundleController(ctx, client)
+	pbc, err := m.getPackageBundleController(ctx, client)
 	if err != nil {
 		return false, err
 	}
 
-	return key.Namespace == api.PackageNamespace && key.Name == abc.Spec.ActiveBundle, nil
+	return key.Namespace == api.PackageNamespace && key.Name == pbc.Spec.ActiveBundle, nil
 }
 
 func (m bundleManager) getPackageBundleController(ctx context.Context,
 	client client.Client) (*api.PackageBundleController, error) {
-	abc := &api.PackageBundleController{}
+	pbc := &api.PackageBundleController{}
 	key := types.NamespacedName{
 		Namespace: api.PackageNamespace,
 		Name:      api.PackageBundleControllerName,
 	}
-	err := client.Get(ctx, key, abc)
+	err := client.Get(ctx, key, pbc)
 	if err != nil {
 		return nil, fmt.Errorf("getting PackageBundleController: %s", err)
 	}
 
-	return abc, nil
+	return pbc, nil
 }
 
 func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
