@@ -70,14 +70,14 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.
 // GetActiveBundleNamespacedName retrieves the namespace and name of the
 // currently active bundle from the PackageBundleController.
 func (bc *bundleClient) GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error) {
-	abc, err := bc.getPackageBundleController(ctx)
+	pbc, err := bc.getPackageBundleController(ctx)
 	if err != nil {
 		return types.NamespacedName{}, err
 	}
 
 	nn := types.NamespacedName{
 		Namespace: api.PackageNamespace,
-		Name:      abc.Spec.ActiveBundle,
+		Name:      pbc.Spec.ActiveBundle,
 	}
 
 	return nn, nil
