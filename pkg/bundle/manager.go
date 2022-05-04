@@ -64,6 +64,13 @@ var _ Manager = (*bundleManager)(nil)
 func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 	allBundles []api.PackageBundle) bool {
 
+	if newBundle.Namespace != api.PackageNamespace {
+		if newBundle.Status.State != api.PackageBundleStateIgnored {
+			newBundle.Status.State = api.PackageBundleStateIgnored
+			return true
+		}
+		return false
+	}
 	if !active {
 		if newBundle.Status.State == api.PackageBundleStateActive {
 			newBundle.Status.State = api.PackageBundleStateInactive
