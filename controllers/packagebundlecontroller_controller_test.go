@@ -35,7 +35,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		NamespacedName: controllerNN,
 	}
 
-	setMockABC := func(src *api.PackageBundleController) func(ctx context.Context,
+	setMockPBC := func(src *api.PackageBundleController) func(ctx context.Context,
 		name types.NamespacedName, pbc *api.PackageBundleController) error {
 		return func(ctx context.Context, name types.NamespacedName,
 			target *api.PackageBundleController) error {
@@ -58,7 +58,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 
 		ctx := context.Background()
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
-		mockABC := &api.PackageBundleController{
+		mockPBC := &api.PackageBundleController{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      api.PackageBundleControllerName,
 				Namespace: "blah",
@@ -76,7 +76,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			Namespace: api.PackageNamespace,
 		}
 		mockClient.EXPECT().Get(ctx, inactiveController, gomock.Any()).
-			DoAndReturn(setMockABC(mockABC))
+			DoAndReturn(setMockPBC(mockPBC))
 		mockStatusClient := mocks.NewMockStatusWriter(gomock.NewController(t))
 		mockClient.EXPECT().Status().Return(mockStatusClient)
 		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
@@ -105,7 +105,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 
 		ctx := context.Background()
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
-		mockABC := &api.PackageBundleController{
+		mockPBC := &api.PackageBundleController{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      api.PackageBundleControllerName,
 				Namespace: api.PackageNamespace,
@@ -124,7 +124,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		}
 
 		mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
-			DoAndReturn(setMockABC(mockABC))
+			DoAndReturn(setMockPBC(mockPBC))
 		mockStatusClient := mocks.NewMockStatusWriter(gomock.NewController(t))
 		mockClient.EXPECT().Status().Return(mockStatusClient)
 		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
