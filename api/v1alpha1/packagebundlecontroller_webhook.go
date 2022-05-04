@@ -52,7 +52,7 @@ func (v *activeBundleValidator) Handle(ctx context.Context,
 	}
 
 	bundles := &PackageBundleList{}
-	err = v.Client.List(ctx, bundles)
+	err = v.Client.List(ctx, bundles, &client.ListOptions{Namespace: PackageNamespace})
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError,
 			fmt.Errorf("listing package bundles: %w", err))
