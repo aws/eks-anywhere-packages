@@ -36,7 +36,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 	}
 
 	setMockABC := func(src *api.PackageBundleController) func(ctx context.Context,
-		name types.NamespacedName, abc *api.PackageBundleController) error {
+		name types.NamespacedName, pbc *api.PackageBundleController) error {
 		return func(ctx context.Context, name types.NamespacedName,
 			target *api.PackageBundleController) error {
 			src.DeepCopyInto(target)
@@ -80,11 +80,11 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockStatusClient := mocks.NewMockStatusWriter(gomock.NewController(t))
 		mockClient.EXPECT().Status().Return(mockStatusClient)
 		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, abc *api.PackageBundleController,
+			DoAndReturn(func(ctx context.Context, pbc *api.PackageBundleController,
 				opts *client.UpdateOptions) error {
-				if abc.Status.State != api.BundleControllerStateIgnored {
+				if pbc.Status.State != api.BundleControllerStateIgnored {
 					t.Errorf("expected state to be set to Ignored, got %q",
-						abc.Status.State)
+						pbc.Status.State)
 				}
 				return nil
 			})
@@ -128,11 +128,11 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockStatusClient := mocks.NewMockStatusWriter(gomock.NewController(t))
 		mockClient.EXPECT().Status().Return(mockStatusClient)
 		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, abc *api.PackageBundleController,
+			DoAndReturn(func(ctx context.Context, pbc *api.PackageBundleController,
 				opts *client.UpdateOptions) error {
-				if abc.Status.State != api.BundleControllerStateActive {
+				if pbc.Status.State != api.BundleControllerStateActive {
 					t.Errorf("expected state to be set to Active, got %q",
-						abc.Status.State)
+						pbc.Status.State)
 				}
 				return nil
 			})

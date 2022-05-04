@@ -91,8 +91,8 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		RequeueAfter: DefaultUpgradeCheckInterval,
 	}
 
-	abc := &api.PackageBundleController{}
-	err := r.Client.Get(ctx, req.NamespacedName, abc)
+	pbc := &api.PackageBundleController{}
+	err := r.Client.Get(ctx, req.NamespacedName, pbc)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return result, fmt.Errorf("retrieving package bundle controller: %s", err)
@@ -100,12 +100,12 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		r.Log.Info("Bundle controller deleted (ignoring)", "bundle controller", req.NamespacedName)
 		return withoutRequeue(result), nil
 	}
-	result.RequeueAfter = abc.Spec.UpgradeCheckInterval.Duration
+	result.RequeueAfter = pbc.Spec.UpgradeCheckInterval.Duration
 
-	if abc.IsIgnored() {
-		if abc.Status.State != api.BundleControllerStateIgnored {
-			abc.Status.State = api.BundleControllerStateIgnored
-			err = r.Client.Status().Update(ctx, abc, &client.UpdateOptions{})
+	if pbc.IsIgnored() {
+		if pbc.Status.State != api.BundleControllerStateIgnored {
+			pbc.Status.State = api.BundleControllerStateIgnored
+			err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
 			if err != nil {
 				return result, fmt.Errorf("updating status to ignored: %s", err)
 			}
@@ -113,18 +113,18 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		return withoutRequeue(result), nil
 	}
 
-	if abc.Status.State != api.BundleControllerStateActive {
-		abc.Status.State = api.BundleControllerStateActive
-		err = r.Client.Status().Update(ctx, abc, &client.UpdateOptions{})
+	if pbc.Status.State != api.BundleControllerStateActive {
+		pbc.Status.State = api.BundleControllerStateActive
+		err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
 		if err != nil {
 			return result, fmt.Errorf("updating status to active: %s", err)
 		}
 	}
 
-	latestBundle, err := r.bundleManager.LatestBundle(ctx, abc.Spec.Source.BaseRef())
+	latestBundle, err := r.bundleManager.LatestBundle(ctx, pbc.Spec.Source.BaseRef())
 	if err != nil {
 		r.Log.Error(err, "Unable to get latest bundle")
-		result.RequeueAfter = abc.Spec.UpgradeCheckShortInterval.Duration
+		result.RequeueAfter = pbc.Spec.UpgradeCheckShortInterval.Duration
 		return result, nil
 	}
 
