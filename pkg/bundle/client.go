@@ -13,6 +13,11 @@ import (
 type Client interface {
 	// GetActiveBundle retrieves the currently active bundle.
 	GetActiveBundle(ctx context.Context) (activeBundle *api.PackageBundle, err error)
+
+	// GetActiveBundleNamespacedName retrieves the namespace and name of the
+	// currently active bundle.
+	GetActiveBundleNamespacedName(ctx context.Context) (
+		types.NamespacedName, error)
 }
 
 type bundleClient struct {
@@ -60,4 +65,20 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.
 		return nil, err
 	}
 	return activeBundle, nil
+}
+
+// GetActiveBundleNamespacedName retrieves the namespace and name of the
+// currently active bundle from the PackageBundleController.
+func (bc *bundleClient) GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error) {
+	abc, err := bc.getPackageBundleController(ctx)
+	if err != nil {
+		return types.NamespacedName{}, err
+	}
+
+	nn := types.NamespacedName{
+		Namespace: api.PackageNamespace,
+		Name:      abc.Spec.ActiveBundle,
+	}
+
+	return nn, nil
 }
