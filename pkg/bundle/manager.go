@@ -10,9 +10,7 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
@@ -20,11 +18,6 @@ import (
 )
 
 type Manager interface {
-	// IsActive returns true if the given namespace and name matche the active
-	// bundle's.
-	IsActive(ctx context.Context, client client.Client,
-		namespacedName types.NamespacedName) (bool, error)
-
 	// Update the bundle returns true if there are changes
 	Update(newBundle *api.PackageBundle, isActive bool,
 		allBundles []api.PackageBundle) bool
@@ -67,32 +60,6 @@ func NewBundleManager(log logr.Logger, serverVersion discovery.ServerVersionInte
 }
 
 var _ Manager = (*bundleManager)(nil)
-
-func (m bundleManager) IsActive(ctx context.Context,
-	client client.Client, key types.NamespacedName) (bool, error) {
-
-	pbc, err := m.getPackageBundleController(ctx, client)
-	if err != nil {
-		return false, err
-	}
-
-	return key.Namespace == api.PackageNamespace && key.Name == pbc.Spec.ActiveBundle, nil
-}
-
-func (m bundleManager) getPackageBundleController(ctx context.Context,
-	client client.Client) (*api.PackageBundleController, error) {
-	pbc := &api.PackageBundleController{}
-	key := types.NamespacedName{
-		Namespace: api.PackageNamespace,
-		Name:      api.PackageBundleControllerName,
-	}
-	err := client.Get(ctx, key, pbc)
-	if err != nil {
-		return nil, fmt.Errorf("getting PackageBundleController: %s", err)
-	}
-
-	return pbc, nil
-}
 
 func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 	allBundles []api.PackageBundle) bool {
