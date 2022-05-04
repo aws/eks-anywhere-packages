@@ -18,11 +18,10 @@ import (
 )
 
 const (
-	PublicKey               = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw=="
-	DomainName              = "eksa.aws.com"
-	SignatureAnnotation     = "signature"
-	ExcludesAnnotation      = "excludes"
-	FullSignatureAnnotation = "eksa.aws.com/signature"
+	PublicKey           = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw=="
+	DomainName          = "eksa.aws.com"
+	SignatureAnnotation = "signature"
+	ExcludesAnnotation  = "excludes"
 )
 
 var EksaDomain = Domain{Name: DomainName, Pubkey: PublicKey}
@@ -41,7 +40,7 @@ var (
 				return strings.ReplaceAll(in, ".", "\\\\.")
 			},
 		}).Parse(`
-del({{ StringsJoin .Excludes ", "}}) | .metadata.annotations |= with_entries(select(.key | test("^{{ Escape .Domain.Name }}/(?:includes|excludes)$") ))
+del({{ StringsJoin .Excludes ", "}}) | (.metadata.annotations | objects) |= with_entries(select(.key | test("^{{ Escape .Domain.Name }}/(?:includes|excludes)$") ))
 `))
 )
 
@@ -78,12 +77,8 @@ func decodeSelectors(selectorsB64Encoded string) (selectors []string, err error)
 func GetMetadataInformation(manifest Manifest, domain Domain) (signature string, excludes []string, err error) {
 	meta := manifest.GetObjectMeta()
 	annotations := meta.GetAnnotations()
-	signature, sigExists := annotations[path.Join(domain.Name, SignatureAnnotation)]
+	signature = annotations[path.Join(domain.Name, SignatureAnnotation)]
 	excludesB64, excludesExists := annotations[path.Join(domain.Name, ExcludesAnnotation)]
-	if !sigExists {
-		err = errors.New("Missing signature")
-		return signature, excludes, err
-	}
 
 	if excludesExists {
 		excludes, err = decodeSelectors(excludesB64)
@@ -141,6 +136,10 @@ func ValidateSignature(manifest Manifest, domain Domain) (valid bool, digest [32
 	if err != nil {
 		return false, [32]byte{}, yml, err
 	}
+	if metaSig == "" {
+		return false, [32]byte{}, yml, errors.New("Missing signature")
+	}
+
 	digest, yml, err = GetDigest(manifest, domain)
 	if err != nil {
 		return false, [32]byte{}, yml, err

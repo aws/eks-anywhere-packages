@@ -16,13 +16,47 @@ type BundleGenerate struct {
 	Spec api.PackageBundleSpec `json:"spec,omitempty"`
 }
 
-type BundleNoStatus struct {
+// SigningPackageBundle removes fields that shouldn't be included when signing.
+type SigningPackageBundle struct {
 	*api.PackageBundle
+
+	// The fields below are to be modified or removed before signing.
+
+	// SigningObjectMeta removes fields that shouldn't be included when signing.
+	*SigningObjectMeta `json:"metadata,omitempty"`
+
+	// Status isn't relevant to a digital signature.
 	Status interface{} `json:"status,omitempty"`
 }
 
-// Types for input file format
+// newSigningPackageBundle is api.PackageBundle using SigningObjectMeta instead of metav1.ObjectMeta
+func newSigningPackageBundle(bundle *api.PackageBundle) *SigningPackageBundle {
+	return &SigningPackageBundle{
+		PackageBundle:     bundle,
+		SigningObjectMeta: newSigningObjectMeta(&bundle.ObjectMeta),
+		Status:            nil,
+	}
+}
 
+// SigningObjectMeta removes fields that shouldn't be included when signing.
+type SigningObjectMeta struct {
+	*metav1.ObjectMeta
+
+	// The fields below are to be removed before signing.
+
+	// CreationTimestamp isn't relevant to a digital signature.
+	CreationTimestamp interface{} `json:"creationTimestamp,omitempty"`
+}
+
+// newSigningObjectMeta is metav1.ObjectMeta without the CreationTimestamp since it gets added the yaml as null otherwise.
+func newSigningObjectMeta(meta *metav1.ObjectMeta) *SigningObjectMeta {
+	return &SigningObjectMeta{
+		ObjectMeta:        meta,
+		CreationTimestamp: nil,
+	}
+}
+
+// Types for input file format
 // +kubebuilder:object:root=true
 // Input is the schema for the Input file
 type Input struct {

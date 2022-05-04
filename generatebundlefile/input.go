@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -58,9 +59,8 @@ func (inputConfig *Input) ValidateInputNotEmpty() error {
 	return nil
 }
 
-func ValidateBundle(fileName string) (*BundleNoStatus, error) {
-	bundle := &BundleNoStatus{}
-	err := ParseBundle(fileName, bundle)
+func ValidateBundle(fileName string) (*api.PackageBundle, error) {
+	bundle, err := ParseBundle(fileName)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func ValidateBundle(fileName string) (*BundleNoStatus, error) {
 	return bundle, err
 }
 
-func ValidateBundleContent(bundle *BundleNoStatus) error {
+func ValidateBundleContent(bundle *api.PackageBundle) error {
 	for _, v := range bundleValidations {
 		if err := v(bundle); err != nil {
 			return err
@@ -80,11 +80,11 @@ func ValidateBundleContent(bundle *BundleNoStatus) error {
 	return nil
 }
 
-var bundleValidations = []func(*BundleNoStatus) error{
+var bundleValidations = []func(*api.PackageBundle) error{
 	validateBundleName,
 }
 
-func validateBundleName(bundle *BundleNoStatus) error {
+func validateBundleName(bundle *api.PackageBundle) error {
 	err := ValidateBundleNoSignature(bundle)
 	if err != nil {
 		return err
@@ -92,30 +92,31 @@ func validateBundleName(bundle *BundleNoStatus) error {
 	return nil
 }
 
-func ValidateBundleNoSignature(bundle *BundleNoStatus) error {
+func ValidateBundleNoSignature(bundle *api.PackageBundle) error {
 	// Check if Projects are listed
-	if len(bundle.PackageBundle.Spec.Packages) < 1 {
+	if len(bundle.Spec.Packages) < 1 {
 		return fmt.Errorf("Should use non-empty list of projects for input")
 	}
 	return nil
 }
 
-func ParseBundle(fileName string, bundle *BundleNoStatus) error {
-	content, err := ioutil.ReadFile(filepath.Clean(fileName))
+func ParseBundle(filename string) (*api.PackageBundle, error) {
+	content, err := ioutil.ReadFile(filepath.Clean(filename))
 	if err != nil {
-		return fmt.Errorf("unable to read file due to: %v", err)
+		return nil, fmt.Errorf("reading package bundle file %q: %w", filename, err)
 	}
-	for _, c := range strings.Split(string(content), YamlSeparator) {
-		if err = yaml.Unmarshal([]byte(c), bundle); err != nil {
-			return fmt.Errorf("unable to parse %s\nyaml: %s\n %v", fileName, string(c), err)
-		}
-		err = yaml.UnmarshalStrict([]byte(c), bundle)
+
+	for _, doc := range bytes.Split(content, []byte(YamlSeparator)) {
+		bundle := &api.PackageBundle{}
+		err = yaml.UnmarshalStrict(doc, bundle)
 		if err != nil {
-			return fmt.Errorf("unable to UnmarshalStrict %v\nyaml: %s\n %v", bundle, string(c), err)
+			return nil, fmt.Errorf("unmarshaling package bundle from %q: %w",
+				filename, err)
 		}
-		return nil
+		return bundle, nil
 	}
-	return fmt.Errorf("cluster spec file %s is invalid or does not contain kind %v", fileName, bundle)
+
+	return nil, fmt.Errorf("invalid package bundle file %q", filename)
 }
 
 func ParseInputConfig(fileName string, inputConfig *Input) error {
