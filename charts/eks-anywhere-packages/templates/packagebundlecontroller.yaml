@@ -4,7 +4,6 @@ metadata:
   name: eksa-packages-bundle-controller
   namespace: eksa-packages
 spec:
-  activeBundle: "v1.21-1000"
   logLevel: 4
   upgradeCheckInterval: "24h"
   source:
