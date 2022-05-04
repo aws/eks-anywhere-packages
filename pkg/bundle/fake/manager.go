@@ -26,15 +26,6 @@ func NewBundleManager() *FakeBundleManager {
 	return &FakeBundleManager{}
 }
 
-func (bm *FakeBundleManager) ActiveBundle(ctx context.Context,
-	client client.Client) (*api.PackageBundle, error) {
-
-	if bm.FakeActiveBundleError != nil {
-		return nil, bm.FakeActiveBundleError
-	}
-	return bm.FakeActiveBundle, nil
-}
-
 func (bm *FakeBundleManager) DownloadBundle(ctx context.Context, ref string) (
 	*api.PackageBundle, error) {
 
