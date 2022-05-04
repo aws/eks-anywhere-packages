@@ -223,7 +223,7 @@ func TestUpdate(t *testing.T) {
 		}
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
-		if assert.True(t, bm.Update(bundle, false, noBundles)) {
+		if assert.False(t, bm.Update(bundle, false, noBundles)) {
 			assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
 		}
 	})
