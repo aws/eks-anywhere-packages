@@ -65,3 +65,18 @@ func (mr *MockClientMockRecorder) GetActiveBundleNamespacedName(ctx interface{})
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveBundleNamespacedName", reflect.TypeOf((*MockClient)(nil).GetActiveBundleNamespacedName), ctx)
 }
+
+// IsActive mocks base method.
+func (m *MockClient) IsActive(ctx context.Context, namespacedName types.NamespacedName) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsActive", ctx, namespacedName)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsActive indicates an expected call of IsActive.
+func (mr *MockClientMockRecorder) IsActive(ctx, namespacedName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsActive", reflect.TypeOf((*MockClient)(nil).IsActive), ctx, namespacedName)
+}

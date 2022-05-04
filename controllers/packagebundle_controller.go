@@ -149,7 +149,7 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	r.Log.Info("Add/Update:", "bundle", pkgBundle)
 
-	active, err := r.bundleManager.IsActive(ctx, r.Client, req.NamespacedName)
+	active, err := r.bundleClient.IsActive(ctx, req.NamespacedName)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
