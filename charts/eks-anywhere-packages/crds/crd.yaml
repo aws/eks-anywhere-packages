@@ -18,6 +18,9 @@ spec:
     - jsonPath: .status.state
       name: State
       type: string
+    - jsonPath: .status.detail
+      name: Detail
+      type: string
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -68,11 +71,15 @@ spec:
           status:
             description: PackageBundleControllerStatus defines the observed state of PackageBundleController
             properties:
+              detail:
+                description: Detail of the state
+                type: string
               state:
                 description: State of the bundle controller
                 enum:
                 - ignored
                 - active
+                - disconnected
                 type: string
             type: object
         type: object
@@ -114,9 +121,6 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .spec.kubeVersion
-      name: Version
-      type: string
     - jsonPath: .status.state
       name: State
       type: string
@@ -136,9 +140,6 @@ spec:
           spec:
             description: PackageBundleSpec defines the desired state of PackageBundle
             properties:
-              kubeVersion:
-                description: KubeVersion is the Kubernetes version to which this bundle is compatible.
-                type: string
               packages:
                 description: Packages supported by this bundle.
                 items:
@@ -223,9 +224,6 @@ spec:
               spec:
                 description: PackageBundleSpec defines the desired state of PackageBundle
                 properties:
-                  kubeVersion:
-                    description: KubeVersion is the Kubernetes version to which this bundle is compatible.
-                    type: string
                   packages:
                     description: Packages supported by this bundle.
                     items:
@@ -309,6 +307,7 @@ spec:
                 - inactive
                 - active
                 - active (upgrade available)
+                - ignored
                 type: string
             required:
             - state
