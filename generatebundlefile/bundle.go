@@ -1,14 +1,26 @@
 package main
 
 import (
+	"context"
+	"encoding/base64"
 	"fmt"
+	"path"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/scheme"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
+)
+
+const (
+	//.spec.packages[].source.registry
+	//.spec.packages[].source.repository
+	Excludes = "LnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVnaXN0cnkKLnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVwb3NpdG9yeQo="
 )
 
 var (
@@ -17,6 +29,12 @@ var (
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
+
+	FullSignatureAnnotation   = path.Join(sig.EksaDomain.Name, sig.SignatureAnnotation)
+	FullExcludesAnnotation    = path.Join(sig.EksaDomain.Name, sig.ExcludesAnnotation)
+	DefaultExcludesAnnotation = map[string]string{
+		FullExcludesAnnotation: Excludes,
+	}
 )
 
 // +kubebuilder:object:generate=false
@@ -24,14 +42,17 @@ type BundleGenerateOpt func(config *BundleGenerate)
 
 // Used for generating YAML for generating a new sample CRD file.
 func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.PackageBundle {
+	annotations := make(map[string]string)
+	annotations[FullExcludesAnnotation] = Excludes
 	return &api.PackageBundle{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       api.PackageBundleKind,
 			APIVersion: SchemeBuilder.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      bundleName,
-			Namespace: api.PackageNamespace,
+			Name:        bundleName,
+			Namespace:   api.PackageNamespace,
+			Annotations: DefaultExcludesAnnotation,
 		},
 		Spec: api.PackageBundleSpec{
 			Packages: []api.BundlePackage{
@@ -85,8 +106,9 @@ func AddMetadata(s api.PackageBundleSpec, name string) *api.PackageBundle {
 			APIVersion: SchemeBuilder.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: api.PackageNamespace,
+			Name:        name,
+			Namespace:   api.PackageNamespace,
+			Annotations: DefaultExcludesAnnotation,
 		},
 		Spec: s,
 	}
@@ -100,61 +122,41 @@ func IfSignature(bundle *api.PackageBundle) (bool, error) {
 	return false, nil
 }
 
-func AddSignature(bundle *api.PackageBundle, signature string) (*api.PackageBundle, error) {
-	annotations := map[string]string{}
-	if signature == "" || bundle == nil {
-		return nil, fmt.Errorf("Error adding signature to bundle, empty signature, or bundle entry\n")
-	}
-	annotations = map[string]string{
-		sig.FullSignatureAnnotation: signature,
-	}
-	bundle.Annotations = annotations
-	return bundle, nil
-}
-
 func CheckSignature(bundle *api.PackageBundle, signature string) (bool, error) {
 	if signature == "" || bundle == nil {
 		return false, fmt.Errorf("either signature or bundle is missing, but are required")
 	}
 	annotations := map[string]string{
-		sig.FullSignatureAnnotation: signature,
+		FullSignatureAnnotation: signature,
 	}
 	//  If current signature on file isn't at the --signature input return false, otherwsie true
-	if annotations[sig.FullSignatureAnnotation] != bundle.Annotations[sig.FullSignatureAnnotation] {
+	if annotations[FullSignatureAnnotation] != bundle.Annotations[FullSignatureAnnotation] {
 		return false, fmt.Errorf("A signature already exists on the input file signatue")
 	}
 	return true, nil
 }
 
-// MarshalPackageBundle will create yaml objects from bundlespecs.
-//
-// TODO look into
-// https://pkg.go.dev/encoding/json#example-package-CustomMarshalJSON
+func GetBundleSignature(ctx context.Context, bundle *api.PackageBundle, key string) (string, error) {
+	digest, _, err := sig.GetDigest(bundle, sig.EksaDomain)
+	if err != nil {
+		return "", err
+	}
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		panic("configuration error, " + err.Error())
+	}
 
-// func MarshalPackageBundle(bundle *api.PackageBundle) ([]byte, error) {
-// 	marshallables := []interface{}{
-// 		newSigningPackageBundle(bundle),
-// 	}
-// 	resources := make([][]byte, len(marshallables))
-// 	for _, marshallable := range marshallables {
-// 		resource, err := yaml.Marshal(marshallable)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("marshaling package bundle: %w", err)
-// 		}
-// 		resources = append(resources, resource)
-// 	}
-// 	return ConcatYamlResources(resources...), nil
-// }
+	client := kms.NewFromConfig(cfg)
 
-// // WriteBundleConfig writes the yaml objects to files in your defined dir
-// func WriteBundleConfig(bundle *api.PackageBundle, writer FileWriter) error {
-// 	crdContent, err := MarshalPackageBundle(bundle)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if filePath, err := writer.Write("bundle.yaml", crdContent, PersistentFile); err != nil {
-// 		err = fmt.Errorf("writing bundle crd file into %q: %w", filePath, err)
-// 		return err
-// 	}
-// 	return nil
-// }
+	input := &kms.SignInput{
+		KeyId:            &key,
+		SigningAlgorithm: types.SigningAlgorithmSpecEcdsaSha256,
+		MessageType:      types.MessageTypeDigest,
+		Message:          digest[:],
+	}
+	out, err := client.Sign(context.Background(), input)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(out.Signature), nil
+}

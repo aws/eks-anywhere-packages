@@ -18,11 +18,10 @@ import (
 )
 
 const (
-	PublicKey               = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw=="
-	DomainName              = "eksa.aws.com"
-	SignatureAnnotation     = "signature"
-	ExcludesAnnotation      = "excludes"
-	FullSignatureAnnotation = "eksa.aws.com/signature"
+	PublicKey           = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw=="
+	DomainName          = "eksa.aws.com"
+	SignatureAnnotation = "signature"
+	ExcludesAnnotation  = "excludes"
 )
 
 var EksaDomain = Domain{Name: DomainName, Pubkey: PublicKey}
@@ -41,7 +40,7 @@ var (
 				return strings.ReplaceAll(in, ".", "\\\\.")
 			},
 		}).Parse(`
-del({{ StringsJoin .Excludes ", "}}) | .metadata.annotations |= with_entries(select(.key | test("^{{ Escape .Domain.Name }}/(?:includes|excludes)$") ))
+del({{ StringsJoin .Excludes ", "}}) | (.metadata.annotations | objects) |= with_entries(select(.key | test("^{{ Escape .Domain.Name }}/(?:includes|excludes)$") ))
 `))
 )
 

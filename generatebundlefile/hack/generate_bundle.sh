@@ -26,25 +26,10 @@ chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile
 IMAGE_REGISTRY=$(AWS_REGION=us-east-1 && aws ecr-public describe-registries --query 'registries[*].registryUri' --output text)
 KMS_KEY=signingPackagesKey
 
-curl -OL https://github.com/sigstore/cosign/releases/download/v1.7.2/cosign-linux-amd64
-
-chmod +x cosign-linux-amd64
-mkdir -p ${BASE_DIRECTORY}/bin
-mv cosign-linux-amd64 ${BASE_DIRECTORY}/bin/cosign
-${BASE_DIRECTORY}/bin/cosign version
-
 # Create the bundle
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml
-
-# Sign the Bundle
-export AWS_REGION="us-west-2"
-SIGNATURE=$(${BASE_DIRECTORY}/bin/cosign sign-blob --key awskms:///alias/${KMS_KEY} output/bundle.yaml)
-
-# Add signature annotation
-${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/output/bundle.yaml \
-    --signature ${SIGNATURE}
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
+    --key alias/${KMS_KEY}
 
 make oras-install
 
