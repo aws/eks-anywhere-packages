@@ -178,19 +178,50 @@ func TestPackageVersion(t *testing.T) {
 	})
 }
 
+func givenPackageBundle(state api.PackageBundleStateEnum) *api.PackageBundle {
+	return &api.PackageBundle{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: api.PackageNamespace,
+		},
+		Status: api.PackageBundleStatus{
+			State: state,
+		},
+	}
+}
+
 func TestUpdate(t *testing.T) {
 	t.Parallel()
 
 	noBundles := []api.PackageBundle{}
 
+	t.Run("ignore other namespaces", func(t *testing.T) {
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		bundle := givenPackageBundle(api.PackageBundleStateInactive)
+		bundle.Namespace = "billy"
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
+
+		if assert.True(t, bm.Update(bundle, true, noBundles)) {
+			assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
+		}
+	})
+
+	t.Run("ignored is ignored", func(t *testing.T) {
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		bundle := givenPackageBundle(api.PackageBundleStateIgnored)
+		bundle.Namespace = "billy"
+		bm := NewBundleManager(logr.Discard(), discovery, puller)
+
+		if assert.False(t, bm.Update(bundle, true, noBundles)) {
+			assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
+		}
+	})
+
 	t.Run("marks state active", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bundle := &api.PackageBundle{
-			Status: api.PackageBundleStatus{
-				State: api.PackageBundleStateInactive,
-			},
-		}
+		bundle := givenPackageBundle(api.PackageBundleStateInactive)
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		if assert.True(t, bm.Update(bundle, true, noBundles)) {
@@ -201,11 +232,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("marks state inactive", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bundle := &api.PackageBundle{
-			Status: api.PackageBundleStatus{
-				State: api.PackageBundleStateActive,
-			},
-		}
+		bundle := givenPackageBundle(api.PackageBundleStateActive)
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		if assert.True(t, bm.Update(bundle, false, noBundles)) {
@@ -216,11 +243,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("leaves state as-is (inactive)", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bundle := &api.PackageBundle{
-			Status: api.PackageBundleStatus{
-				State: api.PackageBundleStateInactive,
-			},
-		}
+		bundle := givenPackageBundle(api.PackageBundleStateInactive)
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		if assert.False(t, bm.Update(bundle, false, noBundles)) {
@@ -231,11 +254,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("leaves state as-is (active)", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bundle := &api.PackageBundle{
-			Status: api.PackageBundleStatus{
-				State: api.PackageBundleStateActive,
-			},
-		}
+		bundle := givenPackageBundle(api.PackageBundleStateActive)
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
 
 		if assert.True(t, bm.Update(bundle, true, noBundles)) {
@@ -280,18 +299,13 @@ func TestSortBundleNewestFirst(t *testing.T) {
 	t.Run("it sorts newest version first", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bundle := &api.PackageBundle{
-			Status: api.PackageBundleStatus{
-				State: api.PackageBundleStateActive,
-			},
-		}
 		allBundles := []api.PackageBundle{
 			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_one.yaml"),
 			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
 		}
 
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
-		_ = bm.Update(bundle, true, allBundles)
+		bm.SortBundlesNewestFirst(allBundles)
 		if assert.Greater(t, len(allBundles), 1) {
 			assert.Equal(t, "v1-21-1002", allBundles[0].Name)
 			assert.Equal(t, "v1-21-1001", allBundles[1].Name)
@@ -301,11 +315,6 @@ func TestSortBundleNewestFirst(t *testing.T) {
 	t.Run("invalid names go to the end", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bundle := &api.PackageBundle{
-			Status: api.PackageBundleStatus{
-				State: api.PackageBundleStateActive,
-			},
-		}
 		allBundles := []api.PackageBundle{
 			{
 				ObjectMeta: metav1.ObjectMeta{
@@ -320,7 +329,7 @@ func TestSortBundleNewestFirst(t *testing.T) {
 		}
 
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
-		_ = bm.Update(bundle, true, allBundles)
+		bm.SortBundlesNewestFirst(allBundles)
 		if assert.Greater(t, len(allBundles), 2) {
 			assert.Equal(t, "v1-21-1002", allBundles[0].Name)
 			assert.Equal(t, "v1-21-1001", allBundles[1].Name)
