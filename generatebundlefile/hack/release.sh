@@ -25,7 +25,7 @@ make build
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile 
 
 cat << EOF > configfile
-[profile jonah2]
+[profile prod]
 role_arn=$PROD_ARTIFACT_DEPLOYMENT_ROLE
 region=us-east-1
 credential_source=EcsContainer
@@ -34,7 +34,7 @@ EOF
 export AWS_CONFIG_FILE=configfile
 
 KMS_KEY=signingPackagesKey
-PROFILE=jonah2
+PROFILE=prod
 IMAGE_REGISTRY=$(AWS_REGION=us-east-1 && aws ecr-public describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
@@ -43,7 +43,7 @@ aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 h
 
 # Release the bundle to another account
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121_local.yaml \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
     --release-profile ${PROFILE}
 
 # Create the prod bundle
@@ -56,8 +56,5 @@ make oras-install
 
 ECR_PASSWORD=$(aws ecr-public get-login-password --region us-east-1 --profile ${PROFILE})
 cd output/
-# ${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-# ${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-latest" bundle.yaml
-
-${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/aws/eks-anywhere-packages-bundles:v1-21-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/aws/eks-anywhere-packages-bundles:v1-21-latest" bundle.yaml
+${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-latest" bundle.yaml

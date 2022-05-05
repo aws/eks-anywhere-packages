@@ -83,7 +83,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, profile bool)
 	}
 
 	// Pull the Helm chart to Helm Cache
-	BundleLog.Info("Promoting chart and image version %s:%s\n", name, version)
+	BundleLog.Info("Promoting chart and image version", name, version)
 	semVer := strings.Replace(version, "_", "+", 1) // TODO use the Semvar library instead of this hack.
 	chartPath, err := PullHelmChart(name, semVer, authFile)
 	if err != nil {
@@ -131,7 +131,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, profile bool)
 			BundleLog.Error(err, "Unable to complete sha lookup this is due to an ECRPublic DescribeImages failure")
 		}
 		if check {
-			BundleLog.Info("%s/%s already exists in destination location......skipping\n", images.Repository, images.Digest)
+			BundleLog.Info("Image Digest already exists in destination location......skipping", images.Repository, images.Digest)
 			continue
 		} else {
 			// If using a profile we just copy from source account to destination account
