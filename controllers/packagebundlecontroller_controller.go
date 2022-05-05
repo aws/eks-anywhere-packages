@@ -126,7 +126,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 			pbc.Status.State = api.BundleControllerStateDisconnected
 			err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
 			if err != nil {
-				return result, fmt.Errorf("updating status to active: %s", err)
+				return result, fmt.Errorf("updating status to disconnected: %s", err)
 			}
 		}
 		result.RequeueAfter = pbc.Spec.UpgradeCheckShortInterval.Duration
@@ -135,7 +135,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 	if changed {
 		err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
 		if err != nil {
-			return result, fmt.Errorf("updating status to active: %s", err)
+			return result, fmt.Errorf("updating status: %s", err)
 		}
 	}
 
