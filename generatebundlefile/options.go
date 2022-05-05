@@ -19,6 +19,7 @@ type Options struct {
 	generateSample bool
 	promote        string
 	key            string
+	release        string
 }
 
 // Validate validates the receiving options.
@@ -73,6 +74,7 @@ func NewOptions() *Options {
 	fs.StringVar(&o.signature, "signature", "", "The Signature of the bundle to be added as an annotation")
 	fs.StringVar(&o.promote, "promote", "", "The Helm chart private ECR OCI uri to pull and promote")
 	fs.StringVar(&o.key, "key", "k", "The key to sign with")
+	fs.StringVar(&o.release, "release-profile", "", "The AWS Profile to release all the assets of a bundle into")
 	err := fs.Parse(os.Args[1:])
 	if err != nil {
 		BundleLog.Error(err, "Error parsing input flags")

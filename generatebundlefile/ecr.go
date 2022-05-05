@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 
@@ -40,12 +40,17 @@ type ecrClient struct {
 }
 
 // NewECRPublicClient Creates a new ECR Client Public client
-func NewECRPublicClient(creds bool) (*ecrPublicClient, error) {
+func NewECRPublicClient(creds bool, conf *aws.Config) (*ecrPublicClient, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
 	if err != nil {
 		return nil, fmt.Errorf("Creating AWS ECR Public config %w", err)
 	}
-	ecrPublicClient := &ecrPublicClient{Client: ecrpublic.NewFromConfig(cfg)}
+	ecrPublicClient := &ecrPublicClient{}
+	if conf != nil {
+		ecrPublicClient.Client = ecrpublic.NewFromConfig(*conf)
+	} else {
+		ecrPublicClient.Client = ecrpublic.NewFromConfig(cfg)
+	}
 	if creds {
 		authorizationToken, err := ecrPublicClient.GetPublicAuthToken()
 		if err != nil {
@@ -211,9 +216,9 @@ func getLastestImageSha(details []ecrpublictypes.ImageDetail) (*api.SourceVersio
 }
 
 // getLastestImageSha Iterates list of ECR Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
-func getLastestHelmTag(details []ecrtypes.ImageDetail) (string, error) {
+func getLastestHelmTagandSha(details []ecrtypes.ImageDetail) (string, string, error) {
 	if len(details) == 0 {
-		return "", fmt.Errorf("no details provided")
+		return "", "", fmt.Errorf("no details provided")
 	}
 	var latest ecrtypes.ImageDetail
 	latest.ImagePushedAt = &time.Time{}
@@ -227,9 +232,31 @@ func getLastestHelmTag(details []ecrtypes.ImageDetail) (string, error) {
 	}
 	// Check if latest is equal to empty struct, and return error if that's the case.
 	if reflect.DeepEqual(latest, ecrtypes.ImageDetail{}) {
-		return "", fmt.Errorf("error no images found")
+		return "", "", fmt.Errorf("error no images found")
 	}
-	return latest.ImageTags[0], nil
+	return latest.ImageTags[0], *latest.ImageDigest, nil
+}
+
+// getLastestImageSha Iterates list of ECR Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
+func getLastestHelmTagandShaPublic(details []ecrpublictypes.ImageDetail) (string, string, error) {
+	if len(details) == 0 {
+		return "", "", fmt.Errorf("no details provided")
+	}
+	var latest ecrpublictypes.ImageDetail
+	latest.ImagePushedAt = &time.Time{}
+	for _, detail := range details {
+		if len(details) < 1 || detail.ImagePushedAt == nil || detail.ImageDigest == nil || detail.ImageTags == nil || len(detail.ImageTags) == 0 || *detail.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" {
+			continue
+		}
+		if detail.ImagePushedAt != nil && latest.ImagePushedAt.Before(*detail.ImagePushedAt) {
+			latest = detail
+		}
+	}
+	// Check if latest is equal to empty struct, and return error if that's the case.
+	if reflect.DeepEqual(latest, ecrtypes.ImageDetail{}) {
+		return "", "", fmt.Errorf("error no images found")
+	}
+	return latest.ImageTags[0], *latest.ImageDigest, nil
 }
 
 // imageTagFilter is used when filtering a list of images for a specific tag or tag substring
@@ -355,15 +382,9 @@ type DockerAuthRegistry struct {
 	Auth string `json:"auth"`
 }
 
-func NewAuthFile(privToken, publicToken, accountID string) (string, error) {
-	// {auths:{\"${REGISTRY}\":{auth:\$in}}}
-	dockerStruct := &DockerAuth{
-		Auths: map[string]DockerAuthRegistry{
-			fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", accountID, ecrRegion): DockerAuthRegistry{privToken},
-			"public.ecr.aws": DockerAuthRegistry{publicToken},
-		},
-	}
-	jsonbytes, err := json.Marshal(dockerStruct)
+//func NewAuthFile(source, dest, accountID string) (string, error) {
+func NewAuthFile(dockerstruct *DockerAuth) (string, error) {
+	jsonbytes, err := json.Marshal(*dockerstruct)
 	if err != nil {
 		return "", fmt.Errorf("Marshalling docker auth file to json %w", err)
 	}
@@ -378,8 +399,21 @@ func NewAuthFile(privToken, publicToken, accountID string) (string, error) {
 
 // copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
 func copyImagePrivPubSameAcct(log logr.Logger, authFile string, stsClient *stsClient, ecrPublic *ecrPublicClient, image Image) error {
-	source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", stsClient.AccountID, image.Repository, image.Digest)
-	destination := fmt.Sprintf("docker://%s/%s:%s", ecrPublic.SourceRegistry, image.Repository, image.Digest)
+	source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", stsClient.AccountID, image.Repository, image.Tag)
+	destination := fmt.Sprintf("docker://%s/%s:%s", ecrPublic.SourceRegistry, image.Repository, image.Tag)
+	log.Info("Promoting...", source, destination)
+	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
+	_, err := ExecCommand(cmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// copyImagePrivPubSameAcct will copy an OCI artifact from ECR Public to ECR Public to another account.
+func (c *SDKClients) copyImagePubPubDifferentAcct(log logr.Logger, authFile string, image Image) error {
+	source := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, image.Repository, image.Tag)
+	destination := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClientRelease.SourceRegistry, image.Repository, image.Tag)
 	log.Info("Promoting...", source, destination)
 	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
 	_, err := ExecCommand(cmd)
@@ -401,6 +435,16 @@ func ExecCommand(cmd *exec.Cmd) (string, error) {
 // splitECRName is a helper function where some ECR repo's are formatted with "org/repo", and for aws repos it's just "repo"
 func splitECRName(s string) (string, string, error) {
 	chartNameList := strings.Split(s, "/")
+	// Scenarios for ECR Public which contain and extra "/"
+	if strings.Contains(chartNameList[0], "public.ecr.aws") {
+		if len(chartNameList) == 3 {
+			return chartNameList[2], chartNameList[2], nil
+		}
+		// Scenario's where we use Public ECR it's adding an extra /
+		if len(chartNameList) == 4 {
+			return fmt.Sprintf("%s/%s", chartNameList[2], chartNameList[3]), chartNameList[3], nil
+		}
+	}
 	if len(chartNameList) == 2 {
 		return chartNameList[1], chartNameList[1], nil
 	}
@@ -410,25 +454,50 @@ func splitECRName(s string) (string, string, error) {
 	return "", "", fmt.Errorf("Error: %s", "Failed parsing chartName, check the input URI is a valid ECR URI")
 }
 
-// getNameAndVersion looks up the latest pushed helm chart's tag from a given repo name.
-func (c *ecrClient) getNameAndVersion(s, accountID string) (string, string, error) {
+// getNameAndVersionPrivate looks up the latest pushed helm chart's tag from a given repo name from ECR.
+func (c *SDKClients) getNameAndVersion(s, accountID string) (string, string, string, error) {
 	var version string
+	var sha string
 	splitname := strings.Split(s, ":") // TODO add a regex filter
 	name := splitname[0]
 	if len(splitname) == 1 {
-		ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
+		ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
 			RepositoryName: aws.String(s),
 		})
 		if err != nil {
-			return "", "", err
+			return "", "", "", err
 		}
-		version, err = getLastestHelmTag(ImageDetails)
+		version, sha, err = getLastestHelmTagandSha(ImageDetails)
 		if err != nil {
-			return "", "", err
+			return "", "", "", err
 		}
 		ecrname := fmt.Sprintf("%s.dkr.ecr.us-west-2.amazonaws.com/%s", accountID, name)
-		return ecrname, version, err
+		return ecrname, version, sha, err
 	}
 	version = splitname[1]
-	return name, version, nil
+	return name, version, sha, nil
+}
+
+// getNameAndVersionPublic looks up the latest pushed helm chart's tag from a given repo name in Public ECR OCI format.
+func (c *SDKClients) getNameAndVersionPublic(s, registryURI string) (string, string, string, error) {
+	var version string
+	var sha string
+	splitname := strings.Split(s, ":") // TODO add a regex filter
+	name := splitname[0]
+	if len(splitname) == 1 {
+		ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
+			RepositoryName: aws.String(s),
+		})
+		if err != nil {
+			return "", "", "", err
+		}
+		version, sha, err = getLastestHelmTagandShaPublic(ImageDetails)
+		if err != nil {
+			return "", "", "", err
+		}
+		ecrname := fmt.Sprintf("%s/%s", c.ecrPublicClient.SourceRegistry, name)
+		return ecrname, version, sha, err
+	}
+	version = splitname[1]
+	return name, version, sha, nil
 }
