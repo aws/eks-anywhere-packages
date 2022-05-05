@@ -22,7 +22,6 @@ export LANG=C.UTF-8
 
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 make build
-chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile 
 
 cat << EOF > configfile
 [profile prod]
@@ -35,7 +34,7 @@ export AWS_CONFIG_FILE=configfile
 
 KMS_KEY=signingPackagesKey
 PROFILE=prod
-IMAGE_REGISTRY=$(AWS_REGION=us-east-1 && aws ecr-public describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
+IMAGE_REGISTRY=$(aws ecr-public --region us-east-1 describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
 aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com

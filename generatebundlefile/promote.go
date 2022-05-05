@@ -62,15 +62,13 @@ func GetSDKClients(profile string) (*SDKClients, error) {
 }
 
 // PromoteHelmChart will take a given repository, and authFile and handle helm and image promotion for the mentioned chart.
-func (c *SDKClients) PromoteHelmChart(repository, authFile string, profile bool) error {
+func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount bool) error {
 	var name, version, sha string
 	pwd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("Error getting pwd %s", err)
 	}
-
-	//
-	if profile {
+	if crossAccount {
 		name, version, sha, err = c.getNameAndVersionPublic(repository, c.stsClient.AccountID)
 		if err != nil {
 			return fmt.Errorf("Error getting name and version from helmchart %s", err)
@@ -119,32 +117,32 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, profile bool)
 
 	// Change the source destination check depending on release or not
 	destination := c.ecrPublicClient
-	if profile {
+	if crossAccount {
 		destination = c.ecrPublicClientRelease
 	}
-
+	fmt.Printf("helmRequires.Spec.Images=%v\n", helmRequires.Spec.Images)
 	// Loop through each image, and the helm chart itself and check for existance in ECR Public, skip if we find the SHA already exists in destination.
 	// If we don't find the SHA in public, we lookup the tag from Private, and copy from private to Public with the same tag.
 	for _, images := range helmRequires.Spec.Images {
 		check, err := destination.shaExistsInRepository(images.Repository, images.Digest)
 		if err != nil {
-			BundleLog.Error(err, "Unable to complete sha lookup this is due to an ECRPublic DescribeImages failure")
+			return fmt.Errorf("Unable to complete sha lookup this is due to an ECRPublic DescribeImages failure %s", err)
 		}
 		if check {
 			BundleLog.Info("Image Digest already exists in destination location......skipping", images.Repository, images.Digest)
 			continue
 		} else {
 			// If using a profile we just copy from source account to destination account
-			if profile {
+			if crossAccount {
 				err := c.copyImagePubPubDifferentAcct(BundleLog, authFile, images)
 				if err != nil {
-					BundleLog.Error(err, "Unable to copy image from source to destination repo")
+					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
 				}
 				continue
 			}
 			err := copyImagePrivPubSameAcct(BundleLog, authFile, c.stsClient, c.ecrPublicClient, images)
 			if err != nil {
-				BundleLog.Error(err, "Unable to copy image from source to destination repo")
+				return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
 			}
 		}
 	}
