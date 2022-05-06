@@ -14,18 +14,18 @@ The EKS Anywhere package controller and the EKS Anywhere Curated Packages (refer
 
 ---
 
-EKS Anywhere Curated Packages is a management system for installation, configuration and maintenance of additional components for your Kubernetes cluster. Examples of these components may include Container Registry, Ingress, and LoadBalancer, etc.
+The EKS Anywhere Curated Packages is a management system for installation, configuration and maintenance of additional components for your Kubernetes cluster. Examples of these components may include Container Registry, Ingress, and LoadBalancer, etc.
 
-Here are the steps for [getting started](docs/README.md) with EKS Anywhere Curated Packages.
+Here are the steps for [getting started](docs/README.md) with the EKS Anywhere Curated Packages.
 
-### Development
+## Development
 
-The EKS Anywhere is tested using
+The EKS Anywhere Curated Packages is tested using
 [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), the Kubernetes CI system.
 EKS operates an installation of Prow, which is visible at [https://prow.eks.amazonaws.com/](https://prow.eks.amazonaws.com/).
 Please read our [CONTRIBUTING](CONTRIBUTING.md) guide before making a pull request.
 
-The dependencies which make up EKS Anywhere Curated Packages are defined and built via the [build-tooling](https://github.com/aws/eks-anywhere-build-tooling) repo.
+The dependencies which make up the EKS Anywhere Curated Packages are defined and built via the [build-tooling](https://github.com/aws/eks-anywhere-build-tooling) repo.
 
 ## Security
 
