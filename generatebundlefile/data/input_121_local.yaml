@@ -3,8 +3,8 @@ kubernetesVersion: "1.21"
 packages:
   - org: aws
     projects:
-      - name: eks-anywhere-test
-        repository: eks-anywhere-test
+      - name: hello-eks-anywhere
+        repository: hello-eks-anywhere
         registry: public.ecr.aws/f5b7k4z5
         versions:
             - name: latest

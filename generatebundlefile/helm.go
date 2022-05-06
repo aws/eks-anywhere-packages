@@ -17,7 +17,7 @@ import (
 )
 
 // PullHelmChart will take in a a remote Helm URI and attempt to pull down the chart if it exists.
-func PullHelmChart(name, version string) (string, error) {
+func PullHelmChart(name, version, authfile string) (string, error) {
 	if name == "" || version == "" {
 		return "", fmt.Errorf("empty input for PullHelmChart, check flags")
 	}
@@ -26,7 +26,8 @@ func PullHelmChart(name, version string) (string, error) {
 	if err := actionConfig.Init(settings.RESTClientGetter(), "", os.Getenv("HELM_DRIVER"), helmLog(logr.Discard())); err != nil {
 		return "", fmt.Errorf("init the helm client aciton failed: %w", err)
 	}
-	client, err := registry.NewClient()
+	options := registry.ClientOptCredentialsFile(authfile)
+	client, err := registry.NewClient(options)
 	if err != nil {
 		return "", fmt.Errorf("creating registry client while initializing helm driver: %w", err)
 	}

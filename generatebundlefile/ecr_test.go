@@ -37,8 +37,16 @@ func TestPullHelmChart(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
+		clients, _ := GetSDKClients("")
+		dockerStruct := &DockerAuth{
+			Auths: map[string]DockerAuthRegistry{
+				fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): DockerAuthRegistry{clients.ecrClient.AuthConfig},
+				"public.ecr.aws": DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
+			},
+		}
+		authFile, _ := NewAuthFile(dockerStruct)
 		t.Run(tc.testName, func(tt *testing.T) {
-			got, err := PullHelmChart(tc.testHelmName, tc.testHelmVersion)
+			got, err := PullHelmChart(tc.testHelmName, tc.testHelmVersion, authFile)
 			if (err != nil) != tc.wantErr {
 				tt.Fatalf("PullHelmChart() error = %v, wantErr %v", err, tc.wantErr)
 			}
@@ -167,11 +175,11 @@ func TestShaExistsInRepository(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.testName, func(tt *testing.T) {
-			ecrPublicClient, err := NewECRPublicClient(true)
+			clients, err := GetSDKClients("")
 			if err != nil {
 				tt.Fatalf("ecrPublicClient() did not work, %v", err)
 			}
-			got, err := ecrPublicClient.shaExistsInRepository(tc.testRepository, tc.testVersion)
+			got, err := clients.ecrPublicClient.shaExistsInRepository(tc.testRepository, tc.testVersion)
 			if (err != nil) != tc.wantErr {
 				tt.Fatalf("shaExistsInRepository() error = %v, wantErr %v", err, tc.wantErr)
 			}

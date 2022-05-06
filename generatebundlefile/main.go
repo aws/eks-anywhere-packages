@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
 	"gopkg.in/yaml.v2"
@@ -48,87 +47,22 @@ func main() {
 
 	if o.promote != "" {
 		fmt.Printf("Promoting %s from private ECR to Public ECR\n", o.promote)
-		// Get AWS Clients
-		ecrPublicClient, err := NewECRPublicClient(true)
-		if err != nil {
-			BundleLog.Error(err, "Unable to create SDK connection to ECR Public")
+		clients, err := GetSDKClients("")
+		clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
+		dockerStruct := &DockerAuth{
+			Auths: map[string]DockerAuthRegistry{
+				fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): DockerAuthRegistry{clients.ecrClient.AuthConfig},
+				"public.ecr.aws": DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
+			},
 		}
-		ecrClient, err := NewECRClient(true)
-		if err != nil {
-			BundleLog.Error(err, "Unable to create SDK connection to ECR")
-		}
-		stsClient, err := NewStsClient(true)
-		if err != nil {
-			BundleLog.Error(err, "Unable to create SDK connection to STS")
-		}
-		authFile, err := NewAuthFile(ecrClient.AuthConfig, ecrPublicClient.AuthConfig, stsClient.AccountID)
+		authFile, err := NewAuthFile(dockerStruct)
 		if err != nil || authFile == "" {
 			BundleLog.Error(err, "Unable create AuthFile")
 		}
 		defer os.Remove(authFile)
-
-		name, version, err := ecrClient.getNameAndVersion(o.promote, stsClient.AccountID)
-		fmt.Printf("Promoting chart and image version %s:%s\n", name, version)
-		semVer := strings.Replace(version, "_", "+", 1) // TODO use the Semvar library instead of this hack.
-
-		// Pull the Helm chart to Helm Cache
-		chartPath, err := PullHelmChart(name, semVer)
+		err = clients.PromoteHelmChart(o.promote, authFile, false)
 		if err != nil {
-			BundleLog.Error(err, "Failed pulling Helm Chart")
-		}
-		// Get the correct Repo Name from the flag based on ECR repo name formatting
-		// since we prepend the github org on some repo's, and not on others.
-		chartName, helmname, err := splitECRName(name)
-		if err != nil {
-			BundleLog.Error(err, "Failed splitECRName")
-		}
-		// Untar the helm .tgz to pwd and name the folder to the helm chart Name
-		dest := filepath.Join(pwd, chartName)
-		err = UnTarHelmChart(chartPath, chartName, dest)
-		if err != nil {
-			BundleLog.Error(err, "failed pulling helm release %s", name)
-		}
-
-		// Check for requires.yaml in the unpacked helm chart
-		helmDest := filepath.Join(pwd, chartName, helmname)
-		f, err := hasRequires(helmDest)
-		if err != nil {
-			BundleLog.Error(err, "Helm chart doesn't have requires.yaml inside")
-		}
-
-		// Unpack requires.yaml into a GO struct
-		helmRequires, err := validateHelmRequires(f)
-		if err != nil {
-			BundleLog.Error(err, "Unable to parse requires.yaml file to Go Struct")
-		}
-
-		// Add the helm chart to the struct before looping through lookup/promote since we need it promoted too.
-		ecrPublicClient.SourceRegistry, err = ecrPublicClient.GetRegistryURI()
-		fmt.Printf("Got ECR Public destination: %s\n", ecrPublicClient.SourceRegistry)
-		helmRequires.Spec.Images = append(helmRequires.Spec.Images, Image{Repository: chartName, Digest: version})
-
-		// Loop through each image, and the helm chart itself and check for existance in ECR Public, skip if we find the SHA already exists in destination.
-		// If we don't find the SHA in public, we lookup the tag from Private, and copy from private to Public with the same tag.
-		for _, images := range helmRequires.Spec.Images {
-			check, err := ecrPublicClient.shaExistsInRepository(images.Repository, images.Digest)
-			if err != nil {
-				BundleLog.Error(err, "Unable to complete sha lookup this is due to an ECRPublic DescribeImages failure")
-			}
-			if check {
-				continue
-			} else {
-				// If it's a Digest, we lookup the tag, and override it so we have a destination tag in the public Repo.
-				if strings.HasPrefix(images.Digest, "sha256") {
-					images.Digest, err = ecrClient.tagFromSha(images.Repository, images.Digest)
-					if err != nil {
-						BundleLog.Error(err, "Unable to find Tag from Digest")
-					}
-				}
-				err := copyImagePrivPubSameAcct(BundleLog, authFile, stsClient, ecrPublicClient, images)
-				if err != nil {
-					BundleLog.Error(err, "Unable to copy image from source to destination repo")
-				}
-			}
+			BundleLog.Error(err, "Unable to promote Helm Chart")
 		}
 		fmt.Printf("Promote Finished, exiting gracefully\n")
 		return
@@ -193,8 +127,31 @@ func main() {
 			os.Exit(1)
 		}
 		// Write list of bundle structs into Bundle CRD files
-		BundleLog.Info("In Progress: Writing output files")
+		BundleLog.Info("In Progress: Writing bundle to output")
 		bundle := AddMetadata(addOnBundleSpec, name)
+
+		// // If we trigger a release,
+		if o.release != "" {
+			BundleLog.Info("Starting release process....")
+			clients, err := GetSDKClients(o.release)
+			clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
+			clients.ecrPublicClientRelease.SourceRegistry, err = clients.ecrPublicClientRelease.GetRegistryURI()
+			dockerReleaseStruct := &DockerAuth{
+				Auths: map[string]DockerAuthRegistry{
+					fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
+					"public.ecr.aws": DockerAuthRegistry{clients.ecrPublicClientRelease.AuthConfig},
+				},
+			}
+			authFile, err := NewAuthFile(dockerReleaseStruct)
+			if err != nil || authFile == "" {
+				BundleLog.Error(err, "Unable create AuthFile")
+			}
+			defer os.Remove(authFile)
+			for _, charts := range addOnBundleSpec.Packages {
+				err = clients.PromoteHelmChart(charts.Source.Repository, authFile, true)
+			}
+			return
+		}
 
 		signature, err := GetBundleSignature(context.Background(), bundle, o.key)
 		if err != nil {
