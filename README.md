@@ -14,7 +14,7 @@ The EKS Anywhere package controller and the EKS Anywhere Curated Packages (refer
 
 **Build status:** ![Build status](https://codebuild.us-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiRmp0cVVpck53WjVxYUVibGxFdSsxM05sby9zenRkN1YwRTVLTjhBUUFORXpGQkVkR2Y3aThhdDhEN3pHZzRpRHl0K2xRcFd0U2VIcWpUaW9kb1hOV3FFPSIsIml2UGFyYW1ldGVyU3BlYyI6InNKTm5MNWZPNVA3T0tOV0EiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main)
 
-EKS Anywhere Curated Packages is a framework to manage installation, configuration and maintenance of components that provide general operational capabilities for Kubernetes applications.
+EKS Anywhere Curated Packages is a management system for installation, configuration and maintenance of additional components for your Kubernetes cluster. Examples of these components may include Container Registry, Ingress, and LoadBalancer, etc.
 
 Here are the steps for [getting started](docs/README.md) with EKS Anywhere Curated Packages.
 
