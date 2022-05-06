@@ -74,7 +74,7 @@ controller:
   #   value: ""
   env: 
     - name: EKSA_PUBLIC_KEY
-      value: "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg=="
+      value: "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw=="
   # env:
   #   - name: EKSA_PUBLIC_KEY,
   #     value: "12345"
