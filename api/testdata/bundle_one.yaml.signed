@@ -3,7 +3,7 @@ kind: PackageBundle
 metadata:
   name: v1-21-1001
   namespace: eksa-packages
-  annotations: {eksa.aws.com/signature: MEYCIQCf0PEXc2ceOu7bb1EovaSNM9BjvdT4vexn1uwW67FzjQIhALg+sW0Vqgt6wc/FEWWXOrwM93coY1BXkRkivr7hwz+d}
+  annotations: {eksa.aws.com/signature: MEQCICsPkClx2iduW5iYSxZaE74HhCQdsvpRsQapP1gHRU7YAiAsl04YtOOzIQkYfNy9yxX0TTNq8tVqACX43I5kYmqoAQ==}
 spec:
   packages:
     - name: Test
@@ -11,8 +11,8 @@ spec:
         registry: public.ecr.aws/l0g8r8j6
         repository: hello-eks-anywhere
         versions:
-          - name: v0.1.1-8b3810e1514b7432e032794842425accc837757a-helm
-            digest: sha256:64ea03b119d2421f9206252ff4af4bf7cdc2823c343420763e0e6fc20bf03b68
+          - name: 0.1.1-6d0e566362d03a00f41d75524d21de5ddb95fd1d
+            digest: sha256:b2f1efe2f2bf126992ddcba03c353dc1106113c924c49553a9da7366f1653d2a
     - name: Flux
       source:
         registry: public.ecr.aws/j0a1m4z9
@@ -22,8 +22,8 @@ spec:
             digest: sha256:5fb61d0b650483851ce3892e30f1d2c4c1372aafd51be24f37bbb0056db04012
     - name: Harbor
       source:
-        registry: public.ecr.aws/y8n6a2y0
+        registry: public.ecr.aws/l0g8r8j6
         repository: harbor/harbor-helm
         versions:
-          - name: v2.4.1-f47374093e8a9c48aca8c7a7f06ae185eb7506f3-helm
-            digest: sha256:423eb28b0586376f4d1d30b492370a4e215f2b0210a587fff6f358efc41dda4c
+          - name: 2.5.0-f78bf0f83fc6986478cab1336de8c411647c2096
+            digest: sha256:0fe93a79c75e9d81cfc1141e20bb7d2d17fa1d516a2f001e229d01245ede1519

@@ -4,7 +4,7 @@ metadata:
   name: my-test
   namespace: eksa-packages
 spec:
-  packageName: Test
+  packageName: test
   config: |
     config:
       foo: windom
