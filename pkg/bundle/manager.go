@@ -35,7 +35,7 @@ type Manager interface {
 	DownloadBundle(ctx context.Context, ref string) (
 		*api.PackageBundle, error)
 
-	SortBundlesNewestFirst(bundles []api.PackageBundle)
+	SortBundlesDescending(bundles []api.PackageBundle)
 }
 
 type bundleManager struct {
@@ -87,7 +87,7 @@ func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 	// allBundles should never be nil or empty in production, but for testing
 	// it's much easier to handle a nil case.
 	if active && allBundles != nil && len(allBundles) > 0 {
-		m.SortBundlesNewestFirst(allBundles)
+		m.SortBundlesDescending(allBundles)
 		if allBundles[0].Name != newBundle.Name {
 			newBundle.Status.State = api.PackageBundleStateUpgradeAvailable
 		}
@@ -97,8 +97,9 @@ func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
 	return true
 }
 
-// SortBundlesNewestFirst will sort a slice of bundles so that the newest is first.
-func (m bundleManager) SortBundlesNewestFirst(bundles []api.PackageBundle) {
+// SortBundlesDescending will sort a slice of bundles in descending order so
+// that the newest (greatest) bundle will be displayed first.
+func (m bundleManager) SortBundlesDescending(bundles []api.PackageBundle) {
 	sortFn := func(i, j int) bool {
 		return bundles[j].LessThan(&bundles[i])
 	}

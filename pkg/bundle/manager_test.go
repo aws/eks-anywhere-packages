@@ -305,7 +305,7 @@ func TestSortBundleNewestFirst(t *testing.T) {
 		}
 
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
-		bm.SortBundlesNewestFirst(allBundles)
+		bm.SortBundlesDescending(allBundles)
 		if assert.Greater(t, len(allBundles), 1) {
 			assert.Equal(t, "v1-21-1002", allBundles[0].Name)
 			assert.Equal(t, "v1-21-1001", allBundles[1].Name)
@@ -329,7 +329,7 @@ func TestSortBundleNewestFirst(t *testing.T) {
 		}
 
 		bm := NewBundleManager(logr.Discard(), discovery, puller)
-		bm.SortBundlesNewestFirst(allBundles)
+		bm.SortBundlesDescending(allBundles)
 		if assert.Greater(t, len(allBundles), 2) {
 			assert.Equal(t, "v1-21-1002", allBundles[0].Name)
 			assert.Equal(t, "v1-21-1001", allBundles[1].Name)
