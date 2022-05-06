@@ -4,5 +4,5 @@ metadata:
   name: my-harbor
   namespace: eksa-packages
 spec:
-  packageName: Harbor
+  packageName: harbor
   packageVersion: v2.4.1-f47374093e8a9c48aca8c7a7f06ae185eb7506f3-helm

@@ -49,16 +49,16 @@ func TestDownloadBundle(t *testing.T) {
 			t.Errorf("expected three packages to be defined, found %d",
 				len(bundle.Spec.Packages))
 		}
-		if bundle.Spec.Packages[0].Name != "Test" {
-			t.Errorf("expected first package name to be \"Test\", got: %q",
+		if bundle.Spec.Packages[0].Name != "test" {
+			t.Errorf("expected first package name to be \"test\", got: %q",
 				bundle.Spec.Packages[0].Name)
 		}
-		if bundle.Spec.Packages[1].Name != "Flux" {
-			t.Errorf("expected second package name to be \"Flux\", got: %q",
+		if bundle.Spec.Packages[1].Name != "flux" {
+			t.Errorf("expected second package name to be \"flux\", got: %q",
 				bundle.Spec.Packages[1].Name)
 		}
-		if bundle.Spec.Packages[2].Name != "Harbor" {
-			t.Errorf("expected third package name to be \"Harbor\", got: %q",
+		if bundle.Spec.Packages[2].Name != "harbor" {
+			t.Errorf("expected third package name to be \"harbor\", got: %q",
 				bundle.Spec.Packages[2].Name)
 		}
 	})

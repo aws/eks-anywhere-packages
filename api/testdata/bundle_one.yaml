@@ -6,21 +6,21 @@ metadata:
   annotations: {}
 spec:
   packages:
-    - name: Test
+    - name: test
       source:
         registry: public.ecr.aws/l0g8r8j6
         repository: hello-eks-anywhere
         versions:
           - name: 0.1.1-6d0e566362d03a00f41d75524d21de5ddb95fd1d
             digest: sha256:b2f1efe2f2bf126992ddcba03c353dc1106113c924c49553a9da7366f1653d2a
-    - name: Flux
+    - name: flux
       source:
         registry: public.ecr.aws/j0a1m4z9
         repository: fluxcd/flux2
         versions:
           - name: v0.23.0-0b585d5986a1cfcee67b7a956eeef687f00ae468-helm
             digest: sha256:5fb61d0b650483851ce3892e30f1d2c4c1372aafd51be24f37bbb0056db04012
-    - name: Harbor
+    - name: harbor
       source:
         registry: public.ecr.aws/l0g8r8j6
         repository: harbor/harbor-helm
