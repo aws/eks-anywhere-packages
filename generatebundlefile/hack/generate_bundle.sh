@@ -26,7 +26,7 @@ chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile
 IMAGE_REGISTRY=$(AWS_REGION=us-east-1 && aws ecr-public describe-registries --query 'registries[*].registryUri' --output text)
 KMS_KEY=signingPackagesKey
 
-# Create the bundle
+# # 1.21 Bundle Build
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
     --key alias/${KMS_KEY}
@@ -35,6 +35,17 @@ mkdir -p ${BASE_DIRECTORY}/bin
 make oras-install
 
 ECR_PASSWORD=$(aws ecr-public get-login-password --region us-east-1)
-cd output/
+cd ${BASE_DIRECTORY}/generatebundlefile/output
 ${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
 ${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-latest" bundle.yaml
+
+# 1.22 Bundle Build
+cd ${BASE_DIRECTORY}/generatebundlefile
+
+${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_122.yaml \
+    --key alias/${KMS_KEY}
+
+cd ${BASE_DIRECTORY}/generatebundlefile/output
+${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-22-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-22-latest" bundle.yaml
