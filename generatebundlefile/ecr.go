@@ -296,6 +296,32 @@ func (c *ecrPublicClient) shaExistsInRepository(repository, sha string) (bool, e
 	return false, nil
 }
 
+// shaExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
+func (c *ecrPublicClient) tagExistsInRepository(repository, tag string) (bool, error) {
+	if repository == "" || tag == "" {
+		return false, fmt.Errorf("Emtpy repository, or tag passed to the function")
+	}
+	var imagelookup []ecrpublictypes.ImageIdentifier
+	imagelookup = append(imagelookup, ecrpublictypes.ImageIdentifier{ImageTag: &tag})
+	ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
+		RepositoryName: aws.String(repository),
+		ImageIds:       imagelookup,
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "does not exist within the repository") == true {
+			return false, nil
+		}
+	}
+	for _, detail := range ImageDetails {
+		for _, Imagetag := range detail.ImageTags {
+			if tag == Imagetag {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
+
 // GetRegistryURI gets the current account's AWS ECR Public registry URI
 func (c *ecrPublicClient) GetRegistryURI() (string, error) {
 	registries, err := c.DescribeRegistries(context.TODO(), (&ecrpublic.DescribeRegistriesInput{}))
@@ -398,9 +424,9 @@ func NewAuthFile(dockerstruct *DockerAuth) (string, error) {
 }
 
 // copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
-func copyImagePrivPubSameAcct(log logr.Logger, authFile string, stsClient *stsClient, ecrPublic *ecrPublicClient, image Image) error {
+func copyImagePrivPubSameAcct(log logr.Logger, authFile, version string, stsClient *stsClient, ecrPublic *ecrPublicClient, image Image) error {
 	source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", stsClient.AccountID, image.Repository, image.Tag)
-	destination := fmt.Sprintf("docker://%s/%s:%s", ecrPublic.SourceRegistry, image.Repository, image.Tag)
+	destination := fmt.Sprintf("docker://%s/%s:%s", ecrPublic.SourceRegistry, image.Repository, version)
 	log.Info("Promoting...", source, destination)
 	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
 	_, err := ExecCommand(cmd)

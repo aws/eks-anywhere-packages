@@ -134,8 +134,17 @@ func main() {
 		if o.release != "" {
 			BundleLog.Info("Starting release process....")
 			clients, err := GetSDKClients(o.release)
+			if err != nil {
+				BundleLog.Error(err, "Unable create SDK Client connections")
+			}
 			clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
+			if err != nil {
+				BundleLog.Error(err, "Unable create find Public ECR URI from calling account")
+			}
 			clients.ecrPublicClientRelease.SourceRegistry, err = clients.ecrPublicClientRelease.GetRegistryURI()
+			if err != nil {
+				BundleLog.Error(err, "Unable create find Public ECR URI for destination account")
+			}
 			dockerReleaseStruct := &DockerAuth{
 				Auths: map[string]DockerAuthRegistry{
 					fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
