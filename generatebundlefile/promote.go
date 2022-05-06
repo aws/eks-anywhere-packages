@@ -79,9 +79,8 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 			return fmt.Errorf("Error getting name and version from helmchart %s", err)
 		}
 	}
-
 	// Pull the Helm chart to Helm Cache
-	BundleLog.Info("Promoting chart and image version", name, version)
+	fmt.Printf("Promoting chart and images for version %s %s\n", name, version)
 	semVer := strings.Replace(version, "_", "+", 1) // TODO use the Semvar library instead of this hack.
 	chartPath, err := PullHelmChart(name, semVer, authFile)
 	if err != nil {
@@ -120,18 +119,19 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 	if crossAccount {
 		destination = c.ecrPublicClientRelease
 	}
-	fmt.Printf("helmRequires.Spec.Images=%v\n", helmRequires.Spec.Images)
 	// Loop through each image, and the helm chart itself and check for existance in ECR Public, skip if we find the SHA already exists in destination.
 	// If we don't find the SHA in public, we lookup the tag from Private, and copy from private to Public with the same tag.
 	for _, images := range helmRequires.Spec.Images {
-		check, err := destination.shaExistsInRepository(images.Repository, images.Digest)
+		checkSha, err := destination.shaExistsInRepository(images.Repository, images.Digest)
+		checkTag, err := destination.tagExistsInRepository(images.Repository, images.Tag)
 		if err != nil {
 			return fmt.Errorf("Unable to complete sha lookup this is due to an ECRPublic DescribeImages failure %s", err)
 		}
-		if check {
-			BundleLog.Info("Image Digest already exists in destination location......skipping", images.Repository, images.Digest)
+		if checkSha && checkTag {
+			fmt.Printf("Image Digest, and Tag already exists in destination location......skipping %s %s\n", images.Repository, images.Digest)
 			continue
 		} else {
+			fmt.Printf("Image Digest, and Tag dont exist in destination location......copying over %s %s\n", images.Repository, images.Digest)
 			// If using a profile we just copy from source account to destination account
 			if crossAccount {
 				err := c.copyImagePubPubDifferentAcct(BundleLog, authFile, images)
@@ -139,10 +139,17 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
 				}
 				continue
-			}
-			err := copyImagePrivPubSameAcct(BundleLog, authFile, c.stsClient, c.ecrPublicClient, images)
-			if err != nil {
-				return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
+			} else {
+				// We have cases with tag mismatch where the SHA is accurate, but the tag in the destination repo is not synced, this will sync it.
+				images.Tag, err = c.ecrClient.tagFromSha(images.Repository, images.Digest)
+				if err != nil {
+					BundleLog.Error(err, "Unable to find Tag from Digest")
+				}
+				err := copyImagePrivPubSameAcct(BundleLog, authFile, c.stsClient, c.ecrPublicClient, images)
+				if err != nil {
+					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
+				}
+				continue
 			}
 		}
 	}

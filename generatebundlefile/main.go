@@ -135,7 +135,15 @@ func main() {
 			BundleLog.Info("Starting release process....")
 			clients, err := GetSDKClients(o.release)
 			clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
+			if err != nil {
+				BundleLog.Error(err, "Unable lookup ECRPublic Registry URI")
+				os.Exit(1)
+			}
 			clients.ecrPublicClientRelease.SourceRegistry, err = clients.ecrPublicClientRelease.GetRegistryURI()
+			if err != nil {
+				BundleLog.Error(err, "Unable lookup ECRPublic Registry URI for target account")
+				os.Exit(1)
+			}
 			dockerReleaseStruct := &DockerAuth{
 				Auths: map[string]DockerAuthRegistry{
 					fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
@@ -145,6 +153,7 @@ func main() {
 			authFile, err := NewAuthFile(dockerReleaseStruct)
 			if err != nil || authFile == "" {
 				BundleLog.Error(err, "Unable create AuthFile")
+				os.Exit(1)
 			}
 			defer os.Remove(authFile)
 			for _, charts := range addOnBundleSpec.Packages {
