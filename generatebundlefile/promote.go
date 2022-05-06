@@ -123,10 +123,15 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 	// If we don't find the SHA in public, we lookup the tag from Private, and copy from private to Public with the same tag.
 	for _, images := range helmRequires.Spec.Images {
 		checkSha, err := destination.shaExistsInRepository(images.Repository, images.Digest)
-		checkTag, err := destination.tagExistsInRepository(images.Repository, version)
 		if err != nil {
 			return fmt.Errorf("Unable to complete sha lookup this is due to an ECRPublic DescribeImages failure %s", err)
 		}
+		checkTag, err := destination.tagExistsInRepository(images.Repository, version)
+		if err != nil {
+			return fmt.Errorf("Unable to complete tag lookup this is due to an ECRPublic DescribeImages failure %s", err)
+		}
+		// This is going to run a copy if only 1 check passes because there are scenarios where the correct SHA exists, but the tag is not in sync.
+		// Copy with the correct image SHA, but a new tag will just write a new tag to ECR so it's safe to run.
 		if checkSha && checkTag {
 			fmt.Printf("Image Digest, and Tag already exists in destination location......skipping %s %s\n", images.Repository, images.Digest)
 			continue
