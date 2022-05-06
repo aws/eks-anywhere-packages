@@ -18,9 +18,9 @@ EKS Anywhere Curated Packages is a management system for installation, configura
 
 Here are the steps for [getting started](docs/README.md) with EKS Anywhere Curated Packages.
 
-### Development
+## Development
 
-The EKS Anywhere is tested using
+EKS Anywhere Curated Packages is tested using
 [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), the Kubernetes CI system.
 EKS operates an installation of Prow, which is visible at [https://prow.eks.amazonaws.com/](https://prow.eks.amazonaws.com/).
 Please read our [CONTRIBUTING](CONTRIBUTING.md) guide before making a pull request.
