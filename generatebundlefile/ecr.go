@@ -424,9 +424,9 @@ func NewAuthFile(dockerstruct *DockerAuth) (string, error) {
 }
 
 // copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
-func copyImagePrivPubSameAcct(log logr.Logger, authFile string, stsClient *stsClient, ecrPublic *ecrPublicClient, image Image) error {
+func copyImagePrivPubSameAcct(log logr.Logger, authFile, version string, stsClient *stsClient, ecrPublic *ecrPublicClient, image Image) error {
 	source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", stsClient.AccountID, image.Repository, image.Tag)
-	destination := fmt.Sprintf("docker://%s/%s:%s", ecrPublic.SourceRegistry, image.Repository, image.Tag)
+	destination := fmt.Sprintf("docker://%s/%s:%s", ecrPublic.SourceRegistry, image.Repository, version)
 	log.Info("Promoting...", source, destination)
 	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
 	_, err := ExecCommand(cmd)

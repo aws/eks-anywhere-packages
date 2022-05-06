@@ -123,7 +123,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 	// If we don't find the SHA in public, we lookup the tag from Private, and copy from private to Public with the same tag.
 	for _, images := range helmRequires.Spec.Images {
 		checkSha, err := destination.shaExistsInRepository(images.Repository, images.Digest)
-		checkTag, err := destination.tagExistsInRepository(images.Repository, images.Tag)
+		checkTag, err := destination.tagExistsInRepository(images.Repository, version)
 		if err != nil {
 			return fmt.Errorf("Unable to complete sha lookup this is due to an ECRPublic DescribeImages failure %s", err)
 		}
@@ -131,21 +131,22 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 			fmt.Printf("Image Digest, and Tag already exists in destination location......skipping %s %s\n", images.Repository, images.Digest)
 			continue
 		} else {
-			fmt.Printf("Image Digest, and Tag dont exist in destination location......copying over %s %s\n", images.Repository, images.Digest)
 			// If using a profile we just copy from source account to destination account
 			if crossAccount {
+				fmt.Printf("Image Digest, and Tag dont exist in destination location......copying to %s/%s:%s %s\n", c.ecrPublicClientRelease.SourceRegistry, images.Repository, version, images.Digest)
 				err := c.copyImagePubPubDifferentAcct(BundleLog, authFile, images)
 				if err != nil {
 					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
 				}
 				continue
 			} else {
+				fmt.Printf("Image Digest, and Tag dont exist in destination location......copying to %s/%s:%s %s\n", c.ecrPublicClient.SourceRegistry, images.Repository, version, images.Digest)
 				// We have cases with tag mismatch where the SHA is accurate, but the tag in the destination repo is not synced, this will sync it.
 				images.Tag, err = c.ecrClient.tagFromSha(images.Repository, images.Digest)
 				if err != nil {
 					BundleLog.Error(err, "Unable to find Tag from Digest")
 				}
-				err := copyImagePrivPubSameAcct(BundleLog, authFile, c.stsClient, c.ecrPublicClient, images)
+				err := copyImagePrivPubSameAcct(BundleLog, authFile, version, c.stsClient, c.ecrPublicClient, images)
 				if err != nil {
 					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
 				}
