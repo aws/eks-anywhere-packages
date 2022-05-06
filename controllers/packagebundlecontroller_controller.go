@@ -113,19 +113,30 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		return withoutRequeue(result), nil
 	}
 
+	changed := false
 	if pbc.Status.State != api.BundleControllerStateActive {
 		pbc.Status.State = api.BundleControllerStateActive
-		err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
-		if err != nil {
-			return result, fmt.Errorf("updating status to active: %s", err)
-		}
+		changed = true
 	}
 
 	latestBundle, err := r.bundleManager.LatestBundle(ctx, pbc.Spec.Source.BaseRef())
 	if err != nil {
 		r.Log.Error(err, "Unable to get latest bundle")
+		if pbc.Status.State != api.BundleControllerStateDisconnected {
+			pbc.Status.State = api.BundleControllerStateDisconnected
+			err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
+			if err != nil {
+				return result, fmt.Errorf("updating status to disconnected: %s", err)
+			}
+		}
 		result.RequeueAfter = pbc.Spec.UpgradeCheckShortInterval.Duration
 		return result, nil
+	}
+	if changed {
+		err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
+		if err != nil {
+			return result, fmt.Errorf("updating status: %s", err)
+		}
 	}
 
 	bundles := &api.PackageBundleList{}
