@@ -85,7 +85,7 @@ controller:
       memory: 50Mi
     limits:
       cpu: 500m
-      memory: 100Mi
+      memory: 300Mi
 kuberbacproxy:
   # -- Kube rbac proxy repository name.
   repository: "brancz/kube-rbac-proxy"
