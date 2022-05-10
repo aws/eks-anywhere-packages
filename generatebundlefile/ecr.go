@@ -437,9 +437,9 @@ func copyImagePrivPubSameAcct(log logr.Logger, authFile, version string, stsClie
 }
 
 // copyImagePubPubDifferentAcct will copy an OCI artifact from ECR Public to ECR Public to another account.
-func (c *SDKClients) copyImagePubPubDifferentAcct(log logr.Logger, authFile string, image Image) error {
-	source := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, image.Repository, image.Tag)
-	destination := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClientRelease.SourceRegistry, image.Repository, image.Tag)
+func (c *SDKClients) copyImagePubPubDifferentAcct(log logr.Logger, authFile, version string, image Image) error {
+	source := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, image.Repository, version)
+	destination := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClientRelease.SourceRegistry, image.Repository, version)
 	log.Info("Promoting...", source, destination)
 	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
 	_, err := ExecCommand(cmd)

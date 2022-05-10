@@ -139,7 +139,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 			// If using a profile we just copy from source account to destination account
 			if crossAccount {
 				fmt.Printf("Image Digest, and Tag dont exist in destination location......copying to %s/%s:%s %s\n", c.ecrPublicClientRelease.SourceRegistry, images.Repository, version, images.Digest)
-				err := c.copyImagePubPubDifferentAcct(BundleLog, authFile, images)
+				err := c.copyImagePubPubDifferentAcct(BundleLog, authFile, version, images)
 				if err != nil {
 					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
 				}
