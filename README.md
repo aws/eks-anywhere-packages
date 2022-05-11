@@ -1,6 +1,6 @@
 ## Amazon EKS Anywhere Curated Packages
 
-[![Release](https://img.shields.io/github/v/release/aws/eks-anywhere-pckages.svg?logo=github&color=green)](https://github.com/aws/eks-anywhere-packages/releases)
+[![Release](https://img.shields.io/github/v/release/aws/eks-anywhere-packages.svg?logo=github&color=green)](https://github.com/aws/eks-anywhere-packages/releases)
 [![Go Report Card](https://goreportcard.com/badge/github.com/aws/eks-anywhere-packages)](https://goreportcard.com/report/github.com/aws/eks-anywhere-packages)
 [![Contributors](https://img.shields.io/github/contributors/aws/eks-anywhere-packages?color=purple)](CONTRIBUTING.md)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
