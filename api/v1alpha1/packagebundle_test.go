@@ -106,6 +106,86 @@ func TestPackageBundle_Find(t *testing.T) {
 	})
 }
 
+func TestGetMajorMinorFromString(t *testing.T) {
+
+	t.Run("Parse from default Kubernetes version name", func(t *testing.T) {
+
+		target_version := "v1-21-1"
+		major, minor := api.GetMajorMinorFromString(target_version)
+
+		assert.Equal(t, 1, major)
+		assert.Equal(t, 21, minor)
+	})
+
+	t.Run("Parse from Kubernetes version name without patch number", func(
+		t *testing.T) {
+
+		target_version := "v1-21"
+		major, minor := api.GetMajorMinorFromString(target_version)
+
+		assert.Equal(t, 1, major)
+		assert.Equal(t, 21, minor)
+	})
+
+	t.Run("Parse from Kubernetes version name without v perfix", func(
+		t *testing.T) {
+
+		target_version := "1-21-1"
+		major, minor := api.GetMajorMinorFromString(target_version)
+
+		assert.Equal(t, 1, major)
+		assert.Equal(t, 21, minor)
+	})
+
+	t.Run("Parse from empty Kubernetes version name", func(t *testing.T) {
+
+		target_version := ""
+		major, minor := api.GetMajorMinorFromString(target_version)
+
+		assert.Equal(t, 0, major)
+		assert.Equal(t, 0, minor)
+	})
+}
+
+func TestKubeVersionMatches(t *testing.T) {
+
+	bundle := api.PackageBundle{ObjectMeta: metav1.ObjectMeta{
+		Name: "v1-21-1001"}}
+
+	t.Run("Kubernetes version matches", func(t *testing.T) {
+
+		target_version := "v1-21-1"
+
+		result := bundle.KubeVersionMatches(target_version)
+
+		if !result {
+			t.Errorf("expected <%t> got <%t>", true, result)
+		}
+	})
+
+	t.Run("Kubernetes major version doesn't match", func(t *testing.T) {
+
+		target_version := "v2-21-1"
+
+		result := bundle.KubeVersionMatches(target_version)
+
+		if result {
+			t.Errorf("expected <%t> got <%t>", false, result)
+		}
+	})
+
+	t.Run("Kubernetes minor version doesn't match", func(t *testing.T) {
+
+		target_version := "v1-22-1"
+
+		result := bundle.KubeVersionMatches(target_version)
+
+		if result {
+			t.Errorf("expected <%t> got <%t>", false, result)
+		}
+	})
+}
+
 func TestPackageMatches(t *testing.T) {
 	orig := api.BundlePackageSource{
 		Registry:   "registry",
