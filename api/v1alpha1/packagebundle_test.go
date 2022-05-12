@@ -106,7 +106,7 @@ func TestPackageBundle_Find(t *testing.T) {
 	})
 }
 
-func TestMatches(t *testing.T) {
+func TestPackageMatches(t *testing.T) {
 	orig := api.BundlePackageSource{
 		Registry:   "registry",
 		Repository: "repository",
@@ -116,7 +116,7 @@ func TestMatches(t *testing.T) {
 		},
 	}
 
-	t.Run("matches", func(t *testing.T) {
+	t.Run("package matches", func(t *testing.T) {
 		other := api.BundlePackageSource{
 			Registry:   "registry",
 			Repository: "repository",
@@ -125,13 +125,13 @@ func TestMatches(t *testing.T) {
 				{Name: "v2", Digest: "sha256:cafebabe"},
 			},
 		}
-		result := orig.Matches(other)
+		result := orig.PackageMatches(other)
 		if !result {
 			t.Errorf("expected <%t> got <%t>", true, result)
 		}
 	})
 
-	t.Run("registries must match", func(t *testing.T) {
+	t.Run("package registries must match", func(t *testing.T) {
 		other := api.BundlePackageSource{
 			Registry:   "registry2",
 			Repository: "repository",
@@ -140,13 +140,13 @@ func TestMatches(t *testing.T) {
 				{Name: "v2", Digest: "sha256:cafebabe"},
 			},
 		}
-		result := orig.Matches(other)
+		result := orig.PackageMatches(other)
 		if result {
 			t.Errorf("expected <%t> got <%t>", false, result)
 		}
 	})
 
-	t.Run("repositories must match", func(t *testing.T) {
+	t.Run("package repositories must match", func(t *testing.T) {
 		other := api.BundlePackageSource{
 			Registry:   "registry",
 			Repository: "repository2",
@@ -155,13 +155,13 @@ func TestMatches(t *testing.T) {
 				{Name: "v2", Digest: "sha256:cafebabe"},
 			},
 		}
-		result := orig.Matches(other)
+		result := orig.PackageMatches(other)
 		if result {
 			t.Errorf("expected <%t> got <%t>", false, result)
 		}
 	})
 
-	t.Run("added versions cause mismatch", func(t *testing.T) {
+	t.Run("package added versions cause mismatch", func(t *testing.T) {
 		other := api.BundlePackageSource{
 			Registry:   "registry",
 			Repository: "repository",
@@ -171,13 +171,13 @@ func TestMatches(t *testing.T) {
 				{Name: "v3", Digest: "sha256:deadf00d"},
 			},
 		}
-		result := orig.Matches(other)
+		result := orig.PackageMatches(other)
 		if result {
 			t.Errorf("expected <%t> got <%t>", false, result)
 		}
 	})
 
-	t.Run("removed versions cause mismatch", func(t *testing.T) {
+	t.Run("package removed versions cause mismatch", func(t *testing.T) {
 		other := api.BundlePackageSource{
 			Registry:   "registry",
 			Repository: "repository",
@@ -185,13 +185,13 @@ func TestMatches(t *testing.T) {
 				{Name: "v2", Digest: "sha256:cafebabe"},
 			},
 		}
-		result := orig.Matches(other)
+		result := orig.PackageMatches(other)
 		if result {
 			t.Errorf("expected <%t> got <%t>", false, result)
 		}
 	})
 
-	t.Run("changed tags cause mismatch", func(t *testing.T) {
+	t.Run("package changed tags cause mismatch", func(t *testing.T) {
 		other := api.BundlePackageSource{
 			Registry:   "registry",
 			Repository: "repository",
@@ -200,7 +200,7 @@ func TestMatches(t *testing.T) {
 				{Name: "v2", Digest: "sha256:cafebabe"},
 			},
 		}
-		result := orig.Matches(other)
+		result := orig.PackageMatches(other)
 		if result {
 			t.Errorf("expected <%t> got <%t>", false, result)
 		}

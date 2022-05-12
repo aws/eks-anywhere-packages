@@ -71,8 +71,8 @@ func (s PackageOCISource) AsRepoURI() string {
 	return path.Join(s.Registry, s.Repository)
 }
 
-// Matches returns true if the given source locations match one another.
-func (s BundlePackageSource) Matches(other BundlePackageSource) bool {
+// PackageMatches returns true if the given source locations match one another.
+func (s BundlePackageSource) PackageMatches(other BundlePackageSource) bool {
 	if s.Registry != other.Registry {
 		return false
 	}
