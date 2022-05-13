@@ -85,7 +85,6 @@ func GetMajorMinorFromString(kubeVersion string) (major int, minor int) {
 // current bundle's Kubernetes version. Note the method only compares the major
 // and minor versions of Kubernetes, and ignore the patch numbers.
 func (config *PackageBundle) KubeVersionMatches(targetKubeVersion string) bool {
-
 	currKubeMajor, currKubeMinor, _ := config.GetMajorMinorBuild()
 	targetKubeMajor, targetKubeMinor := GetMajorMinorFromString(targetKubeVersion)
 
