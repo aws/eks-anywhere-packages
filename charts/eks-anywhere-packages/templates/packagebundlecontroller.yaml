@@ -6,7 +6,7 @@ metadata:
 spec:
   logLevel: 4
   upgradeCheckInterval: "24h"
-  activeBundle: "v1-22-5"
+  activeBundle: "v1-22-8"
   source:
     registry: {{.Values.sourceRegistry}}
     repository: eks-anywhere-packages-bundles
