@@ -67,8 +67,8 @@ func RegisterPackageBundleReconciler(mgr ctrl.Manager) error {
 	}
 	log := ctrl.Log.WithName(packageBundleName)
 	puller := artifacts.NewRegistryPuller()
-	bm := bundle.NewBundleManager(log, discovery, puller)
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
+	bm := bundle.NewBundleManager(log, discovery, puller, bundleClient)
 	r := NewPackageBundleReconciler(mgr.GetClient(), mgr.GetScheme(), bundleClient, bm, log)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.PackageBundle{}).
@@ -149,20 +149,18 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	r.Log.Info("Add/Update:", "bundle", pkgBundle)
 
-	active, err := r.bundleClient.IsActive(ctx, req.NamespacedName)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
 	allBundles := &api.PackageBundleList{}
-	err = r.List(ctx, allBundles)
+	err := r.List(ctx, allBundles)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("listing package bundles: %s", err)
 	}
 
-	change := r.bundleManager.Update(pkgBundle, active, allBundles.Items)
+	change, err := r.bundleManager.Update(ctx, pkgBundle, allBundles.Items)
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("package bundle update: %s", err)
+	}
 	if change {
-		err := r.Status().Update(ctx, pkgBundle)
+		err = r.Status().Update(ctx, pkgBundle)
 		if err != nil {
 			return ctrl.Result{}, err
 		}

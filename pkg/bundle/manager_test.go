@@ -7,10 +7,12 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
@@ -29,7 +31,8 @@ func TestDownloadBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithFileData(t, "../../api/testdata/bundle_one.yaml")
 
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
 		kubeVersion := "v1-21"
 		tag := "latest"
@@ -70,7 +73,8 @@ func TestDownloadBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithError(fmt.Errorf("test error"))
 
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
 		kubeVersion := "v1-21"
 		tag := "latest"
@@ -89,7 +93,8 @@ func TestDownloadBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithData([]byte(""))
 
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
 		kubeVersion := "v1-21"
 		tag := "latest"
@@ -109,7 +114,8 @@ func TestDownloadBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithData([]byte("invalid yaml"))
 
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
 		kubeVersion := "v1-21"
 		tag := "latest"
@@ -148,7 +154,8 @@ func TestPackageVersion(t *testing.T) {
 
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
 		got, err := bm.apiVersion()
 		if err != nil {
@@ -165,7 +172,8 @@ func TestPackageVersion(t *testing.T) {
 
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
 		got, err := bm.apiVersion()
 		if err != nil {
@@ -192,6 +200,7 @@ func givenPackageBundle(state api.PackageBundleStateEnum) *api.PackageBundle {
 func TestUpdate(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
 	noBundles := []api.PackageBundle{}
 
 	t.Run("ignore other namespaces", func(t *testing.T) {
@@ -199,11 +208,14 @@ func TestUpdate(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
 		bundle.Namespace = "billy"
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		if assert.True(t, bm.Update(bundle, true, noBundles)) {
-			assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
-		}
+		update, err := bm.Update(ctx, bundle, noBundles)
+		assert.True(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
 	})
 
 	t.Run("ignored is ignored", func(t *testing.T) {
@@ -211,55 +223,70 @@ func TestUpdate(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateIgnored)
 		bundle.Namespace = "billy"
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		if assert.False(t, bm.Update(bundle, true, noBundles)) {
-			assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
-		}
+		update, err := bm.Update(ctx, bundle, noBundles)
+		assert.False(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
 	})
 
 	t.Run("marks state active", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		if assert.True(t, bm.Update(bundle, true, noBundles)) {
-			assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
-		}
+		update, err := bm.Update(ctx, bundle, noBundles)
+		assert.True(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
 	})
 
 	t.Run("marks state inactive", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateActive)
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(false, nil)
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		if assert.True(t, bm.Update(bundle, false, noBundles)) {
-			assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
-		}
+		update, err := bm.Update(ctx, bundle, noBundles)
+		assert.True(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
 	})
 
 	t.Run("leaves state as-is (inactive)", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(false, nil)
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		if assert.False(t, bm.Update(bundle, false, noBundles)) {
-			assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
-		}
+		update, err := bm.Update(ctx, bundle, noBundles)
+		assert.False(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
 	})
 
 	t.Run("leaves state as-is (active)", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateActive)
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		if assert.True(t, bm.Update(bundle, true, noBundles)) {
-			assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
-		}
+		update, err := bm.Update(ctx, bundle, noBundles)
+		assert.True(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
 	})
 
 	t.Run("marks state upgrade available", func(t *testing.T) {
@@ -271,11 +298,14 @@ func TestUpdate(t *testing.T) {
 			*bundle,
 			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
 		}
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		if assert.True(t, bm.Update(bundle, true, allBundles)) {
-			assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
-		}
+		update, err := bm.Update(ctx, bundle, allBundles)
+		assert.True(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
 	})
 
 	t.Run("leaves state as-is (upgrade available)", func(t *testing.T) {
@@ -287,11 +317,14 @@ func TestUpdate(t *testing.T) {
 			*bundle,
 			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
 		}
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		if assert.True(t, bm.Update(bundle, true, allBundles)) {
-			assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
-		}
+		update, err := bm.Update(ctx, bundle, allBundles)
+		assert.True(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
 	})
 }
 
@@ -304,7 +337,8 @@ func TestSortBundleNewestFirst(t *testing.T) {
 			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
 		}
 
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 		bm.SortBundlesDescending(allBundles)
 		if assert.Greater(t, len(allBundles), 1) {
 			assert.Equal(t, "v1-21-1002", allBundles[0].Name)
@@ -328,7 +362,8 @@ func TestSortBundleNewestFirst(t *testing.T) {
 			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
 		}
 
-		bm := NewBundleManager(logr.Discard(), discovery, puller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 		bm.SortBundlesDescending(allBundles)
 		if assert.Greater(t, len(allBundles), 2) {
 			assert.Equal(t, "v1-21-1002", allBundles[0].Name)

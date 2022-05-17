@@ -16,6 +16,7 @@ import (
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
@@ -25,7 +26,8 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 	discovery := testutil.NewFakeDiscoveryWithDefaults()
 
 	puller := testutil.NewMockPuller()
-	bm := bundle.NewBundleManager(logr.Discard(), discovery, puller)
+	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+	bm := bundle.NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
 	controllerNN := types.NamespacedName{
 		Namespace: api.PackageNamespace,
@@ -141,7 +143,8 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 
 		mockPuller := testutil.NewMockPuller()
 		mockPuller.WithFileData(t, "../api/testdata/bundle_one.yaml")
-		bm := bundle.NewBundleManager(logr.Discard(), discovery, mockPuller)
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := bundle.NewBundleManager(logr.Discard(), discovery, mockPuller, mockBundleClient)
 		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
 			logr.Discard())
 		_, err := r.Reconcile(ctx, req)
