@@ -34,13 +34,11 @@ func TestPackageBundleReconciler_ReconcileAddUpdate(t *testing.T) {
 	statusWriter := mocks.NewMockStatusWriter(gomock.NewController(t))
 	mockClient := mocks.NewMockClient(gomock.NewController(t))
 	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
-	mockBundleClient.EXPECT().IsActive(ctx, request.NamespacedName).Return(true, nil)
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(nil)
 	mockClient.EXPECT().Status().Return(statusWriter)
 	mockClient.EXPECT().List(ctx, gomock.Any()).Return(nil)
 	statusWriter.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).Return(nil)
 	bm := bundlefake.NewBundleManager()
-	bm.FakeIsActive = true
 	bm.FakeUpdate = true
 	sut := controllers.NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, logr.Discard())
 
@@ -59,7 +57,7 @@ func TestPackageBundleReconciler_ReconcileError(t *testing.T) {
 	expectedError := fmt.Errorf("error reading")
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(expectedError)
 	bm := bundlefake.NewBundleManager()
-	bm.FakeIsActive = true
+	bm.FakeUpdate = false
 	sut := controllers.NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, logr.Discard())
 
 	_, actualError := sut.Reconcile(ctx, request)
@@ -75,10 +73,10 @@ func TestPackageBundleReconciler_ReconcileIgnored(t *testing.T) {
 	request.Name = "bogus"
 	mockClient := mocks.NewMockClient(gomock.NewController(t))
 	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
-	mockBundleClient.EXPECT().IsActive(ctx, request.NamespacedName).Return(false, nil)
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(nil)
 	mockClient.EXPECT().List(ctx, gomock.Any()).Return(nil)
 	bm := bundlefake.NewBundleManager()
+	bm.FakeUpdate = false
 	sut := controllers.NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, logr.Discard())
 
 	_, actualError := sut.Reconcile(ctx, request)
@@ -101,7 +99,6 @@ func TestPackageBundleReconciler_ReconcileDelete(t *testing.T) {
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(notFoundError)
 	mockBundleClient.EXPECT().GetActiveBundleNamespacedName(ctx).Return(request.NamespacedName, nil)
 	bm := bundlefake.NewBundleManager()
-	bm.FakeIsActive = true
 	mockClient.EXPECT().Create(ctx, bm.FakeActiveBundle).Return(nil)
 	sut := controllers.NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, logr.Discard())
 

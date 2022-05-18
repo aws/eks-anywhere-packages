@@ -62,7 +62,8 @@ func RegisterPackageBundleControllerReconciler(mgr ctrl.Manager) error {
 		return fmt.Errorf("creating discovery client: %s", err)
 	}
 	puller := artifacts.NewRegistryPuller()
-	bm := bundle.NewBundleManager(log, discovery, puller)
+	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
+	bm := bundle.NewBundleManager(log, discovery, puller, bundleClient)
 	reconciler := NewPackageBundleControllerReconciler(mgr.GetClient(),
 		mgr.GetScheme(), bm, log)
 	return ctrl.NewControllerManagedBy(mgr).

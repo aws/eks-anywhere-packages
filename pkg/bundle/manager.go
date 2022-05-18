@@ -19,8 +19,7 @@ import (
 
 type Manager interface {
 	// Update the bundle returns true if there are changes
-	Update(newBundle *api.PackageBundle, isActive bool,
-		allBundles []api.PackageBundle) bool
+	Update(ctx context.Context, newBundle *api.PackageBundle, allBundles []api.PackageBundle) (bool, error)
 
 	// IsBundleKnown returns true if the bundle is in the list of known
 	// bundles.
@@ -42,59 +41,68 @@ type bundleManager struct {
 	log               logr.Logger
 	kubeServerVersion discovery.ServerVersionInterface
 	puller            artifacts.Puller
+	bundleClient      Client
 }
 
 func NewBundleManager(log logr.Logger, serverVersion discovery.ServerVersionInterface,
-	puller artifacts.Puller) (manager *bundleManager) {
+	puller artifacts.Puller, bundleClient Client) (manager *bundleManager) {
 	manager = &bundleManager{
 		log:               log,
 		kubeServerVersion: serverVersion,
 		puller:            puller,
+		bundleClient:      bundleClient,
 	}
-
-	// This is temporary
-	var newBundle api.PackageBundle
-	_ = manager.Update(&newBundle, false, nil)
 
 	return manager
 }
 
 var _ Manager = (*bundleManager)(nil)
 
-func (m bundleManager) Update(newBundle *api.PackageBundle, active bool,
-	allBundles []api.PackageBundle) bool {
+func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle, allBundles []api.PackageBundle) (bool, error) {
+
+	active, err := m.bundleClient.IsActive(ctx, newBundle)
+	if err != nil {
+		return false, err
+	}
 
 	if newBundle.Namespace != api.PackageNamespace {
 		if newBundle.Status.State != api.PackageBundleStateIgnored {
 			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateIgnored
-			return true
+			return true, nil
 		}
-		return false
+		return false, nil
 	}
 	if !active {
 		if newBundle.Status.State == api.PackageBundleStateActive {
 			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateInactive
-			return true
+			return true, nil
 		}
-		return false
-	}
-	if newBundle.Status.State != api.PackageBundleStateActive {
-		newBundle.Status.State = api.PackageBundleStateActive
+		return false, nil
 	}
 
-	// allBundles should never be nil or empty in production, but for testing
-	// it's much easier to handle a nil case.
-	if active && allBundles != nil && len(allBundles) > 0 {
+	updateAvailable := false
+	if len(allBundles) > 0 {
 		m.SortBundlesDescending(allBundles)
 		if allBundles[0].Name != newBundle.Name {
-			newBundle.Status.State = api.PackageBundleStateUpgradeAvailable
+			updateAvailable = true
 		}
+	}
+
+	change := false
+	if updateAvailable {
+		if newBundle.Status.State != api.PackageBundleStateUpgradeAvailable {
+			newBundle.Status.State = api.PackageBundleStateUpgradeAvailable
+			change = true
+		}
+	} else if newBundle.Status.State != api.PackageBundleStateActive {
+		newBundle.Status.State = api.PackageBundleStateActive
+		change = true
 	}
 
 	newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
-	return true
+	return change, nil
 }
 
 // SortBundlesDescending will sort a slice of bundles in descending order so

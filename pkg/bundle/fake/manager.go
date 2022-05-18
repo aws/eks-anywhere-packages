@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
@@ -15,7 +14,6 @@ type FakeBundleManager struct {
 	FakeActiveBundleError             error
 	FakeActiveBundle                  *api.PackageBundle
 	FakeDownloadBundle                *api.PackageBundle
-	FakeIsActive                      bool
 	FakeUpdate                        bool
 	FakeGetActiveBundleNamespacedName types.NamespacedName
 }
@@ -35,12 +33,7 @@ func (bm *FakeBundleManager) DownloadBundle(ctx context.Context, ref string) (
 	return bm.FakeDownloadBundle, nil
 }
 
-func (bm *FakeBundleManager) IsActive(ctx context.Context,
-	client client.Client, name types.NamespacedName) (bool, error) {
-	return bm.FakeIsActive, nil
-}
-
-func (bm *FakeBundleManager) Update(bundle *api.PackageBundle, active bool,
-	allBundles []api.PackageBundle) bool {
-	return bm.FakeUpdate
+func (bm *FakeBundleManager) Update(ctx context.Context, bundle *api.PackageBundle,
+	allBundles []api.PackageBundle) (bool, error) {
+	return bm.FakeUpdate, nil
 }
