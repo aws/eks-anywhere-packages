@@ -6,9 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
 	"gopkg.in/yaml.v2"
 	ctrl "sigs.k8s.io/controller-runtime"
+
+	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
 )
 
 var BundleLog = ctrl.Log.WithName("BundleGenerator")
