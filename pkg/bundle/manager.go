@@ -90,7 +90,7 @@ func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle,
 
 	// allBundles should never be nil or empty in production, but for testing
 	// it's much easier to handle a nil case.
-	if allBundles != nil && len(allBundles) > 0 {
+	if len(allBundles) > 0 {
 		m.SortBundlesDescending(allBundles)
 		if allBundles[0].Name != newBundle.Name {
 			newBundle.Status.State = api.PackageBundleStateUpgradeAvailable
