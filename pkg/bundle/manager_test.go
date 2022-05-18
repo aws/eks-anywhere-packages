@@ -322,7 +322,7 @@ func TestUpdate(t *testing.T) {
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
 		update, err := bm.Update(ctx, bundle, allBundles)
-		assert.True(t, update)
+		assert.False(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
 	})

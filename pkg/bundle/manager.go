@@ -82,20 +82,23 @@ func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle,
 		return false, nil
 	}
 
-	change := false
-	if newBundle.Status.State != api.PackageBundleStateActive {
-		newBundle.Status.State = api.PackageBundleStateActive
-		change = true
-	}
-
-	// allBundles should never be nil or empty in production, but for testing
-	// it's much easier to handle a nil case.
+	updateAvailable := false
 	if len(allBundles) > 0 {
 		m.SortBundlesDescending(allBundles)
 		if allBundles[0].Name != newBundle.Name {
+			updateAvailable = true
+		}
+	}
+
+	change := false
+	if updateAvailable {
+		if newBundle.Status.State != api.PackageBundleStateUpgradeAvailable {
 			newBundle.Status.State = api.PackageBundleStateUpgradeAvailable
 			change = true
 		}
+	} else if newBundle.Status.State != api.PackageBundleStateActive {
+		newBundle.Status.State = api.PackageBundleStateActive
+		change = true
 	}
 
 	newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
