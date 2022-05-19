@@ -208,6 +208,22 @@ func TestUpdate(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
 		bundle.Namespace = "billy"
+		bundle.Name = "v1-21"
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+
+		update, err := bm.Update(ctx, bundle, noBundles)
+		assert.True(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
+	})
+
+	t.Run("ignore incompatible Kubernetes version", func(t *testing.T) {
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		bundle := givenPackageBundle(api.PackageBundleStateInactive)
+		bundle.Name = "v1-01"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
@@ -237,6 +253,7 @@ func TestUpdate(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
+		bundle.Name = "v1-21"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
@@ -251,6 +268,7 @@ func TestUpdate(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateActive)
+		bundle.Name = "v1-21"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(false, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
@@ -265,6 +283,7 @@ func TestUpdate(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
+		bundle.Name = "v1-21"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(false, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
@@ -279,6 +298,7 @@ func TestUpdate(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateActive)
+		bundle.Name = "v1-21"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)

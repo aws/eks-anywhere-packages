@@ -57,8 +57,8 @@ func (config *PackageBundle) LessThan(rhsBundle *PackageBundle) bool {
 	return lhsMajor < rhsMajor || lhsMinor < rhsMinor || lhsBuild < rhsBuild
 }
 
-// getMajorMinorBuild parses PackageBundle name, and return the Kubernetes major
-// version, Kubernetes minor version, and bundle build version.
+// getMajorMinorBuild returns the Kubernetes major version, Kubernetes minor
+// version, and bundle build version.
 func (config *PackageBundle) getMajorMinorBuild() (major int, minor int, build int) {
 	s := strings.Split(config.Name, "-")
 	s = append(s, "", "", "")
@@ -69,8 +69,7 @@ func (config *PackageBundle) getMajorMinorBuild() (major int, minor int, build i
 	return major, minor, build
 }
 
-// getMajorMinorFromString parses the kubeVersion (in string format), and
-// return the Kubernetes major version and Kubernetes minor version.
+// getMajorMinorFromString returns the Kubernetes major and minor version.
 
 // It returns 0, 0 for empty string.
 func getMajorMinorFromString(kubeVersion string) (major int, minor int) {
@@ -84,7 +83,7 @@ func getMajorMinorFromString(kubeVersion string) (major int, minor int) {
 
 // KubeVersionMatches returns true if the target Kubernetes matches the
 // current bundle's Kubernetes version.
-
+//
 // Note the method only compares the major and minor versions of Kubernetes, and
 // ignore the patch numbers.
 func (config *PackageBundle) KubeVersionMatches(targetKubeVersion string) bool {
