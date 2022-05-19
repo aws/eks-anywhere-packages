@@ -70,7 +70,7 @@ func (config *PackageBundle) getMajorMinorBuild() (major int, minor int, build i
 }
 
 // getMajorMinorFromString returns the Kubernetes major and minor version.
-
+//
 // It returns 0, 0 for empty string.
 func getMajorMinorFromString(kubeVersion string) (major int, minor int) {
 	s := strings.Split(kubeVersion, "-")
