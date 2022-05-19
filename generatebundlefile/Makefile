@@ -78,5 +78,6 @@ endif
 
 .PHONY: oras-install
 oras-install:
+	mkdir -p $(REPO_ROOT)/bin
 	curl -L -s https://github.com/oras-project/oras/releases/download/v$(ORAS_VERSION)/oras_$(ORAS_VERSION)_$(ORAS_OSARCH).tar.gz \
 		| tar zx -C $(REPO_ROOT)/bin oras

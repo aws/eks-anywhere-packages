@@ -50,7 +50,6 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121_prod.yaml \
     --key alias/${KMS_KEY}
 
-mkdir -p ${BASE_DIRECTORY}/bin
 make oras-install
 
 ECR_PASSWORD=$(aws ecr-public get-login-password --region us-east-1 --profile ${PROFILE})
