@@ -110,8 +110,8 @@ func TestGetMajorMinorFromString(t *testing.T) {
 
 	t.Run("Parse from default Kubernetes version name", func(t *testing.T) {
 
-		target_version := "v1-21-1"
-		major, minor := api.GetMajorMinorFromString(target_version)
+		targetVersion := "v1-21-1"
+		major, minor := api.GetMajorMinorFromString(targetVersion)
 
 		assert.Equal(t, 1, major)
 		assert.Equal(t, 21, minor)
@@ -120,8 +120,8 @@ func TestGetMajorMinorFromString(t *testing.T) {
 	t.Run("Parse from Kubernetes version name without patch number", func(
 		t *testing.T) {
 
-		target_version := "v1-21"
-		major, minor := api.GetMajorMinorFromString(target_version)
+		targetVersion := "v1-21"
+		major, minor := api.GetMajorMinorFromString(targetVersion)
 
 		assert.Equal(t, 1, major)
 		assert.Equal(t, 21, minor)
@@ -130,8 +130,8 @@ func TestGetMajorMinorFromString(t *testing.T) {
 	t.Run("Parse from Kubernetes version name without v perfix", func(
 		t *testing.T) {
 
-		target_version := "1-21-1"
-		major, minor := api.GetMajorMinorFromString(target_version)
+		targetVersion := "1-21-1"
+		major, minor := api.GetMajorMinorFromString(targetVersion)
 
 		assert.Equal(t, 1, major)
 		assert.Equal(t, 21, minor)
@@ -139,8 +139,8 @@ func TestGetMajorMinorFromString(t *testing.T) {
 
 	t.Run("Parse from empty Kubernetes version name", func(t *testing.T) {
 
-		target_version := ""
-		major, minor := api.GetMajorMinorFromString(target_version)
+		targetVersion := ""
+		major, minor := api.GetMajorMinorFromString(targetVersion)
 
 		assert.Equal(t, 0, major)
 		assert.Equal(t, 0, minor)
@@ -154,9 +154,9 @@ func TestKubeVersionMatches(t *testing.T) {
 
 	t.Run("Kubernetes version matches", func(t *testing.T) {
 
-		target_version := "v1-21-1"
+		targetVersion := "v1-21-1"
 
-		result := bundle.KubeVersionMatches(target_version)
+		result := bundle.KubeVersionMatches(targetVersion)
 
 		if !result {
 			t.Errorf("expected <%t> got <%t>", true, result)
@@ -165,9 +165,9 @@ func TestKubeVersionMatches(t *testing.T) {
 
 	t.Run("Kubernetes major version doesn't match", func(t *testing.T) {
 
-		target_version := "v2-21-1"
+		targetVersion := "v2-21-1"
 
-		result := bundle.KubeVersionMatches(target_version)
+		result := bundle.KubeVersionMatches(targetVersion)
 
 		if result {
 			t.Errorf("expected <%t> got <%t>", false, result)
@@ -176,9 +176,9 @@ func TestKubeVersionMatches(t *testing.T) {
 
 	t.Run("Kubernetes minor version doesn't match", func(t *testing.T) {
 
-		target_version := "v1-22-1"
+		targetVersion := "v1-22-1"
 
-		result := bundle.KubeVersionMatches(target_version)
+		result := bundle.KubeVersionMatches(targetVersion)
 
 		if result {
 			t.Errorf("expected <%t> got <%t>", false, result)
