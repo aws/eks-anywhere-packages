@@ -65,7 +65,14 @@ func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle,
 		return false, err
 	}
 
-	if newBundle.Namespace != api.PackageNamespace {
+	kubeVersion, err := m.apiVersion()
+	if err != nil {
+		return false, fmt.Errorf("retrieving k8s API version: %w", err)
+	}
+
+	kubeMatches := newBundle.KubeVersionMatches(kubeVersion)
+
+	if newBundle.Namespace != api.PackageNamespace || !kubeMatches {
 		if newBundle.Status.State != api.PackageBundleStateIgnored {
 			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateIgnored

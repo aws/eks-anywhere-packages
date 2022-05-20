@@ -52,12 +52,14 @@ func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource P
 // method returns true. If it is newer (greater) it returns false. If they are
 // the same it returns false.
 func (config *PackageBundle) LessThan(rhsBundle *PackageBundle) bool {
-	lhsMajor, lhsMinor, lhsBuild := config.GetMajorMinorBuild()
-	rhsMajor, rhsMinor, rhsBuild := rhsBundle.GetMajorMinorBuild()
+	lhsMajor, lhsMinor, lhsBuild := config.getMajorMinorBuild()
+	rhsMajor, rhsMinor, rhsBuild := rhsBundle.getMajorMinorBuild()
 	return lhsMajor < rhsMajor || lhsMinor < rhsMinor || lhsBuild < rhsBuild
 }
 
-func (config *PackageBundle) GetMajorMinorBuild() (major int, minor int, build int) {
+// getMajorMinorBuild returns the Kubernetes major version, Kubernetes minor
+// version, and bundle build version.
+func (config *PackageBundle) getMajorMinorBuild() (major int, minor int, build int) {
 	s := strings.Split(config.Name, "-")
 	s = append(s, "", "", "")
 	s[0] = strings.TrimPrefix(s[0], "v")
@@ -67,12 +69,36 @@ func (config *PackageBundle) GetMajorMinorBuild() (major int, minor int, build i
 	return major, minor, build
 }
 
+// getMajorMinorFromString returns the Kubernetes major and minor version.
+//
+// It returns 0, 0 for empty string.
+func getMajorMinorFromString(kubeVersion string) (major int, minor int) {
+	s := strings.Split(kubeVersion, "-")
+	s = append(s, "", "", "")
+	s[0] = strings.TrimPrefix(s[0], "v")
+	major, _ = strconv.Atoi(s[0])
+	minor, _ = strconv.Atoi(s[1])
+	return major, minor
+}
+
+// KubeVersionMatches returns true if the target Kubernetes matches the
+// current bundle's Kubernetes version.
+//
+// Note the method only compares the major and minor versions of Kubernetes, and
+// ignore the patch numbers.
+func (config *PackageBundle) KubeVersionMatches(targetKubeVersion string) bool {
+	currKubeMajor, currKubeMinor, _ := config.getMajorMinorBuild()
+	targetKubeMajor, targetKubeMinor := getMajorMinorFromString(targetKubeVersion)
+
+	return currKubeMajor == targetKubeMajor && currKubeMinor == targetKubeMinor
+}
+
 func (s PackageOCISource) AsRepoURI() string {
 	return path.Join(s.Registry, s.Repository)
 }
 
-// Matches returns true if the given source locations match one another.
-func (s BundlePackageSource) Matches(other BundlePackageSource) bool {
+// PackageMatches returns true if the given source locations match one another.
+func (s BundlePackageSource) PackageMatches(other BundlePackageSource) bool {
 	if s.Registry != other.Registry {
 		return false
 	}
