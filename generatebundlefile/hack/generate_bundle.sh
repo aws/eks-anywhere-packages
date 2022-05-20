@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,38 +14,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Generate bundle files for supported kubernetes versions.
 
-set -e
-set -x
-set -o pipefail
+set -euxo pipefail
 
 export LANG=C.UTF-8
 
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
-chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile 
+. "${BASE_DIRECTORY}/common.sh"
+ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries \
+                 --query 'registries[*].registryUri' --output text)
+REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
+ORAS_BIN=${BASE_DIRECTORY}/bin/oras
 
-IMAGE_REGISTRY=$(AWS_REGION=us-east-1 && aws ecr-public describe-registries --query 'registries[*].registryUri' --output text)
-KMS_KEY=signingPackagesKey
+if [ ! -x "${ORAS_BIN}" ]; then
+    make oras-install
+fi
 
-# # 1.21 Bundle Build
-${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
-    --key alias/${KMS_KEY}
+function generate () {
+    local version=$1
+    local kms_key=signingPackagesKey
 
-make oras-install
+    cd "${BASE_DIRECTORY}/generatebundlefile"
+    ./bin/generatebundlefile --input "./data/input_${version/-}.yaml" \
+			     --key alias/${kms_key}
+}
 
-ECR_PASSWORD=$(aws ecr-public get-login-password --region us-east-1)
-cd ${BASE_DIRECTORY}/generatebundlefile/output
-${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-latest" bundle.yaml
+function push () {
+    local version=$1
 
-# 1.22 Bundle Build
-cd ${BASE_DIRECTORY}/generatebundlefile
+    cd "${BASE_DIRECTORY}/generatebundlefile/output"
+    awsAuth "$ORAS_BIN" push --username AWS --password-stdin \
+            "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+    awsAuth "$ORAS_BIN" push --username AWS --password-stdin \
+            "${REPO}:v${version}-latest" bundle.yaml
+}
 
-${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_122.yaml \
-    --key alias/${KMS_KEY}
-
-cd ${BASE_DIRECTORY}/generatebundlefile/output
-${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-22-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-${BASE_DIRECTORY}/bin/oras push -u AWS -p "${ECR_PASSWORD}" "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-22-latest" bundle.yaml
+for version in 1-21 1-22; do
+    generate ${version}
+    push ${version}
+done
