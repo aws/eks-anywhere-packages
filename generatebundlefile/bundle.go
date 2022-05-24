@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -75,8 +76,8 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.Packag
 }
 
 // NewPackageFromInput finds the SHA tags for any images in your BundlePackage
-func (projects Project) NewPackageFromInput() (*api.BundlePackage, error) {
-	ecrPublicClient, err := NewECRPublicClient(false, nil)
+func (projects Project) NewPackageFromInput(client *ecrpublic.Client) (*api.BundlePackage, error) {
+	ecrPublicClient, err := NewECRPublicClient(client, false)
 	if err != nil {
 		return nil, err
 	}

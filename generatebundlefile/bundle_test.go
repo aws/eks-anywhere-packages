@@ -6,6 +6,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
@@ -58,6 +59,7 @@ func TestNewBundleGenerate(t *testing.T) {
 }
 
 func TestNewPackageFromInput(t *testing.T) {
+	testClient := newMockAWSClient()
 	tests := []struct {
 		testname    string
 		testproject Project
@@ -127,7 +129,7 @@ func TestNewPackageFromInput(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.testname, func(tt *testing.T) {
-			got, err := tc.testproject.NewPackageFromInput()
+			got, err := tc.testproject.NewPackageFromInput(testClient)
 			if (err != nil) != tc.wantErr {
 				tt.Fatalf("NewPackageFromInput() error = %v, wantErr %v", err, tc.wantErr)
 			}
@@ -136,6 +138,10 @@ func TestNewPackageFromInput(t *testing.T) {
 			}
 		})
 	}
+}
+
+func newMockAWSClient() *ecrpublic.Client {
+	return &ecrpublic.Client{}
 }
 
 func TestIfSignature(t *testing.T) {

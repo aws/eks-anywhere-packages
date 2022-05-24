@@ -40,16 +40,9 @@ type ecrClient struct {
 }
 
 // NewECRPublicClient Creates a new ECR Client Public client
-func NewECRPublicClient(needsCreds bool, conf *aws.Config) (*ecrPublicClient, error) {
-	if conf == nil {
-		loadConfig, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
-		if err != nil {
-			return nil, fmt.Errorf("loading default ECR public config %w", err)
-		}
-		conf = &loadConfig
-	}
+func NewECRPublicClient(client *ecrpublic.Client, needsCreds bool) (*ecrPublicClient, error) {
 	ecrPublicClient := &ecrPublicClient{
-		Client: ecrpublic.NewFromConfig(*conf),
+		Client: client,
 	}
 	if needsCreds {
 		authorizationToken, err := ecrPublicClient.GetPublicAuthToken()

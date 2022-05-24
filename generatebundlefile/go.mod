@@ -9,7 +9,7 @@ replace (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.42.51
+	github.com/aws/aws-sdk-go-v2 v1.16.3
 	github.com/aws/aws-sdk-go-v2/config v1.13.1
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.17.3
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.3
@@ -21,7 +21,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.8.1
 	k8s.io/apimachinery v0.23.4
-	sigs.k8s.io/cluster-api-provider-vsphere v1.1.1
 	sigs.k8s.io/controller-runtime v0.11.1
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -38,7 +37,6 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.16.3 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.8.0 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.10.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.10 // indirect
@@ -48,7 +46,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.9.0 // indirect
 	github.com/aws/smithy-go v1.11.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/bshuster-repo/logrus-logstash-hook v1.0.2 // indirect
 	github.com/bugsnag/bugsnag-go v2.1.2+incompatible // indirect
 	github.com/bugsnag/panicwrap v1.3.4 // indirect
@@ -74,7 +71,6 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
-	github.com/gobuffalo/flect v0.2.4 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -119,7 +115,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/onsi/gomega v1.17.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
@@ -137,7 +132,6 @@ require (
 	github.com/spf13/cobra v1.3.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
-	github.com/vmware/govmomi v0.27.1 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
@@ -162,7 +156,6 @@ require (
 	google.golang.org/genproto v0.0.0-20220107163113-42d7afdf6368 // indirect
 	google.golang.org/grpc v1.43.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
-	gopkg.in/gcfg.v1 v1.2.3 // indirect
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
@@ -177,7 +170,6 @@ require (
 	k8s.io/kubectl v0.23.4 // indirect
 	k8s.io/utils v0.0.0-20211116205334-6203023598ed // indirect
 	oras.land/oras-go v1.1.0 // indirect
-	sigs.k8s.io/cluster-api v1.1.0 // indirect
 	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
 	sigs.k8s.io/kustomize/api v0.10.1 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.13.0 // indirect

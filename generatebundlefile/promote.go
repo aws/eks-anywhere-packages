@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 )
 
 type SDKClients struct {
@@ -18,28 +18,21 @@ type SDKClients struct {
 	ecrPublicClientRelease *ecrPublicClient
 }
 
-func NewAWSSessionProfile(profile, region string) (aws.Config, error) {
-	if profile == "" || region == "" {
-		return aws.Config{}, fmt.Errorf("Empty profile or region passed to function")
-	}
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion(region),
-		config.WithSharedConfigProfile(profile),
-	)
-	if err != nil {
-		return aws.Config{}, fmt.Errorf("Creating session with profile")
-	}
-	return cfg, nil
-}
-
 // GetSDKClients is used to handle the creation of different SDK clients.
 func GetSDKClients(profile string) (*SDKClients, error) {
 	clients := &SDKClients{}
 	var err error
-	clients.ecrPublicClient, err = NewECRPublicClient(true, nil)
+
+	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
 	if err != nil {
-		return nil, fmt.Errorf("Unable to create SDK connection to ECR Public %s", err)
+		return nil, fmt.Errorf("loading default AWS config: %w", err)
 	}
+	client := ecrpublic.NewFromConfig(conf)
+	clients.ecrPublicClient, err = NewECRPublicClient(client, true)
+	if err != nil {
+		return nil, fmt.Errorf("creating default public ECR client: %w", err)
+	}
+
 	clients.stsClient, err = NewStsClient(true)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create SDK connection to STS %s", err)
@@ -48,16 +41,22 @@ func GetSDKClients(profile string) (*SDKClients, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create SDK connection to ECR %s", err)
 	}
+
 	if profile != "" {
-		cfg, err := NewAWSSessionProfile(profile, ecrPublicRegion)
+		confWithProfile, err := config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion(ecrPublicRegion),
+			config.WithSharedConfigProfile(profile))
 		if err != nil {
-			return nil, fmt.Errorf("Unable to create SDK connection to session to another profile %s", err)
+			return nil, fmt.Errorf("creating public AWS client config: %w", err)
 		}
-		clients.ecrPublicClientRelease, err = NewECRPublicClient(true, &cfg)
+
+		clientWithProfile := ecrpublic.NewFromConfig(confWithProfile)
+		clients.ecrPublicClientRelease, err = NewECRPublicClient(clientWithProfile, true)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to create SDK connection to ECR Public another profile %s", err)
 		}
 	}
+
 	return clients, nil
 }
 
