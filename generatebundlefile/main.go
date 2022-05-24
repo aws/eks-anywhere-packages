@@ -9,6 +9,8 @@ import (
 	"gopkg.in/yaml.v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
 )
 
@@ -115,6 +117,13 @@ func main() {
 	// Validate Input config, and turn into Input struct
 	BundleLog.Info("Using input file to create bundle crds.", "Input file", o.inputFile)
 
+	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
+	if err != nil {
+		BundleLog.Error(err, "loading default AWS config: %w", err)
+		os.Exit(1)
+	}
+	client := ecrpublic.NewFromConfig(conf)
+
 	for _, f := range files {
 		Inputs, err := ValidateInputConfig(f)
 		if err != nil {
@@ -122,7 +131,7 @@ func main() {
 			os.Exit(1)
 		}
 		BundleLog.Info("In Progress: Populating Bundles and looking up Sha256 tags")
-		addOnBundleSpec, name, err := Inputs.NewBundleFromInput()
+		addOnBundleSpec, name, err := Inputs.NewBundleFromInput(client)
 		if err != nil {
 			BundleLog.Error(err, "Unable to create CRD skaffolding of AddoOBundle from input file")
 			os.Exit(1)

@@ -37,7 +37,11 @@ func TestPullHelmChart(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		clients, _ := GetSDKClients("")
+		clients, err := GetSDKClients("")
+		if err != nil {
+			t.Fatalf("failed to create SDK clients: %s", err)
+		}
+
 		dockerStruct := &DockerAuth{
 			Auths: map[string]DockerAuthRegistry{
 				fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): DockerAuthRegistry{clients.ecrClient.AuthConfig},
