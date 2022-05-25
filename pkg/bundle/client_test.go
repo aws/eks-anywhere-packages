@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,8 +13,6 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
-
-
 
 func TestNewPackageBundleClient(t *testing.T) {
 	t.Parallel()
@@ -47,7 +44,7 @@ func TestBundleClient_IsActive(t *testing.T) {
 	})
 
 	t.Run("error on failed get", func(t *testing.T) {
-		mockClient := newMockClient(fmt.Errorf("Failed Get"))
+		mockClient := newMockClient(fmt.Errorf("failed get"))
 		bundleClient := NewPackageBundleClient(mockClient)
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
 
@@ -79,7 +76,7 @@ func TestBundleClient_IsActive(t *testing.T) {
 		bundleClient := NewPackageBundleClient(mockClient)
 		bundle := &api.PackageBundle{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "non-empty",
+				Name:      "non-empty",
 				Namespace: api.PackageNamespace,
 			},
 			Status: api.PackageBundleStatus{
@@ -129,8 +126,8 @@ func TestBundleClient_GetActiveBundleNamespacedName(t *testing.T) {
 
 // Helpers
 type mockClient struct {
-	client *client.Client
-	err    error
+	client.Client
+	err error
 }
 
 func newMockClient(err error) *mockClient {

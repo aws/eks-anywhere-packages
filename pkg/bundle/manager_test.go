@@ -144,7 +144,7 @@ func TestKubeVersion(t *testing.T) {
 			t.Errorf("expected %q, got %q", expected, ver)
 		}
 	})
-	
+
 	t.Run("error on blank version", func(t *testing.T) {
 		t.Parallel()
 
@@ -451,7 +451,7 @@ func TestBundleManager_LatestBundle(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	t.Run("latest bundle", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
