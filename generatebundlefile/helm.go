@@ -16,28 +16,44 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// PullHelmChart will take in a a remote Helm URI and attempt to pull down the chart if it exists.
-func PullHelmChart(name, version, authfile string) (string, error) {
-	if name == "" || version == "" {
-		return "", fmt.Errorf("empty input for PullHelmChart, check flags")
-	}
+// helmDriver implements PackageDriver to install packages from Helm charts.
+type helmDriver struct {
+	cfg      *action.Configuration
+	log      logr.Logger
+	settings *cli.EnvSettings
+}
+
+func NewHelm(log logr.Logger, authfile string) (*helmDriver, error) {
 	settings := cli.New()
-	actionConfig := new(action.Configuration)
-	if err := actionConfig.Init(settings.RESTClientGetter(), "", os.Getenv("HELM_DRIVER"), helmLog(logr.Discard())); err != nil {
-		return "", fmt.Errorf("init the helm client aciton failed: %w", err)
-	}
 	options := registry.ClientOptCredentialsFile(authfile)
 	client, err := registry.NewClient(options)
 	if err != nil {
-		return "", fmt.Errorf("creating registry client while initializing helm driver: %w", err)
+		return nil, fmt.Errorf("creating registry client while initializing helm driver: %w", err)
 	}
-	actionConfig.RegistryClient = client
-	install := action.NewInstall(actionConfig)
+	cfg := &action.Configuration{RegistryClient: client}
+	err = cfg.Init(settings.RESTClientGetter(), settings.Namespace(),
+		os.Getenv("HELM_DRIVER"), helmLog(log))
+	if err != nil {
+		return nil, fmt.Errorf("initializing helm driver: %w", err)
+	}
+	return &helmDriver{
+		cfg:      cfg,
+		log:      log,
+		settings: settings,
+	}, nil
+}
+
+// PullHelmChart will take in a a remote Helm URI and attempt to pull down the chart if it exists.
+func (d *helmDriver) PullHelmChart(name, version string) (string, error) {
+	if name == "" || version == "" {
+		return "", fmt.Errorf("empty input for PullHelmChart, check flags")
+	}
+	install := action.NewInstall(d.cfg)
 	install.ChartPathOptions.Version = version
 	if !strings.HasPrefix(name, "oci://") {
 		name = fmt.Sprintf("oci://%s", name)
 	}
-	chartPath, err := install.LocateChart(name, settings)
+	chartPath, err := install.LocateChart(name, d.settings)
 	if err != nil || chartPath == "" {
 		return "", fmt.Errorf("running the Helm LocateChart command, you might need run an AWS ECR Login: %w", err)
 	}
@@ -57,6 +73,9 @@ func UnTarHelmChart(chartRef, chartPath, dest string) error {
 		return fmt.Errorf("Empty input value given for UnTarHelmChart")
 	}
 	_, err := os.Stat(dest)
+	if err != nil {
+		return fmt.Errorf("Not valid File %w", err)
+	}
 	if os.IsNotExist(err) {
 		if _, err := os.Stat(chartPath); err != nil {
 			if err := os.MkdirAll(chartPath, 0755); err != nil {

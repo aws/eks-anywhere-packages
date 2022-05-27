@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
@@ -29,20 +28,31 @@ const (
 )
 
 type ecrPublicClient struct {
-	*ecrpublic.Client
+	publicRegistryClient
 	AuthConfig     string
 	SourceRegistry string
 }
 
 type ecrClient struct {
-	*ecr.Client
+	registryClient
 	AuthConfig string
 }
 
+type publicRegistryClient interface {
+	DescribeImages(ctx context.Context, params *ecrpublic.DescribeImagesInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.DescribeImagesOutput, error)
+	DescribeRegistries(ctx context.Context, params *ecrpublic.DescribeRegistriesInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.DescribeRegistriesOutput, error)
+	GetAuthorizationToken(ctx context.Context, params *ecrpublic.GetAuthorizationTokenInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error)
+}
+
+type registryClient interface {
+	DescribeImages(ctx context.Context, params *ecr.DescribeImagesInput, optFns ...func(*ecr.Options)) (*ecr.DescribeImagesOutput, error)
+	GetAuthorizationToken(ctx context.Context, params *ecr.GetAuthorizationTokenInput, optFns ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)
+}
+
 // NewECRPublicClient Creates a new ECR Client Public client
-func NewECRPublicClient(client *ecrpublic.Client, needsCreds bool) (*ecrPublicClient, error) {
+func NewECRPublicClient(client publicRegistryClient, needsCreds bool) (*ecrPublicClient, error) {
 	ecrPublicClient := &ecrPublicClient{
-		Client: client,
+		publicRegistryClient: client,
 	}
 	if needsCreds {
 		authorizationToken, err := ecrPublicClient.GetPublicAuthToken()
@@ -56,13 +66,11 @@ func NewECRPublicClient(client *ecrpublic.Client, needsCreds bool) (*ecrPublicCl
 }
 
 // NewECRClient Creates a new ECR Client Public client
-func NewECRClient(creds bool) (*ecrClient, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
-	if err != nil {
-		return nil, fmt.Errorf("Creating AWS ECR config %w", err)
+func NewECRClient(client registryClient, needsCreds bool) (*ecrClient, error) {
+	ecrClient := &ecrClient{
+		registryClient: client,
 	}
-	ecrClient := &ecrClient{Client: ecr.NewFromConfig(cfg)}
-	if creds {
+	if needsCreds {
 		authorizationToken, err := ecrClient.GetAuthToken()
 		if err != nil {
 			return nil, err
@@ -329,6 +337,9 @@ func (c *ecrPublicClient) GetRegistryURI() (string, error) {
 
 // tagFromSha Looks up the Tag of an ECR artifact from a sha
 func (c *ecrClient) tagFromSha(repository, sha string) (string, error) {
+	if repository == "" || sha == "" {
+		return "", fmt.Errorf("Emtpy repository, or sha passed to the function")
+	}
 	var imagelookup []ecrtypes.ImageIdentifier
 	imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageDigest: &sha})
 	ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{

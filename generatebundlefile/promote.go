@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 )
 
@@ -22,7 +23,7 @@ type SDKClients struct {
 func GetSDKClients(profile string) (*SDKClients, error) {
 	clients := &SDKClients{}
 	var err error
-
+	// ECR Public Connection with us-east-1 region
 	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
 	if err != nil {
 		return nil, fmt.Errorf("loading default AWS config: %w", err)
@@ -37,7 +38,14 @@ func GetSDKClients(profile string) (*SDKClients, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create SDK connection to STS %s", err)
 	}
-	clients.ecrClient, err = NewECRClient(true)
+
+	// ECR Private Connection with us-west-2 region
+	conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
+	if err != nil {
+		return nil, fmt.Errorf("loading default AWS config: %w", err)
+	}
+	ecrClient := ecr.NewFromConfig(conf)
+	clients.ecrClient, err = NewECRClient(ecrClient, true)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create SDK connection to ECR %s", err)
 	}
@@ -81,7 +89,11 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 	// Pull the Helm chart to Helm Cache
 	fmt.Printf("Promoting chart and images for version %s %s\n", name, version)
 	semVer := strings.Replace(version, "_", "+", 1) // TODO use the Semvar library instead of this hack.
-	chartPath, err := PullHelmChart(name, semVer, authFile)
+	driver, err := NewHelm(BundleLog, authFile)
+	if err != nil {
+		return fmt.Errorf("Error creating helm driver %s", err)
+	}
+	chartPath, err := driver.PullHelmChart(name, semVer)
 	if err != nil {
 		return fmt.Errorf("Error pulling helmchart %s", err)
 	}
