@@ -144,6 +144,15 @@ func TestKubeVersion(t *testing.T) {
 			t.Errorf("expected %q, got %q", expected, ver)
 		}
 	})
+
+	t.Run("error on blank version", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := kubeVersion("")
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+	})
 }
 
 func TestPackageVersion(t *testing.T) {
@@ -390,6 +399,73 @@ func TestSortBundleNewestFirst(t *testing.T) {
 			assert.Equal(t, "v1-21-1001", allBundles[1].Name)
 			assert.Equal(t, "v1-16-1003", allBundles[2].Name)
 
+		}
+	})
+}
+
+func TestBundleManager_IsBundleKnown(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	validBundles := []api.PackageBundle{
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "v1-16-1003",
+			},
+			Status: api.PackageBundleStatus{
+				State: api.PackageBundleStateInactive,
+			},
+		},
+	}
+
+	t.Run("unknown bundle", func(t *testing.T) {
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		bundle := givenPackageBundle(api.PackageBundleStateInactive)
+		bundle.Namespace = "billy"
+		bundle.Name = "v1-21"
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+
+		known := bm.IsBundleKnown(ctx, validBundles, bundle)
+
+		assert.False(t, known)
+	})
+
+	t.Run("known bundle", func(t *testing.T) {
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		bundle := givenPackageBundle(api.PackageBundleStateInactive)
+		bundle.Namespace = "billy"
+		bundle.Name = "v1-16-1003"
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+
+		known := bm.IsBundleKnown(ctx, validBundles, bundle)
+
+		assert.True(t, known)
+	})
+}
+
+func TestBundleManager_LatestBundle(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	t.Run("latest bundle", func(t *testing.T) {
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		bundle := givenPackageBundle(api.PackageBundleStateInactive)
+
+		bundle.Namespace = "billy"
+		bundle.Name = "v1-16-1003"
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+
+		_, err := bm.LatestBundle(ctx, "test")
+
+		if err == nil {
+			t.Errorf("expected error, got nil")
 		}
 	})
 }
