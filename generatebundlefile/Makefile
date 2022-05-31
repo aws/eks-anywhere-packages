@@ -57,6 +57,9 @@ run:
 test:
 	$(GO) test
 
+.PHONY: presubmit
+presubmit: build test # lint is run via github action
+
 ## ORAS Make commands
 ORAS_VERSION := "0.12.0"
 ifeq ($(OS),Windows_NT)
