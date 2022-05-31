@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"reflect"
 	"testing"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
+	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
@@ -27,6 +30,9 @@ func TestNewBundleGenerate(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "bundlename",
 					Namespace: "eksa-packages",
+					Annotations: map[string]string{
+						"eksa.aws.com/excludes": "LnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVnaXN0cnkKLnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVwb3NpdG9yeQo=",
+					},
 				},
 				Spec: api.PackageBundleSpec{
 					Packages: []api.BundlePackage{
@@ -58,9 +64,14 @@ func TestNewBundleGenerate(t *testing.T) {
 	}
 }
 
+var testTagBundle string = "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214"
+var testShaBundle string = "sha256:d5467083c4d175e7e9bba823e95570d28fff86a2fbccb03f5ec3093db6f039be"
+var testImageMediaType string = "application/vnd.oci.image.manifest.v1+json"
+
 func TestNewPackageFromInput(t *testing.T) {
-	testClient := newMockAWSClient()
+	client := newMockPublicRegistryClientBundle(nil)
 	tests := []struct {
+		client      *mockPublicRegistryClientBundle
 		testname    string
 		testproject Project
 		wantErr     bool
@@ -83,7 +94,7 @@ func TestNewPackageFromInput(t *testing.T) {
 				Registry:   "public.ecr.aws/f5b7k4z5",
 				Repository: "hello-eks-anywhere",
 				Versions: []Tag{
-					{Name: "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214"},
+					{Name: testTagBundle},
 				},
 			},
 			wantErr: false,
@@ -94,8 +105,8 @@ func TestNewPackageFromInput(t *testing.T) {
 					Repository: "hello-eks-anywhere",
 					Versions: []api.SourceVersion{
 						{
-							Name:   "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214",
-							Digest: "sha256:d5467083c4d175e7e9bba823e95570d28fff86a2fbccb03f5ec3093db6f039be",
+							Name:   testTagBundle,
+							Digest: testShaBundle,
 						},
 					},
 				},
@@ -119,8 +130,8 @@ func TestNewPackageFromInput(t *testing.T) {
 					Repository: "hello-eks-anywhere",
 					Versions: []api.SourceVersion{
 						{
-							Name:   "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214",
-							Digest: "sha256:d5467083c4d175e7e9bba823e95570d28fff86a2fbccb03f5ec3093db6f039be",
+							Name:   testTagBundle,
+							Digest: testShaBundle,
 						},
 					},
 				},
@@ -129,7 +140,12 @@ func TestNewPackageFromInput(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.testname, func(tt *testing.T) {
-			got, err := tc.testproject.NewPackageFromInput(testClient)
+			clients := &SDKClients{
+				ecrPublicClient: &ecrPublicClient{
+					publicRegistryClient: client,
+				},
+			}
+			got, err := clients.ecrPublicClient.NewPackageFromInput(tc.testproject)
 			if (err != nil) != tc.wantErr {
 				tt.Fatalf("NewPackageFromInput() error = %v, wantErr %v", err, tc.wantErr)
 			}
@@ -138,10 +154,6 @@ func TestNewPackageFromInput(t *testing.T) {
 			}
 		})
 	}
-}
-
-func newMockAWSClient() *ecrpublic.Client {
-	return &ecrpublic.Client{}
 }
 
 func TestIfSignature(t *testing.T) {
@@ -274,4 +286,39 @@ func TestCheckSignature(t *testing.T) {
 			}
 		})
 	}
+}
+
+type mockPublicRegistryClientBundle struct {
+	err error
+}
+
+func newMockPublicRegistryClientBundle(err error) *mockPublicRegistryClientBundle {
+	return &mockPublicRegistryClientBundle{
+		err: err,
+	}
+}
+
+func (r *mockPublicRegistryClientBundle) DescribeImages(ctx context.Context, params *ecrpublic.DescribeImagesInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.DescribeImagesOutput, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+	testImagePushedAt := time.Now()
+	return &ecrpublic.DescribeImagesOutput{
+		ImageDetails: []ecrpublictypes.ImageDetail{
+			{
+				ImageDigest:            &testShaBundle,
+				ImageTags:              []string{testTagBundle},
+				ImageManifestMediaType: &testImageMediaType,
+				ImagePushedAt:          &testImagePushedAt,
+			},
+		},
+	}, nil
+}
+
+func (r *mockPublicRegistryClientBundle) DescribeRegistries(ctx context.Context, params *ecrpublic.DescribeRegistriesInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.DescribeRegistriesOutput, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+func (r *mockPublicRegistryClientBundle) GetAuthorizationToken(ctx context.Context, params *ecrpublic.GetAuthorizationTokenInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error) {
+	panic("not implemented") // TODO: Implement
 }

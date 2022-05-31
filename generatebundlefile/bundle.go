@@ -75,23 +75,19 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.Packag
 }
 
 // NewPackageFromInput finds the SHA tags for any images in your BundlePackage
-func (projects Project) NewPackageFromInput(client publicRegistryClient) (*api.BundlePackage, error) {
-	ecrPublicClient, err := NewECRPublicClient(client, false)
-	if err != nil {
-		return nil, err
-	}
-	versionList, err := ecrPublicClient.GetShaForInputs(projects)
+func (c *ecrPublicClient) NewPackageFromInput(project Project) (*api.BundlePackage, error) {
+	versionList, err := c.GetShaForInputs(project)
 	if err != nil {
 		return nil, err
 	}
 	if len(versionList) < 1 {
-		return nil, fmt.Errorf("unable to find SHA sum for given input tag %v", projects.Versions)
+		return nil, fmt.Errorf("unable to find SHA sum for given input tag %v", project.Versions)
 	}
 	bundlePkg := &api.BundlePackage{
-		Name: projects.Name,
+		Name: project.Name,
 		Source: api.BundlePackageSource{
-			Registry:   projects.Registry,
-			Repository: projects.Repository,
+			Registry:   project.Registry,
+			Repository: project.Repository,
 			Versions:   versionList,
 		},
 	}
