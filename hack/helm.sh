@@ -30,10 +30,8 @@ rm -rf $OUTDIR
 mkdir $OUTDIR
 cp -r eks-anywhere-packages $OUTDIR
 EKS_ANYWHERE_PACKAGES_TAG=$(cat image-tags/eks-anywhere-packages)
-KUBE_RBAC_PROXY_TAG=$(cat image-tags/kube-rbac-proxy)
 sed \
         -e "s,{{eks-anywhere-packages}},${EKS_ANYWHERE_PACKAGES_TAG}," \
-        -e "s,{{brancz/kube-rbac-proxy}},${KUBE_RBAC_PROXY_TAG}," \
         eks-anywhere-packages/values.yaml >${OUTDIR}/eks-anywhere-packages/values.yaml
 cd $OUTDIR
 helm-docs
