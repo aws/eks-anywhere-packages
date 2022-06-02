@@ -42,8 +42,8 @@ func TestValidateSignature(t *testing.T) {
 		}
 		valid, _, _, err := ValidateSignature(bundle, EksaDomain)
 
-		assert.True(t, valid, "Signature should be valid for the EKS-A domain")
 		assert.Nilf(t, err, "An error occured validating the signature: %v", err)
+		assert.True(t, valid, "Signature should be valid for the EKS-A domain")
 	})
 
 	t.Run("invalid signature on valid manifest", func(t *testing.T) {
@@ -90,7 +90,8 @@ func TestValidateSignature(t *testing.T) {
 		digest, _, err := GetDigest(bundle, EksaDomain)
 
 		// An empty object serializes to "{}" in yaml.
-		assert.Equal(t, sha256.Sum256([]byte("{}\n")), digest, "This tests validates the behavior of an affectively empty document signature made empty via excludes")
+		expected := sha256.Sum256([]byte("{}\n"))
+		assert.Equalf(t, expected[:], digest, "This tests validates the behavior of an affectively empty document signature made empty via excludes")
 		assert.Nil(t, err)
 		valid, _, _, err := ValidateSignature(bundle, EksaDomain)
 		assert.False(t, valid, "Signature should be invalid as it's signing actual content")
@@ -214,6 +215,6 @@ func TestDigest(t *testing.T) {
 		digest, _, err := GetDigest(bundle, EksaDomain)
 		var b64error base64.CorruptInputError = 0
 		assert.ErrorIs(t, err, b64error)
-		assert.Equal(t, digest, [32]byte{})
+		assert.Nil(t, digest)
 	})
 }
