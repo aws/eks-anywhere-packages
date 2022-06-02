@@ -122,8 +122,12 @@ func main() {
 		BundleLog.Error(err, "loading default AWS config: %w", err)
 		os.Exit(1)
 	}
+	clients := &SDKClients{}
 	client := ecrpublic.NewFromConfig(conf)
-
+	clients.ecrPublicClient, err = NewECRPublicClient(client, true)
+	if err != nil {
+		os.Exit(1)
+	}
 	for _, f := range files {
 		Inputs, err := ValidateInputConfig(f)
 		if err != nil {
@@ -131,7 +135,7 @@ func main() {
 			os.Exit(1)
 		}
 		BundleLog.Info("In Progress: Populating Bundles and looking up Sha256 tags")
-		addOnBundleSpec, name, err := Inputs.NewBundleFromInput(client)
+		addOnBundleSpec, name, err := clients.ecrPublicClient.NewBundleFromInput(Inputs)
 		if err != nil {
 			BundleLog.Error(err, "Unable to create CRD skaffolding of AddoOBundle from input file")
 			os.Exit(1)
