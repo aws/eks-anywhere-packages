@@ -1,65 +1,18 @@
 package main
 
 import (
-	"fmt"
+	"archive/tar"
+	"compress/gzip"
+	"context"
+	"io"
 	"os"
 	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
+	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
 )
-
-func TestPullHelmChart(t *testing.T) {
-	tests := []struct {
-		testName        string
-		testHelmName    string
-		testHelmVersion string
-		helmLocation    string
-		wantErr         bool
-	}{
-		{
-			testName:        "Test empty name",
-			testHelmName:    "",
-			testHelmVersion: "0.1.1+9b09ef845d5d38d5201b96e32ae0be0ce2402b78",
-			helmLocation:    "",
-			wantErr:         true,
-		},
-		{
-			testName:        "Test empty version",
-			testHelmName:    "646717423341.dkr.ecr.us-west-2.amazonaws.com/hello-eks-anywhere",
-			testHelmVersion: "",
-			helmLocation:    "",
-			wantErr:         true,
-		},
-		{
-			testName:        "Test valid helm",
-			testHelmName:    "646717423341.dkr.ecr.us-west-2.amazonaws.com/hello-eks-anywhere",
-			testHelmVersion: "0.1.1+9b09ef845d5d38d5201b96e32ae0be0ce2402b78",
-			helmLocation:    fmt.Sprintf("%s/Library/Caches/helm/repository/hello-eks-anywhere-0.1.1+9b09ef845d5d38d5201b96e32ae0be0ce2402b78.tgz", os.Getenv("HOME")),
-			wantErr:         false,
-		},
-	}
-	for _, tc := range tests {
-		clients, err := GetSDKClients("")
-		if err != nil {
-			t.Fatalf("failed to create SDK clients: %s", err)
-		}
-
-		dockerStruct := &DockerAuth{
-			Auths: map[string]DockerAuthRegistry{
-				fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): DockerAuthRegistry{clients.ecrClient.AuthConfig},
-				"public.ecr.aws": DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
-			},
-		}
-		authFile, _ := NewAuthFile(dockerStruct)
-		t.Run(tc.testName, func(tt *testing.T) {
-			got, err := PullHelmChart(tc.testHelmName, tc.testHelmVersion, authFile)
-			if (err != nil) != tc.wantErr {
-				tt.Fatalf("PullHelmChart() error = %v, wantErr %v", err, tc.wantErr)
-			}
-			if got != tc.helmLocation {
-				tt.Fatalf("PullHelmChart() = %#v\n\n\n, want %#v", got, tc.helmLocation)
-			}
-		})
-	}
-}
 
 func TestSplitECRName(t *testing.T) {
 	tests := []struct {
@@ -93,6 +46,13 @@ func TestSplitECRName(t *testing.T) {
 		{
 			testName:     "Test invalid name w/ multiple prefixes",
 			testHelmName: "646717423341.dkr.ecr.us-west-2.amazonaws.com/test/hello-eks-anywhere",
+			chartName:    "test/hello-eks-anywhere",
+			helmName:     "hello-eks-anywhere",
+			wantErr:      false,
+		},
+		{
+			testName:     "Test invalid name w/ multiple prefixes",
+			testHelmName: "646717423341.dkr.ecr.us-west-2.amazonaws.com/test/testing/hello-eks-anywhere",
 			chartName:    "",
 			helmName:     "",
 			wantErr:      true,
@@ -112,6 +72,31 @@ func TestSplitECRName(t *testing.T) {
 }
 
 func TestUnTarHelmChart(t *testing.T) {
+	//Construct a Valid temp Helm Chart and Targz it.
+	var tarGZ string = "test.tgz"
+	err := os.Mkdir("hello-eks-anywhere", 0750)
+	if err != nil {
+		t.Fatal("Error creating test dir:", err)
+	}
+	defer os.RemoveAll("hello-eks-anywhere")
+	f, err := os.Create("hello-eks-anywhere/Chart.yaml")
+	content := []byte("apiVersion: v2\nversion: 0.1.0\nappVersion: 0.1.0\nname: hello-eks-anywhere\n")
+	err = os.WriteFile("hello-eks-anywhere/Chart.yaml", content, 0644)
+	if err != nil {
+		t.Fatal("Error creating test files:", err)
+	}
+	defer f.Close()
+	out, err := os.Create(tarGZ)
+	if err != nil {
+		t.Fatal("Error creating test .tar:", err)
+	}
+	defer out.Close()
+	files := []string{f.Name()}
+	err = createArchive(files, out)
+	if err != nil {
+		t.Fatal("Error adding files to .tar:", err)
+	}
+	defer os.Remove(tarGZ)
 	tests := []struct {
 		testName      string
 		testChartPath string
@@ -127,13 +112,13 @@ func TestUnTarHelmChart(t *testing.T) {
 		},
 		{
 			testName:      "Test empty ChartName",
-			testChartPath: fmt.Sprintf("%s/Library/Caches/helm/repository/hello-eks-anywhere-0.1.1+9b09ef845d5d38d5201b96e32ae0be0ce2402b78.tgz", os.Getenv("HOME")),
+			testChartPath: tarGZ,
 			testChartName: "",
 			wantErr:       true,
 		},
 		{
 			testName:      "Test valid values",
-			testChartPath: fmt.Sprintf("%s/Library/Caches/helm/repository/hello-eks-anywhere-0.1.1+9b09ef845d5d38d5201b96e32ae0be0ce2402b78.tgz", os.Getenv("HOME")),
+			testChartPath: tarGZ,
 			testChartName: "hello-eks-anywhere",
 			wantErr:       false,
 		},
@@ -150,7 +135,9 @@ func TestUnTarHelmChart(t *testing.T) {
 }
 
 func TestShaExistsInRepository(t *testing.T) {
+	client := newMockPublicRegistryClient(nil)
 	tests := []struct {
+		client         *mockPublicRegistryClient
 		testName       string
 		testRepository string
 		testVersion    string
@@ -179,9 +166,10 @@ func TestShaExistsInRepository(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.testName, func(tt *testing.T) {
-			clients, err := GetSDKClients("")
-			if err != nil {
-				tt.Fatalf("ecrPublicClient() did not work, %v", err)
+			clients := &SDKClients{
+				ecrPublicClient: &ecrPublicClient{
+					publicRegistryClient: client,
+				},
 			}
 			got, err := clients.ecrPublicClient.shaExistsInRepository(tc.testRepository, tc.testVersion)
 			if (err != nil) != tc.wantErr {
@@ -195,7 +183,9 @@ func TestShaExistsInRepository(t *testing.T) {
 }
 
 func TestTagFromSha(t *testing.T) {
+	client := newMockRegistryClient(nil)
 	tests := []struct {
+		client         *mockRegistryClient
 		testName       string
 		testRepository string
 		testDigest     string
@@ -225,11 +215,12 @@ func TestTagFromSha(t *testing.T) {
 	//images.Digest, err = ecrClient.tagFromSha(images.Repository, images.Digest)
 	for _, tc := range tests {
 		t.Run(tc.testName, func(tt *testing.T) {
-			ecrClient, err := NewECRClient(true)
-			if err != nil {
-				tt.Fatalf("ecrClient() did not work, %v", err)
+			clients := &SDKClients{
+				ecrClient: &ecrClient{
+					registryClient: client,
+				},
 			}
-			got, err := ecrClient.tagFromSha(tc.testRepository, tc.testDigest)
+			got, err := clients.ecrClient.tagFromSha(tc.testRepository, tc.testDigest)
 			if (err != nil) != tc.wantErr {
 				tt.Fatalf("tagFromSha() error = %v, wantErr %v", err, tc.wantErr)
 			}
@@ -238,4 +229,130 @@ func TestTagFromSha(t *testing.T) {
 			}
 		})
 	}
+}
+
+//Helper funcions
+// to create the mocks "impl 'r *mockRegistryClient' registryClient"
+
+type mockPublicRegistryClient struct {
+	err error
+}
+
+func newMockPublicRegistryClient(err error) *mockPublicRegistryClient {
+	return &mockPublicRegistryClient{
+		err: err,
+	}
+}
+
+var testSha string = "sha256:0526725a65691944e831add6b247b25a93b8eeb1033dddadeaa089e95b021172"
+
+func (r *mockPublicRegistryClient) DescribeImages(ctx context.Context, params *ecrpublic.DescribeImagesInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.DescribeImagesOutput, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+	return &ecrpublic.DescribeImagesOutput{
+		ImageDetails: []ecrpublictypes.ImageDetail{
+			{
+				ImageDigest: &testSha,
+			},
+		},
+	}, nil
+}
+
+func (r *mockPublicRegistryClient) DescribeRegistries(ctx context.Context, params *ecrpublic.DescribeRegistriesInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.DescribeRegistriesOutput, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+func (r *mockPublicRegistryClient) GetAuthorizationToken(ctx context.Context, params *ecrpublic.GetAuthorizationTokenInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+// ECR
+
+type mockRegistryClient struct {
+	err error
+}
+
+func newMockRegistryClient(err error) *mockRegistryClient {
+	return &mockRegistryClient{
+		err: err,
+	}
+}
+
+var testTag string = "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea660"
+
+func (r *mockRegistryClient) DescribeImages(ctx context.Context, params *ecr.DescribeImagesInput, optFns ...func(*ecr.Options)) (*ecr.DescribeImagesOutput, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+	return &ecr.DescribeImagesOutput{
+		ImageDetails: []ecrtypes.ImageDetail{
+			{
+				ImageTags: []string{testTag},
+			},
+		},
+	}, nil
+}
+
+func (r *mockRegistryClient) GetAuthorizationToken(ctx context.Context, params *ecr.GetAuthorizationTokenInput, optFns ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+func createArchive(files []string, buf io.Writer) error {
+	// Create new Writers for gzip and tar
+	// These writers are chained. Writing to the tar writer will
+	// write to the gzip writer which in turn will write to
+	// the "buf" writer
+	gw := gzip.NewWriter(buf)
+	defer gw.Close()
+	tw := tar.NewWriter(gw)
+	defer tw.Close()
+
+	// Iterate over files and add them to the tar archive
+	for _, file := range files {
+		err := addToArchive(tw, file)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func addToArchive(tw *tar.Writer, filename string) error {
+	// Open the file which will be written into the archive
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Get FileInfo about our file providing file size, mode, etc.
+	info, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	// Create a tar Header from the FileInfo data
+	header, err := tar.FileInfoHeader(info, info.Name())
+	if err != nil {
+		return err
+	}
+
+	// Use full path as name (FileInfoHeader only takes the basename)
+	header.Name = filename
+
+	// Write file header to the tar archive
+	err = tw.WriteHeader(header)
+	if err != nil {
+		return err
+	}
+
+	// Copy file content to tar archive
+	_, err = io.Copy(tw, file)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
