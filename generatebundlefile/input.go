@@ -151,7 +151,6 @@ func (c *ecrPublicClient) NewBundleFromInput(Input *Input) (api.PackageBundleSpe
 		name = fmt.Sprintf("v1-%s-%s", version[1], name)
 	}
 	for _, org := range Input.Packages {
-		fmt.Printf("org=%v\n", org)
 		for _, project := range org.Projects {
 			bundlePkg, err := c.NewPackageFromInput(project)
 			if err != nil {

@@ -73,9 +73,6 @@ func UnTarHelmChart(chartRef, chartPath, dest string) error {
 		return fmt.Errorf("Empty input value given for UnTarHelmChart")
 	}
 	_, err := os.Stat(dest)
-	if err != nil {
-		return fmt.Errorf("Not valid File %w", err)
-	}
 	if os.IsNotExist(err) {
 		if _, err := os.Stat(chartPath); err != nil {
 			if err := os.MkdirAll(chartPath, 0755); err != nil {
