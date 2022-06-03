@@ -102,6 +102,9 @@ type VersionConfiguration struct {
 
 	// Required configuration parameter the user must specify
 	Required bool `json:"required"`
+
+	// Default is the name of the configuration
+	Default string `json:"default"`
 }
 
 // PackageBundleStatus defines the observed state of PackageBundle
