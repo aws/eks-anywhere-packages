@@ -10,7 +10,6 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
@@ -138,7 +137,7 @@ func ParseInputConfig(fileName string, inputConfig *Input) error {
 	return fmt.Errorf("cluster spec file %s is invalid or does not contain kind %v", fileName, inputConfig)
 }
 
-func (Input *Input) NewBundleFromInput(client *ecrpublic.Client) (api.PackageBundleSpec, string, error) {
+func (c *ecrPublicClient) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, string, error) {
 	packageBundleSpec := api.PackageBundleSpec{}
 	if Input.Name == "" || Input.KubernetesVersion == "" {
 		return packageBundleSpec, "", fmt.Errorf("error: Empty input field from `Name` or `KubernetesVersion`.")
@@ -154,7 +153,7 @@ func (Input *Input) NewBundleFromInput(client *ecrpublic.Client) (api.PackageBun
 	for _, org := range Input.Packages {
 		fmt.Printf("org=%v\n", org)
 		for _, project := range org.Projects {
-			bundlePkg, err := project.NewPackageFromInput(client)
+			bundlePkg, err := c.NewPackageFromInput(project)
 			if err != nil {
 				BundleLog.Error(err, "Unable to complete NewBundleFromInput from ecr lookup failure")
 				return packageBundleSpec, "", err
