@@ -1,0 +1,16 @@
+# This info is hardcoded and comes from https://github.com/aws/eks-anywhere-build-tooling
+name: "v1-21-1001"
+kubernetesVersion: "1.21"
+packages:
+  - org: aws-containers
+    projects:
+      - name: hello-eks-anywhere
+        repository: hello-eks-anywhere
+        registry: public.ecr.aws/f5b7k4z5
+        versions:
+            - name: latest
+      - name: harbor
+        repository: harbor/harbor-helm
+        registry: public.ecr.aws/f5b7k4z5
+        versions:
+            - name: latest

@@ -21,7 +21,7 @@ set -euxo pipefail
 export LANG=C.UTF-8
 
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
-. "${BASE_DIRECTORY}/common.sh"
+. "${BASE_DIRECTORY}/scripts/common.sh"
 ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries \
                  --query 'registries[*].registryUri' --output text)
 REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles

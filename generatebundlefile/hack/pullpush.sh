@@ -58,6 +58,10 @@ aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm reg
 helm pull oci://646717423341.dkr.ecr.us-west-2.amazonaws.com/hello-eks-anywhere --version 0.1.0+c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214
 helm push hello-eks-anywhere-0.1.0+c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214.tgz "oci://$local_ecr_public"
 
+helm push hello-eks-anywhere-0.1.1-0556b4a4a8766b3e1a695e9f4cb2c1e84ac623f7.tgz "oci://$local_ecr_public"
+helm push hello-eks-anywhere-0.1.1-0556b4a4a8766b3e1a695e9f4cb2c1e84ac623f7.tgz "oci://646717423341.dkr.ecr.us-west-2.amazonaws.com"
+
+
 ########################
 # Oras examples
 #########################
