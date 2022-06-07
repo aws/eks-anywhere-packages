@@ -1,5 +1,5 @@
 # Setting SHELL to bash allows bash commands to be executed by recipes.
-# This is a requirement for 'setup-envtest.sh' in the test target.
+# This is a requirement for setup-envtest in the test target.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
@@ -81,7 +81,7 @@ test: manifests generate vet mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ##
 	$(GO) test $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks` -coverprofile cover.out
 
 $(GOBIN)/setup-envtest: ## Install setup-envtest
-	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@v0.12.1
+	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 clean: ## Clean up resources created by make targets
 	rm -rf ./bin/*
