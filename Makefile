@@ -81,7 +81,7 @@ test: manifests generate vet mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ##
 	$(GO) test $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks` -coverprofile cover.out
 
 $(GOBIN)/setup-envtest: ## Install setup-envtest
-	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@v0.12.1
 
 clean: ## Clean up resources created by make targets
 	rm -rf ./bin/*
