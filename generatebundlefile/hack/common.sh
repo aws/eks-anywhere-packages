@@ -28,15 +28,16 @@
 # An AWS profile can be selected via the PROFILE env var (defaults to
 # "default").
 function awsAuth () {
-    declare -a cmd=( ecr )
+    local  ecr=$1
+    if [[ $ecr = "ecr-public" ]]; then
+        local region=us-east-1
+    else
+        local region=us-west-2
+    fi
 
-    for arg in "$@"; do
-	if [[ "$arg" =~ public\.ecr\.aws ]]; then
-	    cmd=( ecr-public --region us-east-1 )
-	    break
-	fi
-    done
-    # shellcheck disable=SC2086
-    aws ${cmd[*]} get-login-password --profile ${PROFILE:-default} \
-	| "$@"
+    if [[ ! -v PROFILE  ]]; then
+        eval aws $ecr --region $region get-login-password
+    else
+        eval aws $ecr --region $region get-login-password --profile ${PROFILE:-default}
+    fi
 }

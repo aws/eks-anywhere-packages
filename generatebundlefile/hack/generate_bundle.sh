@@ -21,7 +21,7 @@ set -euxo pipefail
 export LANG=C.UTF-8
 
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
-. "${BASE_DIRECTORY}/common.sh"
+. "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
 ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries \
                  --query 'registries[*].registryUri' --output text)
 REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
@@ -37,17 +37,17 @@ function generate () {
 
     cd "${BASE_DIRECTORY}/generatebundlefile"
     ./bin/generatebundlefile --input "./data/input_${version/-}.yaml" \
-			     --key alias/${kms_key}
+                 --key alias/${kms_key}
 }
 
 function push () {
     local version=$1
-
     cd "${BASE_DIRECTORY}/generatebundlefile/output"
-    awsAuth "$ORAS_BIN" push --username AWS --password-stdin \
-            "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-    awsAuth "$ORAS_BIN" push --username AWS --password-stdin \
-            "${REPO}:v${version}-latest" bundle.yaml
+    # Turn off command echo so no awsAuth function execution is shown in build logs
+    set +x
+    "$ORAS_BIN" push --username AWS --password $(awsAuth "ecr-public") "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+    "$ORAS_BIN" push --username AWS --password $(awsAuth "ecr-public") "${REPO}:v${version}-latest" bundle.yaml
+    set -x 
 }
 
 for version in 1-21 1-22; do
