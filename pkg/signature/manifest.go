@@ -68,7 +68,7 @@ func decodeSelectors(selectorsB64Encoded string) (selectors []string, err error)
 			return nil, err
 		}
 		if parsed.Term == nil || parsed.Term.Type != gojq.TermTypeIndex {
-			return nil, errors.New("Invalid selector(s) provided")
+			return nil, errors.New("invalid selector(s) provided")
 		}
 	}
 	return selectors, err
@@ -117,13 +117,13 @@ func GetDigest(manifest Manifest, domain Domain) (digest [32]byte, yml []byte, e
 	if remaining {
 		second, rem := jsonIt.Next()
 		if second != nil && !rem {
-			return [32]byte{}, nil, errors.New("Multiple result from the query should never happen")
+			return [32]byte{}, nil, errors.New("multiple result from the query should never happen")
 		}
 	}
 
 	yml, err = yaml.Marshal(filtered)
 	if err != nil {
-		return [32]byte{}, nil, errors.New("Manifest could not be marshaled to yaml")
+		return [32]byte{}, nil, errors.New("manifest could not be marshaled to yaml")
 	}
 	digest = sha256.Sum256(yml)
 	return digest, yml, err
@@ -147,15 +147,15 @@ func ValidateSignature(manifest Manifest, domain Domain) (valid bool, digest [32
 
 	sig, err := base64.StdEncoding.DecodeString(metaSig)
 	if err != nil {
-		return false, digest, yml, errors.New("Signature in metadata isn't base64 encoded")
+		return false, digest, yml, errors.New("signature in metadata isn't base64 encoded")
 	}
 	pubdecoded, err := base64.StdEncoding.DecodeString(domain.Pubkey)
 	if err != nil {
-		return false, digest, yml, errors.New("Unable to decode the public key (not base 64)")
+		return false, digest, yml, errors.New("unable to decode the public key (not base 64)")
 	}
 	pubparsed, err := x509.ParsePKIXPublicKey(pubdecoded)
 	if err != nil {
-		return false, digest, yml, errors.New("Unable parse the public key (not PKIX)")
+		return false, digest, yml, errors.New("unable parse the public key (not PKIX)")
 	}
 	pubkey := pubparsed.(*ecdsa.PublicKey)
 
