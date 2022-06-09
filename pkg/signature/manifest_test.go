@@ -113,7 +113,7 @@ func TestValidateSignature(t *testing.T) {
 
 		valid, _, _, err := ValidateSignature(bundle, EksaDomain)
 		assert.False(t, valid, "Signature should be invalid as it is missing")
-		assert.EqualError(t, err, "Signature in metadata isn't base64 encoded")
+		assert.EqualError(t, err, "signature in metadata isn't base64 encoded")
 	})
 
 	t.Run("An otherwise valid signature invalid for the provided excludes fails verification", func(t *testing.T) {
@@ -162,7 +162,7 @@ func TestMetadata(t *testing.T) {
 		annotations[EksaDomain.Name+"/"+ExcludesAnnotation] = encodedSelectors([]string{"invalid"})
 		_, excludes, err := GetMetadataInformation(bundle, EksaDomain)
 
-		assert.EqualError(t, err, "Invalid selector(s) provided")
+		assert.EqualError(t, err, "invalid selector(s) provided")
 		assert.Nil(t, excludes)
 
 		annotations[EksaDomain.Name+"/"+ExcludesAnnotation] = annotations[EksaDomain.Name+"/"+ExcludesAnnotation] + "AA" // Invalid b64
