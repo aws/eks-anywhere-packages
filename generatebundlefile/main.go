@@ -59,12 +59,15 @@ func main() {
 				"public.ecr.aws": DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
 			},
 		}
-		authFile, err := NewAuthFile(dockerStruct)
-		if err != nil || authFile == "" {
+		dockerAuth, err := NewAuthFile(dockerStruct)
+		if err != nil || dockerAuth.Authfile == "" {
 			BundleLog.Error(err, "Unable create AuthFile")
 		}
-		defer os.Remove(authFile)
-		err = clients.PromoteHelmChart(o.promote, authFile, false)
+		err = dockerAuth.Remove()
+		if err != nil {
+			BundleLog.Error(err, "Unable remove AuthFile")
+		}
+		err = clients.PromoteHelmChart(o.promote, dockerAuth.Authfile, false)
 		if err != nil {
 			BundleLog.Error(err, "Unable to promote Helm Chart")
 		}
@@ -142,12 +145,16 @@ func main() {
 				fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
 			},
 		}
-		authFile, err := NewAuthFile(dockerReleaseStruct)
-		if err != nil || authFile == "" {
+
+		dockerAuth, err := NewAuthFile(dockerReleaseStruct)
+		if err != nil || dockerAuth.Authfile == "" {
 			BundleLog.Error(err, "Unable create AuthFile")
 		}
-		defer os.Remove(authFile)
-		driver, err := NewHelm(BundleLog, authFile)
+		err = dockerAuth.Remove()
+		if err != nil {
+			BundleLog.Error(err, "Unable remove AuthFile")
+		}
+		driver, err := NewHelm(BundleLog, dockerAuth.Authfile)
 		if err != nil {
 			BundleLog.Error(err, "Unable to create Helm driver")
 			os.Exit(1)
@@ -238,12 +245,16 @@ func main() {
 					"public.ecr.aws": DockerAuthRegistry{clients.ecrPublicClientRelease.AuthConfig},
 				},
 			}
-			authFile, err = NewAuthFile(dockerReleaseStruct)
-			if err != nil || authFile == "" {
+			dockerAuth, err = NewAuthFile(dockerReleaseStruct)
+			if err != nil || dockerAuth.Authfile == "" {
 				BundleLog.Error(err, "Unable create AuthFile")
 			}
+			err = dockerAuth.Remove()
+			if err != nil {
+				BundleLog.Error(err, "Unable remove AuthFile")
+			}
 			for _, charts := range addOnBundleSpec.Packages {
-				err = clients.PromoteHelmChart(charts.Source.Repository, authFile, true)
+				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, true)
 			}
 			return
 		}

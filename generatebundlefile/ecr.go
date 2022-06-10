@@ -412,19 +412,33 @@ type DockerAuthRegistry struct {
 	Auth string `json:"auth"`
 }
 
+type DockerAuthFile struct {
+	Authfile string `json:"authfile"`
+}
+
 //NewAuthFile writes a new Docker Authfile from the DockerAuth struct which a user to be used by Skopeo or Helm.
-func NewAuthFile(dockerstruct *DockerAuth) (string, error) {
+func NewAuthFile(dockerstruct *DockerAuth) (DockerAuthFile, error) {
 	jsonbytes, err := json.Marshal(*dockerstruct)
+	auth := DockerAuthFile{}
 	if err != nil {
-		return "", fmt.Errorf("Marshalling docker auth file to json %w", err)
+		return auth, fmt.Errorf("Marshalling docker auth file to json %w", err)
 	}
 	f, err := os.CreateTemp("", "dockerAuth")
 	if err != nil {
-		return "", fmt.Errorf("Creating tempfile %w", err)
+		return auth, fmt.Errorf("Creating tempfile %w", err)
 	}
 	defer f.Close()
 	fmt.Fprint(f, string(jsonbytes))
-	return f.Name(), nil
+	auth.Authfile = f.Name()
+	return auth, nil
+}
+
+func (d DockerAuthFile) Remove() error {
+	if d.Authfile == "" {
+		return fmt.Errorf("No Authfile in DockerAuthFile given")
+	}
+	defer os.Remove(d.Authfile)
+	return nil
 }
 
 // copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
