@@ -36,6 +36,20 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// CreateBundle mocks base method.
+func (m *MockClient) CreateBundle(ctx context.Context, bundle *v1alpha1.PackageBundle) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBundle", ctx, bundle)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateBundle indicates an expected call of CreateBundle.
+func (mr *MockClientMockRecorder) CreateBundle(ctx, bundle interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBundle", reflect.TypeOf((*MockClient)(nil).CreateBundle), ctx, bundle)
+}
+
 // GetActiveBundle mocks base method.
 func (m *MockClient) GetActiveBundle(ctx context.Context) (*v1alpha1.PackageBundle, error) {
 	m.ctrl.T.Helper()
@@ -64,6 +78,20 @@ func (m *MockClient) GetActiveBundleNamespacedName(ctx context.Context) (types.N
 func (mr *MockClientMockRecorder) GetActiveBundleNamespacedName(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveBundleNamespacedName", reflect.TypeOf((*MockClient)(nil).GetActiveBundleNamespacedName), ctx)
+}
+
+// GetBundleList mocks base method.
+func (m *MockClient) GetBundleList(ctx context.Context, bundles *v1alpha1.PackageBundleList) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBundleList", ctx, bundles)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// GetBundleList indicates an expected call of GetBundleList.
+func (mr *MockClientMockRecorder) GetBundleList(ctx, bundles interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBundleList", reflect.TypeOf((*MockClient)(nil).GetBundleList), ctx, bundles)
 }
 
 // IsActive mocks base method.

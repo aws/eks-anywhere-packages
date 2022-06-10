@@ -19,8 +19,12 @@ type Client interface {
 
 	// GetActiveBundleNamespacedName retrieves the namespace and name of the
 	// currently active bundle.
-	GetActiveBundleNamespacedName(ctx context.Context) (
-		types.NamespacedName, error)
+	GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error)
+
+	// GetBundleList get list of bundles worthy of consideration
+	GetBundleList(ctx context.Context, bundles *api.PackageBundleList) error
+
+	CreateBundle(ctx context.Context, bundle *api.PackageBundle) error
 }
 
 type bundleClient struct {
@@ -95,4 +99,20 @@ func (bc *bundleClient) GetActiveBundleNamespacedName(ctx context.Context) (type
 	}
 
 	return nn, nil
+}
+
+func (bc *bundleClient) GetBundleList(ctx context.Context, bundles *api.PackageBundleList) error {
+	err := bc.Client.List(ctx, bundles, &client.ListOptions{Namespace: api.PackageNamespace})
+	if err != nil {
+		return fmt.Errorf("listing package bundles: %s", err)
+	}
+	return nil
+}
+
+func (bc *bundleClient) CreateBundle(ctx context.Context, bundle *api.PackageBundle) error {
+	err := bc.Client.Create(ctx, bundle)
+	if err != nil {
+		return fmt.Errorf("creating new package bundle: %s", err)
+	}
+	return nil
 }

@@ -21,10 +21,8 @@ type Manager interface {
 	// Update the bundle returns true if there are changes
 	Update(ctx context.Context, newBundle *api.PackageBundle, allBundles []api.PackageBundle) (bool, error)
 
-	// IsBundleKnown returns true if the bundle is in the list of known
-	// bundles.
-	IsBundleKnown(ctx context.Context,
-		knownBundles []api.PackageBundle, bundle *api.PackageBundle) bool
+	// UpdateLatestBundle make sure we save the latest bundle
+	UpdateLatestBundle(ctx context.Context, bundle *api.PackageBundle) error
 
 	// LatestBundle pulls the bundle tagged with "latest" from the bundle source.
 	LatestBundle(ctx context.Context, baseRef string) (
@@ -161,17 +159,25 @@ func (m *bundleManager) DownloadBundle(ctx context.Context, ref string) (*api.Pa
 	return bundle, nil
 }
 
-func (m *bundleManager) IsBundleKnown(ctx context.Context,
-	knownBundles []api.PackageBundle,
-	bundle *api.PackageBundle) bool {
+func (m *bundleManager) UpdateLatestBundle(ctx context.Context, latestBundle *api.PackageBundle) error {
+	knownBundles := &api.PackageBundleList{}
+	err := m.bundleClient.GetBundleList(ctx, knownBundles)
+	if err != nil {
+		return fmt.Errorf("getting bundle list: %s", err)
+	}
 
-	for _, b := range knownBundles {
-		if b.Name == bundle.Name {
-			return true
+	for _, b := range knownBundles.Items {
+		if b.Name == latestBundle.Name {
+			return nil
 		}
 	}
 
-	return false
+	err = m.bundleClient.CreateBundle(ctx, latestBundle)
+	if err != nil {
+		return fmt.Errorf("creating new package bundle: %s", err)
+	}
+
+	return nil
 }
 
 func kubeVersion(name string) (string, error) {

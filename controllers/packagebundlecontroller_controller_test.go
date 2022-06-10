@@ -46,15 +46,6 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		}
 	}
 
-	setMockBundleList := func(src *api.PackageBundleList) func(ctx context.Context,
-		list *api.PackageBundleList, opts *client.ListOptions) error {
-		return func(ctx context.Context, target *api.PackageBundleList,
-			opts *client.ListOptions) error {
-			src.DeepCopyInto(target)
-			return nil
-		}
-	}
-
 	t.Run("marks status inactive if name doesn't match", func(t *testing.T) {
 		t.Parallel()
 
@@ -119,11 +110,6 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 				State: api.BundleControllerStateIgnored,
 			},
 		}
-		mockBundleList := &api.PackageBundleList{
-			Items: []api.PackageBundle{
-				*api.MustPackageBundleFromFilename(t, "../api/testdata/bundle_one.yaml"),
-			},
-		}
 
 		mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
 			DoAndReturn(setMockPBC(mockPBC))
@@ -138,14 +124,12 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 				}
 				return nil
 			})
-		mockClient.EXPECT().List(ctx, gomock.Any(), gomock.Any()).
-			DoAndReturn(setMockBundleList(mockBundleList))
 
-		mockPuller := testutil.NewMockPuller()
-		mockPuller.WithFileData(t, "../api/testdata/bundle_one.yaml")
-		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
-		bm := bundle.NewBundleManager(logr.Discard(), discovery, mockPuller, mockBundleClient)
-		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
+		testBundle := api.PackageBundle{}
+		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
+		mockBundleManager.EXPECT().LatestBundle(ctx, mockPBC.Spec.Source.BaseRef()).Return(&testBundle, nil)
+		mockBundleManager.EXPECT().UpdateLatestBundle(ctx, &testBundle).Return(nil)
+		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
 			logr.Discard())
 		_, err := r.Reconcile(ctx, req)
 		if err != nil {

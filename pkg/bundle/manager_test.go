@@ -403,47 +403,86 @@ func TestSortBundleNewestFirst(t *testing.T) {
 	})
 }
 
-func TestBundleManager_IsBundleKnown(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	validBundles := []api.PackageBundle{
+func mockGetBundleList(_ context.Context, bundles *api.PackageBundleList) error {
+	bundles.Items = []api.PackageBundle{
 		{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "v1-16-1003",
+				Name:      "v1-16-1003",
+				Namespace: "eksa-packages",
 			},
 			Status: api.PackageBundleStatus{
 				State: api.PackageBundleStateInactive,
 			},
 		},
 	}
+	return nil
+}
+
+func TestBundleManager_UpdateLatestBundle(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
 
 	t.Run("unknown bundle", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
-		bundle.Namespace = "billy"
-		bundle.Name = "v1-21"
+		bundle.Namespace = "eksa-packages"
+		bundle.Name = "v1-16-1004"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		mockBundleClient.EXPECT().CreateBundle(ctx, bundle).Return(nil)
 
-		known := bm.IsBundleKnown(ctx, validBundles, bundle)
+		err := bm.UpdateLatestBundle(ctx, bundle)
 
-		assert.False(t, known)
+		assert.Nil(t, err)
 	})
 
 	t.Run("known bundle", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
-		bundle.Namespace = "billy"
+		bundle.Namespace = "eksa-packages"
 		bundle.Name = "v1-16-1003"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		known := bm.IsBundleKnown(ctx, validBundles, bundle)
+		err := bm.UpdateLatestBundle(ctx, bundle)
 
-		assert.True(t, known)
+		assert.Nil(t, err)
+	})
+
+	t.Run("bundle create error", func(t *testing.T) {
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		bundle := givenPackageBundle(api.PackageBundleStateInactive)
+		bundle.Namespace = "eksa-packages"
+		bundle.Name = "v1-16-1004"
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		mockBundleClient.EXPECT().CreateBundle(ctx, bundle).Return(fmt.Errorf("oops"))
+
+		err := bm.UpdateLatestBundle(ctx, bundle)
+
+		assert.EqualError(t, err, "creating new package bundle: oops")
+	})
+
+	t.Run("bundle list error", func(t *testing.T) {
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		bundle := givenPackageBundle(api.PackageBundleStateInactive)
+		bundle.Namespace = "eksa-packages"
+		bundle.Name = "v1-16-1003"
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).Return(fmt.Errorf("oops"))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+
+		err := bm.UpdateLatestBundle(ctx, bundle)
+
+		assert.EqualError(t, err, "getting bundle list: oops")
 	})
 }
 

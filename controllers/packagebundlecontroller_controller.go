@@ -140,14 +140,8 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		}
 	}
 
-	bundles := &api.PackageBundleList{}
-	err = r.Client.List(ctx, bundles, &client.ListOptions{Namespace: api.PackageNamespace})
+	err = r.bundleManager.UpdateLatestBundle(ctx, latestBundle)
 	if err != nil {
-		return result, fmt.Errorf("listing package bundles: %s", err)
-	}
-
-	if !r.bundleManager.IsBundleKnown(ctx, bundles.Items, latestBundle) {
-		err = r.Client.Create(ctx, latestBundle)
 		if err != nil {
 			return result, fmt.Errorf("creating new package bundle: %s", err)
 		}
