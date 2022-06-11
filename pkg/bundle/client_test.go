@@ -3,6 +3,7 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -132,6 +133,62 @@ func TestBundleClient_GetActiveBundleNamespacedName(t *testing.T) {
 		assert.Equal(t, api.PackageNamespace, namespacedNames.Namespace)
 		assert.Equal(t, "", namespacedNames.Name)
 		assert.Nil(t, err)
+	})
+}
+
+func TestBundleClient_GetBundleList(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	t.Run("golden path", func(t *testing.T) {
+		mockClient := newMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		actualList := &api.PackageBundleList{}
+		mockClient.EXPECT().List(ctx, actualList, &client.ListOptions{Namespace: api.PackageNamespace}).Return(nil)
+
+		err := bundleClient.GetBundleList(ctx, actualList)
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error scenario", func(t *testing.T) {
+		mockClient := newMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		actualList := &api.PackageBundleList{}
+		mockClient.EXPECT().List(ctx, actualList, &client.ListOptions{Namespace: api.PackageNamespace}).Return(fmt.Errorf("oops"))
+
+		err := bundleClient.GetBundleList(ctx, actualList)
+
+		assert.EqualError(t, err, "listing package bundles: oops")
+	})
+}
+
+func TestBundleClient_CreateBundle(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	t.Run("golden path", func(t *testing.T) {
+		mockClient := newMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		actualBundle := &api.PackageBundle{}
+		mockClient.EXPECT().Create(ctx, actualBundle).Return(nil)
+
+		err := bundleClient.CreateBundle(ctx, actualBundle)
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error scenario", func(t *testing.T) {
+		mockClient := newMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		actualBundle := &api.PackageBundle{}
+		mockClient.EXPECT().Create(ctx, actualBundle).Return(fmt.Errorf("oops"))
+
+		err := bundleClient.CreateBundle(ctx, actualBundle)
+
+		assert.EqualError(t, err, "creating new package bundle: oops")
 	})
 }
 
