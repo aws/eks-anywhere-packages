@@ -55,7 +55,6 @@ func (r *PackageBundle) ValidateDelete() error {
 }
 
 func (r *PackageBundle) validate() error {
-	//TODO Turn this into fields in a new CRD used for signature validation configuration
 	keyOverride := os.Getenv(PublicKeyEnvVar)
 	domain := signature.EksaDomain
 	if keyOverride != "" {

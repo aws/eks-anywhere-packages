@@ -117,7 +117,6 @@ func helmChartURLIsPrefixed(url string) bool {
 func (d *helmDriver) upgradeRelease(ctx context.Context, name string,
 	helmChart *chart.Chart, values map[string]interface{}) (err error) {
 
-	// TODO Increased efficiency might be achieved by avoiding running helm
 	// upgrade unless changes in the values are detected. For POC, run helm
 	// every time and rely on its idempotency.
 	upgrade := action.NewUpgrade(d.cfg)
