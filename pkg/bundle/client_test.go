@@ -3,12 +3,12 @@ package bundle
 import (
 	"context"
 	"fmt"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	ctrlmocks "github.com/aws/eks-anywhere-packages/controllers/mocks"

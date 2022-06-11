@@ -24,6 +24,7 @@ type Client interface {
 	// GetBundleList get list of bundles worthy of consideration
 	GetBundleList(ctx context.Context, bundles *api.PackageBundleList) error
 
+	// CreateBundle add a new bundle custom resource
 	CreateBundle(ctx context.Context, bundle *api.PackageBundle) error
 }
 
