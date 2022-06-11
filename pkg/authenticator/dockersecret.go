@@ -15,7 +15,7 @@ func NewDockerSecret() *dockersecret {
 }
 
 func (s *dockersecret) GetAuthFile() (string, error) {
-	token, err := s.getSecretToken()
+	token, err := getSecretToken()
 	if err != nil {
 		return "", fmt.Errorf("Failed to get authfile %s\n", err)
 	}
@@ -27,7 +27,7 @@ func (s *dockersecret) GetAuthFile() (string, error) {
 	return authfile, nil
 }
 
-func (s *dockersecret) getSecretToken() (string, error) {
+func getSecretToken() (string, error) {
 	// TODO Handle encryption here if secret is encrypted
 	dockerconfig := os.Getenv("DOCKER_CONFIG")
 
