@@ -17,23 +17,27 @@ Create a cluster with EKS Anywhere and set and export with KUBECONFIG.
 
         make install
 
-1. Run the controller locally:
+2. Run the controller locally:
 
         make run ENABLE_WEBHOOKS=false
+        # If testing with private repositories
+        # Default credential path is ~/.docker/config.json
+        CRED=$(cat {PATH TO DOCKER CONFIG})
+        make run ENABLE_WEBHOOKS=false DOCKER_CONFIG=CRED
 
-1. Load the controller resources:
+4. Load the controller resources:
 
         kubectl apply -f api/testdata/packagecontroller.yaml
         kubectl apply -f api/testdata/packagebundlecontroller.yaml
 
-1. Load a bundle resource:
+5. Load a bundle resource:
 
         kubectl apply -f api/testdata/bundle_one.yaml
 
-1. Create a package installation:
+6. Create a package installation:
 
         kubectl apply -f api/testdata/test.yaml
 
-1. Delete a package installation:
+7. Delete a package installation:
 
         kubectl delete package package-sample
