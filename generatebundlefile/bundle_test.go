@@ -39,7 +39,6 @@ func TestNewBundleGenerate(t *testing.T) {
 						{
 							Name: "sample-package",
 							Source: api.BundlePackageSource{
-								Registry:   "sample-Registry",
 								Repository: "sample-Repository",
 								Versions: []api.SourceVersion{
 									{
@@ -81,7 +80,6 @@ func TestNewPackageFromInput(t *testing.T) {
 			testname: "Test no tags",
 			testproject: Project{
 				Name:       "hello-eks-anywhere",
-				Registry:   "public.ecr.aws/f5b7k4z5",
 				Repository: "hello-eks-anywhere",
 				Versions:   []Tag{},
 			},
@@ -91,7 +89,6 @@ func TestNewPackageFromInput(t *testing.T) {
 			testname: "Test named tag",
 			testproject: Project{
 				Name:       "hello-eks-anywhere",
-				Registry:   "public.ecr.aws/f5b7k4z5",
 				Repository: "hello-eks-anywhere",
 				Versions: []Tag{
 					{Name: testTagBundle},
@@ -101,7 +98,6 @@ func TestNewPackageFromInput(t *testing.T) {
 			wantBundle: &api.BundlePackage{
 				Name: "hello-eks-anywhere",
 				Source: api.BundlePackageSource{
-					Registry:   "public.ecr.aws/f5b7k4z5",
 					Repository: "hello-eks-anywhere",
 					Versions: []api.SourceVersion{
 						{
@@ -116,7 +112,6 @@ func TestNewPackageFromInput(t *testing.T) {
 			testname: "Test 'latest' tag",
 			testproject: Project{
 				Name:       "hello-eks-anywhere",
-				Registry:   "public.ecr.aws/f5b7k4z5",
 				Repository: "hello-eks-anywhere",
 				Versions: []Tag{
 					{Name: "latest"},
@@ -126,7 +121,6 @@ func TestNewPackageFromInput(t *testing.T) {
 			wantBundle: &api.BundlePackage{
 				Name: "hello-eks-anywhere",
 				Source: api.BundlePackageSource{
-					Registry:   "public.ecr.aws/f5b7k4z5",
 					Repository: "hello-eks-anywhere",
 					Versions: []api.SourceVersion{
 						{

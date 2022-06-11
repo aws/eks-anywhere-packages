@@ -59,7 +59,6 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.Packag
 				{
 					Name: "sample-package",
 					Source: api.BundlePackageSource{
-						Registry:   "sample-Registry",
 						Repository: "sample-Repository",
 						Versions: []api.SourceVersion{
 							{
@@ -86,7 +85,6 @@ func (c *ecrPublicClient) NewPackageFromInput(project Project) (*api.BundlePacka
 	bundlePkg := &api.BundlePackage{
 		Name: project.Name,
 		Source: api.BundlePackageSource{
-			Registry:   project.Registry,
 			Repository: project.Repository,
 			Versions:   versionList,
 		},

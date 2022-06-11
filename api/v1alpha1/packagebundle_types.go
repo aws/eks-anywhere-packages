@@ -53,9 +53,9 @@ type BundlePackage struct {
 
 // BundlePackageSource identifies the location of a package.
 type BundlePackageSource struct {
-	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Optional
 	// Registry in which the package is found.
-	Registry string `json:"registry"`
+	Registry string `json:"registry,omitempty"`
 
 	// +kubebuilder:validation:Required
 	// Repository within the Registry where the package is found.
