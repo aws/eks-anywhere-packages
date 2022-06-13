@@ -82,7 +82,7 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.
 	for i, bundlePackage := range activeBundle.Spec.Packages {
 		if len(bundlePackage.Source.Registry) < 1 {
 			if len(pbc.Spec.Source.Registry) < 1 {
-				activeBundle.Spec.Packages[i].Source.Registry = "public.ecr.aws/eks-anywhere"
+				activeBundle.Spec.Packages[i].Source.Registry = api.DefaultPackageRegistry
 			} else {
 				activeBundle.Spec.Packages[i].Source.Registry = pbc.Spec.Source.Registry
 			}
