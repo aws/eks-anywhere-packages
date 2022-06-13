@@ -33,15 +33,15 @@ func Test_createAuthFile(t *testing.T) {
 	})
 }
 
-func Test_GetAuthFile(t *testing.T) {
+func Test_GetAuthFileName(t *testing.T) {
 	t.Parallel()
 
 	dockerAuth := NewDockerSecret()
 	config := "some value here"
-	os.Setenv("DOCKER_CONFIG", config)
+	os.Setenv("OCI_CRED", config)
 
 	t.Run("golden path", func(t *testing.T) {
-		authfile, err := dockerAuth.GetAuthFile()
+		authfile, err := dockerAuth.GetAuthFileName()
 
 		assert.Nil(t, err)
 		assert.FileExists(t, authfile)
@@ -54,7 +54,7 @@ func Test_getSecretToken(t *testing.T) {
 	t.Parallel()
 
 	config := "some value here"
-	os.Setenv("DOCKER_CONFIG", config)
+	os.Setenv("OCI_CRED", config)
 
 	t.Run("golden path", func(t *testing.T) {
 		secret, err := getSecretToken()

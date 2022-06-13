@@ -14,7 +14,7 @@ func NewDockerSecret() *dockersecret {
 	return &dockersecret{}
 }
 
-func (s *dockersecret) GetAuthFile() (string, error) {
+func (s *dockersecret) GetAuthFileName() (string, error) {
 	token, err := getSecretToken()
 	if err != nil {
 		return "", fmt.Errorf("Failed to get authfile %s\n", err)
@@ -29,7 +29,7 @@ func (s *dockersecret) GetAuthFile() (string, error) {
 
 func getSecretToken() (string, error) {
 	// TODO Handle encryption here if secret is encrypted
-	dockerconfig := os.Getenv("DOCKER_CONFIG")
+	dockerconfig := os.Getenv("OCI_CRED")
 
 	return dockerconfig, nil
 }
@@ -39,7 +39,10 @@ func createAuthFile(data string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Creating tempfile %w", err)
 	}
-	defer f.Close()
 	fmt.Fprint(f, data)
+	err = f.Close()
+	if err != nil {
+		return "", err
+	}
 	return f.Name(), nil
 }
