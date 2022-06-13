@@ -106,12 +106,49 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		bundleClient := NewPackageBundleClient(mockClient)
 		mockBundle := newMockBundle()
 
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc))
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc)).SetArg(2, pbc)
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&mockBundle)).SetArg(2, mockBundle)
 
 		bundle, err := bundleClient.GetActiveBundle(ctx)
 
 		assert.Equal(t, bundle.Name, "test-name")
+		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
+		assert.Equal(t, "public.ecr.aws/l0g8r8j6", bundle.Spec.Packages[0].Source.Registry)
+		assert.Nil(t, err)
+	})
+
+	t.Run("no registry", func(t *testing.T) {
+		mockClient := newMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockBundle := newMockBundle()
+		mockBundle.Spec.Packages[0].Source.Registry = ""
+
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc)).SetArg(2, pbc)
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&mockBundle)).SetArg(2, mockBundle)
+
+		bundle, err := bundleClient.GetActiveBundle(ctx)
+
+		assert.Equal(t, bundle.Name, "test-name")
+		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
+		assert.Equal(t, "public.ecr.aws/j0a1m4z9", bundle.Spec.Packages[0].Source.Registry)
+		assert.Nil(t, err)
+	})
+
+	t.Run("no registry anywhere", func(t *testing.T) {
+		mockClient := newMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockBundle := newMockBundle()
+		mockBundle.Spec.Packages[0].Source.Registry = ""
+		pbc.Spec.Source.Registry = ""
+
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc)).SetArg(2, pbc)
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&mockBundle)).SetArg(2, mockBundle)
+
+		bundle, err := bundleClient.GetActiveBundle(ctx)
+
+		assert.Equal(t, bundle.Name, "test-name")
+		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
+		assert.Equal(t, "public.ecr.aws/eks-anywhere", bundle.Spec.Packages[0].Source.Registry)
 		assert.Nil(t, err)
 	})
 }
@@ -166,5 +203,11 @@ func newMockBundle() api.PackageBundle {
 }
 
 func newMockPackageBundleController() api.PackageBundleController {
-	return api.PackageBundleController{}
+	return api.PackageBundleController{
+		Spec: api.PackageBundleControllerSpec{
+			Source: api.PackageBundleControllerSource{
+				Registry: "public.ecr.aws/j0a1m4z9",
+			},
+		},
+	}
 }

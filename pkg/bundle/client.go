@@ -78,6 +78,17 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.
 	if err != nil {
 		return nil, err
 	}
+
+	for i, bundlePackage := range activeBundle.Spec.Packages {
+		if len(bundlePackage.Source.Registry) < 1 {
+			if len(pbc.Spec.Source.Registry) < 1 {
+				activeBundle.Spec.Packages[i].Source.Registry = api.DefaultPackageRegistry
+			} else {
+				activeBundle.Spec.Packages[i].Source.Registry = pbc.Spec.Source.Registry
+			}
+		}
+	}
+
 	return activeBundle, nil
 }
 
