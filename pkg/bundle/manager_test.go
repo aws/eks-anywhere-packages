@@ -16,8 +16,6 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
-// TODO(ivyostosh): Add a TestLatestBundle test that validates the latest bundle name is properly formatted.
-
 func TestDownloadBundle(t *testing.T) {
 	t.Parallel()
 

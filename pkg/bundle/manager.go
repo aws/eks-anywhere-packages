@@ -156,8 +156,6 @@ func (m *bundleManager) DownloadBundle(ctx context.Context, ref string) (*api.Pa
 		return nil, fmt.Errorf("unmarshalling package bundle: %s", err)
 	}
 
-	// TODO Can the data be validated here? Is that useful?
-
 	return bundle, nil
 }
 
