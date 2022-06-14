@@ -125,7 +125,6 @@ spec:
                           minItems: 1
                           type: array
                       required:
-                      - registry
                       - repository
                       - versions
                       type: object
@@ -230,7 +229,6 @@ spec:
                               minItems: 1
                               type: array
                           required:
-                          - registry
                           - repository
                           - versions
                           type: object
