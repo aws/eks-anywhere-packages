@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
 )
 
@@ -58,12 +59,15 @@ func main() {
 				"public.ecr.aws": DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
 			},
 		}
-		authFile, err := NewAuthFile(dockerStruct)
-		if err != nil || authFile == "" {
+		dockerAuth, err := NewAuthFile(dockerStruct)
+		if err != nil || dockerAuth.Authfile == "" {
 			BundleLog.Error(err, "Unable create AuthFile")
 		}
-		defer os.Remove(authFile)
-		err = clients.PromoteHelmChart(o.promote, authFile, false)
+		err = dockerAuth.Remove()
+		if err != nil {
+			BundleLog.Error(err, "Unable remove AuthFile")
+		}
+		err = clients.PromoteHelmChart(o.promote, dockerAuth.Authfile, false)
 		if err != nil {
 			BundleLog.Error(err, "Unable to promote Helm Chart")
 		}
@@ -134,12 +138,88 @@ func main() {
 			BundleLog.Error(err, "Unable to validate input file")
 			os.Exit(1)
 		}
+
+		// Create Authfile for Helm Driver
+		dockerReleaseStruct := &DockerAuth{
+			Auths: map[string]DockerAuthRegistry{
+				fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
+			},
+		}
+
+		dockerAuth, err := NewAuthFile(dockerReleaseStruct)
+		if err != nil || dockerAuth.Authfile == "" {
+			BundleLog.Error(err, "Unable create AuthFile")
+		}
+		err = dockerAuth.Remove()
+		if err != nil {
+			BundleLog.Error(err, "Unable remove AuthFile")
+		}
+		driver, err := NewHelm(BundleLog, dockerAuth.Authfile)
+		if err != nil {
+			BundleLog.Error(err, "Unable to create Helm driver")
+			os.Exit(1)
+		}
+
 		BundleLog.Info("In Progress: Populating Bundles and looking up Sha256 tags")
 		addOnBundleSpec, name, err := clients.ecrPublicClient.NewBundleFromInput(Inputs)
 		if err != nil {
 			BundleLog.Error(err, "Unable to create CRD skaffolding of AddoOBundle from input file")
 			os.Exit(1)
 		}
+
+		// Pull Helm charts for all the populated helm fields of the bundles.
+		for _, charts := range addOnBundleSpec.Packages {
+			fullURI := fmt.Sprintf("%s/%s", charts.Source.Registry, charts.Source.Repository)
+			chartPath, err := driver.PullHelmChart(fullURI, charts.Source.Versions[0].Name)
+			if err != nil {
+				BundleLog.Error(err, "Unable to pull Helm Chart %s", charts.Source.Repository)
+				os.Exit(1)
+			}
+			chartName, helmname, err := splitECRName(fullURI)
+			if err != nil {
+				BundleLog.Error(err, "Unable to split helm hame, invalid format")
+				os.Exit(1)
+			}
+			dest := filepath.Join(pwd, chartName)
+			err = UnTarHelmChart(chartPath, chartName, dest)
+			if err != nil {
+				BundleLog.Error(err, "Unable to untar Helm Chart")
+				os.Exit(1)
+			}
+			// Check for requires.yaml in the unpacked helm chart
+			helmDest := filepath.Join(pwd, chartName, helmname)
+			f, err := hasRequires(helmDest)
+			if err != nil {
+				BundleLog.Error(err, "Helm chart doesn't have requires.yaml inside")
+				os.Exit(1)
+			}
+			// Unpack requires.yaml into a GO struct
+			helmRequires, err := validateHelmRequires(f)
+			if err != nil {
+				BundleLog.Error(err, "Unable to parse requires.yaml file to Go Struct")
+				os.Exit(1)
+			}
+			// Populate Images to bundle spec from Requires.yaml
+			helmImage := []api.VersionImages{}
+			for _, image := range helmRequires.Spec.Images {
+				helmImage = append(helmImage, api.VersionImages{
+					Repository: image.Repository,
+					Digest:     image.Digest,
+				})
+			}
+			charts.Source.Versions[0].Images = helmImage
+			// Populate Configurations to bundle spec from Requires.yaml
+			helmConfiguration := []api.VersionConfiguration{}
+			for _, config := range helmRequires.Spec.Configurations {
+				helmConfiguration = append(helmConfiguration, api.VersionConfiguration{
+					Name:     config.Name,
+					Required: config.Required,
+					Default:  config.Default,
+				})
+			}
+			charts.Source.Versions[0].Configurations = helmConfiguration
+		}
+
 		// Write list of bundle structs into Bundle CRD files
 		BundleLog.Info("In Progress: Writing bundle to output")
 		bundle := AddMetadata(addOnBundleSpec, name)
@@ -159,19 +239,22 @@ func main() {
 			if err != nil {
 				BundleLog.Error(err, "Unable create find Public ECR URI for destination account")
 			}
-			dockerReleaseStruct := &DockerAuth{
+			dockerReleaseStruct = &DockerAuth{
 				Auths: map[string]DockerAuthRegistry{
 					fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
 					"public.ecr.aws": DockerAuthRegistry{clients.ecrPublicClientRelease.AuthConfig},
 				},
 			}
-			authFile, err := NewAuthFile(dockerReleaseStruct)
-			if err != nil || authFile == "" {
+			dockerAuth, err = NewAuthFile(dockerReleaseStruct)
+			if err != nil || dockerAuth.Authfile == "" {
 				BundleLog.Error(err, "Unable create AuthFile")
 			}
-			defer os.Remove(authFile)
+			err = dockerAuth.Remove()
+			if err != nil {
+				BundleLog.Error(err, "Unable remove AuthFile")
+			}
 			for _, charts := range addOnBundleSpec.Packages {
-				err = clients.PromoteHelmChart(charts.Source.Repository, authFile, true)
+				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, true)
 			}
 			return
 		}

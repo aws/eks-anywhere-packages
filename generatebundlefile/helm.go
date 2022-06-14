@@ -73,9 +73,6 @@ func UnTarHelmChart(chartRef, chartPath, dest string) error {
 		return fmt.Errorf("Empty input value given for UnTarHelmChart")
 	}
 	_, err := os.Stat(dest)
-	if err != nil {
-		return fmt.Errorf("Not valid File %w", err)
-	}
 	if os.IsNotExist(err) {
 		if _, err := os.Stat(chartPath); err != nil {
 			if err := os.MkdirAll(chartPath, 0755); err != nil {
@@ -83,6 +80,10 @@ func UnTarHelmChart(chartRef, chartPath, dest string) error {
 			}
 		} else {
 			return errors.Errorf("failed to untar: a file or directory with the name %s already exists", dest)
+		}
+	} else {
+		if err != nil { // Checks directory check errors such as permission issues to read
+			return errors.Errorf("failed UnTarHelmChart: %w", err)
 		}
 	}
 	// Untar the files, and create the directory structure
