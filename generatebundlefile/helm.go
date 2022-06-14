@@ -81,6 +81,10 @@ func UnTarHelmChart(chartRef, chartPath, dest string) error {
 		} else {
 			return errors.Errorf("failed to untar: a file or directory with the name %s already exists", dest)
 		}
+	} else {
+		if err != nil { // Checks directory check errors such as permission issues to read
+			return errors.Errorf("failed UnTarHelmChart: %w", err)
+		}
 	}
 	// Untar the files, and create the directory structure
 	return chartutil.ExpandFile(dest, chartRef)
