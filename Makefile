@@ -81,6 +81,8 @@ test: manifests generate vet mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ##
 	$(GO) test $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks` -coverprofile cover.out
 
 $(GOBIN)/setup-envtest: ## Install setup-envtest
+	# While it's preferable not to use @latest here, we have no choice at the moment. Details at 
+	# https://github.com/kubernetes-sigs/kubebuilder/issues/2480 
 	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 clean: ## Clean up resources created by make targets
