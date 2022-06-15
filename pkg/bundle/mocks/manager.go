@@ -78,18 +78,18 @@ func (mr *MockManagerMockRecorder) SortBundlesDescending(bundles interface{}) *g
 }
 
 // Update mocks base method.
-func (m *MockManager) Update(ctx context.Context, newBundle *v1alpha1.PackageBundle, allBundles []v1alpha1.PackageBundle) (bool, error) {
+func (m *MockManager) Update(ctx context.Context, newBundle *v1alpha1.PackageBundle) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, newBundle, allBundles)
+	ret := m.ctrl.Call(m, "Update", ctx, newBundle)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockManagerMockRecorder) Update(ctx, newBundle, allBundles interface{}) *gomock.Call {
+func (mr *MockManagerMockRecorder) Update(ctx, newBundle interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockManager)(nil).Update), ctx, newBundle, allBundles)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockManager)(nil).Update), ctx, newBundle)
 }
 
 // UpdateLatestBundle mocks base method.

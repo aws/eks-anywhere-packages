@@ -208,7 +208,6 @@ func TestUpdate(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	noBundles := []api.PackageBundle{}
 
 	t.Run("ignore other namespaces", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
@@ -220,7 +219,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle, noBundles)
+		update, err := bm.Update(ctx, bundle)
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
@@ -235,7 +234,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle, noBundles)
+		update, err := bm.Update(ctx, bundle)
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
@@ -250,7 +249,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle, noBundles)
+		update, err := bm.Update(ctx, bundle)
 		assert.False(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
@@ -263,9 +262,10 @@ func TestUpdate(t *testing.T) {
 		bundle.Name = "v1-21"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleListNone)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle, noBundles)
+		update, err := bm.Update(ctx, bundle)
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
@@ -280,7 +280,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(false, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle, noBundles)
+		update, err := bm.Update(ctx, bundle)
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
@@ -295,22 +295,40 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(false, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle, noBundles)
+		update, err := bm.Update(ctx, bundle)
 		assert.False(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
+	})
+
+	t.Run("leaves state as-is (active) empty list", func(t *testing.T) {
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		bundle := givenPackageBundle(api.PackageBundleStateActive)
+		bundle.Name = "v1-21-1003"
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleListNone)
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+
+		update, err := bm.Update(ctx, bundle)
+		assert.False(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
 	})
 
 	t.Run("leaves state as-is (active)", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateActive)
-		bundle.Name = "v1-21"
+		bundle.Name = "v1-21-1003"
+		bundle.Status.State = api.PackageBundleStateActive
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle, noBundles)
+		update, err := bm.Update(ctx, bundle)
 		assert.False(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
@@ -319,17 +337,15 @@ func TestUpdate(t *testing.T) {
 	t.Run("marks state upgrade available", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bundle := api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_one.yaml")
+		bundle := givenPackageBundle(api.PackageBundleStateActive)
+		bundle.Name = "v1-21-1004"
 		bundle.Status.State = api.PackageBundleStateActive
-		allBundles := []api.PackageBundle{
-			*bundle,
-			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
-		}
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle, allBundles)
+		update, err := bm.Update(ctx, bundle)
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
@@ -338,17 +354,15 @@ func TestUpdate(t *testing.T) {
 	t.Run("leaves state as-is (upgrade available)", func(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
-		bundle := api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_one.yaml")
+		bundle := givenPackageBundle(api.PackageBundleStateActive)
+		bundle.Name = "v1-21-1001"
 		bundle.Status.State = api.PackageBundleStateUpgradeAvailable
-		allBundles := []api.PackageBundle{
-			*bundle,
-			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
-		}
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle, allBundles)
+		update, err := bm.Update(ctx, bundle)
 		assert.False(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
@@ -401,11 +415,16 @@ func TestSortBundleNewestFirst(t *testing.T) {
 	})
 }
 
+func mockGetBundleListNone(_ context.Context, bundles *api.PackageBundleList) error {
+	bundles.Items = []api.PackageBundle{}
+	return nil
+}
+
 func mockGetBundleList(_ context.Context, bundles *api.PackageBundleList) error {
 	bundles.Items = []api.PackageBundle{
 		{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "v1-16-1003",
+				Name:      "v1-21-1003",
 				Namespace: "eksa-packages",
 			},
 			Status: api.PackageBundleStatus{
@@ -426,7 +445,7 @@ func TestBundleManager_UpdateLatestBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
 		bundle.Namespace = "eksa-packages"
-		bundle.Name = "v1-16-1004"
+		bundle.Name = "v1-21-1004"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
@@ -442,7 +461,7 @@ func TestBundleManager_UpdateLatestBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
 		bundle.Namespace = "eksa-packages"
-		bundle.Name = "v1-16-1003"
+		bundle.Name = "v1-21-1003"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
@@ -457,7 +476,7 @@ func TestBundleManager_UpdateLatestBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
 		bundle.Namespace = "eksa-packages"
-		bundle.Name = "v1-16-1004"
+		bundle.Name = "v1-21-1004"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
@@ -473,7 +492,7 @@ func TestBundleManager_UpdateLatestBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
 		bundle.Namespace = "eksa-packages"
-		bundle.Name = "v1-16-1003"
+		bundle.Name = "v1-21-1003"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).Return(fmt.Errorf("oops"))
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
@@ -495,7 +514,7 @@ func TestBundleManager_LatestBundle(t *testing.T) {
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
 
 		bundle.Namespace = "billy"
-		bundle.Name = "v1-16-1003"
+		bundle.Name = "v1-21-1003"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 

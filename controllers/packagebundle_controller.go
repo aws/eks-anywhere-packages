@@ -147,14 +147,7 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	r.Log.Info("Add/Update:", "bundle", pkgBundle)
-
-	allBundles := &api.PackageBundleList{}
-	err := r.List(ctx, allBundles)
-	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("listing package bundles: %s", err)
-	}
-
-	change, err := r.bundleManager.Update(ctx, pkgBundle, allBundles.Items)
+	change, err := r.bundleManager.Update(ctx, pkgBundle)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("package bundle update: %s", err)
 	}

@@ -19,7 +19,7 @@ import (
 
 type Manager interface {
 	// Update the bundle returns true if there are changes
-	Update(ctx context.Context, newBundle *api.PackageBundle, allBundles []api.PackageBundle) (bool, error)
+	Update(ctx context.Context, newBundle *api.PackageBundle) (bool, error)
 
 	// UpdateLatestBundle make sure we save the latest bundle
 	UpdateLatestBundle(ctx context.Context, bundle *api.PackageBundle) error
@@ -56,7 +56,7 @@ func NewBundleManager(log logr.Logger, serverVersion discovery.ServerVersionInte
 
 var _ Manager = (*bundleManager)(nil)
 
-func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle, allBundles []api.PackageBundle) (bool, error) {
+func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle) (bool, error) {
 
 	active, err := m.bundleClient.IsActive(ctx, newBundle)
 	if err != nil {
@@ -88,6 +88,12 @@ func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle,
 	}
 
 	updateAvailable := false
+	knownBundles := &api.PackageBundleList{}
+	err = m.bundleClient.GetBundleList(ctx, knownBundles)
+	if err != nil {
+		return false, fmt.Errorf("getting bundle list: %s", err)
+	}
+	allBundles := knownBundles.Items
 	if len(allBundles) > 0 {
 		m.SortBundlesDescending(allBundles)
 		if allBundles[0].Name != newBundle.Name {
