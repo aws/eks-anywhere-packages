@@ -36,7 +36,6 @@ func TestPackageBundleReconciler_ReconcileAddUpdate(t *testing.T) {
 	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(nil)
 	mockClient.EXPECT().Status().Return(statusWriter)
-	mockClient.EXPECT().List(ctx, gomock.Any()).Return(nil)
 	statusWriter.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).Return(nil)
 	bm := bundlefake.NewBundleManager()
 	bm.FakeUpdate = true
@@ -74,7 +73,6 @@ func TestPackageBundleReconciler_ReconcileIgnored(t *testing.T) {
 	mockClient := mocks.NewMockClient(gomock.NewController(t))
 	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(nil)
-	mockClient.EXPECT().List(ctx, gomock.Any()).Return(nil)
 	bm := bundlefake.NewBundleManager()
 	bm.FakeUpdate = false
 	sut := controllers.NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, logr.Discard())
