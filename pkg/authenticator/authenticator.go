@@ -14,6 +14,6 @@ type DockerAuthRegistry struct {
 // Currently this is used with the Helm Driver which takes credentials in this way
 // For this first implementation, kubernetes secrets will be used to pass in a token
 type Authenticator interface {
-	// GetAuthFileName Gets Authentication File Path for OCI Registry
-	GetAuthFileName() (string, error)
+	// AuthFilename Gets Authentication File Path for OCI Registry
+	AuthFilename() (string, error)
 }

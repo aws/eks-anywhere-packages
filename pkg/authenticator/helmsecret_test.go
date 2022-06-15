@@ -7,19 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewHelmSecret(t *testing.T) {
-	t.Parallel()
-
-	t.Run("golden path", func(t *testing.T) {
-		t.Parallel()
-
-		helmAuth := NewHelmSecret()
-
-		assert.NotNil(t, helmAuth)
-	})
-}
-
-func TestGetAuthFileName(t *testing.T) {
+func TestAuthFilename(t *testing.T) {
 	t.Parallel()
 
 	t.Run("golden path for set HELM_REGISTRY_CONFIG", func(t *testing.T) {
@@ -28,7 +16,7 @@ func TestGetAuthFileName(t *testing.T) {
 		testfile := "/test.txt"
 		os.Setenv("HELM_REGISTRY_CONFIG", testfile)
 		helmAuth := NewHelmSecret()
-		val, err := helmAuth.GetAuthFileName()
+		val, err := helmAuth.AuthFilename()
 
 		assert.Nil(t, err)
 		assert.Equal(t, val, testfile)
@@ -39,7 +27,7 @@ func TestGetAuthFileName(t *testing.T) {
 
 		os.Setenv("HELM_REGISTRY_CONFIG", "")
 		helmAuth := NewHelmSecret()
-		val, err := helmAuth.GetAuthFileName()
+		val, err := helmAuth.AuthFilename()
 
 		assert.Nil(t, err)
 		assert.Equal(t, val, "")

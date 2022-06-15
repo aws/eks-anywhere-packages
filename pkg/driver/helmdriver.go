@@ -34,7 +34,7 @@ func NewHelm(log logr.Logger) (*helmDriver, error) {
 
 	// TODO Catch error here if not provided docker config or continue without an authfile if possible
 	secretAuth := auth.NewHelmSecret()
-	authfile, _ := secretAuth.GetAuthFileName()
+	authfile, _ := secretAuth.AuthFilename()
 	if authfile != "" {
 		registry.ClientOptCredentialsFile(authfile)
 	}

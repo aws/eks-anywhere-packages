@@ -4,16 +4,16 @@ import (
 	"os"
 )
 
-type helmsecret struct {
+type helmSecret struct {
 }
 
-var _ Authenticator = (*helmsecret)(nil)
+var _ Authenticator = (*helmSecret)(nil)
 
-func NewHelmSecret() *helmsecret {
-	return &helmsecret{}
+func NewHelmSecret() *helmSecret {
+	return &helmSecret{}
 }
 
-func (s *helmsecret) GetAuthFileName() (string, error) {
+func (s *helmSecret) AuthFilename() (string, error) {
 	// Check if Helm registry config is set
 	helmconfig := os.Getenv("HELM_REGISTRY_CONFIG")
 	if helmconfig != "" {
@@ -21,13 +21,6 @@ func (s *helmsecret) GetAuthFileName() (string, error) {
 		return helmconfig, nil
 	}
 
-	// Check secret mount
-	secretPath := "/secrets/.docker/config.json"
-	_, err := os.Stat("/secrets/.docker/config.json")
-	if os.IsNotExist(err) {
-		// No secret found return empty string indicating no private registry authentication
-		return "", nil
-	}
-
-	return secretPath, nil
+	// TODO Let user know to set HELM_REGISTRY_CONFIG if not set
+	return "", nil
 }
