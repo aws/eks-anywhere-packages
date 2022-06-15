@@ -111,6 +111,18 @@ type Values struct {
 	SourceRegistry string `json:"sourceRegistry,omitempty"`
 }
 
+type DockerAuth struct {
+	Auths map[string]DockerAuthRegistry `json:"auths,omitempty"`
+}
+
+type DockerAuthRegistry struct {
+	Auth string `json:"auth"`
+}
+
+type DockerAuthFile struct {
+	Authfile string `json:"authfile"`
+}
+
 // Matches returns a list of inputs which align with ECR tags that exist
 func (project Project) Matches(tag string) []string {
 	matchlist := []string{}
