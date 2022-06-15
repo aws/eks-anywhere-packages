@@ -24,7 +24,7 @@ func (s *helmsecret) GetAuthFileName() (string, error) {
 	// Check secret mount
 	secretPath := "/secrets/.docker/config.json"
 	_, err := os.Stat("/secrets/.docker/config.json")
-	if os.IsNotExist(err){
+	if os.IsNotExist(err) {
 		// No secret found return empty string indicating no private registry authentication
 		return "", nil
 	}
