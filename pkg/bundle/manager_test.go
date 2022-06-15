@@ -367,6 +367,22 @@ func TestUpdate(t *testing.T) {
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
 	})
+
+	t.Run("get bundle list error", func(t *testing.T) {
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		bundle := givenPackageBundle(api.PackageBundleStateActive)
+		bundle.Name = "v1-21-1003"
+		bundle.Status.State = api.PackageBundleStateActive
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).Return(fmt.Errorf("oops"))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+
+		update, err := bm.Update(ctx, bundle)
+		assert.False(t, update)
+		assert.EqualError(t, err, "getting bundle list: oops")
+	})
 }
 
 func TestSortBundleNewestFirst(t *testing.T) {
