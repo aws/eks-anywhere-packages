@@ -128,7 +128,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		testBundle := api.PackageBundle{}
 		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
 		mockBundleManager.EXPECT().LatestBundle(ctx, mockPBC.Spec.Source.BaseRef()).Return(&testBundle, nil)
-		mockBundleManager.EXPECT().UpdateLatestBundle(ctx, &testBundle).Return(nil)
+		mockBundleManager.EXPECT().ProcessLatestBundle(ctx, &testBundle).Return(nil)
 		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
 			logr.Discard())
 		_, err := r.Reconcile(ctx, req)

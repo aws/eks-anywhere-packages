@@ -139,7 +139,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		}
 	}
 
-	err = r.bundleManager.UpdateLatestBundle(ctx, latestBundle)
+	err = r.bundleManager.ProcessLatestBundle(ctx, latestBundle)
 	if err != nil {
 		if err != nil {
 			return result, fmt.Errorf("creating new package bundle: %s", err)

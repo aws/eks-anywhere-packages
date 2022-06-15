@@ -467,7 +467,7 @@ func TestBundleManager_UpdateLatestBundle(t *testing.T) {
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		mockBundleClient.EXPECT().CreateBundle(ctx, bundle).Return(nil)
 
-		err := bm.UpdateLatestBundle(ctx, bundle)
+		err := bm.ProcessLatestBundle(ctx, bundle)
 
 		assert.Nil(t, err)
 	})
@@ -482,7 +482,7 @@ func TestBundleManager_UpdateLatestBundle(t *testing.T) {
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		err := bm.UpdateLatestBundle(ctx, bundle)
+		err := bm.ProcessLatestBundle(ctx, bundle)
 
 		assert.Nil(t, err)
 	})
@@ -498,7 +498,7 @@ func TestBundleManager_UpdateLatestBundle(t *testing.T) {
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		mockBundleClient.EXPECT().CreateBundle(ctx, bundle).Return(fmt.Errorf("oops"))
 
-		err := bm.UpdateLatestBundle(ctx, bundle)
+		err := bm.ProcessLatestBundle(ctx, bundle)
 
 		assert.EqualError(t, err, "creating new package bundle: oops")
 	})
@@ -513,7 +513,7 @@ func TestBundleManager_UpdateLatestBundle(t *testing.T) {
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).Return(fmt.Errorf("oops"))
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		err := bm.UpdateLatestBundle(ctx, bundle)
+		err := bm.ProcessLatestBundle(ctx, bundle)
 
 		assert.EqualError(t, err, "getting bundle list: oops")
 	})

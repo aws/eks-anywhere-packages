@@ -21,8 +21,8 @@ type Manager interface {
 	// Update the bundle returns true if there are changes
 	Update(ctx context.Context, newBundle *api.PackageBundle) (bool, error)
 
-	// UpdateLatestBundle make sure we save the latest bundle
-	UpdateLatestBundle(ctx context.Context, bundle *api.PackageBundle) error
+	// ProcessLatestBundle make sure we save the latest bundle
+	ProcessLatestBundle(ctx context.Context, bundle *api.PackageBundle) error
 
 	// LatestBundle pulls the bundle tagged with "latest" from the bundle source.
 	LatestBundle(ctx context.Context, baseRef string) (
@@ -163,7 +163,7 @@ func (m *bundleManager) DownloadBundle(ctx context.Context, ref string) (*api.Pa
 	return bundle, nil
 }
 
-func (m *bundleManager) UpdateLatestBundle(ctx context.Context, latestBundle *api.PackageBundle) error {
+func (m *bundleManager) ProcessLatestBundle(ctx context.Context, latestBundle *api.PackageBundle) error {
 	knownBundles := &api.PackageBundleList{}
 	err := m.bundleClient.GetBundleList(ctx, knownBundles)
 	if err != nil {
