@@ -33,7 +33,7 @@ func NewHelm(log logr.Logger) (*helmDriver, error) {
 	settings := cli.New()
 
 	// TODO Catch error here if not provided docker config or continue without an authfile if possible
-	secretAuth := auth.NewDockerSecret()
+	secretAuth := auth.NewHelmSecret()
 	authfile, _ := secretAuth.GetAuthFileName()
 	if authfile != "" {
 		registry.ClientOptCredentialsFile(authfile)
