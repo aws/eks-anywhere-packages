@@ -168,11 +168,11 @@ func main() {
 		}
 
 		// Pull Helm charts for all the populated helm fields of the bundles.
-		for _, charts := range addOnBundleSpec.Packages {
+		for i, charts := range addOnBundleSpec.Packages {
 			fullURI := fmt.Sprintf("%s/%s", charts.Source.Registry, charts.Source.Repository)
 			chartPath, err := driver.PullHelmChart(fullURI, charts.Source.Versions[0].Name)
 			if err != nil {
-				BundleLog.Error(err, "Unable to pull Helm Chart %s", charts.Source.Repository)
+				BundleLog.Error(err, "Unable to pull Helm Chart")
 				os.Exit(1)
 			}
 			chartName, helmname, err := splitECRName(fullURI)
@@ -218,6 +218,9 @@ func main() {
 				})
 			}
 			charts.Source.Versions[0].Configurations = helmConfiguration
+
+			// Set the registry to empty string since we pull it from the PackageBundleController instead now.
+			addOnBundleSpec.Packages[i].Source.Registry = ""
 		}
 
 		// Write list of bundle structs into Bundle CRD files

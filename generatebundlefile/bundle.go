@@ -86,6 +86,7 @@ func (c *ecrPublicClient) NewPackageFromInput(project Project) (*api.BundlePacka
 		Name: project.Name,
 		Source: api.BundlePackageSource{
 			Repository: project.Repository,
+			Registry:   project.Registry,
 			Versions:   versionList,
 		},
 	}
