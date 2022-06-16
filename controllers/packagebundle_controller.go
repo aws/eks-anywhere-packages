@@ -160,14 +160,13 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{}, nil
 }
 
-// mapBundleReconcileRequests generates a reconcile.Request for each package
-// bundle in the system.
-func (r *PackageBundleReconciler) mapBundleReconcileRequests(obj client.Object) (
+// mapBundleReconcileRequests generates a reconcile Request for each package bundle in the system.
+func (r *PackageBundleReconciler) mapBundleReconcileRequests(_ client.Object) (
 	requests []reconcile.Request) {
 
 	ctx := context.Background()
 	bundles := &api.PackageBundleList{}
-	err := r.List(ctx, bundles)
+	err := r.List(ctx, bundles, &client.ListOptions{Namespace: api.PackageNamespace})
 	if err != nil {
 		r.Log.Error(err, "listing package bundles")
 		return []reconcile.Request{}

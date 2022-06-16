@@ -100,10 +100,10 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 		Complete(reconciler)
 }
 
-func (r *PackageReconciler) mapBundleChangesToPackageUpdate(obj client.Object) (req []reconcile.Request) {
+func (r *PackageReconciler) mapBundleChangesToPackageUpdate(_ client.Object) (req []reconcile.Request) {
 	ctx := context.Background()
 	objs := &api.PackageList{}
-	err := r.List(ctx, objs)
+	err := r.List(ctx, objs, &client.ListOptions{Namespace: api.PackageNamespace})
 	if err != nil {
 		return req
 	}
