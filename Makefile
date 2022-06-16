@@ -78,7 +78,7 @@ GOTESTS ?= ./...
 GOTESTFLAGS ?= ""
 test: manifests generate vet mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ## Run tests.
 	source <(setup-envtest use -i -p env 1.23.x)
-	$(GO) test $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks` -coverprofile cover.out
+	$(GO) test $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks | grep -v fake | grep -v testutil` -coverprofile cover.out
 
 $(GOBIN)/setup-envtest: ## Install setup-envtest
 	# While it's preferable not to use @latest here, we have no choice at the moment. Details at 
