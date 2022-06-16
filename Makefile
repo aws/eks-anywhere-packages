@@ -1,5 +1,5 @@
 # Setting SHELL to bash allows bash commands to be executed by recipes.
-# This is a requirement for 'setup-envtest.sh' in the test target.
+# This is a requirement for setup-envtest in the test target.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
@@ -76,10 +76,14 @@ GOTESTS ?= ./...
 # Use "-short" to skip long tests, or "-verbose" for more verbose reporting. Run
 # go help testflags to see all options.
 GOTESTFLAGS ?= ""
-test: manifests generate vet mocks ${SIGNED_ARTIFACTS} ## Run tests.
-	mkdir -p ${ENVTEST_ASSETS_DIR}
-	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
-	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); $(GO) test $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks` -coverprofile cover.out
+test: manifests generate vet mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ## Run tests.
+	source <(setup-envtest use -i -p env 1.23.x)
+	$(GO) test $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks` -coverprofile cover.out
+
+$(GOBIN)/setup-envtest: ## Install setup-envtest
+	# While it's preferable not to use @latest here, we have no choice at the moment. Details at 
+	# https://github.com/kubernetes-sigs/kubebuilder/issues/2480 
+	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 clean: ## Clean up resources created by make targets
 	rm -rf ./bin/*
