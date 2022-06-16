@@ -32,6 +32,7 @@ type Manager interface {
 	DownloadBundle(ctx context.Context, ref string) (
 		*api.PackageBundle, error)
 
+	// SortBundlesDescending sort bundles to latest first
 	SortBundlesDescending(bundles []api.PackageBundle)
 }
 
