@@ -152,6 +152,28 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		assert.Equal(t, "public.ecr.aws/eks-anywhere", bundle.Spec.Packages[0].Source.Registry)
 		assert.Nil(t, err)
 	})
+
+	t.Run("error path", func(t *testing.T) {
+		mockClient := newMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
+
+		_, err := bundleClient.GetActiveBundle(ctx)
+
+		assert.EqualError(t, err, "getting PackageBundleController: oops")
+	})
+
+	t.Run("other error path", func(t *testing.T) {
+		mockClient := newMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc)).SetArg(2, pbc)
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
+
+		_, err := bundleClient.GetActiveBundle(ctx)
+
+		assert.EqualError(t, err, "oops")
+	})
 }
 
 func TestBundleClient_GetActiveBundleNamespacedName(t *testing.T) {
@@ -170,6 +192,18 @@ func TestBundleClient_GetActiveBundleNamespacedName(t *testing.T) {
 		assert.Equal(t, api.PackageNamespace, namespacedNames.Namespace)
 		assert.Equal(t, "", namespacedNames.Name)
 		assert.Nil(t, err)
+	})
+
+	t.Run("error path", func(t *testing.T) {
+		mockClient := newMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
+
+		namespacedNames, err := bundleClient.GetActiveBundleNamespacedName(ctx)
+
+		assert.Equal(t, "", namespacedNames.Namespace)
+		assert.Equal(t, "", namespacedNames.Name)
+		assert.EqualError(t, err, "getting PackageBundleController: oops")
 	})
 }
 

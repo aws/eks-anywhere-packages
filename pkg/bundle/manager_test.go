@@ -191,6 +191,24 @@ func TestPackageVersion(t *testing.T) {
 			t.Errorf("expected %q, got %q", expected, got)
 		}
 	})
+
+	t.Run("api error", func(t *testing.T) {
+		t.Parallel()
+
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+
+		got, err := bm.apiVersion()
+		if err != nil {
+			t.Fatalf("expected no error, got %s", err)
+		}
+		expected := "v1-21"
+		if got != expected {
+			t.Errorf("expected %q, got %q", expected, got)
+		}
+	})
 }
 
 func givenPackageBundle(state api.PackageBundleStateEnum) *api.PackageBundle {
