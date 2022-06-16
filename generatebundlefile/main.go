@@ -82,42 +82,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// One input file, and a --signature input
-	if o.signature != "" && len(files) == 1 {
-		BundleLog.Info("In Progress: Checking Bundles for Signatures")
-		bundle, err := ValidateBundle(files[0])
-		if err != nil {
-			BundleLog.Error(err, "Unable to validate bundle file")
-			os.Exit(1)
-		}
-		// Check if there is annotations on the bundle
-		// If no annotations, add them
-		// If annotations, check for signatures and compare with input
-		check, err := IfSignature(bundle)
-		if !check {
-			BundleLog.Info("Adding Signature to bundle and exiting...")
-			bundle.ObjectMeta.Annotations[FullSignatureAnnotation] = o.signature
-		} else {
-			// If annotations do currently exist then compare the current signature vs the input signature
-			BundleLog.Info("Signature already exists on bundle checking it's contents...")
-			check, err := CheckSignature(bundle, o.signature)
-			if err != nil || !check {
-				BundleLog.Error(err, "Unable to compare signatures")
-				os.Exit(1)
-			}
-		}
-		_, yml, err := sig.GetDigest(bundle, sig.EksaDomain)
-		if err != nil {
-			BundleLog.Error(err, "Unable to convert Bundle to yaml via sig.GetDigest()")
-			os.Exit(1)
-		}
-		if _, err := outputPath.Write("bundle.yaml", yml, PersistentFile); err != nil {
-			BundleLog.Error(err, "Unable to write Bundle to yaml from signature flag")
-			os.Exit(1)
-		}
-		return
-	}
-
 	// Validate Input config, and turn into Input struct
 	BundleLog.Info("Using input file to create bundle crds.", "Input file", o.inputFile)
 
