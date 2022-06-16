@@ -15,7 +15,6 @@ import (
 type Options struct {
 	inputFile      string
 	outputFolder   string
-	signature      string
 	generateSample bool
 	promote        string
 	key            string
@@ -71,7 +70,6 @@ func NewOptions() *Options {
 	fs.BoolVar(&o.generateSample, "generate-sample", false, "Whether you want to generate a sample bundle for yourself")
 	fs.StringVar(&o.inputFile, "input", "", "The path where the input bundle generation file lives")
 	fs.StringVar(&o.outputFolder, "output", "output", "The path where to write the output bundle files")
-	fs.StringVar(&o.signature, "signature", "", "The Signature of the bundle to be added as an annotation")
 	fs.StringVar(&o.promote, "promote", "", "The Helm chart private ECR OCI uri to pull and promote")
 	fs.StringVar(&o.key, "key", "k", "The key to sign with")
 	fs.StringVar(&o.release, "release-profile", "", "The AWS Profile to release all the assets of a bundle into")
