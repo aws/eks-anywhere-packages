@@ -104,7 +104,7 @@ type VersionConfiguration struct {
 	Required bool `json:"required"`
 
 	// Default is the name of the configuration
-	Default string `json:"default"`
+	Default interface{} `json:"default"`
 }
 
 // PackageBundleStatus defines the observed state of PackageBundle

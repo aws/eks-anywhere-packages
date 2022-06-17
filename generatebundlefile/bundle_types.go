@@ -96,9 +96,9 @@ type RequiresSpec struct {
 }
 
 type Configuration struct {
-	Name     string `json:"name,omitempty"`
-	Required bool   `json:"required,omitempty"`
-	Default  string `json:"default,omitempty"`
+	Name     string      `json:"name,omitempty"`
+	Required bool        `json:"required,omitempty"`
+	Default  interface{} `json:"default,omitempty"`
 }
 
 type Image struct {
