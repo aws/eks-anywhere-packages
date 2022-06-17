@@ -30,7 +30,7 @@ type registryClient interface {
 	GetAuthorizationToken(ctx context.Context, params *ecr.GetAuthorizationTokenInput, optFns ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)
 }
 
-// NewECRClient Creates a new ECR Client Public client
+// NewECRClient Creates a new ECR Client client
 func NewECRClient(client registryClient, needsCreds bool) (*ecrClient, error) {
 	ecrClient := &ecrClient{
 		registryClient: client,
@@ -144,7 +144,7 @@ func (d DockerAuthFile) Remove() error {
 	if d.Authfile == "" {
 		return fmt.Errorf("No Authfile in DockerAuthFile given")
 	}
-	defer os.Remove(d.Authfile)
+	//defer os.Remove(d.Authfile)
 	return nil
 }
 
@@ -170,4 +170,54 @@ func (c *SDKClients) getNameAndVersion(s, accountID string) (string, string, str
 	}
 	version = splitname[1]
 	return name, version, sha, nil
+}
+
+// shaExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
+func (c *ecrClient) shaExistsInRepository(repository, sha string) (bool, error) {
+	if repository == "" || sha == "" {
+		return false, fmt.Errorf("Emtpy repository, or sha passed to the function")
+	}
+	var imagelookup []ecrtypes.ImageIdentifier
+	imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageDigest: &sha})
+	ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
+		RepositoryName: aws.String(repository),
+		ImageIds:       imagelookup,
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "does not exist within the repository") == true {
+			return false, nil
+		}
+	}
+	for _, detail := range ImageDetails {
+		if detail.ImageDigest != nil && *detail.ImageDigest == sha {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// tagExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
+func (c *ecrClient) tagExistsInRepository(repository, tag string) (bool, error) {
+	if repository == "" || tag == "" {
+		return false, fmt.Errorf("Emtpy repository, or tag passed to the function")
+	}
+	var imagelookup []ecrtypes.ImageIdentifier
+	imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageTag: &tag})
+	ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
+		RepositoryName: aws.String(repository),
+		ImageIds:       imagelookup,
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "does not exist within the repository") == true {
+			return false, nil
+		}
+	}
+	for _, detail := range ImageDetails {
+		for _, Imagetag := range detail.ImageTags {
+			if tag == Imagetag {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }

@@ -83,7 +83,7 @@ func UnTarHelmChart(chartRef, chartPath, dest string) error {
 		}
 	} else {
 		if err != nil { // Checks directory check errors such as permission issues to read
-			return errors.Errorf("failed UnTarHelmChart: %w", err)
+			return errors.Errorf("failed UnTarHelmChart: %s", err)
 		}
 	}
 	// Untar the files, and create the directory structure

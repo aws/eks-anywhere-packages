@@ -134,7 +134,7 @@ func TestUnTarHelmChart(t *testing.T) {
 	}
 }
 
-func TestShaExistsInRepository(t *testing.T) {
+func shaExistsInRepositoryPublic(t *testing.T) {
 	client := newMockPublicRegistryClient(nil)
 	tests := []struct {
 		client         *mockPublicRegistryClient
@@ -171,12 +171,12 @@ func TestShaExistsInRepository(t *testing.T) {
 					publicRegistryClient: client,
 				},
 			}
-			got, err := clients.ecrPublicClient.shaExistsInRepository(tc.testRepository, tc.testVersion)
+			got, err := clients.ecrPublicClient.shaExistsInRepositoryPublic(tc.testRepository, tc.testVersion)
 			if (err != nil) != tc.wantErr {
-				tt.Fatalf("shaExistsInRepository() error = %v, wantErr %v", err, tc.wantErr)
+				tt.Fatalf("shaExistsInRepositoryPublic() error = %v, wantErr %v", err, tc.wantErr)
 			}
 			if got != tc.checkPass {
-				tt.Fatalf("shaExistsInRepository() = %#v\n\n\n, want %#v", got, tc.checkPass)
+				tt.Fatalf("shaExistsInRepositoryPublic() = %#v\n\n\n, want %#v", got, tc.checkPass)
 			}
 		})
 	}

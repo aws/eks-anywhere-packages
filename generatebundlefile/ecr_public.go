@@ -182,8 +182,8 @@ func imageTagFilter(details []ecrpublictypes.ImageDetail, version string) []ecrp
 	return filteredDetails
 }
 
-// shaExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
-func (c *ecrPublicClient) shaExistsInRepository(repository, sha string) (bool, error) {
+// shaExistsInRepositoryPublic checks if a given OCI artifact exists in a destination repo using the sha sum.
+func (c *ecrPublicClient) shaExistsInRepositoryPublic(repository, sha string) (bool, error) {
 	if repository == "" || sha == "" {
 		return false, fmt.Errorf("Emtpy repository, or sha passed to the function")
 	}
@@ -206,8 +206,8 @@ func (c *ecrPublicClient) shaExistsInRepository(repository, sha string) (bool, e
 	return false, nil
 }
 
-// shaExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
-func (c *ecrPublicClient) tagExistsInRepository(repository, tag string) (bool, error) {
+// tagExistsInRepositoryPublic checks if a given OCI artifact exists in a destination repo using the sha sum.
+func (c *ecrPublicClient) tagExistsInRepositoryPublic(repository, tag string) (bool, error) {
 	if repository == "" || tag == "" {
 		return false, fmt.Errorf("Emtpy repository, or tag passed to the function")
 	}
@@ -256,25 +256,11 @@ func (c *ecrPublicClient) GetPublicAuthToken() (string, error) {
 }
 
 // copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
-func copyImagePrivPubSameAcct(log logr.Logger, authFile, version string, stsClient *stsClient, ecrPublic *ecrPublicClient, image Image) error {
-	source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", stsClient.AccountID, image.Repository, image.Tag)
-	destination := fmt.Sprintf("docker://%s/%s:%s", ecrPublic.SourceRegistry, image.Repository, version)
-	log.Info("Promoting...", source, destination)
+func copyImage(log logr.Logger, authFile, source, destination string) error {
+	log.Info("Running skopeo copy...", source, destination)
 	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
-	_, err := ExecCommand(cmd)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// copyImagePubPubDifferentAcct will copy an OCI artifact from ECR Public to ECR Public to another account.
-func (c *SDKClients) copyImagePubPubDifferentAcct(log logr.Logger, authFile, version string, image Image) error {
-	source := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, image.Repository, version)
-	destination := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClientRelease.SourceRegistry, image.Repository, version)
-	log.Info("Promoting...", source, destination)
-	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
-	_, err := ExecCommand(cmd)
+	stdout, err := ExecCommand(cmd)
+	fmt.Printf("%s\n", stdout)
 	if err != nil {
 		return err
 	}

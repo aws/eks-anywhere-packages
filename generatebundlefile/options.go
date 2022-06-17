@@ -18,15 +18,19 @@ type Options struct {
 	generateSample bool
 	promote        string
 	key            string
-	release        string
+	publicProfile  string
+	privateProfile string
+}
+
+func (o *Options) SetupLogger() {
+	opts := zap.Options{}
+	opts.BindFlags(flag.CommandLine)
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 }
 
 // Validate validates the receiving options.
 func (o *Options) ValidateInput() ([]string, error) {
 	f := []string{}
-	opts := zap.Options{}
-	opts.BindFlags(flag.CommandLine)
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	if o.inputFile != "" {
 		f = append(f, o.inputFile)
 		return f, nil
@@ -72,7 +76,9 @@ func NewOptions() *Options {
 	fs.StringVar(&o.outputFolder, "output", "output", "The path where to write the output bundle files")
 	fs.StringVar(&o.promote, "promote", "", "The Helm chart private ECR OCI uri to pull and promote")
 	fs.StringVar(&o.key, "key", "k", "The key to sign with")
-	fs.StringVar(&o.release, "release-profile", "", "The AWS Profile to release all the assets of a bundle into")
+	fs.StringVar(&o.publicProfile, "public-profile", "", "The AWS Public Profile to release the prod bundle into")
+	fs.StringVar(&o.privateProfile, "private-profile", "", "The AWS Private Profile to release all packages into")
+
 	err := fs.Parse(os.Args[1:])
 	if err != nil {
 		BundleLog.Error(err, "Error parsing input flags")
