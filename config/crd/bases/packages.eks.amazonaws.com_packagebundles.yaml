@@ -76,7 +76,7 @@ spec:
                                   properties:
                                     default:
                                       description: Default is the name of the configuration
-                                      type: string
+                                      x-kubernetes-preserve-unknown-fields: true
                                     name:
                                       description: Name is the name of the configuration
                                       type: string
@@ -85,7 +85,6 @@ spec:
                                         the user must specify
                                       type: boolean
                                   required:
-                                  - default
                                   - name
                                   - required
                                   type: object
@@ -179,7 +178,7 @@ spec:
                                         default:
                                           description: Default is the name of the
                                             configuration
-                                          type: string
+                                          x-kubernetes-preserve-unknown-fields: true
                                         name:
                                           description: Name is the name of the configuration
                                           type: string
@@ -188,7 +187,6 @@ spec:
                                             the user must specify
                                           type: boolean
                                       required:
-                                      - default
                                       - name
                                       - required
                                       type: object
