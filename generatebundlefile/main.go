@@ -246,11 +246,8 @@ func main() {
 				},
 			}
 			dockerAuth, err = NewAuthFile(dockerReleaseStruct)
-			if err != nil || dockerAuth.Authfile == "" {
-				BundleLog.Error(err, "Unable create AuthFile")
-			}
 			if err != nil {
-				BundleLog.Error(err, "Unable remove AuthFile")
+				BundleLog.Error(err, "Unable create AuthFile")
 			}
 			for _, charts := range addOnBundleSpec.Packages {
 				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, false)

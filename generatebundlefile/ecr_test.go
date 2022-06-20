@@ -134,7 +134,7 @@ func TestUnTarHelmChart(t *testing.T) {
 	}
 }
 
-func shaExistsInRepositoryPublic(t *testing.T) {
+func TestShaExistsInRepositoryPublic(t *testing.T) {
 	client := newMockPublicRegistryClient(nil)
 	tests := []struct {
 		client         *mockPublicRegistryClient

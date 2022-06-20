@@ -144,7 +144,7 @@ func (d DockerAuthFile) Remove() error {
 	if d.Authfile == "" {
 		return fmt.Errorf("No Authfile in DockerAuthFile given")
 	}
-	//defer os.Remove(d.Authfile)
+	defer os.Remove(d.Authfile)
 	return nil
 }
 
