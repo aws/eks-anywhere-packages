@@ -183,7 +183,7 @@ func imageTagFilter(details []ecrpublictypes.ImageDetail, version string) []ecrp
 }
 
 // shaExistsInRepositoryPublic checks if a given OCI artifact exists in a destination repo using the sha sum.
-func (c *ecrPublicClient) shaExistsInRepositoryPublic(repository, sha string) (bool, error) {
+func (c *ecrPublicClient) shaExistsInRepository(repository, sha string) (bool, error) {
 	if repository == "" || sha == "" {
 		return false, fmt.Errorf("Emtpy repository, or sha passed to the function")
 	}
@@ -206,8 +206,8 @@ func (c *ecrPublicClient) shaExistsInRepositoryPublic(repository, sha string) (b
 	return false, nil
 }
 
-// tagExistsInRepositoryPublic checks if a given OCI artifact exists in a destination repo using the sha sum.
-func (c *ecrPublicClient) tagExistsInRepositoryPublic(repository, tag string) (bool, error) {
+// tagExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
+func (c *ecrPublicClient) tagExistsInRepository(repository, tag string) (bool, error) {
 	if repository == "" || tag == "" {
 		return false, fmt.Errorf("Emtpy repository, or tag passed to the function")
 	}

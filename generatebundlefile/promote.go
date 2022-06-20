@@ -213,6 +213,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 func (c *SDKClients) CheckDestinationECR(images Image, version string) (bool, bool, error) {
 	var checkSha, checkTag bool
 	var err error
+	var check CheckECR
 
 	// Change the source destination check depending on release to another account or not
 	destination := c.ecrPublicClient
@@ -222,23 +223,17 @@ func (c *SDKClients) CheckDestinationECR(images Image, version string) (bool, bo
 
 	// Release to ECR private in another account if we did an sts lookup for the other account ID
 	if c.stsClientRelease != nil {
-		checkSha, err = c.ecrClientRelease.shaExistsInRepository(images.Repository, images.Digest)
-		if err != nil {
-			return false, false, err
-		}
-		checkTag, err = c.ecrClientRelease.tagExistsInRepository(images.Repository, version)
-		if err != nil {
-			return false, false, err
-		}
+		check = c.ecrClientRelease
 	} else {
-		checkSha, err = destination.shaExistsInRepositoryPublic(images.Repository, images.Digest)
-		if err != nil {
-			return false, false, err
-		}
-		checkTag, err = destination.tagExistsInRepositoryPublic(images.Repository, version)
-		if err != nil {
-			return false, false, err
-		}
+		check = destination
+	}
+	checkSha, err = check.shaExistsInRepository(images.Repository, images.Digest)
+	if err != nil {
+		return false, false, err
+	}
+	checkTag, err = check.tagExistsInRepository(images.Repository, version)
+	if err != nil {
+		return false, false, err
 	}
 	return checkSha, checkTag, nil
 }

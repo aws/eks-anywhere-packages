@@ -30,6 +30,11 @@ type registryClient interface {
 	GetAuthorizationToken(ctx context.Context, params *ecr.GetAuthorizationTokenInput, optFns ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)
 }
 
+type CheckECR interface {
+	tagExistsInRepository(repository, tag string) (bool, error)
+	shaExistsInRepository(repository, tag string) (bool, error)
+}
+
 // NewECRClient Creates a new ECR Client client
 func NewECRClient(client registryClient, needsCreds bool) (*ecrClient, error) {
 	ecrClient := &ecrClient{
