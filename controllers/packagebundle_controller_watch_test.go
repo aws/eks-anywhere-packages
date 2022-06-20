@@ -15,7 +15,7 @@ import (
 	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
 )
 
-func TestPackageBundleReconciler_mapBundleReconcileReqeusts(t *testing.T) {
+func TestPackageBundleReconciler_mapBundleReconcileRequests(t *testing.T) {
 	ctx := context.Background()
 	bundleOne := *api.MustPackageBundleFromFilename(t, "../api/testdata/bundle_one.yaml")
 	bundleTwo := *api.MustPackageBundleFromFilename(t, "../api/testdata/bundle_two.yaml")
@@ -24,7 +24,7 @@ func TestPackageBundleReconciler_mapBundleReconcileReqeusts(t *testing.T) {
 	mockClient.EXPECT().
 		List(ctx, gomock.Any(), gomock.Any()).
 		DoAndReturn(func(ctx context.Context, bundles *api.PackageBundleList,
-			_ ...client.ListOptions) error {
+			_ ...*client.ListOptions) error {
 			bundles.Items = []api.PackageBundle{bundleOne, bundleTwo}
 			return nil
 		})
