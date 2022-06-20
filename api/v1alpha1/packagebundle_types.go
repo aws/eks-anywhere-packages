@@ -15,6 +15,7 @@
 package v1alpha1
 
 import (
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -104,7 +105,8 @@ type VersionConfiguration struct {
 	Required bool `json:"required"`
 
 	// Default is the name of the configuration
-	Default string `json:"default"`
+	// +kubebuilder:validation:Optional
+	Default *apiextensions.JSON `json:"default,omitempty"`
 }
 
 // PackageBundleStatus defines the observed state of PackageBundle
