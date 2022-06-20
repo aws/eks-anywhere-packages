@@ -37,7 +37,7 @@ func TestBundleClient_IsActive(t *testing.T) {
 		mockClient := newMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc))
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc)).SetArg(2, pbc)
 
 		active, err := bundleClient.IsActive(ctx, bundle)
 
@@ -67,7 +67,7 @@ func TestBundleClient_IsActive(t *testing.T) {
 				State: api.PackageBundleStateActive,
 			},
 		}
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc))
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc)).SetArg(2, pbc)
 
 		active, err := bundleClient.IsActive(ctx, bundle)
 
@@ -87,7 +87,7 @@ func TestBundleClient_IsActive(t *testing.T) {
 				State: api.PackageBundleStateActive,
 			},
 		}
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc))
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc)).SetArg(2, pbc)
 
 		active, err := bundleClient.IsActive(ctx, bundle)
 
@@ -296,6 +296,7 @@ func newMockBundle() api.PackageBundle {
 func newMockPackageBundleController() api.PackageBundleController {
 	return api.PackageBundleController{
 		Spec: api.PackageBundleControllerSpec{
+			ActiveBundle: testBundleName,
 			Source: api.PackageBundleControllerSource{
 				Registry: "public.ecr.aws/j0a1m4z9",
 			},
