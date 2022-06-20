@@ -173,10 +173,10 @@ func TestShaExistsInRepository(t *testing.T) {
 			}
 			got, err := clients.ecrPublicClient.shaExistsInRepository(tc.testRepository, tc.testVersion)
 			if (err != nil) != tc.wantErr {
-				tt.Fatalf("shaExistsInRepository() error = %v, wantErr %v", err, tc.wantErr)
+				tt.Fatalf("shaExistsInRepositoryPublic() error = %v, wantErr %v", err, tc.wantErr)
 			}
 			if got != tc.checkPass {
-				tt.Fatalf("shaExistsInRepository() = %#v\n\n\n, want %#v", got, tc.checkPass)
+				tt.Fatalf("shaExistsInRepositoryPublic() = %#v\n\n\n, want %#v", got, tc.checkPass)
 			}
 		})
 	}

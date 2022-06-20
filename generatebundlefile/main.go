@@ -19,6 +19,7 @@ var BundleLog = ctrl.Log.WithName("BundleGenerator")
 
 func main() {
 	o := NewOptions()
+	o.SetupLogger()
 
 	// grab local path to caller, and make new caller
 	pwd, err := os.Getwd()
@@ -50,8 +51,8 @@ func main() {
 	}
 
 	if o.promote != "" {
-		fmt.Printf("Promoting %s from private ECR to Public ECR\n", o.promote)
-		clients, err := GetSDKClients("")
+		BundleLog.Info("Starting Promote from private ECR to Public ECR....")
+		clients, err := GetSDKClients()
 		clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
 		dockerStruct := &DockerAuth{
 			Auths: map[string]DockerAuthRegistry{
@@ -63,7 +64,6 @@ func main() {
 		if err != nil || dockerAuth.Authfile == "" {
 			BundleLog.Error(err, "Unable create AuthFile")
 		}
-		err = dockerAuth.Remove()
 		if err != nil {
 			BundleLog.Error(err, "Unable remove AuthFile")
 		}
@@ -71,7 +71,8 @@ func main() {
 		if err != nil {
 			BundleLog.Error(err, "Unable to promote Helm Chart")
 		}
-		fmt.Printf("Promote Finished, exiting gracefully\n")
+		err = dockerAuth.Remove()
+		BundleLog.Info("Promote Finished, exiting gracefully")
 		return
 	}
 
@@ -84,7 +85,6 @@ func main() {
 
 	// Validate Input config, and turn into Input struct
 	BundleLog.Info("Using input file to create bundle crds.", "Input file", o.inputFile)
-
 	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
 	if err != nil {
 		BundleLog.Error(err, "loading default AWS config: %w", err)
@@ -114,7 +114,6 @@ func main() {
 		if err != nil || dockerAuth.Authfile == "" {
 			BundleLog.Error(err, "Unable create AuthFile")
 		}
-		err = dockerAuth.Remove()
 		if err != nil {
 			BundleLog.Error(err, "Unable remove AuthFile")
 		}
@@ -187,17 +186,21 @@ func main() {
 			addOnBundleSpec.Packages[i].Source.Registry = ""
 		}
 
+		err = dockerAuth.Remove()
 		// Write list of bundle structs into Bundle CRD files
 		BundleLog.Info("In Progress: Writing bundle to output")
 		bundle := AddMetadata(addOnBundleSpec, name)
 
-		// // If we trigger a release,
-		if o.release != "" {
-			BundleLog.Info("Starting release process....")
-			clients, err := GetSDKClients(o.release)
+		// We will make a compound check for public and private profile after the launch once we want to stop
+		// push packages to private ECR.
+		if o.publicProfile != "" {
+			BundleLog.Info("Starting release public ECR process....")
+			clients, err := GetSDKClients()
+			clients, err = clients.GetProfileSDKConnection("ecrpublic", o.publicProfile)
 			if err != nil {
 				BundleLog.Error(err, "Unable create SDK Client connections")
 			}
+
 			clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
 			if err != nil {
 				BundleLog.Error(err, "Unable create find Public ECR URI from calling account")
@@ -216,13 +219,40 @@ func main() {
 			if err != nil || dockerAuth.Authfile == "" {
 				BundleLog.Error(err, "Unable create AuthFile")
 			}
-			err = dockerAuth.Remove()
 			if err != nil {
 				BundleLog.Error(err, "Unable remove AuthFile")
 			}
 			for _, charts := range addOnBundleSpec.Packages {
 				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, true)
 			}
+			err = dockerAuth.Remove()
+			return
+		}
+
+		// See above comment about compound check when we want to cutover
+		// if o.publicProfile != "" && if o.privateProfile != "" {}
+		if o.privateProfile != "" {
+			BundleLog.Info("Starting release to private ECR process....")
+			clients, err := GetSDKClients()
+			clients, err = clients.GetProfileSDKConnection("ecr", o.privateProfile)
+			clients, err = clients.GetProfileSDKConnection("sts", o.privateProfile)
+			if err != nil {
+				BundleLog.Error(err, "Unable create SDK Client connections")
+			}
+			dockerReleaseStruct = &DockerAuth{
+				Auths: map[string]DockerAuthRegistry{
+					fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion):        DockerAuthRegistry{clients.ecrClient.AuthConfig},
+					fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClientRelease.AccountID, ecrRegion): DockerAuthRegistry{clients.ecrClientRelease.AuthConfig},
+				},
+			}
+			dockerAuth, err = NewAuthFile(dockerReleaseStruct)
+			if err != nil {
+				BundleLog.Error(err, "Unable create AuthFile")
+			}
+			for _, charts := range addOnBundleSpec.Packages {
+				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, false)
+			}
+			err = dockerAuth.Remove()
 			return
 		}
 
