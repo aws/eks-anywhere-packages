@@ -43,7 +43,7 @@ aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 h
 # Release the bundle to another account
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
-    --release-profile ${PROFILE}
+    --public-profile ${PROFILE}
 
 # Create the prod bundle for 1.21
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
