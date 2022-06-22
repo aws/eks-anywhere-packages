@@ -16,3 +16,10 @@ packages:
         registry: public.ecr.aws/eks-anywhere
         versions:
             - name: latest
+  - org: metallb 
+    projects:
+      - name: metallb 
+        repository: metallb/metallb
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: latest

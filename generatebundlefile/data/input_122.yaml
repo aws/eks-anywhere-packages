@@ -16,3 +16,10 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: latest
+  - org: metallb 
+    projects:
+      - name: metallb 
+        repository: metallb/metallb
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
