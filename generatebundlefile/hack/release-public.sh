@@ -27,11 +27,10 @@ region=us-east-1
 credential_source=EcsContainer
 EOF
 
-export AWS_CONFIG_FILE=configfile
-
+BASE_DIRECTORY=$(git rev-parse --show-toplevel)
+export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/configfile
 PROFILE=prod
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
 ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries \
                  --query 'registries[*].registryUri' --output text)
