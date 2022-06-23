@@ -20,9 +20,6 @@ set -o pipefail
 
 export LANG=C.UTF-8
 
-BASE_DIRECTORY=$(git rev-parse --show-toplevel)
-make build
-
 cat << EOF > configfile
 [profile prod]
 role_arn=$PROD_ARTIFACT_DEPLOYMENT_ROLE
@@ -32,46 +29,50 @@ EOF
 
 export AWS_CONFIG_FILE=configfile
 
-KMS_KEY=signingPackagesKey
 PROFILE=prod
-IMAGE_REGISTRY=$(aws ecr-public --region us-east-1 describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+BASE_DIRECTORY=$(git rev-parse --show-toplevel)
+. "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
+ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries \
+                 --query 'registries[*].registryUri' --output text)
+REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
+ORAS_BIN=${BASE_DIRECTORY}/bin/oras
+
+make build
+chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile
 
 aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
-# Release the bundle to another account
+# Move Helm charts within the bundle to another account
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
     --public-profile ${PROFILE}
 
-# Create the prod bundle for 1.21
-${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121_prod.yaml \
-    --key alias/${KMS_KEY}
+if [ ! -x "${ORAS_BIN}" ]; then
+    make oras-install
+fi
 
-make oras-install
+function generate () {
+    local version=$1
+    local kms_key=signingPackagesKey
 
-. "${BASE_DIRECTORY}/common.sh"
-cd ${BASE_DIRECTORY}/generatebundlefile/output
-awsAuth ${BASE_DIRECTORY}/bin/oras push --username AWS --password-stdin \
-    "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-${CODEBUILD_BUILD_NUMBER}" \
-    bundle.yaml
-awsAuth ${BASE_DIRECTORY}/bin/oras push --username AWS --password-stdin \
-    "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-21-latest" \
-    bundle.yaml
+    cd "${BASE_DIRECTORY}/generatebundlefile"
+    ./bin/generatebundlefile --input "./data/input_${version/-}_prod.yaml" \
+                 --key alias/${kms_key}
+}
 
-# 1.22 Bundle Build
-cd ${BASE_DIRECTORY}/generatebundlefile
+function push () {
+    local version=$1
+    cd "${BASE_DIRECTORY}/generatebundlefile/output"
+    # Turn off command echo so no awsAuth function execution is shown in build logs
+    set +x
+    "$ORAS_BIN" push --username AWS --password $(awsAuth "ecr-public") "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+    "$ORAS_BIN" push --username AWS --password $(awsAuth "ecr-public") "${REPO}:v${version}-latest" bundle.yaml
+    set -x 
+}
 
-${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_122_prod.yaml \
-    --key alias/${KMS_KEY}
-
-cd ${BASE_DIRECTORY}/generatebundlefile/output
-awsAuth ${BASE_DIRECTORY}/bin/oras push --username AWS --password-stdin \
-    "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-22-${CODEBUILD_BUILD_NUMBER}" \
-    bundle.yaml
-awsAuth ${BASE_DIRECTORY}/bin/oras push --username AWS --password-stdin \
-    "${IMAGE_REGISTRY}/eks-anywhere-packages-bundles:v1-22-latest" \
-    bundle.yaml
+for version in 1-21 1-22; do
+    generate ${version}
+    push ${version}
+done
