@@ -32,8 +32,7 @@ export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/configfile
 PROFILE=prod
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
-ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries \
-                 --query 'registries[*].registryUri' --output text)
+ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
 REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
 ORAS_BIN=${BASE_DIRECTORY}/bin/oras
 
