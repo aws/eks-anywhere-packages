@@ -17,6 +17,7 @@ import (
 	"helm.sh/helm/v3/pkg/storage/driver"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
 )
 
 // helmDriver implements PackageDriver to install packages from Helm charts.
@@ -30,8 +31,13 @@ var _ PackageDriver = (*helmDriver)(nil)
 
 func NewHelm(log logr.Logger) (*helmDriver, error) {
 	settings := cli.New()
-	//TODO: Allow configuring the client's credentials from a secret
-	//see: https://github.com/aws/eks-anywhere-packages/issues/20
+
+	// TODO Catch error here if not provided docker config or continue without an authfile if possible
+	secretAuth := auth.NewHelmSecret()
+	authfile, _ := secretAuth.AuthFilename()
+	if authfile != "" {
+		registry.ClientOptCredentialsFile(authfile)
+	}
 	client, err := registry.NewClient()
 	if err != nil {
 		return nil, fmt.Errorf("creating registry client while initializing helm driver: %w", err)

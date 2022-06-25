@@ -20,6 +20,8 @@ Create a cluster with EKS Anywhere and set and export with KUBECONFIG.
 1. Run the controller locally:
 
         make run ENABLE_WEBHOOKS=false
+        # If testing with private repositories
+        make run ENABLE_WEBHOOKS=false HELM_REGISTRY_CONFIG=~/.docker/config.json
 
 1. Load the controller resources:
 
