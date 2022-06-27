@@ -21,6 +21,5 @@ func (s *helmSecret) AuthFilename() (string, error) {
 		return helmconfig, nil
 	}
 
-	// TODO Let user know to set HELM_REGISTRY_CONFIG if not set
 	return "", nil
 }
