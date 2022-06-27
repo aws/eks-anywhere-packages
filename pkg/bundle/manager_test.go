@@ -469,7 +469,7 @@ func TestSortBundleNewestFirst(t *testing.T) {
 	})
 }
 
-func TestBundleManager_UpdateLatestBundle(t *testing.T) {
+func TestBundleManager_ProcessLatestBundle(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()

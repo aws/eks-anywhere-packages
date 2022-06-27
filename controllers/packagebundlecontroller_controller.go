@@ -108,7 +108,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 			pbc.Status.State = api.BundleControllerStateIgnored
 			err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
 			if err != nil {
-				return result, fmt.Errorf("updating status to ignored: %s", err)
+				return withoutRequeue(result), fmt.Errorf("updating status to ignored: %s", err)
 			}
 		}
 		return withoutRequeue(result), nil
@@ -140,7 +140,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 
 	err = r.bundleManager.ProcessLatestBundle(ctx, latestBundle)
 	if err != nil {
-		return result, fmt.Errorf("creating new package bundle: %s", err)
+		return result, fmt.Errorf("processing latest bundle: %s", err)
 	}
 
 	r.Log.V(6).Info("packagebundlecontroller reconciled")
