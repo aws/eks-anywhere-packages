@@ -8,11 +8,7 @@ import (
 )
 
 func TestAuthFilename(t *testing.T) {
-	t.Parallel()
-
 	t.Run("golden path for set HELM_REGISTRY_CONFIG", func(t *testing.T) {
-		t.Parallel()
-
 		testfile := "/test.txt"
 		os.Setenv("HELM_REGISTRY_CONFIG", testfile)
 		helmAuth := NewHelmSecret()
@@ -23,8 +19,6 @@ func TestAuthFilename(t *testing.T) {
 	})
 
 	t.Run("golden path for no config or secrets", func(t *testing.T) {
-		t.Parallel()
-
 		os.Setenv("HELM_REGISTRY_CONFIG", "")
 		helmAuth := NewHelmSecret()
 		val, err := helmAuth.AuthFilename()
