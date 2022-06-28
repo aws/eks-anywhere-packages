@@ -31,6 +31,7 @@ import (
 )
 
 const (
+	DefaultUpgradeCheckInterval = time.Hour * 24
 	packageBundleControllerName = "PackageBundleController"
 )
 
@@ -147,8 +148,6 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 
 	return result, nil
 }
-
-const DefaultUpgradeCheckInterval = time.Hour * 24
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *PackageBundleControllerReconciler) SetupWithManager(mgr ctrl.Manager) error {
