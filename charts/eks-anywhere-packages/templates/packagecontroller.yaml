@@ -1,7 +1,0 @@
-apiVersion: packages.eks.amazonaws.com/v1alpha1
-kind: PackageController
-metadata:
-  name: eksa-package-controller
-  namespace: eksa-packages
-spec:
-  logLevel: 4

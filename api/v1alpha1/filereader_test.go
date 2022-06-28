@@ -18,11 +18,6 @@ func givenFile(file string, config api.KindAccessor) error {
 	return reader.Parse(config)
 }
 
-func GivenPackageController(config *PackageController) error {
-	err := givenFile("../testdata/packagecontroller.yaml", config)
-	return err
-}
-
 func GivenBundleController(config *PackageBundleController) error {
 	err := givenFile("../testdata/packagebundlecontroller.yaml", config)
 	return err
@@ -47,12 +42,6 @@ func GivenPackage(config *Package) error {
 // unmarshal our CRD types.
 func TestFileReaderOnApiDatatypes(t *testing.T) {
 	var actual error
-	var controller PackageController
-	actual = GivenPackageController(&controller)
-	if actual != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, actual)
-	}
-
 	var bundleController PackageBundleController
 	actual = GivenBundleController(&bundleController)
 	if actual != nil {
