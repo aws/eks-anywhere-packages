@@ -15,7 +15,7 @@ func TestAuthFilename(t *testing.T) {
 		val, err := helmAuth.AuthFilename()
 
 		assert.Nil(t, err)
-		assert.Equal(t, val, testfile)
+		assert.Equal(t, testfile, val)
 	})
 
 	t.Run("golden path for no config or secrets", func(t *testing.T) {
@@ -24,6 +24,6 @@ func TestAuthFilename(t *testing.T) {
 		val, err := helmAuth.AuthFilename()
 
 		assert.Nil(t, err)
-		assert.Equal(t, val, "")
+		assert.Equal(t, "", val)
 	})
 }
