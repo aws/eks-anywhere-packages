@@ -280,7 +280,7 @@ func TestUpdate(t *testing.T) {
 		update, err := bm.Update(ctx, bundle)
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
+		assert.Equal(t, api.PackageBundleStateIgnoredVersion, bundle.Status.State)
 	})
 
 	t.Run("ignored is ignored", func(t *testing.T) {
