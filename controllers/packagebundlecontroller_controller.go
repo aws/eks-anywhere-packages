@@ -84,7 +84,7 @@ func RegisterPackageBundleControllerReconciler(mgr ctrl.Manager) error {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.8.3/pkg/reconcile
 func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	r.Log.V(6).Info("Reconcile:", "bundle", req.NamespacedName)
+	r.Log.V(6).Info("Reconcile:", "PackageBundleController", req.NamespacedName)
 
 	result := ctrl.Result{
 		Requeue:      true,
@@ -143,8 +143,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		return result, fmt.Errorf("processing latest bundle: %s", err)
 	}
 
-	r.Log.V(6).Info("packagebundlecontroller reconciled")
-
+	r.Log.V(6).Info("Reconciled:", "PackageBundleController", req.NamespacedName)
 	return result, nil
 }
 

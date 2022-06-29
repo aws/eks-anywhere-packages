@@ -120,7 +120,7 @@ func TestDownloadBundle(t *testing.T) {
 		}
 	})
 
-	t.Run("errors on empty repsonses", func(t *testing.T) {
+	t.Run("errors on empty responses", func(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
@@ -140,7 +140,7 @@ func TestDownloadBundle(t *testing.T) {
 		}
 	})
 
-	t.Run("handles YAML unmarshaling errors", func(t *testing.T) {
+	t.Run("handles YAML unmarshalling errors", func(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()

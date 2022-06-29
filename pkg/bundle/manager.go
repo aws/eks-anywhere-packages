@@ -83,6 +83,7 @@ func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle)
 		if newBundle.Status.State == api.PackageBundleStateActive {
 			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateInactive
+			m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
 			return true, nil
 		}
 		return false, nil
@@ -106,10 +107,12 @@ func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle)
 	if updateAvailable {
 		if newBundle.Status.State != api.PackageBundleStateUpgradeAvailable {
 			newBundle.Status.State = api.PackageBundleStateUpgradeAvailable
+			m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
 			change = true
 		}
 	} else if newBundle.Status.State != api.PackageBundleStateActive {
 		newBundle.Status.State = api.PackageBundleStateActive
+		m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
 		change = true
 	}
 
