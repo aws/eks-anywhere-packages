@@ -104,8 +104,8 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 
 	if pbc.IsIgnored() {
 		if pbc.Status.State != api.BundleControllerStateIgnored {
-			r.Log.V(6).Info("Ignoring", "PackageBundleController", req.NamespacedName)
 			pbc.Status.State = api.BundleControllerStateIgnored
+			r.Log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 			err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
 			if err != nil {
 				return withoutRequeue(result), fmt.Errorf("updating status to ignored: %s", err)
@@ -114,12 +114,22 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		return withoutRequeue(result), nil
 	}
 
+	if pbc.Status.State != api.BundleControllerStateActive {
+		pbc.Status.State = api.BundleControllerStateActive
+		r.Log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
+		err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
+		if err != nil {
+			return result, fmt.Errorf("updating status: %s", err)
+		}
+		return result, nil
+	}
+
 	latestBundle, err := r.bundleManager.LatestBundle(ctx, pbc.Spec.Source.BaseRef())
 	if err != nil {
 		r.Log.Error(err, "Unable to get latest bundle")
 		if pbc.Status.State != api.BundleControllerStateDisconnected {
-			r.Log.V(6).Info("Disconnected", "PackageBundleController", req.NamespacedName)
 			pbc.Status.State = api.BundleControllerStateDisconnected
+			r.Log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 			err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
 			if err != nil {
 				return result, fmt.Errorf("updating status to disconnected: %s", err)
@@ -127,15 +137,6 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		}
 		result.RequeueAfter = pbc.Spec.UpgradeCheckShortInterval.Duration
 		return result, nil
-	}
-
-	if pbc.Status.State != api.BundleControllerStateActive {
-		r.Log.V(6).Info("Activating", "PackageBundleController", req.NamespacedName)
-		pbc.Status.State = api.BundleControllerStateActive
-		err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
-		if err != nil {
-			return result, fmt.Errorf("updating status: %s", err)
-		}
 	}
 
 	err = r.bundleManager.ProcessLatestBundle(ctx, latestBundle)

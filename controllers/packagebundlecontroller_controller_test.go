@@ -125,6 +125,34 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 				return nil
 			})
 
+		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
+		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager, logr.Discard())
+		_, err := r.Reconcile(ctx, req)
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+		}
+	})
+
+	t.Run("gets latest bundle if active", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		mockClient := mocks.NewMockClient(gomock.NewController(t))
+		mockPBC := &api.PackageBundleController{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      api.PackageBundleControllerName,
+				Namespace: api.PackageNamespace,
+			},
+			Spec: api.PackageBundleControllerSpec{
+				ActiveBundle: "v1.21-1001",
+			},
+			Status: api.PackageBundleControllerStatus{
+				State: api.BundleControllerStateActive,
+			},
+		}
+
+		mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
+			DoAndReturn(setMockPBC(mockPBC))
 		testBundle := api.PackageBundle{}
 		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
 		mockBundleManager.EXPECT().LatestBundle(ctx, mockPBC.Spec.Source.BaseRef()).Return(&testBundle, nil)
