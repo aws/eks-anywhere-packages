@@ -105,8 +105,8 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 
 	if pbc.IsIgnored() {
 		if pbc.Status.State != api.BundleControllerStateIgnored {
-			r.Log.V(6).Info("Ignoring", "PackageBundleController", req.NamespacedName)
 			pbc.Status.State = api.BundleControllerStateIgnored
+			r.Log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 			err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
 			if err != nil {
 				return withoutRequeue(result), fmt.Errorf("updating status to ignored: %s", err)
@@ -119,8 +119,8 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 	if err != nil {
 		r.Log.Error(err, "Unable to get latest bundle")
 		if pbc.Status.State != api.BundleControllerStateDisconnected {
-			r.Log.V(6).Info("Disconnected", "PackageBundleController", req.NamespacedName)
 			pbc.Status.State = api.BundleControllerStateDisconnected
+			r.Log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 			err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
 			if err != nil {
 				return result, fmt.Errorf("updating status to disconnected: %s", err)
@@ -131,8 +131,8 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 	}
 
 	if pbc.Status.State != api.BundleControllerStateActive {
-		r.Log.V(6).Info("Activating", "PackageBundleController", req.NamespacedName)
 		pbc.Status.State = api.BundleControllerStateActive
+		r.Log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 		err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
 		if err != nil {
 			return result, fmt.Errorf("updating status: %s", err)
