@@ -20,6 +20,26 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
+const testBundleName = "v1.21-1001"
+
+func givenPackageBundleController() api.PackageBundleController {
+	return api.PackageBundleController{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      api.PackageBundleControllerName,
+			Namespace: api.PackageNamespace,
+		},
+		Spec: api.PackageBundleControllerSpec{
+			ActiveBundle: testBundleName,
+			Source: api.PackageBundleControllerSource{
+				Registry: "public.ecr.aws/j0a1m4z9",
+			},
+		},
+		Status: api.PackageBundleControllerStatus{
+			State: api.BundleControllerStateActive,
+		},
+	}
+}
+
 func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 	t.Parallel()
 
@@ -51,25 +71,14 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 
 		ctx := context.Background()
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
-		mockPBC := &api.PackageBundleController{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      api.PackageBundleControllerName,
-				Namespace: "blah",
-			},
-			Spec: api.PackageBundleControllerSpec{
-				ActiveBundle: "v1.21-1001",
-			},
-			Status: api.PackageBundleControllerStatus{
-				State: api.BundleControllerStateActive,
-			},
-		}
-
+		pbc := givenPackageBundleController()
+		pbc.Namespace = "blah"
 		inactiveController := types.NamespacedName{
 			Name:      "blah",
 			Namespace: api.PackageNamespace,
 		}
 		mockClient.EXPECT().Get(ctx, inactiveController, gomock.Any()).
-			DoAndReturn(setMockPBC(mockPBC))
+			DoAndReturn(setMockPBC(&pbc))
 		mockStatusClient := mocks.NewMockStatusWriter(gomock.NewController(t))
 		mockClient.EXPECT().Status().Return(mockStatusClient)
 		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
@@ -98,21 +107,11 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 
 		ctx := context.Background()
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
-		mockPBC := &api.PackageBundleController{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      api.PackageBundleControllerName,
-				Namespace: api.PackageNamespace,
-			},
-			Spec: api.PackageBundleControllerSpec{
-				ActiveBundle: "v1.21-1001",
-			},
-			Status: api.PackageBundleControllerStatus{
-				State: api.BundleControllerStateIgnored,
-			},
-		}
+		pbc := givenPackageBundleController()
+		pbc.Status.State = api.BundleControllerStateIgnored
 
 		mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
-			DoAndReturn(setMockPBC(mockPBC))
+			DoAndReturn(setMockPBC(&pbc))
 		mockStatusClient := mocks.NewMockStatusWriter(gomock.NewController(t))
 		mockClient.EXPECT().Status().Return(mockStatusClient)
 		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
@@ -127,7 +126,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 
 		testBundle := api.PackageBundle{}
 		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
-		mockBundleManager.EXPECT().LatestBundle(ctx, mockPBC.Spec.Source.BaseRef()).Return(&testBundle, nil)
+		mockBundleManager.EXPECT().LatestBundle(ctx, pbc.Spec.Source.BaseRef()).Return(&testBundle, nil)
 		mockBundleManager.EXPECT().ProcessLatestBundle(ctx, &testBundle).Return(nil)
 		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
 			logr.Discard())
