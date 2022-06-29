@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -102,16 +103,76 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		}
 	})
 
-	t.Run("marks status active if name matches", func(t *testing.T) {
+	t.Run("leaves state as is", func(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
 		pbc := givenPackageBundleController()
-		pbc.Status.State = api.BundleControllerStateIgnored
+		pbc.Status.State = api.BundleControllerStateActive
 
 		mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
 			DoAndReturn(setMockPBC(&pbc))
+		testBundle := api.PackageBundle{}
+		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
+		mockBundleManager.EXPECT().LatestBundle(ctx, pbc.Spec.Source.BaseRef()).Return(&testBundle, nil)
+		mockBundleManager.EXPECT().ProcessLatestBundle(ctx, &testBundle).Return(nil)
+
+		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
+			logr.Discard())
+		_, err := r.Reconcile(ctx, req)
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+		}
+	})
+
+	t.Run("marks status disconnected if active", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		mockClient := mocks.NewMockClient(gomock.NewController(t))
+		pbc := givenPackageBundleController()
+		pbc.Status.State = api.BundleControllerStateActive
+
+		mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
+			DoAndReturn(setMockPBC(&pbc))
+		testBundle := api.PackageBundle{}
+		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
+		mockBundleManager.EXPECT().LatestBundle(ctx, pbc.Spec.Source.BaseRef()).Return(&testBundle, fmt.Errorf("oops"))
+		mockStatusClient := mocks.NewMockStatusWriter(gomock.NewController(t))
+		mockClient.EXPECT().Status().Return(mockStatusClient)
+		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, pbc *api.PackageBundleController,
+				opts *client.UpdateOptions) error {
+				if pbc.Status.State != api.BundleControllerStateDisconnected {
+					t.Errorf("expected state to be set to Active, got %q",
+						pbc.Status.State)
+				}
+				return nil
+			})
+
+		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
+			logr.Discard())
+		_, err := r.Reconcile(ctx, req)
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+		}
+	})
+
+	t.Run("marks status active if disconnected", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		mockClient := mocks.NewMockClient(gomock.NewController(t))
+		pbc := givenPackageBundleController()
+		pbc.Status.State = api.BundleControllerStateDisconnected
+
+		mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
+			DoAndReturn(setMockPBC(&pbc))
+		testBundle := api.PackageBundle{}
+		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
+		mockBundleManager.EXPECT().LatestBundle(ctx, pbc.Spec.Source.BaseRef()).Return(&testBundle, nil)
+		mockBundleManager.EXPECT().ProcessLatestBundle(ctx, &testBundle).Return(nil)
 		mockStatusClient := mocks.NewMockStatusWriter(gomock.NewController(t))
 		mockClient.EXPECT().Status().Return(mockStatusClient)
 		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
@@ -124,10 +185,38 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 				return nil
 			})
 
+		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
+			logr.Discard())
+		_, err := r.Reconcile(ctx, req)
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+		}
+	})
+
+	t.Run("marks status active if state not set", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		mockClient := mocks.NewMockClient(gomock.NewController(t))
+		pbc := givenPackageBundleController()
+		pbc.Status.State = ""
+
+		mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
+			DoAndReturn(setMockPBC(&pbc))
 		testBundle := api.PackageBundle{}
 		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
 		mockBundleManager.EXPECT().LatestBundle(ctx, pbc.Spec.Source.BaseRef()).Return(&testBundle, nil)
 		mockBundleManager.EXPECT().ProcessLatestBundle(ctx, &testBundle).Return(nil)
+		mockClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, pbc *api.PackageBundleController,
+				opts *client.UpdateOptions) error {
+				if pbc.Status.State != api.BundleControllerStateActive {
+					t.Errorf("expected state to be set to Active, got %q",
+						pbc.Status.State)
+				}
+				return nil
+			})
+
 		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
 			logr.Discard())
 		_, err := r.Reconcile(ctx, req)
