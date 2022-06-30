@@ -72,14 +72,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = controllers.RegisterPackageControllerReconciler(mgr); err != nil {
-		setupLog.Error(err, "unable to register controller", "controller", "PackageController")
-		os.Exit(1)
-	}
-	if err = controllers.RegisterPackageReconciler(mgr); err != nil {
-		setupLog.Error(err, "unable to register controller", "controller", "Package")
-		os.Exit(1)
-	}
 	if err = controllers.RegisterPackageBundleReconciler(mgr); err != nil {
 		setupLog.Error(err, "unable to register controller", "controller", "PackageBundle")
 		os.Exit(1)
