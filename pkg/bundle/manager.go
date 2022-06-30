@@ -64,14 +64,7 @@ func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle)
 		return false, err
 	}
 
-	kubeVersion, err := m.apiVersion()
-	if err != nil {
-		return false, fmt.Errorf("retrieving k8s API version: %w", err)
-	}
-
-	kubeMatches := newBundle.KubeVersionMatches(kubeVersion)
-
-	if newBundle.Namespace != api.PackageNamespace || !kubeMatches {
+	if newBundle.Namespace != api.PackageNamespace {
 		if newBundle.Status.State != api.PackageBundleStateIgnored {
 			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateIgnored
@@ -79,6 +72,21 @@ func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle)
 		}
 		return false, nil
 	}
+
+	kubeVersion, err := m.apiVersion()
+	if err != nil {
+		return false, fmt.Errorf("retrieving k8s API version: %w", err)
+	}
+
+	if !newBundle.KubeVersionMatches(kubeVersion) {
+		if newBundle.Status.State != api.PackageBundleStateIgnoredVersion {
+			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
+			newBundle.Status.State = api.PackageBundleStateIgnoredVersion
+			return true, nil
+		}
+		return false, nil
+	}
+
 	if !active {
 		if newBundle.Status.State == api.PackageBundleStateActive {
 			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
