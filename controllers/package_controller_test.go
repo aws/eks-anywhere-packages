@@ -266,7 +266,7 @@ func TestReconcile(t *testing.T) {
 
 const (
 	name      string = "Yoda"
-	namespace string = "Jedi"
+	namespace string = "eksa-packages"
 )
 
 type testFixtures struct {
