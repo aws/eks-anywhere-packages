@@ -127,6 +127,10 @@ func (r *PackageReconciler) mapBundleChangesToPackageUpdate(_ client.Object) (re
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	if req.Namespace != api.PackageNamespace {
+		r.Log.V(6).Info("Ignoring:", "NamespacedName", req.NamespacedName)
+		return ctrl.Result{Requeue: false}, nil
+	}
 	r.Log.V(6).Info("Reconcile:", "NamespacedName", req.NamespacedName)
 
 	// Get the CRD object from the k8s API.
@@ -141,9 +145,8 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		if !apierrors.IsNotFound(err) {
 			return ctrl.Result{}, err
 		}
-		if req.Namespace == api.PackageNamespace {
-			managerContext.SetUninstalling(req.Name)
-		}
+
+		managerContext.SetUninstalling(req.Name)
 	} else {
 		bundle, err := r.bundleClient.GetActiveBundle(ctx)
 		if err != nil {
