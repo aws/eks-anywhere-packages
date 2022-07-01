@@ -3,7 +3,7 @@
 The Package Controller should be able to run on the management cluster and install, update and delete packages on a workload cluster. The package custom resources for workload cluster will exist on the management cluster.
 
 # PackageBundleController (PBC) Custom Resource
-The management cluster will have a PackageBundleController custom resource for each workload cluster. The name of the PBC will be the name of the workload cluster.  This will allow each cluster to have a different active bundle, differen Kubernetes version and potentially a different source registry. For example, the PBC for the billy cluster:
+The management cluster will have a PackageBundleController custom resource for each workload cluster. The name of the PBC will be the name of the workload cluster.  This will allow each cluster to have different active bundles, different Kubernetes versions, and potentially different source registries. For example, the PBC for the billy cluster:
 
 ```
 apiVersion: packages.eks.amazonaws.com/v1alpha1
