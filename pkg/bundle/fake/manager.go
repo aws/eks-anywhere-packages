@@ -33,6 +33,6 @@ func (bm *FakeBundleManager) DownloadBundle(ctx context.Context, ref string) (
 	return bm.FakeDownloadBundle, nil
 }
 
-func (bm *FakeBundleManager) Update(ctx context.Context, bundle *api.PackageBundle) (bool, error) {
+func (bm *FakeBundleManager) ProcessBundle(ctx context.Context, bundle *api.PackageBundle) (bool, error) {
 	return bm.FakeUpdate, nil
 }

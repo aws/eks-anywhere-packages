@@ -196,7 +196,7 @@ func (m *MockClient) Update(arg0 context.Context, arg1 client.Object, arg2 ...cl
 	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "Update", varargs...)
+	ret := m.ctrl.Call(m, "ProcessBundle", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -205,7 +205,7 @@ func (m *MockClient) Update(arg0 context.Context, arg1 client.Object, arg2 ...cl
 func (mr *MockClientMockRecorder) Update(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockClient)(nil).Update), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessBundle", reflect.TypeOf((*MockClient)(nil).Update), varargs...)
 }
 
 // MockStatusWriter is a mock of StatusWriter interface.
@@ -257,7 +257,7 @@ func (m *MockStatusWriter) Update(arg0 context.Context, arg1 client.Object, arg2
 	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "Update", varargs...)
+	ret := m.ctrl.Call(m, "ProcessBundle", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -266,5 +266,5 @@ func (m *MockStatusWriter) Update(arg0 context.Context, arg1 client.Object, arg2
 func (mr *MockStatusWriterMockRecorder) Update(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockStatusWriter)(nil).Update), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessBundle", reflect.TypeOf((*MockStatusWriter)(nil).Update), varargs...)
 }

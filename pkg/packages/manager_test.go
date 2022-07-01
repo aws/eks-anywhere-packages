@@ -153,7 +153,7 @@ models:
 		thenManagerContext(t, mc, api.StateUpdating, mc.Source, retryShort, "")
 	})
 
-	t.Run("Update crashes, error is reported", func(t *testing.T) {
+	t.Run("ProcessBundle crashes, error is reported", func(t *testing.T) {
 		expectedRequeue := time.Duration(60 * time.Second)
 		driver.EXPECT().Install(mc.Ctx, mc.Package.ObjectMeta.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any()).Return(fmt.Errorf("boom"))
 		result := sut.Process(mc)
@@ -161,7 +161,7 @@ models:
 		thenManagerContext(t, mc, api.StateUpdating, expectedUpdate, expectedRequeue, "boom")
 	})
 
-	t.Run("Update successful", func(t *testing.T) {
+	t.Run("ProcessBundle successful", func(t *testing.T) {
 		expectedRequeue := time.Duration(60 * time.Second)
 		driver.EXPECT().Install(mc.Ctx, mc.Package.ObjectMeta.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any())
 		result := sut.Process(mc)
