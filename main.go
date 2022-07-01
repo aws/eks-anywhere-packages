@@ -80,6 +80,10 @@ func main() {
 		setupLog.Error(err, "unable to register controller", "controller", "PackageBundleController")
 		os.Exit(1)
 	}
+	if err = controllers.RegisterPackageReconciler(mgr); err != nil {
+		setupLog.Error(err, "unable to register controller", "controller", "Package")
+		os.Exit(1)
+	}
 
 	if os.Getenv("ENABLE_WEBHOOKS") == "true" {
 		if err = (&api.PackageBundle{}).SetupWebhookWithManager(mgr); err != nil {
