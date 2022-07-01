@@ -191,7 +191,7 @@ func TestReconcile(t *testing.T) {
 
 		pkg.Spec.PackageVersion = "2.0.0"
 		pkg.Status.TargetVersion = "2.0.0"
-		pkg.Status.Detail = fmt.Sprintf("Package %s@%s is not in the active bundle (%s). Did you forget to activate the new bundle?", pkg.Spec.PackageName, pkg.Spec.PackageVersion, "fake bundle")
+		pkg.Status.Detail = fmt.Sprintf("Package %s@%s is not in the active bundle (%s).", pkg.Spec.PackageName, pkg.Spec.PackageVersion, "fake bundle")
 		status.EXPECT().
 			Update(ctx, pkg).
 			Return(testErr)

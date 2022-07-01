@@ -158,7 +158,8 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		managerContext.Source, err = bundle.FindSource(pkgName, targetVersion)
 		managerContext.Package.Status.TargetVersion = printableTargetVersion(managerContext.Source, targetVersion)
 		if err != nil {
-			managerContext.Package.Status.Detail = fmt.Sprintf("Package %s@%s is not in the active bundle (%s). Did you forget to activate the new bundle?", pkgName, targetVersion, bundle.ObjectMeta.Name)
+			managerContext.Package.Status.Detail = fmt.Sprintf("Package %s@%s is not in the active bundle (%s).", pkgName, targetVersion, bundle.ObjectMeta.Name)
+			r.Log.Info(managerContext.Package.Status.Detail)
 			if err = r.Status().Update(ctx, &managerContext.Package); err != nil {
 				return ctrl.Result{RequeueAfter: managerContext.RequeueAfter}, err
 			}
