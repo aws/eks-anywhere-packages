@@ -22,17 +22,17 @@ spec:
 Currently, the PBC is in the eksa-packages namespace and must be named "eksa-packages-bundle-controller". This will have to be changed to support any name in that namespace.
 
 # PackageBundle (bundle) Custom Resource
-We currently set the bundle state to show the user which bundle is active. Since we will have several clusters sharing the same set of bundles, we should remove this state completely and have the user look at the PBC to determine the active bundle.
+We currently set the bundle state to show the user which bundle is active. Since we will have several clusters sharing the same set of bundles, we should remove this state and have the user look at the PBC to determine the active bundle. We may keep bundle state for invalid bundle names for instance.
 
 # Package Custom Resource
-The package custom resource will need to be used so that the first element of the name indicates the target cluster. For example, if we were to install the hello application on the billy and the tlhowe cluster, we would have a `billy-my-hello` and `tlhowe-my-hello` and they would be installed on each cluster as the my-hello application.
+A cluster specific namespace will need to be created for package custom resources in the form "eksa-packages-${cluster_name}". We use the name of the custom resource as the name of the installed package, so this will allow the same name across clusters. For example, to install the hello app on the billy cluster:
 
 ```
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: Package
 metadata:
-  name: billy-my
-  namespace: eksa-packages
+  name: my-hello
+  namespace: eksa-packages-billy
 spec:
   packageName: hello-eks-anywhere
 ```
@@ -46,3 +46,12 @@ For example the tlhowe cluster is the management cluster and the billy cluster i
 eksa-system                         billy-kubeconfig                                  cluster.x-k8s.io/secret                1      9h
 eksa-system                         tlhowe-kubeconfig                                 cluster.x-k8s.io/secret                1      3d6h
 ```
+
+This [github isse](https://github.com/helm/helm/issues/6910) has some different ideas on how to change the authentication for the helm go client.
+
+# Helm Chart
+The helm chart will need to be changed to require a cluster name during installation. The chart will use the cluster name to create the PBC for the installation and the "eksa-packages-${cluster_name}" namespace for package resources.
+
+# eks-anywhere CLI
+The CLI will need to be changed to pass the cluster name to the helm chart during cluster creation. It will also need cluster name for package generation and imperative package installation.
+
