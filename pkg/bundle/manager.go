@@ -19,7 +19,7 @@ import (
 
 type Manager interface {
 	// Update the bundle returns true if there are changes
-	Update(ctx context.Context, newBundle *api.PackageBundle) (bool, error)
+	ProcessBundle(ctx context.Context, newBundle *api.PackageBundle) (bool, error)
 
 	// ProcessLatestBundle make sure we save the latest bundle
 	ProcessLatestBundle(ctx context.Context, bundle *api.PackageBundle) error
@@ -57,7 +57,7 @@ func NewBundleManager(log logr.Logger, serverVersion discovery.ServerVersionInte
 
 var _ Manager = (*bundleManager)(nil)
 
-func (m bundleManager) Update(ctx context.Context, newBundle *api.PackageBundle) (bool, error) {
+func (m bundleManager) ProcessBundle(ctx context.Context, newBundle *api.PackageBundle) (bool, error) {
 
 	active, err := m.bundleClient.IsActive(ctx, newBundle)
 	if err != nil {

@@ -262,7 +262,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle)
+		update, err := bm.ProcessBundle(ctx, bundle)
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
@@ -277,7 +277,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle)
+		update, err := bm.ProcessBundle(ctx, bundle)
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateIgnoredVersion, bundle.Status.State)
@@ -292,7 +292,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle)
+		update, err := bm.ProcessBundle(ctx, bundle)
 		assert.False(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
@@ -307,7 +307,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleListNone)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle)
+		update, err := bm.ProcessBundle(ctx, bundle)
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
@@ -322,7 +322,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(false, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle)
+		update, err := bm.ProcessBundle(ctx, bundle)
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
@@ -337,7 +337,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(false, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle)
+		update, err := bm.ProcessBundle(ctx, bundle)
 		assert.False(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
@@ -352,7 +352,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleListNone)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle)
+		update, err := bm.ProcessBundle(ctx, bundle)
 		assert.False(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
@@ -368,7 +368,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle)
+		update, err := bm.ProcessBundle(ctx, bundle)
 		assert.False(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
@@ -385,7 +385,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle)
+		update, err := bm.ProcessBundle(ctx, bundle)
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
@@ -401,7 +401,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle)
+		update, err := bm.ProcessBundle(ctx, bundle)
 		assert.False(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
@@ -417,7 +417,7 @@ func TestUpdate(t *testing.T) {
 		mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).Return(fmt.Errorf("oops"))
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
 
-		update, err := bm.Update(ctx, bundle)
+		update, err := bm.ProcessBundle(ctx, bundle)
 		assert.False(t, update)
 		assert.EqualError(t, err, "getting bundle list: oops")
 	})
