@@ -74,6 +74,10 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.
 		return nil, err
 	}
 
+	if pbc.Spec.ActiveBundle == "" {
+		return nil, fmt.Errorf("There is no activeBundle set in PackageBundleController")
+	}
+
 	nn := types.NamespacedName{
 		Namespace: api.PackageNamespace,
 		Name:      pbc.Spec.ActiveBundle,

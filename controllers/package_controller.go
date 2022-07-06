@@ -150,7 +150,12 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	} else {
 		bundle, err := r.bundleClient.GetActiveBundle(ctx)
 		if err != nil {
-			return ctrl.Result{RequeueAfter: retryLong}, err
+			r.Log.Error(err, "Getting active bundle")
+			managerContext.Package.Status.Detail = err.Error()
+			if err = r.Status().Update(ctx, &managerContext.Package); err != nil {
+				return ctrl.Result{RequeueAfter: retryLong}, err
+			}
+			return ctrl.Result{RequeueAfter: retryLong}, nil
 		}
 
 		targetVersion := managerContext.Package.Spec.PackageVersion

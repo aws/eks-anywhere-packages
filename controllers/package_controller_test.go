@@ -118,6 +118,9 @@ func TestReconcile(t *testing.T) {
 
 		testErr := errors.New("active bundle test error")
 		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(nil, testErr)
+		status := tf.mockStatusWriter()
+		status.EXPECT().Update(ctx, gomock.Any()).Return(nil)
+		tf.ctrlClient.EXPECT().Status().Return(status)
 
 		fn, pkg := tf.mockGetFnPkg()
 		tf.ctrlClient.EXPECT().
@@ -127,8 +130,8 @@ func TestReconcile(t *testing.T) {
 		sut := tf.newReconciler()
 		req := tf.mockRequest()
 		got, err := sut.Reconcile(ctx, req)
-		if err == nil || err.Error() != "active bundle test error" {
-			t.Fatalf("expected test error, got nil")
+		if err != nil {
+			t.Errorf("expected <nil> got <%s>", err)
 		}
 
 		expected := retryLong
