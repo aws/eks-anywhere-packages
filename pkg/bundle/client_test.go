@@ -201,6 +201,19 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
+	t.Run("no active bundle", func(t *testing.T) {
+		pbc := givenPackageBundleController()
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		pbc.Spec.ActiveBundle = ""
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&pbc)).SetArg(2, pbc)
+
+		bundle, err := bundleClient.GetActiveBundle(ctx)
+
+		assert.Nil(t, bundle)
+		assert.EqualError(t, err, "There is no activeBundle set in PackageBundleController")
+	})
+
 	t.Run("error path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)

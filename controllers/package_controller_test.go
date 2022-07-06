@@ -140,6 +140,32 @@ func TestReconcile(t *testing.T) {
 		}
 	})
 
+	t.Run("status error getting active bundle", func(t *testing.T) {
+		tf, ctx := newTestFixtures(t)
+
+		testErr := errors.New("active bundle test error")
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(nil, testErr)
+		statusErr := errors.New("status update test error")
+		status := tf.mockStatusWriter()
+		status.EXPECT().Update(ctx, gomock.Any()).Return(statusErr)
+		tf.ctrlClient.EXPECT().Status().Return(status)
+
+		fn, pkg := tf.mockGetFnPkg()
+		tf.ctrlClient.EXPECT().
+			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
+			DoAndReturn(fn)
+
+		sut := tf.newReconciler()
+		req := tf.mockRequest()
+		got, err := sut.Reconcile(ctx, req)
+		assert.EqualError(t, err, "status update test error")
+
+		expected := retryLong
+		if got.RequeueAfter != expected {
+			t.Errorf("expected <%s> got <%s>", expected, got.RequeueAfter)
+		}
+	})
+
 	t.Run("handles errors updating status", func(t *testing.T) {
 		tf, ctx := newTestFixtures(t)
 
