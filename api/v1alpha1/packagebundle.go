@@ -52,21 +52,34 @@ func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource P
 // method returns true. If it is newer (greater) it returns false. If they are
 // the same it returns false.
 func (config *PackageBundle) LessThan(rhsBundle *PackageBundle) bool {
-	lhsMajor, lhsMinor, lhsBuild := config.getMajorMinorBuild()
-	rhsMajor, rhsMinor, rhsBuild := rhsBundle.getMajorMinorBuild()
+	lhsMajor, lhsMinor, lhsBuild, _ := config.getMajorMinorBuild()
+	rhsMajor, rhsMinor, rhsBuild, _ := rhsBundle.getMajorMinorBuild()
 	return lhsMajor < rhsMajor || lhsMinor < rhsMinor || lhsBuild < rhsBuild
 }
 
 // getMajorMinorBuild returns the Kubernetes major version, Kubernetes minor
 // version, and bundle build version.
-func (config *PackageBundle) getMajorMinorBuild() (major int, minor int, build int) {
+func (config *PackageBundle) getMajorMinorBuild() (major int, minor int, build int, err error) {
 	s := strings.Split(config.Name, "-")
 	s = append(s, "", "", "")
 	s[0] = strings.TrimPrefix(s[0], "v")
-	major, _ = strconv.Atoi(s[0])
-	minor, _ = strconv.Atoi(s[1])
-	build, _ = strconv.Atoi(s[2])
-	return major, minor, build
+	build = 0
+	minor = 0
+	major, err = strconv.Atoi(s[0])
+	if err != nil {
+		return major, minor, build, fmt.Errorf("inavlid major number <%s>", config.Name)
+	} else {
+		minor, err = strconv.Atoi(s[1])
+		if err != nil {
+			return major, minor, build, fmt.Errorf("inavlid minor number <%s>", config.Name)
+		} else {
+			build, err = strconv.Atoi(s[2])
+			if err != nil {
+				return major, minor, build, fmt.Errorf("inavlid build number <%s>", config.Name)
+			}
+		}
+	}
+	return major, minor, build, err
 }
 
 // getMajorMinorFromString returns the Kubernetes major and minor version.
@@ -86,11 +99,15 @@ func getMajorMinorFromString(kubeVersion string) (major int, minor int) {
 //
 // Note the method only compares the major and minor versions of Kubernetes, and
 // ignore the patch numbers.
-func (config *PackageBundle) KubeVersionMatches(targetKubeVersion string) bool {
-	currKubeMajor, currKubeMinor, _ := config.getMajorMinorBuild()
+func (config *PackageBundle) KubeVersionMatches(targetKubeVersion string) (matches bool, err error) {
+	var currKubeMajor int
+	var currKubeMinor int
+	currKubeMajor, currKubeMinor, _, err = config.getMajorMinorBuild()
 	targetKubeMajor, targetKubeMinor := getMajorMinorFromString(targetKubeVersion)
-
-	return currKubeMajor == targetKubeMajor && currKubeMinor == targetKubeMinor
+	if err != nil {
+		return false, err
+	}
+	return currKubeMajor == targetKubeMajor && currKubeMinor == targetKubeMinor, nil
 }
 
 func (s PackageOCISource) AsRepoURI() string {
