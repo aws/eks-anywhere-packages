@@ -246,6 +246,7 @@ spec:
                 - active (upgrade available)
                 - ignored
                 - ignored version
+                - invalid version
                 type: string
             required:
             - state

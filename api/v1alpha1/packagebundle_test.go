@@ -156,33 +156,63 @@ func TestKubeVersionMatches(t *testing.T) {
 
 		targetVersion := "v1-21-1"
 
-		result := bundle.KubeVersionMatches(targetVersion)
+		result, err := bundle.KubeVersionMatches(targetVersion)
 
-		if !result {
-			t.Errorf("expected <%t> got <%t>", true, result)
-		}
+		assert.True(t, result)
+		assert.Nil(t, err)
 	})
 
 	t.Run("Kubernetes major version doesn't match", func(t *testing.T) {
 
 		targetVersion := "v2-21-1"
 
-		result := bundle.KubeVersionMatches(targetVersion)
+		result, err := bundle.KubeVersionMatches(targetVersion)
 
-		if result {
-			t.Errorf("expected <%t> got <%t>", false, result)
-		}
+		assert.False(t, result)
+		assert.Nil(t, err)
 	})
 
 	t.Run("Kubernetes minor version doesn't match", func(t *testing.T) {
 
 		targetVersion := "v1-22-1"
 
-		result := bundle.KubeVersionMatches(targetVersion)
+		result, err := bundle.KubeVersionMatches(targetVersion)
 
-		if result {
-			t.Errorf("expected <%t> got <%t>", false, result)
-		}
+		assert.False(t, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("bogus major", func(t *testing.T) {
+		bundle := api.PackageBundle{ObjectMeta: metav1.ObjectMeta{
+			Name: "vx-21-1001"}}
+		targetVersion := "v1-21"
+
+		result, err := bundle.KubeVersionMatches(targetVersion)
+
+		assert.False(t, result)
+		assert.EqualError(t, err, "inavlid major number <vx-21-1001>")
+	})
+
+	t.Run("bogus minor", func(t *testing.T) {
+		bundle := api.PackageBundle{ObjectMeta: metav1.ObjectMeta{
+			Name: "v1-x-1001"}}
+		targetVersion := "v1-21"
+
+		result, err := bundle.KubeVersionMatches(targetVersion)
+
+		assert.False(t, result)
+		assert.EqualError(t, err, "inavlid minor number <v1-x-1001>")
+	})
+
+	t.Run("bogus build", func(t *testing.T) {
+		bundle := api.PackageBundle{ObjectMeta: metav1.ObjectMeta{
+			Name: "v1-21-x"}}
+		targetVersion := "v1-22"
+
+		result, err := bundle.KubeVersionMatches(targetVersion)
+
+		assert.False(t, result)
+		assert.EqualError(t, err, "inavlid build number <v1-21-x>")
 	})
 }
 

@@ -272,7 +272,7 @@ func TestUpdate(t *testing.T) {
 		discovery := testutil.NewFakeDiscoveryWithDefaults()
 		puller := testutil.NewMockPuller()
 		bundle := givenPackageBundle(api.PackageBundleStateInactive)
-		bundle.Name = "v1-01"
+		bundle.Name = "v1-01-1"
 		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
@@ -281,6 +281,21 @@ func TestUpdate(t *testing.T) {
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateIgnoredVersion, bundle.Status.State)
+	})
+
+	t.Run("ignore invalid Kubernetes version", func(t *testing.T) {
+		discovery := testutil.NewFakeDiscoveryWithDefaults()
+		puller := testutil.NewMockPuller()
+		bundle := givenPackageBundle(api.PackageBundleStateInactive)
+		bundle.Name = "v1-21-x"
+		mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+		mockBundleClient.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+
+		update, err := bm.ProcessBundle(ctx, bundle)
+		assert.True(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateInvalidVersion, bundle.Status.State)
 	})
 
 	t.Run("ignored is ignored", func(t *testing.T) {

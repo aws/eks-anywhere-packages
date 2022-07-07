@@ -78,8 +78,15 @@ func (m bundleManager) ProcessBundle(ctx context.Context, newBundle *api.Package
 		return false, fmt.Errorf("retrieving k8s API version: %w", err)
 	}
 
-	if !newBundle.KubeVersionMatches(kubeVersion) {
-		if newBundle.Status.State != api.PackageBundleStateIgnoredVersion {
+	matches, err := newBundle.KubeVersionMatches(kubeVersion)
+	if !matches {
+		if err != nil {
+			if newBundle.Status.State != api.PackageBundleStateInvalidVersion {
+				newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
+				newBundle.Status.State = api.PackageBundleStateInvalidVersion
+				return true, nil
+			}
+		} else if newBundle.Status.State != api.PackageBundleStateIgnoredVersion {
 			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateIgnoredVersion
 			return true, nil
