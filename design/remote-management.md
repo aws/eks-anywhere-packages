@@ -58,6 +58,9 @@ Several changes are required in the CLI:
 * pass cluster name to generate package
 * during cluster creation create install Package Bundle Controller only if self managed
 * during cluster creation create PackageBundleController custom resource
+* possibly deprecate the package controller installation command
+* fail the package controller installation if kubeconfig is pointing to a workload cluster
+* during the package controller installation command create the PackageBundleController custom resource
 * pass cluster name to imperative installation
 * add new command to list PackageBundleControllers
 
