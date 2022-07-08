@@ -53,5 +53,11 @@ This [github isse](https://github.com/helm/helm/issues/6910) has some different 
 The helm chart will need to be changed to require a cluster name during installation. The chart will use the cluster name to create the PBC for the installation and the "eksa-packages-${cluster_name}" namespace for package resources.
 
 # eks-anywhere CLI
-The CLI will need to be changed to pass the cluster name to the helm chart during cluster creation. It will also need a cluster name for package generation and imperative package installation.
+Several changes are required in the CLI:
+* pass cluster name to list packages
+* pass cluster name to generate package
+* during cluster creation create install Package Bundle Controller only if self managed
+* during cluster creation create PackageBundleController custom resource
+* pass cluster name to imperative installation
+* add new command to list PackageBundleControllers
 
