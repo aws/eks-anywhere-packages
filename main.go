@@ -94,6 +94,10 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "ActiveBundleValidator")
 			os.Exit(1)
 		}
+		if err = (&api.Package{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Package")
+			os.Exit(1)
+		}
 	}
 	//+kubebuilder:scaffold:builder
 
