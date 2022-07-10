@@ -46,3 +46,23 @@ webhooks:
     resources:
     - packagebundles
   sideEffects: None
+- admissionReviewVersions:
+    - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-packages-eks-amazonaws-com-v1alpha1-package
+  failurePolicy: Fail
+  name: vpackage.kb.io
+  rules:
+    - apiGroups:
+        - packages.eks.amazonaws.com
+      apiVersions:
+        - v1alpha1
+      operations:
+        - CREATE
+        - UPDATE
+      resources:
+        - packages
+  sideEffects: None

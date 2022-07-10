@@ -80,7 +80,7 @@ type SourceVersion struct {
 	Images []VersionImages `json:"images,omitempty"`
 
 	// Configurations is a list of configurations used by this version of the package. The configurations are used for configuration validation and to generate sample configurations for users.
-	Configurations []VersionConfiguration `json:"configurations,omitempty"`
+	Configuration string `json:"configurations,omitempty"`
 }
 
 // VersionImages is an image used by a version of a package.
