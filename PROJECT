@@ -13,6 +13,9 @@ resources:
   kind: Package
   path: github.com/aws/eks-anywhere-packages/api/v1alpha1
   version: v1alpha1
+  webhooks:
+    validation: true
+    webhookVersion: v1
 - api:
     crdVersion: v1
     namespaced: true
