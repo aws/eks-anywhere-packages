@@ -24,11 +24,9 @@ import (
 	"io/ioutil"
 	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
@@ -39,6 +37,7 @@ type packageValidator struct {
 }
 
 func InitPackageValidator(mgr ctrl.Manager) error {
+	fmt.Println("Package Validator is getting requested!")
 	mgr.GetWebhookServer().
 		Register("/validate-packages-eks-amazonaws-com-v1alpha1-package",
 			&webhook.Admission{Handler: &packageValidator{
@@ -48,6 +47,7 @@ func InitPackageValidator(mgr ctrl.Manager) error {
 }
 
 func (v *packageValidator) Handle(ctx context.Context, request admission.Request) admission.Response {
+	fmt.Println("Package Validator is getting requested from Handle!")
 	p := &Package{}
 	err := v.decoder.Decode(request, p)
 	if err != nil {
@@ -125,45 +125,6 @@ func getPackageInBundle(activeBundle *PackageBundle, packageName string) (*Bundl
 		}
 	}
 	return nil, fmt.Errorf("package %s not found", packageName)
-}
-
-// log is for logging in this package.
-var packagelog = logf.Log.WithName("package-resource")
-
-func (r *Package) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(r).
-		Complete()
-}
-
-//+kubebuilder:webhook:path=/validate-packages-eks-amazonaws-com-v1alpha1-package,mutating=false,failurePolicy=fail,sideEffects=None,groups=packages.eks.amazonaws.com,resources=packages,verbs=create;update,versions=v1alpha1,name=vpackage.kb.io,admissionReviewVersions=v1
-
-var _ webhook.Validator = &Package{}
-
-// ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *Package) ValidateCreate() error {
-	packagelog.Info("validate create", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object creation.
-	ctrl.Manager.GetClient("")
-
-	return nil
-}
-
-// ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *Package) ValidateUpdate(old runtime.Object) error {
-	packagelog.Info("validate update", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object update.
-	return nil
-}
-
-// ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *Package) ValidateDelete() error {
-	packagelog.Info("validate delete", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object deletion.
-	return nil
 }
 
 // InjectDecoder injects the decoder.
