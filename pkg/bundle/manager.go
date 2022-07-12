@@ -18,11 +18,11 @@ import (
 )
 
 type Manager interface {
-	// Update the bundle returns true if there are changes
+	// ProcessBundle returns true if there are changes
 	ProcessBundle(ctx context.Context, newBundle *api.PackageBundle) (bool, error)
 
 	// ProcessLatestBundle make sure we save the latest bundle
-	ProcessLatestBundle(ctx context.Context, bundle *api.PackageBundle) error
+	ProcessLatestBundle(ctx context.Context, latestBundle *api.PackageBundle) error
 
 	// LatestBundle pulls the bundle tagged with "latest" from the bundle source.
 	LatestBundle(ctx context.Context, baseRef string) (
@@ -32,7 +32,7 @@ type Manager interface {
 	DownloadBundle(ctx context.Context, ref string) (
 		*api.PackageBundle, error)
 
-	// SortBundlesDescending sort bundles to latest first
+	// SortBundlesDescending sort bundles latest first
 	SortBundlesDescending(bundles []api.PackageBundle)
 }
 
