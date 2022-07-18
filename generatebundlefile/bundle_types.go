@@ -4,6 +4,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 // +kubebuilder:object:generate=false
@@ -96,9 +97,9 @@ type RequiresSpec struct {
 }
 
 type Configuration struct {
-	Name     string `json:"name,omitempty"`
-	Required bool   `json:"required,omitempty"`
-	Default  string `json:"default,omitempty"`
+	Name     string              `json:"name,omitempty"`
+	Required bool                `json:"required,omitempty"`
+	Default  *apiextensions.JSON `json:"default,omitempty"`
 }
 
 type Image struct {
