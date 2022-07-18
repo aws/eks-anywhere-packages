@@ -73,40 +73,64 @@ func TestAPIs(t *testing.T) {
 	RunSpecs(t, "Webhook Suite", suiteConfig, reporterConfig)
 }
 
-var _ = Context("Releases signatures are validated against the correct public key", func() {
+var _ = Describe("Webhooks are Validated", func() {
 	ctx := context.Background()
-	When("a release is applied", func() {
-		It("validates the signature against the default key (production)", func() {
-			bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
-			Expect(err).ShouldNot(HaveOccurred())
-			err = k8sClient.Create(ctx, bundle)
-			Expect(err).Should(HaveOccurred())
-			Expect(err.Error()).Should(ContainSubstring("The signature is invalid"))
-			Expect(err.Error()).Should(ContainSubstring(signature.EksaDomain.Pubkey))
-		})
 
-		It("validates the signature against the overriden key (using env var)", func() {
-			//Test public key
-			err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
-			Expect(err).ShouldNot(HaveOccurred())
-			bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
-			Expect(err).ShouldNot(HaveOccurred())
-			err = k8sClient.Create(ctx, bundle)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
+	Context("Package Validation Tests", func() {
+		When("a package is created", func() {
+			It("validates the package configuration", func() {
+				err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
+				Expect(err).ShouldNot(HaveOccurred())
 
-		It("validates the signature against the default key if the environment variable exists but is empty", func() {
-			err := os.Setenv(PublicKeyEnvVar, "")
-			Expect(err).ShouldNot(HaveOccurred())
-			bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
-			Expect(err).ShouldNot(HaveOccurred())
-			err = k8sClient.Create(ctx, bundle)
-			Expect(err).Should(HaveOccurred())
-			Expect(err.Error()).Should(ContainSubstring("The signature is invalid"))
-			Expect(err.Error()).Should(ContainSubstring(signature.EksaDomain.Pubkey))
+				bundle, _, err := testutil.GivenPackageBundle("../testdata/package_webhook_bundle.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, bundle)
+				Expect(err).ShouldNot(HaveOccurred())
+
+			})
 		})
 	})
+
+	Context("Releases signatures are validated against the correct public key", func() {
+		When("a release is applied", func() {
+			It("validates the signature against the default key (production)", func() {
+				err := os.Setenv(PublicKeyEnvVar, "")
+				Expect(err).ShouldNot(HaveOccurred())
+
+				bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, bundle)
+
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("The signature is invalid"))
+				Expect(err.Error()).Should(ContainSubstring(signature.EksaDomain.Pubkey))
+			})
+
+			It("validates the signature against the overriden key (using env var)", func() {
+				//Test public key
+				err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
+				Expect(err).ShouldNot(HaveOccurred())
+				bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, bundle)
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			It("validates the signature against the default key if the environment variable exists but is empty", func() {
+				err := os.Setenv(PublicKeyEnvVar, "")
+				Expect(err).ShouldNot(HaveOccurred())
+				bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, bundle)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("The signature is invalid"))
+				Expect(err.Error()).Should(ContainSubstring(signature.EksaDomain.Pubkey))
+			})
+		})
+	})
+
 })
+
 var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
@@ -153,6 +177,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	err = (&PackageBundle{}).SetupWebhookWithManager(mgr)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = InitPackageValidator(mgr)
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:webhook

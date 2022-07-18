@@ -1,0 +1,22 @@
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: PackageBundle
+metadata:
+  annotations: {}
+  name: package-webhook-bundle
+  namespace: eksa-packages
+spec:
+  packages:
+    - name: hello-eks-anywhere
+      source:
+        repository: hello-eks-anywhere
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+          - configurations:
+              - default: H4sIAFuPxGIAA7VUwXKCMBC9+xUM06OA9qY3Dz31pr11PMSwQiokNAm11OHfGzAgUUEmMzLDDHl52Ze37O5p4qjHfRE4hhS5S8eNpczEMgi+BKPeGfYZj4KQo70MXmfzhTdbBJo/1cdJ2BxVJ+EXpVkCPmZp+11Fa9iyyKCis90XYNmgIexRnki1cSobIpFJzVwzJp2NIcnhOyccKt3PGqlRwXKOYQ0REZIXmqv5GRNEMhOVKDKWtWAHEPnujNXQVmtnnGXAJQFR3fbCpigFkSEMBmx4VtcitKt55d2Fg0CeinFAkQp/xWsT8hGD06qZmWnJOvXCyNBl19Ax9rftqpz2ptbe4aApU8XKWZbvEoJ9wNxHRxGo18OMSkQo8FFOO6XyJJcXBSuHMSQJ89Qf9BAtjjFwGGOrqvUn+VGhrYz8zEddXEvZXn2Voj9Gnbf3jbNq8jXoplpY+bmnNKa1milj73Gdn2UJdQrVQk6IpJoMVAIfbjetbOV2QLPP9KRj3YjeM0V7x+HtOHrQ9339fa+ZbpqmKtQ7Bfmgsrr/9WGyyu2k/AcjAn21jQcAAA==
+                name: schema
+                required: true
+            digest: sha256:9bbb33d027b17a5870c47a8b5f29276a84bbc263a1fa377fc9126282a63d85fd
+            images:
+              - digest: sha256:353c27c994f105643dc7455b824c38fcd69c2c203a644cdf6316544e61775a31
+                repository: hello-eks-anywhere
+            name: 0.1.1-2afcaa9ec9c1c327ff0205e7a2b0fdc644f4710f
