@@ -7,3 +7,4 @@ spec:
   packageName: hello-eks-anywhere
   config: |
     sourceRegistry: "public.ecr.aws/dev"
+    fakeConfig: "Amazon EKS Anywhere"

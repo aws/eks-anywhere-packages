@@ -29,12 +29,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+	"sigs.k8s.io/yaml"
 )
 
 type packageValidator struct {
 	Client  client.Client
 	decoder *admission.Decoder
 }
+
+// apilog is for logging in this package.
+var packagelog = ctrl.Log.WithName("api")
 
 func InitPackageValidator(mgr ctrl.Manager) error {
 	fmt.Println("Package Validator is getting requested!")
@@ -89,13 +93,13 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 }
 
 func (v *packageValidator) isPackageConfigValid(p *Package, activeBundle *PackageBundle) (bool, error) {
-	packageInBundle, err := getPackageInBundle(activeBundle, p.Name)
+	packageInBundle, err := getPackageInBundle(activeBundle, p.Spec.PackageName)
 
 	if err != nil {
 		return false, err
 	}
 
-	configuration := packageInBundle.Source.Versions[0].Configuration
+	configuration := packageInBundle.Source.Versions[0].Configurations[0].Default
 	decodedConfiguration, err := base64.StdEncoding.DecodeString(configuration)
 
 	if err != nil {
@@ -103,19 +107,35 @@ func (v *packageValidator) isPackageConfigValid(p *Package, activeBundle *Packag
 	}
 
 	reader := bytes.NewReader(decodedConfiguration)
+
 	gzreader, err := gzip.NewReader(reader)
 	output, err := ioutil.ReadAll(gzreader)
+	jsonSchema, err := yaml.YAMLToJSON(output)
 
-	schema := gojsonschema.NewReferenceLoader(string(output))
+	sl := gojsonschema.NewSchemaLoader()
+	loader := gojsonschema.NewStringLoader(string(jsonSchema))
+	packagelog.Info("Schema: " + string(jsonSchema))
 
-	packageConfig := p.Spec.Config
-	configToValidate := gojsonschema.NewReferenceLoader(packageConfig)
+	schema, err := sl.Compile(loader)
 
-	result, err := gojsonschema.Validate(schema, configToValidate)
+	packageConfig, err := yaml.YAMLToJSON([]byte(p.Spec.Config))
+	configToValidate := gojsonschema.NewStringLoader(string(packageConfig))
+	packagelog.Info("Config: " + string(packageConfig))
+
+	result, err := schema.Validate(configToValidate)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("error validating configurations %v", err.Error())
 	}
-	return result.Valid(), nil
+
+	b := new(bytes.Buffer)
+	if !result.Valid() {
+		for _, e := range result.Errors() {
+			fmt.Fprintf(b, "- %s\n", e)
+		}
+		return false, fmt.Errorf("error validating configurations %s", b.String())
+	}
+
+	return true, nil
 }
 
 func getPackageInBundle(activeBundle *PackageBundle, packageName string) (*BundlePackage, error) {
