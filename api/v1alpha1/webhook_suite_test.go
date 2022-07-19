@@ -98,15 +98,22 @@ var _ = Describe("Webhooks are Validated", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, p)
 				Expect(err).ShouldNot(HaveOccurred())
-
 			})
 
-			It("fails when the package configuration is invalid", func() {
+			It("fails when the package configuration contains unknown config", func() {
 				p, err := testutil.GivenPackage("../testdata/package_webhook_invalid_config.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, p)
 				Expect(err).Should(HaveOccurred())
-				Expect(err.Error()).Should(ContainSubstring("error validating configurations"))
+				Expect(err.Error()).Should(ContainSubstring("Additional property fakeConfig is not allowed"))
+			})
+
+			It("fails when the package configuration contains wrong type", func() {
+				p, err := testutil.GivenPackage("../testdata/package_webhook_invalid_type.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, p)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("title: Invalid type. Expected: string, given: integer"))
 			})
 		})
 	})
