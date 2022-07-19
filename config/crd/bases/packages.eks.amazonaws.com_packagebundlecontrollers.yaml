@@ -17,6 +17,9 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
+    - jsonPath: .spec.activeBundle
+      name: ActiveBundle
+      type: string
     - jsonPath: .status.state
       name: State
       type: string
