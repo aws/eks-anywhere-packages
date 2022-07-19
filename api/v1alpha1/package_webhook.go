@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -41,7 +42,6 @@ type packageValidator struct {
 var packagelog = ctrl.Log.WithName("api")
 
 func InitPackageValidator(mgr ctrl.Manager) error {
-	fmt.Println("Package Validator is getting requested!")
 	mgr.GetWebhookServer().
 		Register("/validate-packages-eks-amazonaws-com-v1alpha1-package",
 			&webhook.Admission{Handler: &packageValidator{
@@ -51,7 +51,6 @@ func InitPackageValidator(mgr ctrl.Manager) error {
 }
 
 func (v *packageValidator) Handle(ctx context.Context, request admission.Request) admission.Response {
-	fmt.Println("Package Validator is getting requested from Handle!")
 	p := &Package{}
 	err := v.decoder.Decode(request, p)
 	if err != nil {
@@ -59,19 +58,18 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 			fmt.Errorf("decoding request: %w", err))
 	}
 
-	bundles := &PackageBundleList{}
-	err = v.Client.List(ctx, bundles, &client.ListOptions{Namespace: PackageNamespace})
+	bundles, err := v.listBundles(ctx)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError,
 			fmt.Errorf("listing package bundles: %w", err))
 	}
 
-	activeBundle := bundles.Items[0]
-	for _, bundle := range bundles.Items {
-		if bundle.Status.State == PackageBundleStateActive {
-			activeBundle = bundle
-		}
+	pbc, err := v.getActiveController(ctx)
+	if err != nil {
+		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting PackageBundleController: %v", err))
 	}
+
+	activeBundle := v.getActiveBundle(bundles, pbc.Spec.ActiveBundle)
 
 	isConfigValid, err := v.isPackageConfigValid(p, &activeBundle)
 
@@ -85,11 +83,37 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 			Status:  metav1.StatusFailure,
 			Code:    http.StatusBadRequest,
 			Message: msg,
-			Reason:  metav1.StatusReasonNotFound,
+			Reason:  metav1.StatusReasonBadRequest,
 		}
 	}
 
 	return *resp
+}
+
+func (v *packageValidator) getActiveBundle(bundles *PackageBundleList, b string) PackageBundle {
+	var activeBundle PackageBundle
+	for _, bundle := range bundles.Items {
+		if bundle.Name == b {
+			activeBundle = bundle
+		}
+	}
+	return activeBundle
+}
+
+func (v *packageValidator) getActiveController(ctx context.Context) (PackageBundleController, error) {
+	pbc := PackageBundleController{}
+	key := types.NamespacedName{
+		Namespace: PackageNamespace,
+		Name:      PackageBundleControllerName,
+	}
+	err := v.Client.Get(ctx, key, &pbc)
+	return pbc, err
+}
+
+func (v *packageValidator) listBundles(ctx context.Context) (*PackageBundleList, error) {
+	bundles := &PackageBundleList{}
+	err := v.Client.List(ctx, bundles, &client.ListOptions{Namespace: PackageNamespace})
+	return bundles, err
 }
 
 func (v *packageValidator) isPackageConfigValid(p *Package, activeBundle *PackageBundle) (bool, error) {
@@ -99,32 +123,27 @@ func (v *packageValidator) isPackageConfigValid(p *Package, activeBundle *Packag
 		return false, err
 	}
 
+	packageVersions := packageInBundle.Source.Versions
+	if len(packageVersions) < 1 {
+		return false, fmt.Errorf("package %s does not contain any versions", p.Name)
+	}
+
+	// The package configuration is gzipped and base64 encoded
+	// When processing the configuration, the reverse occurs: base64 decode, then unzip
 	configuration := packageInBundle.Source.Versions[0].Configurations[0].Default
 	decodedConfiguration, err := base64.StdEncoding.DecodeString(configuration)
+	if err != nil {
+		return false, fmt.Errorf("error decoding configurations %v", err)
+	}
 
+	jsonSchema, err := getPackagesJsonSchema(decodedConfiguration)
 	if err != nil {
 		return false, err
 	}
 
-	reader := bytes.NewReader(decodedConfiguration)
-
-	gzreader, err := gzip.NewReader(reader)
-	output, err := ioutil.ReadAll(gzreader)
-	jsonSchema, err := yaml.YAMLToJSON(output)
-
-	sl := gojsonschema.NewSchemaLoader()
-	loader := gojsonschema.NewStringLoader(string(jsonSchema))
-	packagelog.Info("Schema: " + string(jsonSchema))
-
-	schema, err := sl.Compile(loader)
-
-	packageConfig, err := yaml.YAMLToJSON([]byte(p.Spec.Config))
-	configToValidate := gojsonschema.NewStringLoader(string(packageConfig))
-	packagelog.Info("Config: " + string(packageConfig))
-
-	result, err := schema.Validate(configToValidate)
+	result, err := validatePackage(p, jsonSchema)
 	if err != nil {
-		return false, fmt.Errorf("error validating configurations %v", err.Error())
+		return false, fmt.Errorf(err.Error())
 	}
 
 	b := new(bytes.Buffer)
@@ -136,6 +155,42 @@ func (v *packageValidator) isPackageConfigValid(p *Package, activeBundle *Packag
 	}
 
 	return true, nil
+}
+
+func validatePackage(p *Package, jsonSchema []byte) (*gojsonschema.Result, error) {
+	sl := gojsonschema.NewSchemaLoader()
+	loader := gojsonschema.NewStringLoader(string(jsonSchema))
+	schema, err := sl.Compile(loader)
+	if err != nil {
+		return nil, fmt.Errorf("error compiling schema %v", err)
+	}
+
+	packageConfig, err := yaml.YAMLToJSON([]byte(p.Spec.Config))
+	if err != nil {
+		return nil, fmt.Errorf("error converting package configurations to yaml %v", err)
+	}
+	configToValidate := gojsonschema.NewStringLoader(string(packageConfig))
+
+	return schema.Validate(configToValidate)
+}
+
+func getPackagesJsonSchema(decodedConfiguration []byte) ([]byte, error) {
+	reader := bytes.NewReader(decodedConfiguration)
+	gzreader, err := gzip.NewReader(reader)
+	if err != nil {
+		return nil, fmt.Errorf("error when uncompressing configurations %v", err)
+	}
+
+	output, err := ioutil.ReadAll(gzreader)
+	if err != nil {
+		return nil, fmt.Errorf("error reading configurations %v", err)
+	}
+
+	jsonSchema, err := yaml.YAMLToJSON(output)
+	if err != nil {
+		return nil, fmt.Errorf("error converting yaml to json %v", err)
+	}
+	return jsonSchema, nil
 }
 
 func getPackageInBundle(activeBundle *PackageBundle, packageName string) (*BundlePackage, error) {
