@@ -2,8 +2,8 @@ package testutil
 
 import (
 	"os"
-
 	"path/filepath"
+
 	"sigs.k8s.io/yaml"
 
 	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
