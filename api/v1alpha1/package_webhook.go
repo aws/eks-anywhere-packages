@@ -20,12 +20,13 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/xeipuuv/gojsonschema"
 	"io/ioutil"
+	"net/http"
+
+	"github.com/xeipuuv/gojsonschema"
 	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -37,9 +38,6 @@ type packageValidator struct {
 	Client  client.Client
 	decoder *admission.Decoder
 }
-
-// apilog is for logging in this package.
-var packagelog = ctrl.Log.WithName("api")
 
 func InitPackageValidator(mgr ctrl.Manager) error {
 	mgr.GetWebhookServer().
@@ -118,7 +116,6 @@ func (v *packageValidator) listBundles(ctx context.Context) (*PackageBundleList,
 
 func (v *packageValidator) isPackageConfigValid(p *Package, activeBundle *PackageBundle) (bool, error) {
 	packageInBundle, err := getPackageInBundle(activeBundle, p.Spec.PackageName)
-
 	if err != nil {
 		return false, err
 	}
