@@ -1,7 +1,7 @@
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: PackageBundle
 metadata:
-  annotations: {eksa.aws.com/signature: MEQCIFGW81fck3CxYE+a4rruSCvxSE4t9f0sCmdLwxvFnHROAiBtwyz1MIiVrShwmogpLDeeO1KcJ3KulpP957J34eKbMg==}
+  annotations: {eksa.aws.com/signature: MEQCIDPDDOTJjY/p6zoSKilmvqvyEtC1T6oDdY6EUL2g6SAtAiAV2U7AxYYlJnZPvRTDVs5GjAps94JJlltltk/bH+HfuQ==}
   name: package-webhook-bundle
   namespace: eksa-packages
 spec:
@@ -9,9 +9,10 @@ spec:
     - name: hello-eks-anywhere
       source:
         repository: hello-eks-anywhere
+        registry: public.ecr.aws/l0g8r8j6
         versions:
           - configurations:
-              - default: H4sIAFuPxGIAA7VUwXKCMBC9+xUM06OA9qY3Dz31pr11PMSwQiokNAm11OHfGzAgUUEmMzLDDHl52Ze37O5p4qjHfRE4hhS5S8eNpczEMgi+BKPeGfYZj4KQo70MXmfzhTdbBJo/1cdJ2BxVJ+EXpVkCPmZp+11Fa9iyyKCis90XYNmgIexRnki1cSobIpFJzVwzJp2NIcnhOyccKt3PGqlRwXKOYQ0REZIXmqv5GRNEMhOVKDKWtWAHEPnujNXQVmtnnGXAJQFR3fbCpigFkSEMBmx4VtcitKt55d2Fg0CeinFAkQp/xWsT8hGD06qZmWnJOvXCyNBl19Ax9rftqpz2ptbe4aApU8XKWZbvEoJ9wNxHRxGo18OMSkQo8FFOO6XyJJcXBSuHMSQJ89Qf9BAtjjFwGGOrqvUn+VGhrYz8zEddXEvZXn2Voj9Gnbf3jbNq8jXoplpY+bmnNKa1milj73Gdn2UJdQrVQk6IpJoMVAIfbjetbOV2QLPP9KRj3YjeM0V7x+HtOHrQ9339fa+ZbpqmKtQ7Bfmgsrr/9WGyyu2k/AcjAn21jQcAAA==
+              - default: H4sIAAAAAAAAA52RvW7CMBDH9zyFFXVsHMrIhqpOXSp4gsO5JAZjW+eLUIp49zqOQagM/Vh/d/+Ps8+FEOWTbsqVKHtmH1Z13aMxrsJDqMCOpx4JpQd1gA6DjFTCET6dhVOQyh3roHo8gtwHZ8vn5DaTe8dpWOVFR13dELRcLxfLRfWyzA6zmDUbTNKHEnlh9GnudntUHNkEPTmPxBpDHJ0jiSy4gRRusNOBabzxO4vIte2SbeINtjAYnkZ+2BmtJCqS8c76oUbeD4q0Zx0vj5ptChSUE0XrSOR3k2XSXGbp7ci/NFqnRxdv71ux/qnJq7MM2iKJlPQtPQy7/xTYDHO6tmKMl4oGGBRaRvpFj2vmtUqR65TQNHpaB/Nx/4ctmIDFpfgCs1QPI58CAAA=
                 name: schema
                 required: true
             digest: sha256:9bbb33d027b17a5870c47a8b5f29276a84bbc263a1fa377fc9126282a63d85fd

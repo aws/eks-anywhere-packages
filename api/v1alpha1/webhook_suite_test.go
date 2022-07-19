@@ -18,6 +18,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/aws/eks-anywhere-packages/pkg/signature"
 	"net"
 	"os"
 	"path/filepath"
@@ -37,7 +38,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	. "github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	"github.com/aws/eks-anywhere-packages/pkg/signature"
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
@@ -76,17 +76,37 @@ func TestAPIs(t *testing.T) {
 var _ = Describe("Webhooks are Validated", func() {
 	ctx := context.Background()
 
-	Context("Package Validation Tests", func() {
-		When("a package is created", func() {
-			It("validates the package configuration", func() {
-				err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
+	Context("Hello Eks Anywhere Tests", Ordered, func() {
+		BeforeAll(func() {
+			err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			bundle, _, err := testutil.GivenPackageBundle("../testdata/package_webhook_bundle.yaml")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = k8sClient.Create(ctx, bundle)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			pbc, err := testutil.GivenPackageBundleController("../testdata/package_webhook_bundle_controller.yaml")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = k8sClient.Create(ctx, pbc)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		When("Hello Eks Anywhere Package is created", func() {
+			It("succeeds when the package configuration is valid", func() {
+				p, err := testutil.GivenPackage("../testdata/package_webhook_valid_config.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, p)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				bundle, _, err := testutil.GivenPackageBundle("../testdata/package_webhook_bundle.yaml")
-				Expect(err).ShouldNot(HaveOccurred())
-				err = k8sClient.Create(ctx, bundle)
-				Expect(err).ShouldNot(HaveOccurred())
+			})
 
+			It("fails when the package configuration is invalid", func() {
+				p, err := testutil.GivenPackage("../testdata/package_webhook_invalid_config.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, p)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("error validating configurations"))
 			})
 		})
 	})
@@ -180,6 +200,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	err = InitPackageValidator(mgr)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = InitActiveBundleValidator(mgr)
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:webhook
