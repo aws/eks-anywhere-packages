@@ -1,36 +1,22 @@
 package bundle
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
-	"regexp"
-	"sort"
-	"strings"
-
-	"github.com/go-logr/logr"
-	"k8s.io/client-go/discovery"
-	"sigs.k8s.io/yaml"
-
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
+	"github.com/go-logr/logr"
+	"k8s.io/client-go/discovery"
+	"sort"
 )
 
 type Manager interface {
 	// ProcessBundle returns true if there are changes
 	ProcessBundle(ctx context.Context, newBundle *api.PackageBundle) (bool, error)
 
-	// ProcessLatestBundle make sure we save the latest bundle
-	ProcessLatestBundle(ctx context.Context, latestBundle *api.PackageBundle) error
-
-	// LatestBundle pulls the bundle tagged with "latest" from the bundle source.
-	LatestBundle(ctx context.Context, baseRef string) (
-		*api.PackageBundle, error)
-
-	// DownloadBundle downloads the bundle with a given tag.
-	DownloadBundle(ctx context.Context, ref string) (
-		*api.PackageBundle, error)
+	// ProcessBundleController process the bundle controller
+	ProcessBundleController(ctx context.Context, pbc *api.PackageBundleController) error
 
 	// SortBundlesDescending sort bundles latest first
 	SortBundlesDescending(bundles []api.PackageBundle)
@@ -41,6 +27,8 @@ type bundleManager struct {
 	kubeServerVersion discovery.ServerVersionInterface
 	puller            artifacts.Puller
 	bundleClient      Client
+	ecrClient         RegistryClient
+	kubeVersionClient KubeVersionClient
 }
 
 func NewBundleManager(log logr.Logger, serverVersion discovery.ServerVersionInterface,
@@ -50,6 +38,8 @@ func NewBundleManager(log logr.Logger, serverVersion discovery.ServerVersionInte
 		kubeServerVersion: serverVersion,
 		puller:            puller,
 		bundleClient:      bundleClient,
+		ecrClient:         NewRegistryClient(log, puller),
+		kubeVersionClient: NewKubeVersionClient(serverVersion),
 	}
 
 	return manager
@@ -73,7 +63,7 @@ func (m bundleManager) ProcessBundle(ctx context.Context, newBundle *api.Package
 		return false, nil
 	}
 
-	kubeVersion, err := m.apiVersion()
+	kubeVersion, err := m.kubeVersionClient.ApiVersion()
 	if err != nil {
 		return false, fmt.Errorf("retrieving k8s API version: %w", err)
 	}
@@ -144,84 +134,86 @@ func (m bundleManager) SortBundlesDescending(bundles []api.PackageBundle) {
 	sort.Slice(bundles, sortFn)
 }
 
-// LatestBundle pulls the bundle tagged with "latest" from the bundle source.
-//
-// It returns an error if the bundle it retrieves is empty. This is because an
-// empty file would be successfully parsed and a Zero-value PackageBundle
-// returned, which is not acceptable.
-func (m *bundleManager) LatestBundle(ctx context.Context, baseRef string) (
-	*api.PackageBundle, error) {
-
-	kubeVersion, err := m.apiVersion()
+func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.PackageBundleController) error {
+	kubeVersion, err := m.kubeVersionClient.ApiVersion()
 	if err != nil {
-		return nil, fmt.Errorf("retrieving k8s API version: %w", err)
+		return fmt.Errorf("getting kube version: %s", err)
 	}
-	tag := "latest"
-	ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
 
-	return m.DownloadBundle(ctx, ref)
-}
-
-func (m *bundleManager) DownloadBundle(ctx context.Context, ref string) (*api.PackageBundle, error) {
-
-	data, err := m.puller.Pull(ctx, ref)
+	latestBundle, err := m.ecrClient.LatestBundle(ctx, pbc.Spec.Source.BaseRef(), kubeVersion)
 	if err != nil {
-		return nil, fmt.Errorf("pulling package bundle: %s", err)
+		m.log.Error(err, "Unable to get latest bundle")
+		if pbc.Status.State == api.BundleControllerStateActive {
+			m.log.Error(err, "marking disconnected")
+			pbc.Status.State = api.BundleControllerStateDisconnected
+			err = m.bundleClient.SaveStatus(ctx, pbc)
+			return fmt.Errorf("updating pbc status: %s", err)
+		}
+		return nil
 	}
 
-	if len(bytes.TrimSpace(data)) == 0 {
-		return nil, fmt.Errorf("package bundle artifact is empty")
-	}
-
-	bundle := &api.PackageBundle{}
-	err = yaml.Unmarshal(data, bundle)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling package bundle: %s", err)
-	}
-
-	return bundle, nil
-}
-
-func (m *bundleManager) ProcessLatestBundle(ctx context.Context, latestBundle *api.PackageBundle) error {
 	knownBundles := &api.PackageBundleList{}
-	err := m.bundleClient.GetBundleList(ctx, knownBundles)
+	err = m.bundleClient.GetBundleList(ctx, knownBundles)
 	if err != nil {
 		return fmt.Errorf("getting bundle list: %s", err)
 	}
 
+	found := false
+	latest := true
 	for _, b := range knownBundles.Items {
 		if b.Name == latestBundle.Name {
-			return nil
+			found = true
+			break
+		}
+		latest = false
+	}
+
+	if !found {
+		err = m.bundleClient.CreateBundle(ctx, latestBundle)
+		if err != nil {
+			return fmt.Errorf("creating new package bundle: %s", err)
 		}
 	}
 
-	err = m.bundleClient.CreateBundle(ctx, latestBundle)
-	if err != nil {
-		return fmt.Errorf("creating new package bundle: %s", err)
+	switch pbc.Status.State {
+	case api.BundleControllerStateActive:
+		if latest {
+			break
+		}
+		pbc.Status.State = api.BundleControllerStateUpgradeAvailable
+		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
+		err = m.bundleClient.SaveStatus(ctx, pbc)
+		if err != nil {
+			return fmt.Errorf("updating status to disconnected: %s", err)
+		}
+	case api.BundleControllerStateUpgradeAvailable:
+		if !latest {
+			break
+		}
+		pbc.Status.State = api.BundleControllerStateActive
+		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
+		err = m.bundleClient.SaveStatus(ctx, pbc)
+		if err != nil {
+			return fmt.Errorf("updating status to disconnected: %s", err)
+		}
+	case api.BundleControllerStateDisconnected:
+		pbc.Status.State = api.BundleControllerStateActive
+		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
+		err = m.bundleClient.SaveStatus(ctx, pbc)
+		if err != nil {
+			return fmt.Errorf("updating status to disconnected: %s", err)
+		}
+	case "":
+		if pbc.Spec.ActiveBundle == "" {
+			pbc.Spec.ActiveBundle = latestBundle.Name
+		}
+		pbc.Status.State = api.BundleControllerStateActive
+		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
+		err = m.bundleClient.Save(ctx, pbc)
+		if err != nil {
+			return fmt.Errorf("updating status to disconnected: %s", err)
+		}
 	}
 
 	return nil
-}
-
-func kubeVersion(name string) (string, error) {
-	matches := kubeVersionRe.FindStringSubmatch(name)
-	if len(matches) > 1 {
-		return matches[1], nil
-	}
-
-	return "", fmt.Errorf("no kubernetes version found in %q", name)
-}
-
-var kubeVersionRe = regexp.MustCompile(`^(v[^-]+)-.*$`)
-
-func (m *bundleManager) apiVersion() (string, error) {
-	info, err := m.kubeServerVersion.ServerVersion()
-	if err != nil {
-		return "", fmt.Errorf("getting server version: %s", err)
-	}
-	version := fmt.Sprintf("v%s-%s", info.Major, info.Minor)
-	// The minor version can have a trailing + character that we don't want.
-	version = strings.ReplaceAll(version, "+", "")
-
-	return version, nil
 }

@@ -29,7 +29,7 @@ func TestPackageBundleReconciler_mapBundleReconcileRequests(t *testing.T) {
 			return nil
 		})
 	bm := bundlefake.NewBundleManager()
-	sut := NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, logr.Discard())
+	sut := NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, nil, logr.Discard())
 
 	requests := sut.mapBundleReconcileRequests(&api.PackageBundleController{})
 
