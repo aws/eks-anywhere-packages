@@ -11,6 +11,7 @@ import (
 	v1alpha1 "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	gomock "github.com/golang/mock/gomock"
 	types "k8s.io/apimachinery/pkg/types"
+	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // MockClient is a mock of Client interface.
@@ -107,4 +108,32 @@ func (m *MockClient) IsActive(ctx context.Context, packageBundle *v1alpha1.Packa
 func (mr *MockClientMockRecorder) IsActive(ctx, packageBundle interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsActive", reflect.TypeOf((*MockClient)(nil).IsActive), ctx, packageBundle)
+}
+
+// Save mocks base method.
+func (m *MockClient) Save(ctx context.Context, object client.Object) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", ctx, object)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockClientMockRecorder) Save(ctx, object interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockClient)(nil).Save), ctx, object)
+}
+
+// SaveStatus mocks base method.
+func (m *MockClient) SaveStatus(ctx context.Context, object client.Object) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveStatus", ctx, object)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveStatus indicates an expected call of SaveStatus.
+func (mr *MockClientMockRecorder) SaveStatus(ctx, object interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveStatus", reflect.TypeOf((*MockClient)(nil).SaveStatus), ctx, object)
 }

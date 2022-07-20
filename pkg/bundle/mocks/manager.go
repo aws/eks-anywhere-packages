@@ -35,36 +35,6 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
-// DownloadBundle mocks base method.
-func (m *MockManager) DownloadBundle(ctx context.Context, ref string) (*v1alpha1.PackageBundle, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DownloadBundle", ctx, ref)
-	ret0, _ := ret[0].(*v1alpha1.PackageBundle)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DownloadBundle indicates an expected call of DownloadBundle.
-func (mr *MockManagerMockRecorder) DownloadBundle(ctx, ref interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadBundle", reflect.TypeOf((*MockManager)(nil).DownloadBundle), ctx, ref)
-}
-
-// LatestBundle mocks base method.
-func (m *MockManager) LatestBundle(ctx context.Context, baseRef string) (*v1alpha1.PackageBundle, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LatestBundle", ctx, baseRef)
-	ret0, _ := ret[0].(*v1alpha1.PackageBundle)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LatestBundle indicates an expected call of LatestBundle.
-func (mr *MockManagerMockRecorder) LatestBundle(ctx, baseRef interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LatestBundle", reflect.TypeOf((*MockManager)(nil).LatestBundle), ctx, baseRef)
-}
-
 // ProcessBundle mocks base method.
 func (m *MockManager) ProcessBundle(ctx context.Context, newBundle *v1alpha1.PackageBundle) (bool, error) {
 	m.ctrl.T.Helper()
@@ -80,18 +50,18 @@ func (mr *MockManagerMockRecorder) ProcessBundle(ctx, newBundle interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessBundle", reflect.TypeOf((*MockManager)(nil).ProcessBundle), ctx, newBundle)
 }
 
-// ProcessLatestBundle mocks base method.
-func (m *MockManager) ProcessLatestBundle(ctx context.Context, latestBundle *v1alpha1.PackageBundle) error {
+// ProcessBundleController mocks base method.
+func (m *MockManager) ProcessBundleController(ctx context.Context, pbc *v1alpha1.PackageBundleController) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ProcessLatestBundle", ctx, latestBundle)
+	ret := m.ctrl.Call(m, "ProcessBundleController", ctx, pbc)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// ProcessLatestBundle indicates an expected call of ProcessLatestBundle.
-func (mr *MockManagerMockRecorder) ProcessLatestBundle(ctx, latestBundle interface{}) *gomock.Call {
+// ProcessBundleController indicates an expected call of ProcessBundleController.
+func (mr *MockManagerMockRecorder) ProcessBundleController(ctx, pbc interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessLatestBundle", reflect.TypeOf((*MockManager)(nil).ProcessLatestBundle), ctx, latestBundle)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessBundleController", reflect.TypeOf((*MockManager)(nil).ProcessBundleController), ctx, pbc)
 }
 
 // SortBundlesDescending mocks base method.

@@ -26,6 +26,12 @@ type Client interface {
 
 	// CreateBundle add a new bundle custom resource
 	CreateBundle(ctx context.Context, bundle *api.PackageBundle) error
+
+	// SaveStatus saves a resource status
+	SaveStatus(ctx context.Context, object client.Object) error
+
+	// Save saves a resource
+	Save(ctx context.Context, object client.Object) error
 }
 
 type bundleClient struct {
@@ -131,4 +137,12 @@ func (bc *bundleClient) CreateBundle(ctx context.Context, bundle *api.PackageBun
 		return fmt.Errorf("creating new package bundle: %s", err)
 	}
 	return nil
+}
+
+func (bc *bundleClient) SaveStatus(ctx context.Context, object client.Object) error {
+	return bc.Client.Status().Update(ctx, object, &client.UpdateOptions{})
+}
+
+func (bc *bundleClient) Save(ctx context.Context, object client.Object) error {
+	return bc.Client.Update(ctx, object, &client.UpdateOptions{})
 }
