@@ -86,7 +86,7 @@ var _ = Describe("Webhooks are Validated", func() {
 			err = k8sClient.Create(ctx, bundle)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			pbc, err := testutil.GivenPackageBundleController("../testdata/package_webhook_bundle_controller.yaml")
+			pbc, err := GivenBundleController("../testdata/package_webhook_bundle_controller.yaml")
 			Expect(err).ShouldNot(HaveOccurred())
 			err = k8sClient.Create(ctx, pbc)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -94,14 +94,14 @@ var _ = Describe("Webhooks are Validated", func() {
 
 		When("Hello Eks Anywhere Package is created", func() {
 			It("succeeds when the package configuration is valid", func() {
-				p, err := testutil.GivenPackage("../testdata/package_webhook_valid_config.yaml")
+				p, err := GivenPackage("../testdata/package_webhook_valid_config.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, p)
 				Expect(err).ShouldNot(HaveOccurred())
 			})
 
 			It("fails when the package configuration contains unknown config", func() {
-				p, err := testutil.GivenPackage("../testdata/package_webhook_invalid_config.yaml")
+				p, err := GivenPackage("../testdata/package_webhook_invalid_config.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, p)
 				Expect(err).Should(HaveOccurred())
@@ -109,7 +109,7 @@ var _ = Describe("Webhooks are Validated", func() {
 			})
 
 			It("fails when the package configuration contains wrong type", func() {
-				p, err := testutil.GivenPackage("../testdata/package_webhook_invalid_type.yaml")
+				p, err := GivenPackage("../testdata/package_webhook_invalid_type.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, p)
 				Expect(err).Should(HaveOccurred())
