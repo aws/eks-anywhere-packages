@@ -14,14 +14,15 @@ import (
 	ctrlmocks "github.com/aws/eks-anywhere-packages/controllers/mocks"
 )
 
-// Helpers
+const testBundleRegistry = "public.ecr.aws/j0a1m4z9"
+
 func givenMockClient(t *testing.T) *ctrlmocks.MockClient {
 	goMockController := gomock.NewController(t)
 	return ctrlmocks.NewMockClient(goMockController)
 }
 
-func givenBundle() api.PackageBundle {
-	return api.PackageBundle{
+func givenBundle() *api.PackageBundle {
+	return &api.PackageBundle{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-name",
 			Namespace: api.PackageNamespace,
@@ -53,7 +54,7 @@ func givenPackageBundleController() *api.PackageBundleController {
 		Spec: api.PackageBundleControllerSpec{
 			ActiveBundle: testBundleName,
 			Source: api.PackageBundleControllerSource{
-				Registry:   "public.ecr.aws/j0a1m4z9",
+				Registry:   testBundleRegistry,
 				Repository: "eks-anywhere-package-bundles",
 			},
 		},
@@ -154,10 +155,10 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 	t.Run("golden path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-		mockBundle := givenBundle()
+		testBundle := givenBundle()
 
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&mockBundle)).SetArg(2, mockBundle)
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(testBundle)).SetArg(2, *testBundle)
 
 		bundle, err := bundleClient.GetActiveBundle(ctx)
 
@@ -170,11 +171,11 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 	t.Run("no registry", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-		mockBundle := givenBundle()
-		mockBundle.Spec.Packages[0].Source.Registry = ""
+		testBundle := givenBundle()
+		testBundle.Spec.Packages[0].Source.Registry = ""
 
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&mockBundle)).SetArg(2, mockBundle)
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(testBundle)).SetArg(2, *testBundle)
 
 		bundle, err := bundleClient.GetActiveBundle(ctx)
 
@@ -187,12 +188,12 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 	t.Run("no registry anywhere", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-		mockBundle := givenBundle()
-		mockBundle.Spec.Packages[0].Source.Registry = ""
+		testBundle := givenBundle()
+		testBundle.Spec.Packages[0].Source.Registry = ""
 		pbc.Spec.Source.Registry = ""
 
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&mockBundle)).SetArg(2, mockBundle)
+		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(testBundle)).SetArg(2, *testBundle)
 
 		bundle, err := bundleClient.GetActiveBundle(ctx)
 

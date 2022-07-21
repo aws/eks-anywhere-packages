@@ -19,7 +19,6 @@ import (
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
-	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
 const testBundleName = "v1.21-1001"
@@ -45,11 +44,10 @@ func givenPackageBundleController() api.PackageBundleController {
 func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 	t.Parallel()
 
-	discovery := testutil.NewFakeDiscoveryWithDefaults()
-
-	puller := testutil.NewMockPuller()
-	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
-	bm := bundle.NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
+	kvc := bundleMocks.NewMockKubeVersionClient(gomock.NewController(t))
+	rc := bundleMocks.NewMockRegistryClient(gomock.NewController(t))
+	bc := bundleMocks.NewMockClient(gomock.NewController(t))
+	bm := bundle.NewBundleManager(logr.Discard(), kvc, rc, bc)
 
 	controllerNN := types.NamespacedName{
 		Namespace: api.PackageNamespace,

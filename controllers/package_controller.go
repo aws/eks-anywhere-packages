@@ -80,9 +80,11 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	if err != nil {
 		return fmt.Errorf("creating discovery client: %s", err)
 	}
+	kvc := bundle.NewKubeVersionClient(discovery)
 	puller := artifacts.NewRegistryPuller()
+	registryClient := bundle.NewRegistryClient(log, puller)
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
-	bundleManager := bundle.NewBundleManager(log, discovery, puller, bundleClient)
+	bundleManager := bundle.NewBundleManager(log, kvc, registryClient, bundleClient)
 	reconciler := NewPackageReconciler(
 		mgr.GetClient(),
 		mgr.GetScheme(),
