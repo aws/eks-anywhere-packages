@@ -18,9 +18,10 @@ func givenFile(file string, config api.KindAccessor) error {
 	return reader.Parse(config)
 }
 
-func GivenBundleController(config *PackageBundleController) error {
-	err := givenFile("../testdata/packagebundlecontroller.yaml", config)
-	return err
+func GivenBundleController(fileName string) (*PackageBundleController, error) {
+	config := &PackageBundleController{}
+	err := givenFile(fileName, config)
+	return config, err
 }
 
 func GivenPackageBundleOne(config *PackageBundle) error {
@@ -33,35 +34,33 @@ func GivenPackageBundleTwo(config *PackageBundle) error {
 	return err
 }
 
-func GivenPackage(config *Package) error {
-	err := givenFile("../testdata/test.yaml", config)
-	return err
+func GivenPackage(fileName string) (*Package, error) {
+	config := &Package{}
+	err := givenFile(fileName, config)
+	return config, err
 }
 
 // TestFileReaderOnApiDatatypes tests that the file reader can correctly
 // unmarshal our CRD types.
 func TestFileReaderOnApiDatatypes(t *testing.T) {
-	var actual error
-	var bundleController PackageBundleController
-	actual = GivenBundleController(&bundleController)
-	if actual != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, actual)
+	_, err := GivenBundleController("../testdata/packagebundlecontroller.yaml")
+	if err != nil {
+		t.Errorf("expected <%v> actual <%v>", nil, err)
 	}
 
 	var bundle PackageBundle
-	actual = GivenPackageBundleTwo(&bundle)
-	if actual != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, actual)
+	err = GivenPackageBundleTwo(&bundle)
+	if err != nil {
+		t.Errorf("expected <%v> actual <%v>", nil, err)
 	}
 
-	actual = GivenPackageBundleOne(&bundle)
-	if actual != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, actual)
+	err = GivenPackageBundleOne(&bundle)
+	if err != nil {
+		t.Errorf("expected <%v> actual <%v>", nil, err)
 	}
 
-	var test Package
-	actual = GivenPackage(&test)
-	if actual != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, actual)
+	_, err = GivenPackage("../testdata/test.yaml")
+	if err != nil {
+		t.Errorf("expected <%v> actual <%v>", nil, err)
 	}
 }
