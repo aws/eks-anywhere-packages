@@ -48,7 +48,6 @@ func (rc *registryClient) LatestBundle(ctx context.Context, baseRef string, kube
 }
 
 func (rc *registryClient) DownloadBundle(ctx context.Context, ref string) (*api.PackageBundle, error) {
-
 	data, err := rc.puller.Pull(ctx, ref)
 	if err != nil {
 		return nil, fmt.Errorf("pulling package bundle: %s", err)
