@@ -108,12 +108,6 @@ func (v *packageValidator) getActiveController(ctx context.Context) (PackageBund
 	return pbc, err
 }
 
-func (v *packageValidator) listBundles(ctx context.Context) (*PackageBundleList, error) {
-	bundles := &PackageBundleList{}
-	err := v.Client.List(ctx, bundles, &client.ListOptions{Namespace: PackageNamespace})
-	return bundles, err
-}
-
 func (v *packageValidator) isPackageConfigValid(p *Package, activeBundle *PackageBundle) (bool, error) {
 	packageInBundle, err := getPackageInBundle(activeBundle, p.Spec.PackageName)
 	if err != nil {
@@ -125,15 +119,7 @@ func (v *packageValidator) isPackageConfigValid(p *Package, activeBundle *Packag
 		return false, fmt.Errorf("package %s does not contain any versions", p.Name)
 	}
 
-	// The package configuration is gzipped and base64 encoded
-	// When processing the configuration, the reverse occurs: base64 decode, then unzip
-	configuration := packageInBundle.Source.Versions[0].Configurations[0].Default
-	decodedConfiguration, err := base64.StdEncoding.DecodeString(configuration)
-	if err != nil {
-		return false, fmt.Errorf("error decoding configurations %v", err)
-	}
-
-	jsonSchema, err := getPackagesJsonSchema(decodedConfiguration)
+	jsonSchema, err := getPackagesJsonSchema(packageInBundle)
 	if err != nil {
 		return false, err
 	}
@@ -171,7 +157,15 @@ func validatePackage(p *Package, jsonSchema []byte) (*gojsonschema.Result, error
 	return schema.Validate(configToValidate)
 }
 
-func getPackagesJsonSchema(decodedConfiguration []byte) ([]byte, error) {
+func getPackagesJsonSchema(bundlePackage *BundlePackage) ([]byte, error) {
+	// The package configuration is gzipped and base64 encoded
+	// When processing the configuration, the reverse occurs: base64 decode, then unzip
+	configuration := bundlePackage.Source.Versions[0].Configurations[0].Default
+	decodedConfiguration, err := base64.StdEncoding.DecodeString(configuration)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding configurations %v", err)
+	}
+
 	reader := bytes.NewReader(decodedConfiguration)
 	gzreader, err := gzip.NewReader(reader)
 	if err != nil {
@@ -183,11 +177,7 @@ func getPackagesJsonSchema(decodedConfiguration []byte) ([]byte, error) {
 		return nil, fmt.Errorf("error reading configurations %v", err)
 	}
 
-	jsonSchema, err := yaml.YAMLToJSON(output)
-	if err != nil {
-		return nil, fmt.Errorf("error converting yaml to json %v", err)
-	}
-	return jsonSchema, nil
+	return output, nil
 }
 
 func getPackageInBundle(activeBundle *PackageBundle, packageName string) (*BundlePackage, error) {
