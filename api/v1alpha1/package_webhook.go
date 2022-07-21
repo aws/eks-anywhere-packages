@@ -56,20 +56,17 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 			fmt.Errorf("decoding request: %w", err))
 	}
 
-	bundles, err := v.listBundles(ctx)
-	if err != nil {
-		return admission.Errored(http.StatusInternalServerError,
-			fmt.Errorf("listing package bundles: %w", err))
-	}
-
 	pbc, err := v.getActiveController(ctx)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting PackageBundleController: %v", err))
 	}
 
-	activeBundle := v.getActiveBundle(bundles, pbc.Spec.ActiveBundle)
+	activeBundle, err := v.getActiveBundle(ctx, pbc.Spec.ActiveBundle)
+	if err != nil {
+		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting PackageBundle: %v", err))
+	}
 
-	isConfigValid, err := v.isPackageConfigValid(p, &activeBundle)
+	isConfigValid, err := v.isPackageConfigValid(p, activeBundle)
 
 	resp := &admission.Response{
 		AdmissionResponse: admissionv1.AdmissionResponse{Allowed: isConfigValid},
@@ -88,14 +85,17 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 	return *resp
 }
 
-func (v *packageValidator) getActiveBundle(bundles *PackageBundleList, b string) PackageBundle {
-	var activeBundle PackageBundle
-	for _, bundle := range bundles.Items {
-		if bundle.Name == b {
-			activeBundle = bundle
-		}
+func (v *packageValidator) getActiveBundle(ctx context.Context, b string) (*PackageBundle, error) {
+	nn := types.NamespacedName{
+		Namespace: PackageNamespace,
+		Name:      b,
 	}
-	return activeBundle
+	activeBundle := &PackageBundle{}
+	err := v.Client.Get(ctx, nn, activeBundle)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching bundle %s %w", b, err)
+	}
+	return activeBundle, nil
 }
 
 func (v *packageValidator) getActiveController(ctx context.Context) (PackageBundleController, error) {
