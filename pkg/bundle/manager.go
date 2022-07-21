@@ -5,9 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
 	"github.com/go-logr/logr"
-	"k8s.io/client-go/discovery"
 	"sort"
 )
 
@@ -24,25 +22,18 @@ type Manager interface {
 
 type bundleManager struct {
 	log               logr.Logger
-	kubeServerVersion discovery.ServerVersionInterface
-	puller            artifacts.Puller
 	bundleClient      Client
-	ecrClient         RegistryClient
+	registryClient    RegistryClient
 	kubeVersionClient KubeVersionClient
 }
 
-func NewBundleManager(log logr.Logger, serverVersion discovery.ServerVersionInterface,
-	puller artifacts.Puller, bundleClient Client) (manager *bundleManager) {
-	manager = &bundleManager{
+func NewBundleManager(log logr.Logger, kubeVersionClient KubeVersionClient, registryClient RegistryClient, bundleClient Client) *bundleManager {
+	return &bundleManager{
 		log:               log,
-		kubeServerVersion: serverVersion,
-		puller:            puller,
 		bundleClient:      bundleClient,
-		ecrClient:         NewRegistryClient(log, puller),
-		kubeVersionClient: NewKubeVersionClient(serverVersion),
+		registryClient:    registryClient,
+		kubeVersionClient: kubeVersionClient,
 	}
-
-	return manager
 }
 
 var _ Manager = (*bundleManager)(nil)
@@ -140,7 +131,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		return fmt.Errorf("getting kube version: %s", err)
 	}
 
-	latestBundle, err := m.ecrClient.LatestBundle(ctx, pbc.Spec.Source.BaseRef(), kubeVersion)
+	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.Spec.Source.BaseRef(), kubeVersion)
 	if err != nil {
 		m.log.Error(err, "Unable to get latest bundle")
 		if pbc.Status.State == api.BundleControllerStateActive {
