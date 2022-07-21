@@ -62,6 +62,29 @@ func givenBundleManager(t *testing.T) (*bundleMocks.MockKubeVersionClient, *bund
 func TestProcessBundle(t *testing.T) {
 	ctx := context.Background()
 
+	t.Run("isActive error", func(t *testing.T) {
+		_, _, bc, bm := givenBundleManager(t)
+		bundle := GivenBundle(api.PackageBundleStateInactive)
+		bc.EXPECT().IsActive(ctx, bundle).Return(false, fmt.Errorf("oops"))
+
+		update, err := bm.ProcessBundle(ctx, bundle)
+
+		assert.False(t, update)
+		assert.EqualError(t, err, "getting active bundle: oops")
+	})
+
+	t.Run("apiVersion error", func(t *testing.T) {
+		kvc, _, bc, bm := givenBundleManager(t)
+		bundle := GivenBundle(api.PackageBundleStateInactive)
+		bc.EXPECT().IsActive(ctx, bundle).Return(false, nil)
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, fmt.Errorf("oops"))
+
+		update, err := bm.ProcessBundle(ctx, bundle)
+
+		assert.False(t, update)
+		assert.EqualError(t, err, "getting kube version: oops")
+	})
+
 	t.Run("ignore other namespaces", func(t *testing.T) {
 		_, _, bc, bm := givenBundleManager(t)
 		bundle := GivenBundle(api.PackageBundleStateInactive)
@@ -86,6 +109,21 @@ func TestProcessBundle(t *testing.T) {
 		update, err := bm.ProcessBundle(ctx, bundle)
 
 		assert.True(t, update)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, api.PackageBundleStateIgnoredVersion, bundle.Status.State)
+	})
+
+	t.Run("already ignored incompatible Kubernetes version", func(t *testing.T) {
+		kvc, _, bc, bm := givenBundleManager(t)
+		bundle := GivenBundle(api.PackageBundleStateInactive)
+		bundle.Name = "v1-01-1"
+		bundle.Status.State = api.PackageBundleStateIgnoredVersion
+		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+
+		update, err := bm.ProcessBundle(ctx, bundle)
+
+		assert.False(t, update)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, api.PackageBundleStateIgnoredVersion, bundle.Status.State)
 	})
@@ -280,10 +318,95 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 	ctx := context.Background()
 
-	t.Run("upgrade available", func(t *testing.T) {
+	t.Run("apiVersion error", func(t *testing.T) {
+		kvc, _, _, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, fmt.Errorf("oops"))
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.EqualError(t, err, "getting kube version: oops")
+	})
+
+	t.Run("active to active", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
+		latestBundle := givenBundle()
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.Nil(t, err)
+		assert.Equal(t, pbc.Status.State, api.BundleControllerStateActive)
+	})
+
+	t.Run("active to active get bundles error", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
+		latestBundle := givenBundle()
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).Return(fmt.Errorf("oops"))
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.EqualError(t, err, "getting bundle list: oops")
+	})
+
+	t.Run("active to disconnected", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
+		latestBundle := givenBundle()
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, fmt.Errorf("ooops"))
+		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.Nil(t, err)
+		assert.Equal(t, pbc.Status.State, api.BundleControllerStateDisconnected)
+	})
+
+	t.Run("disconnected to disconnected", func(t *testing.T) {
+		kvc, rc, _, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = api.BundleControllerStateDisconnected
+		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
+		latestBundle := givenBundle()
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, fmt.Errorf("ooops"))
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.Nil(t, err)
+		assert.Equal(t, pbc.Status.State, api.BundleControllerStateDisconnected)
+	})
+
+	t.Run("active to disconnected error", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
+		latestBundle := givenBundle()
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, fmt.Errorf("ooops"))
+		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to disconnected: oops")
+	})
+
+	t.Run("active to upgradeAvailable", func(t *testing.T) {
 		kvc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
 		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
 		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
@@ -296,173 +419,168 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		assert.Equal(t, pbc.Status.State, api.BundleControllerStateUpgradeAvailable)
 	})
 
-	//t.Run("active bundle correct", func(t *testing.T) {
-	//	discovery := testutil.NewFakeDiscoveryWithDefaults()
-	//	puller := testutil.NewMockPuller()
-	//	pbc := givenPackageBundleController()
-	//	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
-	//	bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
-	//	mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
-	//	//mockBundleClient.EXPECT().SaveStatus(ctx, pbc).Return(nil)
-	//
-	//	err := bm.ProcessBundleController(ctx, pbc)
-	//
-	//	assert.Nil(t, err)
-	//})
+	t.Run("active to upgradeAvailable error", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
+		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
 
-	//t.Run("save status error", func(t *testing.T) {
-	//	discovery := testutil.NewFakeDiscoveryWithDefaults()
-	//	puller := testutil.NewMockPuller()
-	//	pbc := givenPackageBundleController()
-	//	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
-	//	bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
-	//	mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
-	//	mockBundleClient.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
-	//
-	//	err := bm.ProcessBundleController(ctx, pbc)
-	//
-	//	assert.EqualError(t, err, "oops")
-	//})
-	//
-	//t.Run("known bundle", func(t *testing.T) {
-	//	discovery := testutil.NewFakeDiscoveryWithDefaults()
-	//	puller := testutil.NewMockPuller()
-	//	pbc := givenPackageBundleController()
-	//	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
-	//	mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
-	//	bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
-	//
-	//	err := bm.ProcessBundleController(ctx, pbc)
-	//
-	//	assert.Nil(t, err)
-	//})
-	//
-	//t.Run("bundle create error", func(t *testing.T) {
-	//	discovery := testutil.NewFakeDiscoveryWithDefaults()
-	//	puller := testutil.NewMockPuller()
-	//	pbc := givenPackageBundleController()
-	//	//bundle := GivenBundle(api.PackageBundleStateInactive)
-	//	//bundle.Namespace = "eksa-packages"
-	//	//bundle.Name = testNextBundleName
-	//	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
-	//	bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
-	//	mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
-	//	//mockBundleClient.EXPECT().CreateBundle(ctx, bundle).Return(fmt.Errorf("oops"))
-	//
-	//	err := bm.ProcessBundleController(ctx, pbc)
-	//
-	//	assert.EqualError(t, err, "creating new package bundle: oops")
-	//})
-	//
-	//t.Run("bundle list error", func(t *testing.T) {
-	//	discovery := testutil.NewFakeDiscoveryWithDefaults()
-	//	puller := testutil.NewMockPuller()
-	//	pbc := givenPackageBundleController()
-	//	//bundle := GivenBundle(api.PackageBundleStateInactive)
-	//	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
-	//	mockBundleClient.EXPECT().GetBundleList(ctx, gomock.Any()).Return(fmt.Errorf("oops"))
-	//	bm := NewBundleManager(logr.Discard(), discovery, puller, mockBundleClient)
-	//
-	//	err := bm.ProcessBundleController(ctx, pbc)
-	//
-	//	assert.EqualError(t, err, "getting bundle list: oops")
-	//})
+		err := bm.ProcessBundleController(ctx, pbc)
 
-	/*
-		t.Run("marks status disconnected if active", func(t *testing.T) {
-			t.Parallel()
+		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to upgradeAvailable: oops")
+	})
 
-			ctx := context.Background()
-			mockClient := mocks.NewMockClient(gomock.NewController(t))
-			pbc := givenPackageBundleController()
-			pbc.Status.State = api.BundleControllerStateActive
+	t.Run("active to upgradeAvailable create error", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(fmt.Errorf("oops"))
 
-			mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
-				DoAndReturn(setMockPBC(&pbc))
-			mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
-			mockStatusClient := mocks.NewMockStatusWriter(gomock.NewController(t))
-			mockClient.EXPECT().Status().Return(mockStatusClient)
-			mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
-				DoAndReturn(func(ctx context.Context, pbc *api.PackageBundleController,
-					opts *client.UpdateOptions) error {
-					if pbc.Status.State != api.BundleControllerStateDisconnected {
-						t.Errorf("expected state to be set to Active, got %q",
-							pbc.Status.State)
-					}
-					return nil
-				})
+		err := bm.ProcessBundleController(ctx, pbc)
 
-			r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
-				logr.Discard())
-			_, err := r.Reconcile(ctx, req)
-			if err != nil {
-				t.Errorf("expected no error, got %s", err)
-			}
-		})
+		assert.EqualError(t, err, "creating new package bundle: oops")
+	})
 
-		t.Run("marks status active if state not set", func(t *testing.T) {
-			t.Parallel()
+	t.Run("upgradeAvailable to upgradeAvailable", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = api.BundleControllerStateUpgradeAvailable
+		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 
-			ctx := context.Background()
-			mockClient := mocks.NewMockClient(gomock.NewController(t))
-			pbc := givenPackageBundleController()
-			pbc.Status.State = ""
+		err := bm.ProcessBundleController(ctx, pbc)
 
-			mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
-				DoAndReturn(setMockPBC(&pbc))
-			testBundle := api.PackageBundle{}
-			mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
-			mockBundleManager.EXPECT().LatestBundle(ctx, pbc.Spec.Source.BaseRef()).Return(&testBundle, nil)
-			mockBundleManager.EXPECT().ProcessBundleController(ctx, &testBundle).Return(nil)
-			mockClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
-				DoAndReturn(func(ctx context.Context, pbc *api.PackageBundleController,
-					opts *client.UpdateOptions) error {
-					if pbc.Status.State != api.BundleControllerStateActive {
-						t.Errorf("expected state to be set to Active, got %q",
-							pbc.Status.State)
-					}
-					return nil
-				})
+		assert.Nil(t, err)
+		assert.Equal(t, pbc.Status.State, api.BundleControllerStateUpgradeAvailable)
+	})
 
-			r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
-				logr.Discard())
-			_, err := r.Reconcile(ctx, req)
-			if err != nil {
-				t.Errorf("expected no error, got %s", err)
-			}
-		})
+	t.Run("upgradeAvailable to active", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = api.BundleControllerStateUpgradeAvailable
+		latestBundle := givenBundle()
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
 
-		t.Run("marks status active if disconnected", func(t *testing.T) {
-			t.Parallel()
+		err := bm.ProcessBundleController(ctx, pbc)
 
-			ctx := context.Background()
-			mockClient := mocks.NewMockClient(gomock.NewController(t))
-			pbc := givenPackageBundleController()
-			pbc.Status.State = api.BundleControllerStateDisconnected
+		assert.Nil(t, err)
+		assert.Equal(t, pbc.Status.State, api.BundleControllerStateActive)
+	})
 
-			mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
-				DoAndReturn(setMockPBC(&pbc))
-			testBundle := api.PackageBundle{}
-			mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
-			mockBundleManager.EXPECT().ProcessBundleController(ctx, &testBundle).Return(nil)
-			mockStatusClient := mocks.NewMockStatusWriter(gomock.NewController(t))
-			mockClient.EXPECT().Status().Return(mockStatusClient)
-			mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
-				DoAndReturn(func(ctx context.Context, pbc *api.PackageBundleController,
-					opts *client.UpdateOptions) error {
-					if pbc.Status.State != api.BundleControllerStateActive {
-						t.Errorf("expected state to be set to Active, got %q",
-							pbc.Status.State)
-					}
-					return nil
-				})
+	t.Run("upgradeAvailable to active error", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = api.BundleControllerStateUpgradeAvailable
+		latestBundle := givenBundle()
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
 
-			r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
-				logr.Discard())
-			_, err := r.Reconcile(ctx, req)
-			if err != nil {
-				t.Errorf("expected no error, got %s", err)
-			}
-		})
-	*/
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to active: oops")
+	})
+
+	t.Run("disconnected to active", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = api.BundleControllerStateDisconnected
+		latestBundle := givenBundle()
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.Nil(t, err)
+		assert.Equal(t, pbc.Status.State, api.BundleControllerStateActive)
+	})
+
+	t.Run("disconnected to active error", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = api.BundleControllerStateDisconnected
+		latestBundle := givenBundle()
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to active: oops")
+	})
+
+	t.Run("nothing to active", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = ""
+		pbc.Spec.ActiveBundle = ""
+		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
+		bc.EXPECT().Save(ctx, pbc).Return(nil)
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.Nil(t, err)
+		assert.Equal(t, pbc.Status.State, api.BundleControllerStateActive)
+		assert.Equal(t, pbc.Spec.ActiveBundle, testNextBundleName)
+	})
+
+	t.Run("nothing to active already activated", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = ""
+		latestBundle := givenBundle()
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().Save(ctx, pbc).Return(nil)
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.Nil(t, err)
+		assert.Equal(t, pbc.Status.State, api.BundleControllerStateActive)
+		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
+	})
+
+	t.Run("nothing to active error", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = ""
+		pbc.Spec.ActiveBundle = ""
+		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
+		bc.EXPECT().Save(ctx, pbc).Return(fmt.Errorf("oops"))
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to active: oops")
+	})
 }

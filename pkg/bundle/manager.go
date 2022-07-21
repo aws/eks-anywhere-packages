@@ -42,7 +42,7 @@ func (m bundleManager) ProcessBundle(ctx context.Context, newBundle *api.Package
 
 	active, err := m.bundleClient.IsActive(ctx, newBundle)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("getting active bundle: %s", err)
 	}
 
 	if newBundle.Namespace != api.PackageNamespace {
@@ -56,7 +56,7 @@ func (m bundleManager) ProcessBundle(ctx context.Context, newBundle *api.Package
 
 	kubeVersion, err := m.kubeVersionClient.ApiVersion()
 	if err != nil {
-		return false, fmt.Errorf("retrieving k8s API version: %w", err)
+		return false, fmt.Errorf("getting kube version: %w", err)
 	}
 
 	matches, err := newBundle.KubeVersionMatches(kubeVersion)
@@ -138,7 +138,9 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 			m.log.Error(err, "marking disconnected")
 			pbc.Status.State = api.BundleControllerStateDisconnected
 			err = m.bundleClient.SaveStatus(ctx, pbc)
-			return fmt.Errorf("updating pbc status: %s", err)
+			if err != nil {
+				return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
+			}
 		}
 		return nil
 	}
@@ -175,7 +177,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 		err = m.bundleClient.SaveStatus(ctx, pbc)
 		if err != nil {
-			return fmt.Errorf("updating status to disconnected: %s", err)
+			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
 		}
 	case api.BundleControllerStateUpgradeAvailable:
 		if !latest {
@@ -185,14 +187,14 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 		err = m.bundleClient.SaveStatus(ctx, pbc)
 		if err != nil {
-			return fmt.Errorf("updating status to disconnected: %s", err)
+			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
 		}
 	case api.BundleControllerStateDisconnected:
 		pbc.Status.State = api.BundleControllerStateActive
 		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 		err = m.bundleClient.SaveStatus(ctx, pbc)
 		if err != nil {
-			return fmt.Errorf("updating status to disconnected: %s", err)
+			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
 		}
 	case "":
 		if pbc.Spec.ActiveBundle == "" {
@@ -202,7 +204,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 		err = m.bundleClient.Save(ctx, pbc)
 		if err != nil {
-			return fmt.Errorf("updating status to disconnected: %s", err)
+			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
 		}
 	}
 

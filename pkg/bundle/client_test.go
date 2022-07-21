@@ -24,7 +24,7 @@ func givenMockClient(t *testing.T) *ctrlmocks.MockClient {
 func givenBundle() *api.PackageBundle {
 	return &api.PackageBundle{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-name",
+			Name:      testBundleName,
 			Namespace: api.PackageNamespace,
 		},
 		Spec: api.PackageBundleSpec{
@@ -162,7 +162,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 
 		bundle, err := bundleClient.GetActiveBundle(ctx)
 
-		assert.Equal(t, bundle.Name, "test-name")
+		assert.Equal(t, bundle.Name, testBundleName)
 		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
 		assert.Equal(t, "public.ecr.aws/l0g8r8j6", bundle.Spec.Packages[0].Source.Registry)
 		assert.Nil(t, err)
@@ -179,7 +179,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 
 		bundle, err := bundleClient.GetActiveBundle(ctx)
 
-		assert.Equal(t, bundle.Name, "test-name")
+		assert.Equal(t, bundle.Name, testBundleName)
 		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
 		assert.Equal(t, "public.ecr.aws/j0a1m4z9", bundle.Spec.Packages[0].Source.Registry)
 		assert.Nil(t, err)
@@ -197,7 +197,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 
 		bundle, err := bundleClient.GetActiveBundle(ctx)
 
-		assert.Equal(t, bundle.Name, "test-name")
+		assert.Equal(t, bundle.Name, testBundleName)
 		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
 		assert.Equal(t, "public.ecr.aws/eks-anywhere", bundle.Spec.Packages[0].Source.Registry)
 		assert.Nil(t, err)
