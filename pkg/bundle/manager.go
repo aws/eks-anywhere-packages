@@ -4,9 +4,11 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	"github.com/go-logr/logr"
 	"sort"
+
+	"github.com/go-logr/logr"
+
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 type Manager interface {

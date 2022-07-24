@@ -3,12 +3,13 @@ package bundle
 import (
 	"context"
 	"fmt"
-	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"strings"
 	"testing"
 
-	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 	"github.com/go-logr/logr"
+
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
 func TestDownloadBundle(t *testing.T) {
