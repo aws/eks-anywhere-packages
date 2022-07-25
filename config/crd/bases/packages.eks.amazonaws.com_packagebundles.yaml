@@ -65,6 +65,31 @@ spec:
                             description: SourceVersion describes a version of a package
                               within a repository.
                             properties:
+                              configurations:
+                                description: Configurations is a list of configurations
+                                  used by this version of the package. The configurations
+                                  are used for configuration validation and to generate
+                                  sample configurations for users.
+                                items:
+                                  description: VersionConfiguration is a configuration
+                                    used by a version of a package.
+                                  properties:
+                                    default:
+                                      description: Default is the name of the configuration
+                                      type: string
+                                    name:
+                                      description: Name is the name of the configuration
+                                      type: string
+                                    required:
+                                      description: Required configuration parameter
+                                        the user must specify
+                                      type: boolean
+                                  required:
+                                  - default
+                                  - name
+                                  - required
+                                  type: object
+                                type: array
                               digest:
                                 description: Digest is a checksum value identifying
                                   the version of the package and its contents.
@@ -146,6 +171,32 @@ spec:
                                 description: SourceVersion describes a version of
                                   a package within a repository.
                                 properties:
+                                  configurations:
+                                    description: Configurations is a list of configurations
+                                      used by this version of the package. The configurations
+                                      are used for configuration validation and to
+                                      generate sample configurations for users.
+                                    items:
+                                      description: VersionConfiguration is a configuration
+                                        used by a version of a package.
+                                      properties:
+                                        default:
+                                          description: Default is the name of the
+                                            configuration
+                                          type: string
+                                        name:
+                                          description: Name is the name of the configuration
+                                          type: string
+                                        required:
+                                          description: Required configuration parameter
+                                            the user must specify
+                                          type: boolean
+                                      required:
+                                      - default
+                                      - name
+                                      - required
+                                      type: object
+                                    type: array
                                   digest:
                                     description: Digest is a checksum value identifying
                                       the version of the package and its contents.

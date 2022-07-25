@@ -8,4 +8,4 @@ packages:
         repository: hello-eks-anywhere
         registry: public.ecr.aws/o2o7p9u3
         versions:
-          - name: 0.1.1-9c8ee6988061bd7b0ced2f89ef7b1c21bcecf6fa
+          - name: 0.1.1-fa2f6f68e65b862a59dcb198a9655037e9ea45c0
