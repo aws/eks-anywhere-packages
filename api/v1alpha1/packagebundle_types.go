@@ -79,7 +79,7 @@ type SourceVersion struct {
 	// Images is a list of images used by this version of the package
 	Images []VersionImages `json:"images,omitempty"`
 
-	// Configurations is a list of configurations used by this version of the package. The configurations are used for configuration validation and to generate sample configurations for users.
+	// Schema is a base64 encoded, gzipped json schema used to validate package configurations
 	Schema string `json:"schema,omitempty"`
 }
 
