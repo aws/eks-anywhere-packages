@@ -140,7 +140,7 @@ func main() {
 			}
 			chartName, helmname, err := splitECRName(fullURI)
 			if err != nil {
-				BundleLog.Error(err, "Unable to split helm hame, invalid format")
+				BundleLog.Error(err, "Unable to split helm name, invalid format")
 				os.Exit(1)
 			}
 			dest := filepath.Join(pwd, chartName)
@@ -172,15 +172,7 @@ func main() {
 			}
 			charts.Source.Versions[0].Images = helmImage
 			// Populate Configurations to bundle spec from Requires.yaml
-			helmConfiguration := []api.VersionConfiguration{}
-			for _, config := range helmRequires.Spec.Configurations {
-				helmConfiguration = append(helmConfiguration, api.VersionConfiguration{
-					Name:     config.Name,
-					Required: config.Required,
-					Default:  config.Default,
-				})
-			}
-			charts.Source.Versions[0].Configurations = helmConfiguration
+			charts.Source.Versions[0].Schema = helmRequires.Spec.Images[0].Schema
 
 			// Set the registry to empty string since we pull it from the PackageBundleController instead now.
 			addOnBundleSpec.Packages[i].Source.Registry = ""

@@ -1,0 +1,11 @@
+# This info is hardcoded and comes from https://github.com/aws/eks-anywhere-build-tooling
+name: "v1-21-1001"
+kubernetesVersion: "1.21"
+packages:
+  - org: aws-containers
+    projects:
+      - name: hello-eks-anywhere
+        repository: hello-eks-anywhere
+        registry: public.ecr.aws/o2o7p9u3
+        versions:
+          - name: 0.1.1-9c8ee6988061bd7b0ced2f89ef7b1c21bcecf6fa
