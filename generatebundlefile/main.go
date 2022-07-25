@@ -172,7 +172,7 @@ func main() {
 			}
 			charts.Source.Versions[0].Images = helmImage
 			// Populate Configurations to bundle spec from Requires.yaml
-			charts.Source.Versions[0].Schema = helmRequires.Spec.Images[0].Schema
+			charts.Source.Versions[0].Schema = helmRequires.Spec.Schema
 
 			// Set the registry to empty string since we pull it from the PackageBundleController instead now.
 			addOnBundleSpec.Packages[i].Source.Registry = ""

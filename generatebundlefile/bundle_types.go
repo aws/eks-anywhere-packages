@@ -91,14 +91,21 @@ type Requires struct {
 }
 
 type RequiresSpec struct {
-	Images []Image `json:"images,omitempty"`
+	Images         []Image         `json:"images,omitempty"`
+	Configurations []Configuration `json:"configurations,omitempty"`
+	Schema         string          `json:"schema,omitempty"`
+}
+
+type Configuration struct {
+	Name     string `json:"name,omitempty"`
+	Required bool   `json:"required,omitempty"`
+	Default  string `json:"default,omitempty"`
 }
 
 type Image struct {
 	Repository string `json:"repository,omitempty"`
 	Tag        string `json:"tag,omitempty"`
 	Digest     string `json:"digest,omitempty"`
-	Schema     string `json:"schema,omitempty"`
 }
 
 type Values struct {
