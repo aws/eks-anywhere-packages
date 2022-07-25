@@ -63,11 +63,9 @@ function generate () {
 function push () {
     local version=$1
     cd "${BASE_DIRECTORY}/generatebundlefile/output"
-    # Turn off command echo so no awsAuth function execution is shown in build logs
-    set +x
-    "$ORAS_BIN" push --username AWS --password $(awsAuth "ecr-public") "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-    "$ORAS_BIN" push --username AWS --password $(awsAuth "ecr-public") "${REPO}:v${version}-latest" bundle.yaml
-    set -x 
+    awsAuth "ecr-public"
+    "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+    "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
 }
 
 for version in 1-21 1-22; do
