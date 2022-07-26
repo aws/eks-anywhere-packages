@@ -118,6 +118,10 @@ spec:
                                 description: Name is a human-friendly description
                                   of the version, e.g. "v1.0".
                                 type: string
+                              schema:
+                                description: Schema is a base64 encoded, gzipped json
+                                  schema used to validate package configurations
+                                type: string
                             required:
                             - digest
                             - name
@@ -221,6 +225,10 @@ spec:
                                   name:
                                     description: Name is a human-friendly description
                                       of the version, e.g. "v1.0".
+                                    type: string
+                                  schema:
+                                    description: Schema is a base64 encoded, gzipped
+                                      json schema used to validate package configurations
                                     type: string
                                 required:
                                 - digest
