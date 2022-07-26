@@ -5,8 +5,9 @@ import (
 	"os/exec"
 	"strings"
 
-	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/pkg/errors"
+
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 // removeDuplicates removes any duplicates from Version list, useful for scenarios when
