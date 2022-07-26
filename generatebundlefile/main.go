@@ -126,7 +126,7 @@ func main() {
 		BundleLog.Info("In Progress: Populating Bundles and looking up Sha256 tags")
 		addOnBundleSpec, name, err := clients.ecrPublicClient.NewBundleFromInput(Inputs)
 		if err != nil {
-			BundleLog.Error(err, "Unable to create CRD skaffolding of AddoOBundle from input file")
+			BundleLog.Error(err, "Unable to create bundle from input file")
 			os.Exit(1)
 		}
 
