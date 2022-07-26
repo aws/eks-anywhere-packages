@@ -81,6 +81,9 @@ type SourceVersion struct {
 
 	// Configurations is a list of configurations used by this version of the package. The configurations are used for configuration validation and to generate sample configurations for users.
 	Configurations []VersionConfiguration `json:"configurations,omitempty"`
+
+	// Schema is a base64 encoded, gzipped json schema used to validate package configurations
+	Schema string `json:"schema,omitempty"`
 }
 
 // VersionImages is an image used by a version of a package.
