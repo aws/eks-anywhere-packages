@@ -2,9 +2,10 @@ package k8s
 
 import (
 	"context"
-	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"regexp"
 	"strings"
+
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var namespaceWhitespace = []string{" ", "\r", "\t", "\v"}

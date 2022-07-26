@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"os/user"
+	"path/filepath"
+	"strings"
+
 	coreV1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"os/user"
-	"path/filepath"
-	"strings"
 )
 
 type config struct {
@@ -25,7 +26,7 @@ type auth struct {
 	Auth     string `json:"auth"`
 }
 
-const defaultEmail = "awsregrenew@demo.test"
+const defaultEmail = "test@test.com"
 
 func GetClient() (*kubernetes.Clientset, error) {
 	config, err := getClientConfig()

@@ -1,12 +1,13 @@
 package main
 
 import (
-	"ecrtokencronjob/src/aws"
-	k8s "ecrtokencronjob/src/kubernetes"
-	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
+
+	"ecrtokencronjob/src/aws"
+	k8s "ecrtokencronjob/src/kubernetes"
 )
 
 const (
@@ -16,18 +17,20 @@ const (
 	envVarIRSAToken       = "AWS_WEB_IDENTITY_TOKEN_FILE"
 )
 
-func checkErr(err error) {
+func checkErr(err error, logger *log.Logger) {
 	if err != nil {
-		panic(err)
+		logger.Fatalln(err)
 	}
 }
 
 func main() {
-	fmt.Println("Running at " + time.Now().UTC().String())
+	infoLogger := log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	errorLogger := log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	infoLogger.Println("Running at " + time.Now().UTC().String())
 
 	name := os.Getenv(envVarAwsSecret)
 	if name == "" {
-		panic(fmt.Sprintf("Environment variable %s is required", envVarAwsSecret))
+		errorLogger.Fatalf("Environment variable %s is required", envVarAwsSecret)
 	}
 
 	// Check if IRSA is setup
@@ -35,38 +38,38 @@ func main() {
 	webIdentityTokenFile := os.Getenv(envVarIRSAToken)
 	if webIdentityTokenFile != "" {
 		err := aws.SetupIRSA()
-		checkErr(err)
+		checkErr(err, errorLogger)
 	}
 
-	fmt.Println("Fetching auth data from AWS... ")
+	infoLogger.Println("Fetching auth data from AWS... ")
 	credentials, err := aws.GetDockerCredentials()
-	checkErr(err)
-	fmt.Println("Success.")
+	checkErr(err, errorLogger)
+	infoLogger.Println("Success.")
 
 	servers := getServerList(credentials.Server)
-	fmt.Printf("Docker Registries: %s\n", strings.Join(servers, ","))
+	infoLogger.Printf("Docker Registries: %s\n", strings.Join(servers, ","))
 
 	namespaces, err := k8s.GetNamespaces(os.Getenv(envVarTargetNamespace))
-	checkErr(err)
-	fmt.Printf("Updating kubernetes secret [%s] in %d namespaces\n", name, len(namespaces))
+	checkErr(err, errorLogger)
+	infoLogger.Printf("Updating kubernetes secret [%s] in %d namespaces\n", name, len(namespaces))
 
 	failed := false
 	for _, ns := range namespaces {
-		fmt.Printf("Updating secret in namespace [%s]... ", ns)
+		infoLogger.Printf("Updating secret in namespace [%s]... ", ns)
 		err = k8s.UpdatePassword(ns, name, credentials.Username, credentials.Password, servers)
 		if nil != err {
-			fmt.Printf("failed: %s\n", err)
+			infoLogger.Printf("failed: %s\n", err)
 			failed = true
 		} else {
-			fmt.Println("success")
+			infoLogger.Println("success")
 		}
 	}
 
 	if failed {
-		panic(fmt.Sprintf("failed to create one of more Docker login secrets"))
+		errorLogger.Fatalf("failed to create one of more Docker login secrets")
 	}
 
-	fmt.Println("Job complete.")
+	infoLogger.Println("Job complete.")
 }
 
 func getServerList(defaultServer string) []string {

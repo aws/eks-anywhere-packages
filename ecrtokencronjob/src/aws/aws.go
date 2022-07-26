@@ -3,13 +3,13 @@ package aws
 import (
 	"encoding/base64"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"os"
-	"strings"
 )
 
 type DockerCredentials struct {
@@ -51,16 +51,16 @@ func GetDockerCredentials() (*DockerCredentials, error) {
 func SetupIRSA() error {
 	roleArn := os.Getenv(envRoleARN)
 	if roleArn == "" {
-		panic(fmt.Sprint("Enviroment variable %s missing, check that Webhook for IRSA is setup", envRoleARN))
+		return fmt.Errorf("Environment variable %s missing, check that Webhook for IRSA is setup", envRoleARN)
 	}
 
 	webIdentityTokenFile := os.Getenv(envWebTokenFile)
 	if webIdentityTokenFile == "" {
-		panic(fmt.Sprint("Enviroment variable %s missing, check that token is mounted", envWebTokenFile))
+		return fmt.Errorf("Environment variable %s missing, check that token is mounted", envWebTokenFile)
 	}
 	token, err := os.ReadFile(webIdentityTokenFile)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	webIdentityToken := string(token)
 
@@ -73,30 +73,6 @@ func SetupIRSA() error {
 	}
 	result, err := svc.AssumeRoleWithWebIdentity(input)
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case sts.ErrCodeMalformedPolicyDocumentException:
-				panic(fmt.Sprint(sts.ErrCodeMalformedPolicyDocumentException, aerr.Error()))
-			case sts.ErrCodePackedPolicyTooLargeException:
-				panic(fmt.Sprint(sts.ErrCodePackedPolicyTooLargeException, aerr.Error()))
-			case sts.ErrCodeIDPRejectedClaimException:
-				panic(fmt.Sprint(sts.ErrCodeIDPRejectedClaimException, aerr.Error()))
-			case sts.ErrCodeIDPCommunicationErrorException:
-				panic(fmt.Sprint(sts.ErrCodeIDPCommunicationErrorException, aerr.Error()))
-			case sts.ErrCodeInvalidIdentityTokenException:
-				panic(fmt.Sprint(sts.ErrCodeInvalidIdentityTokenException, aerr.Error()))
-			case sts.ErrCodeExpiredTokenException:
-				panic(fmt.Sprint(sts.ErrCodeExpiredTokenException, aerr.Error()))
-			case sts.ErrCodeRegionDisabledException:
-				panic(fmt.Sprint(sts.ErrCodeRegionDisabledException, aerr.Error()))
-			default:
-				panic(fmt.Sprint(aerr.Error()))
-			}
-		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			panic(fmt.Sprint(err.Error()))
-		}
 		return err
 	}
 
