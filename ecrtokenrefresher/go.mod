@@ -1,4 +1,4 @@
-module ecrtokencronjob
+module ecrtokenrefresher
 
 go 1.18
 

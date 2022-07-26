@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"ecrtokencronjob/src/aws"
-	k8s "ecrtokencronjob/src/kubernetes"
+	"ecrtokenrefresher/src/aws"
+	k8s "ecrtokenrefresher/src/kubernetes"
 )
 
 const (

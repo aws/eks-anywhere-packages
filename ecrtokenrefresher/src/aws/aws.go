@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -58,7 +59,8 @@ func SetupIRSA() error {
 	if webIdentityTokenFile == "" {
 		return fmt.Errorf("Environment variable %s missing, check that token is mounted", envWebTokenFile)
 	}
-	token, err := os.ReadFile(webIdentityTokenFile)
+
+	token, err := os.ReadFile(filepath.Clean(webIdentityTokenFile))
 	if err != nil {
 		return err
 	}

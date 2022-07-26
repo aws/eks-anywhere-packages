@@ -1,3 +1,6 @@
+SHELL = /usr/bin/env bash -o pipefail
+.SHELLFLAGS = -ec
+
 REPO_ROOT=$(shell git rev-parse --show-toplevel)
 GOLANG_VERSION?="1.18"
 GO ?= $(shell source $(REPO_ROOT)/scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
@@ -8,9 +11,6 @@ GOBIN=$(shell go env GOPATH)/bin
 else
 GOBIN=$(shell go env GOBIN)
 endif
-
-SHELL = /usr/bin/env bash -o pipefail
-.SHELLFLAGS = -ec
 
 all: build
 
@@ -24,13 +24,13 @@ clean: ## Clean output directory, and the built binary
 ##@ Build
 
 build: ## Build Binary
-	mkdir -p $(REPO_ROOT)/ecrtokencronjob/bin
+	mkdir -p $(REPO_ROOT)/ecrtokenrefresher/bin
 	$(GO) mod tidy -compat=1.18
-	$(GO) build -o $(REPO_ROOT)/ecrtokencronjob/bin/ecr-refresh *.go
+	$(GO) build -o $(REPO_ROOT)/ecrtokenrefresher/bin/ecr-refresh *.go
 
 build-linux:
 	[ -d bin ] || mkdir bin
-	env GOOS=linux GOARCH=amd64 $(MAKE) build
+	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(MAKE) build
 
 run:
 	$(GO) run .
