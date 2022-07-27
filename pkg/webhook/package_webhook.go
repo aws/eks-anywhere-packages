@@ -137,7 +137,7 @@ func validatePackage(p *v1alpha1.Package, jsonSchema []byte) (*gojsonschema.Resu
 func getPackagesJsonSchema(bundlePackage *v1alpha1.BundlePackage) ([]byte, error) {
 	// The package configuration is gzipped and base64 encoded
 	// When processing the configuration, the reverse occurs: base64 decode, then unzip
-	configuration := bundlePackage.Source.Versions[0].Configurations[0].Default
+	configuration := bundlePackage.Source.Versions[0].Schema
 	decodedConfiguration, err := base64.StdEncoding.DecodeString(configuration)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding configurations %v", err)
