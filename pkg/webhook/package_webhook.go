@@ -20,14 +20,12 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/xeipuuv/gojsonschema"
 	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -35,6 +33,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 )
 
 type packageValidator struct {
@@ -83,29 +82,6 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 	}
 
 	return *resp
-}
-
-func (v *packageValidator) getActiveBundle(ctx context.Context, b string) (*v1alpha1.PackageBundle, error) {
-	nn := types.NamespacedName{
-		Namespace: v1alpha1.PackageNamespace,
-		Name:      b,
-	}
-	activeBundle := &v1alpha1.PackageBundle{}
-	err := v.Client.Get(ctx, nn, activeBundle)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching bundle %s %w", b, err)
-	}
-	return activeBundle, nil
-}
-
-func (v *packageValidator) getActiveController(ctx context.Context) (v1alpha1.PackageBundleController, error) {
-	pbc := v1alpha1.PackageBundleController{}
-	key := types.NamespacedName{
-		Namespace: v1alpha1.PackageNamespace,
-		Name:      v1alpha1.PackageBundleControllerName,
-	}
-	err := v.Client.Get(ctx, key, &pbc)
-	return pbc, err
 }
 
 func (v *packageValidator) isPackageConfigValid(p *v1alpha1.Package, activeBundle *v1alpha1.PackageBundle) (bool, error) {
