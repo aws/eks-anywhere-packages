@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package webhook
 
 import (
 	"bytes"
@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"io/ioutil"
 	"net/http"
 
@@ -32,6 +33,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"sigs.k8s.io/yaml"
+
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 type packageValidator struct {
@@ -49,19 +52,16 @@ func InitPackageValidator(mgr ctrl.Manager) error {
 }
 
 func (v *packageValidator) Handle(ctx context.Context, request admission.Request) admission.Response {
-	p := &Package{}
+	p := &v1alpha1.Package{}
 	err := v.decoder.Decode(request, p)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError,
 			fmt.Errorf("decoding request: %w", err))
 	}
 
-	pbc, err := v.getActiveController(ctx)
-	if err != nil {
-		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting PackageBundleController: %v", err))
-	}
+	bundleClient := bundle.NewPackageBundleClient(v.Client)
+	activeBundle, err := bundleClient.GetActiveBundle(ctx)
 
-	activeBundle, err := v.getActiveBundle(ctx, pbc.Spec.ActiveBundle)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting PackageBundle: %v", err))
 	}
@@ -85,12 +85,12 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 	return *resp
 }
 
-func (v *packageValidator) getActiveBundle(ctx context.Context, b string) (*PackageBundle, error) {
+func (v *packageValidator) getActiveBundle(ctx context.Context, b string) (*v1alpha1.PackageBundle, error) {
 	nn := types.NamespacedName{
-		Namespace: PackageNamespace,
+		Namespace: v1alpha1.PackageNamespace,
 		Name:      b,
 	}
-	activeBundle := &PackageBundle{}
+	activeBundle := &v1alpha1.PackageBundle{}
 	err := v.Client.Get(ctx, nn, activeBundle)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching bundle %s %w", b, err)
@@ -98,17 +98,17 @@ func (v *packageValidator) getActiveBundle(ctx context.Context, b string) (*Pack
 	return activeBundle, nil
 }
 
-func (v *packageValidator) getActiveController(ctx context.Context) (PackageBundleController, error) {
-	pbc := PackageBundleController{}
+func (v *packageValidator) getActiveController(ctx context.Context) (v1alpha1.PackageBundleController, error) {
+	pbc := v1alpha1.PackageBundleController{}
 	key := types.NamespacedName{
-		Namespace: PackageNamespace,
-		Name:      PackageBundleControllerName,
+		Namespace: v1alpha1.PackageNamespace,
+		Name:      v1alpha1.PackageBundleControllerName,
 	}
 	err := v.Client.Get(ctx, key, &pbc)
 	return pbc, err
 }
 
-func (v *packageValidator) isPackageConfigValid(p *Package, activeBundle *PackageBundle) (bool, error) {
+func (v *packageValidator) isPackageConfigValid(p *v1alpha1.Package, activeBundle *v1alpha1.PackageBundle) (bool, error) {
 	packageInBundle, err := getPackageInBundle(activeBundle, p.Spec.PackageName)
 	if err != nil {
 		return false, err
@@ -140,7 +140,7 @@ func (v *packageValidator) isPackageConfigValid(p *Package, activeBundle *Packag
 	return true, nil
 }
 
-func validatePackage(p *Package, jsonSchema []byte) (*gojsonschema.Result, error) {
+func validatePackage(p *v1alpha1.Package, jsonSchema []byte) (*gojsonschema.Result, error) {
 	sl := gojsonschema.NewSchemaLoader()
 	loader := gojsonschema.NewStringLoader(string(jsonSchema))
 	schema, err := sl.Compile(loader)
@@ -157,7 +157,7 @@ func validatePackage(p *Package, jsonSchema []byte) (*gojsonschema.Result, error
 	return schema.Validate(configToValidate)
 }
 
-func getPackagesJsonSchema(bundlePackage *BundlePackage) ([]byte, error) {
+func getPackagesJsonSchema(bundlePackage *v1alpha1.BundlePackage) ([]byte, error) {
 	// The package configuration is gzipped and base64 encoded
 	// When processing the configuration, the reverse occurs: base64 decode, then unzip
 	configuration := bundlePackage.Source.Versions[0].Configurations[0].Default
@@ -180,7 +180,7 @@ func getPackagesJsonSchema(bundlePackage *BundlePackage) ([]byte, error) {
 	return output, nil
 }
 
-func getPackageInBundle(activeBundle *PackageBundle, packageName string) (*BundlePackage, error) {
+func getPackageInBundle(activeBundle *v1alpha1.PackageBundle, packageName string) (*v1alpha1.BundlePackage, error) {
 	for _, p := range activeBundle.Spec.Packages {
 		if p.Name == packageName {
 			return &p, nil

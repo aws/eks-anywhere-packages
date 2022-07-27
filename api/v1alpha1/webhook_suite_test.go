@@ -39,6 +39,7 @@ import (
 	. "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/signature"
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
+	. "github.com/aws/eks-anywhere-packages/pkg/webhook"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
