@@ -37,15 +37,17 @@ import (
 )
 
 type packageValidator struct {
-	Client  client.Client
-	decoder *admission.Decoder
+	Client       client.Client
+	BundleClient bundle.Client
+	decoder      *admission.Decoder
 }
 
 func InitPackageValidator(mgr ctrl.Manager) error {
 	mgr.GetWebhookServer().
 		Register("/validate-packages-eks-amazonaws-com-v1alpha1-package",
 			&webhook.Admission{Handler: &packageValidator{
-				Client: mgr.GetClient(),
+				Client:       mgr.GetClient(),
+				BundleClient: bundle.NewPackageBundleClient(mgr.GetClient()),
 			}})
 	return nil
 }
@@ -58,8 +60,7 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 			fmt.Errorf("decoding request: %w", err))
 	}
 
-	bundleClient := bundle.NewPackageBundleClient(v.Client)
-	activeBundle, err := bundleClient.GetActiveBundle(ctx)
+	activeBundle, err := v.BundleClient.GetActiveBundle(ctx)
 
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting PackageBundle: %v", err))
