@@ -86,3 +86,13 @@ controller:
     limits:
       cpu: 500m
       memory: 300Mi
+# Additional Variables to configure cronjob
+cronjob:
+  name: ecr-refresher
+  # -- ECR refresher repository name.
+  repository: "eks-anywhere-packages"
+  # -- ECR refresher tag, or SHA256 checksum.
+  tag: "{{ecr-refresher}}"
+#  Additional Variables for Config Map for namespace
+nsconfigmap:
+  name: installed-namespaces

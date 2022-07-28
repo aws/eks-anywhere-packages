@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: cron-ecr-renew
+spec:
+  schedule: "0 */6 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ include "eks-anywhere-packages.serviceAccountName" . }}
+          containers:
+            - name: {{.Values.cronjob.name}}
+              image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.cronjob }}
+              imagePullPolicy: {{ .Values.imagePullPolicy }}
+              env:
+                - name: TARGET_NAMESPACE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{.Values.nsconfigmap.name}}
+                      key: NAMESPACES
+                - name: DOCKER_SECRET_NAME
+                  value: ecr-token
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-secret
+                      key: ID
+                      optional: true
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-secret
+                      key: SECRET
+                      optional: true
+                - name: AWS_REGION
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-secret
+                      key: REGION
+                      optional: true
