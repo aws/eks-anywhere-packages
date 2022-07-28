@@ -39,6 +39,7 @@ import (
 	. "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/signature"
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
+	. "github.com/aws/eks-anywhere-packages/pkg/webhook"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
@@ -73,40 +74,91 @@ func TestAPIs(t *testing.T) {
 	RunSpecs(t, "Webhook Suite", suiteConfig, reporterConfig)
 }
 
-var _ = Context("Releases signatures are validated against the correct public key", func() {
+var _ = Describe("Webhooks are Validated", func() {
 	ctx := context.Background()
-	When("a release is applied", func() {
-		It("validates the signature against the default key (production)", func() {
-			bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
-			Expect(err).ShouldNot(HaveOccurred())
-			err = k8sClient.Create(ctx, bundle)
-			Expect(err).Should(HaveOccurred())
-			Expect(err.Error()).Should(ContainSubstring("The signature is invalid"))
-			Expect(err.Error()).Should(ContainSubstring(signature.EksaDomain.Pubkey))
-		})
 
-		It("validates the signature against the overriden key (using env var)", func() {
-			//Test public key
-			err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
-			Expect(err).ShouldNot(HaveOccurred())
-			bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
-			Expect(err).ShouldNot(HaveOccurred())
-			err = k8sClient.Create(ctx, bundle)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
+	Context("Releases signatures are validated against the correct public key", func() {
+		When("a release is applied", func() {
+			It("validates the signature against the default key (production)", func() {
+				err := os.Setenv(PublicKeyEnvVar, "")
+				Expect(err).ShouldNot(HaveOccurred())
 
-		It("validates the signature against the default key if the environment variable exists but is empty", func() {
-			err := os.Setenv(PublicKeyEnvVar, "")
-			Expect(err).ShouldNot(HaveOccurred())
-			bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
-			Expect(err).ShouldNot(HaveOccurred())
-			err = k8sClient.Create(ctx, bundle)
-			Expect(err).Should(HaveOccurred())
-			Expect(err.Error()).Should(ContainSubstring("The signature is invalid"))
-			Expect(err.Error()).Should(ContainSubstring(signature.EksaDomain.Pubkey))
+				bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, bundle)
+
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("The signature is invalid"))
+				Expect(err.Error()).Should(ContainSubstring(signature.EksaDomain.Pubkey))
+			})
+
+			It("validates the signature against the overriden key (using env var)", func() {
+				//Test public key
+				err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
+				Expect(err).ShouldNot(HaveOccurred())
+				bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, bundle)
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			It("validates the signature against the default key if the environment variable exists but is empty", func() {
+				err := os.Setenv(PublicKeyEnvVar, "")
+				Expect(err).ShouldNot(HaveOccurred())
+				bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, bundle)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("The signature is invalid"))
+				Expect(err.Error()).Should(ContainSubstring(signature.EksaDomain.Pubkey))
+			})
 		})
 	})
+
+	Context("Hello Eks Anywhere Tests", Ordered, func() {
+		BeforeAll(func() {
+			err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			bundle, _, err := testutil.GivenPackageBundle("../testdata/package_webhook_bundle.yaml")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = k8sClient.Create(ctx, bundle)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			pbc, err := GivenBundleController("../testdata/package_webhook_bundle_controller.yaml")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = k8sClient.Create(ctx, pbc)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		When("Hello Eks Anywhere Package is created", func() {
+			It("succeeds when the package configuration is valid", func() {
+				p, err := GivenPackage("../testdata/package_webhook_valid_config.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, p)
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			It("fails when the package configuration contains unknown config", func() {
+				p, err := GivenPackage("../testdata/package_webhook_invalid_config.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, p)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("Additional property fakeConfig is not allowed"))
+			})
+
+			It("fails when the package configuration contains wrong type", func() {
+				p, err := GivenPackage("../testdata/package_webhook_invalid_type.yaml")
+				Expect(err).ShouldNot(HaveOccurred())
+				err = k8sClient.Create(ctx, p)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("title: Invalid type. Expected: string, given: integer"))
+			})
+		})
+	})
+
 })
+
 var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
@@ -153,6 +205,12 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	err = (&PackageBundle{}).SetupWebhookWithManager(mgr)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = InitPackageValidator(mgr)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = InitActiveBundleValidator(mgr)
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:webhook
