@@ -23,3 +23,10 @@ packages:
         registry: public.ecr.aws/eks-anywhere
         versions:
             - name: latest
+  - org: emissary 
+    projects:
+      - name: emissary 
+        repository: emissary-ingress/emissary
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: latest
