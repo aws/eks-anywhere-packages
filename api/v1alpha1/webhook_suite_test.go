@@ -213,6 +213,9 @@ var _ = BeforeSuite(func() {
 	err = InitActiveBundleValidator(mgr)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = InitPackageMutator(mgr)
+	Expect(err).NotTo(HaveOccurred())
+
 	//+kubebuilder:scaffold:webhook
 
 	go func() {

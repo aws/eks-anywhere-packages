@@ -23,3 +23,27 @@ func (config *Package) GetValues() (values map[string]interface{}, err error) {
 	err = yaml.Unmarshal([]byte(config.Spec.Config), &mapInterfaces)
 	return mapInterfaces, err
 }
+
+func (config *Package) GetFlattenedValues() (values map[string]interface{}, err error) {
+	originalValues, err := config.GetValues()
+	if err != nil {
+		return nil, err
+	}
+	return config.flatten(originalValues), nil
+}
+
+func (config *Package) flatten(originals map[string]interface{}) (values map[string]interface{}) {
+	o := make(map[string]interface{})
+	for k, v := range originals {
+		switch child := v.(type) {
+		case map[string]interface{}:
+			nm := config.flatten(child)
+			for nk, nv := range nm {
+				o[k+"."+nk] = nv
+			}
+		default:
+			o[k] = v
+		}
+	}
+	return o
+}

@@ -96,7 +96,12 @@ func main() {
 			os.Exit(1)
 		}
 		if err = webhook.InitPackageValidator(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "Package")
+			setupLog.Error(err, "unable to create validating webhook", "webhook", "Package")
+			os.Exit(1)
+		}
+
+		if err = webhook.InitPackageMutator(mgr); err != nil {
+			setupLog.Error(err, "unable to create defaulting webhook", "webhook", "Package")
 			os.Exit(1)
 		}
 	}
