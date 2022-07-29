@@ -341,7 +341,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.Nil(t, err)
-		assert.Equal(t, pbc.Status.State, api.BundleControllerStateActive)
+		assert.Equal(t, api.BundleControllerStateActive, pbc.Status.State)
 	})
 
 	t.Run("active to active get bundles error", func(t *testing.T) {
@@ -370,7 +370,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.Nil(t, err)
-		assert.Equal(t, pbc.Status.State, api.BundleControllerStateDisconnected)
+		assert.Equal(t, api.BundleControllerStateDisconnected, pbc.Status.State)
 	})
 
 	t.Run("disconnected to disconnected", func(t *testing.T) {
@@ -385,7 +385,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.Nil(t, err)
-		assert.Equal(t, pbc.Status.State, api.BundleControllerStateDisconnected)
+		assert.Equal(t, api.BundleControllerStateDisconnected, pbc.Status.State)
 	})
 
 	t.Run("active to disconnected error", func(t *testing.T) {
@@ -416,7 +416,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.Nil(t, err)
-		assert.Equal(t, pbc.Status.State, api.BundleControllerStateUpgradeAvailable)
+		assert.Equal(t, api.BundleControllerStateUpgradeAvailable, pbc.Status.State)
 	})
 
 	t.Run("active to upgradeAvailable error", func(t *testing.T) {
@@ -464,7 +464,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.Nil(t, err)
-		assert.Equal(t, pbc.Status.State, api.BundleControllerStateUpgradeAvailable)
+		assert.Equal(t, api.BundleControllerStateUpgradeAvailable, pbc.Status.State)
 	})
 
 	t.Run("upgradeAvailable to active", func(t *testing.T) {
@@ -480,7 +480,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.Nil(t, err)
-		assert.Equal(t, pbc.Status.State, api.BundleControllerStateActive)
+		assert.Equal(t, api.BundleControllerStateActive, pbc.Status.State)
 	})
 
 	t.Run("upgradeAvailable to active error", func(t *testing.T) {
@@ -511,7 +511,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.Nil(t, err)
-		assert.Equal(t, pbc.Status.State, api.BundleControllerStateActive)
+		assert.Equal(t, api.BundleControllerStateActive, pbc.Status.State)
 	})
 
 	t.Run("disconnected to active error", func(t *testing.T) {
@@ -529,7 +529,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to active: oops")
 	})
 
-	t.Run("nothing to active", func(t *testing.T) {
+	t.Run("nothing to active bundle set", func(t *testing.T) {
 		kvc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
 		pbc.Status.State = ""
@@ -545,28 +545,11 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.Nil(t, err)
-		assert.Equal(t, pbc.Status.State, api.BundleControllerStateActive)
-		assert.Equal(t, pbc.Spec.ActiveBundle, testNextBundleName)
+		assert.Equal(t, api.BundleControllerStateEnum(""), pbc.Status.State)
+		assert.Equal(t, testNextBundleName, pbc.Spec.ActiveBundle)
 	})
 
-	t.Run("nothing to active already activated", func(t *testing.T) {
-		kvc, rc, bc, bm := givenBundleManager(t)
-		pbc := givenPackageBundleController()
-		pbc.Status.State = ""
-		latestBundle := givenBundle()
-		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
-		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
-		bc.EXPECT().Save(ctx, pbc).Return(nil)
-
-		err := bm.ProcessBundleController(ctx, pbc)
-
-		assert.Nil(t, err)
-		assert.Equal(t, pbc.Status.State, api.BundleControllerStateActive)
-		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
-	})
-
-	t.Run("nothing to active error", func(t *testing.T) {
+	t.Run("nothing to active bundle save error", func(t *testing.T) {
 		kvc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
 		pbc.Status.State = ""
@@ -578,6 +561,40 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().Save(ctx, pbc).Return(fmt.Errorf("oops"))
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.EqualError(t, err, "updating eksa-packages-bundle-controller activeBundle to v1-21-1004: oops")
+	})
+
+	t.Run("nothing to active state", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = ""
+		latestBundle := givenBundle()
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.Nil(t, err)
+		assert.Equal(t, api.BundleControllerStateActive, pbc.Status.State)
+		assert.Equal(t, testBundleName, pbc.Spec.ActiveBundle)
+	})
+
+	t.Run("nothing to active status save error", func(t *testing.T) {
+		kvc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = ""
+		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
+		kvc.EXPECT().ApiVersion().Return(testKubernetesVersion, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-package-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
+		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
+		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
 
 		err := bm.ProcessBundleController(ctx, pbc)
 

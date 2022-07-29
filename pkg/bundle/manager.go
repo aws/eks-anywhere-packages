@@ -198,14 +198,20 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
 		}
 	default:
-		if pbc.Spec.ActiveBundle == "" {
+		if pbc.Spec.ActiveBundle != "" {
+			pbc.Status.State = api.BundleControllerStateActive
+			m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
+			err = m.bundleClient.SaveStatus(ctx, pbc)
+			if err != nil {
+				return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
+			}
+		} else {
 			pbc.Spec.ActiveBundle = latestBundle.Name
-		}
-		pbc.Status.State = api.BundleControllerStateActive
-		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
-		err = m.bundleClient.Save(ctx, pbc)
-		if err != nil {
-			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
+			m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "activeBundle", pbc.Spec.ActiveBundle)
+			err = m.bundleClient.Save(ctx, pbc)
+			if err != nil {
+				return fmt.Errorf("updating %s activeBundle to %s: %s", pbc.Name, pbc.Spec.ActiveBundle, err)
+			}
 		}
 	}
 
