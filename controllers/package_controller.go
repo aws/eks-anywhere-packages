@@ -82,7 +82,7 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	}
 	kvc := bundle.NewKubeVersionClient(discovery)
 	puller := artifacts.NewRegistryPuller()
-	registryClient := bundle.NewRegistryClient(log, puller)
+	registryClient := bundle.NewRegistryClient(puller)
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
 	bundleManager := bundle.NewBundleManager(log, kvc, registryClient, bundleClient)
 	reconciler := NewPackageReconciler(

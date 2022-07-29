@@ -71,7 +71,7 @@ func RegisterPackageBundleReconciler(mgr ctrl.Manager) error {
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
 	kvc := bundle.NewKubeVersionClient(discovery)
 	puller := artifacts.NewRegistryPuller()
-	registryClient := bundle.NewRegistryClient(log, puller)
+	registryClient := bundle.NewRegistryClient(puller)
 	bundleManager := bundle.NewBundleManager(log, kvc, registryClient, bundleClient)
 	r := NewPackageBundleReconciler(mgr.GetClient(), mgr.GetScheme(), bundleClient, bundleManager, registryClient, log)
 	return ctrl.NewControllerManagedBy(mgr).

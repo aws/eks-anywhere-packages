@@ -6,8 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-logr/logr"
-
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
@@ -24,7 +22,7 @@ func TestDownloadBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithFileData(t, "../../api/testdata/bundle_one.yaml")
 
-		ecr := NewRegistryClient(logr.Discard(), puller)
+		ecr := NewRegistryClient(puller)
 
 		kubeVersion := "v1-21"
 		tag := "latest"
@@ -65,7 +63,7 @@ func TestDownloadBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithError(fmt.Errorf("test error"))
 
-		ecr := NewRegistryClient(logr.Discard(), puller)
+		ecr := NewRegistryClient(puller)
 
 		kubeVersion := "v1-21"
 		tag := "latest"
@@ -84,7 +82,7 @@ func TestDownloadBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithData([]byte(""))
 
-		ecr := NewRegistryClient(logr.Discard(), puller)
+		ecr := NewRegistryClient(puller)
 
 		kubeVersion := "v1-21"
 		tag := "latest"
@@ -104,7 +102,7 @@ func TestDownloadBundle(t *testing.T) {
 		puller := testutil.NewMockPuller()
 		puller.WithData([]byte("invalid yaml"))
 
-		ecr := NewRegistryClient(logr.Discard(), puller)
+		ecr := NewRegistryClient(puller)
 
 		kubeVersion := "v1-21"
 		tag := "latest"
@@ -132,7 +130,7 @@ func TestBundleManager_LatestBundle(t *testing.T) {
 		bundle := GivenBundle(api.PackageBundleStateInactive)
 
 		bundle.Namespace = "billy"
-		bm := NewRegistryClient(logr.Discard(), puller)
+		bm := NewRegistryClient(puller)
 
 		_, err := bm.LatestBundle(ctx, "test", "v1.21")
 

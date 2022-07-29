@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-logr/logr"
 	"sigs.k8s.io/yaml"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
@@ -23,13 +22,11 @@ type RegistryClient interface {
 }
 
 type registryClient struct {
-	log    logr.Logger
 	puller artifacts.Puller
 }
 
-func NewRegistryClient(log logr.Logger, puller artifacts.Puller) (manager *registryClient) {
+func NewRegistryClient(puller artifacts.Puller) (manager *registryClient) {
 	return &registryClient{
-		log:    log,
 		puller: puller,
 	}
 }
