@@ -152,17 +152,17 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		return fmt.Errorf("getting bundle list: %s", err)
 	}
 
-	found := false
-	latest := true
+	latestBundleIsKnown := false
+	latestBundleIsCurrentBundle := true
 	for _, b := range knownBundles.Items {
 		if b.Name == latestBundle.Name {
-			found = true
+			latestBundleIsKnown = true
 			break
 		}
-		latest = false
+		latestBundleIsCurrentBundle = false
 	}
 
-	if !found {
+	if !latestBundleIsKnown {
 		err = m.bundleClient.CreateBundle(ctx, latestBundle)
 		if err != nil {
 			return fmt.Errorf("creating new package bundle: %s", err)
@@ -171,7 +171,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 
 	switch pbc.Status.State {
 	case api.BundleControllerStateActive:
-		if latest {
+		if latestBundleIsCurrentBundle {
 			break
 		}
 		pbc.Status.State = api.BundleControllerStateUpgradeAvailable
@@ -181,7 +181,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
 		}
 	case api.BundleControllerStateUpgradeAvailable:
-		if !latest {
+		if !latestBundleIsCurrentBundle {
 			break
 		}
 		pbc.Status.State = api.BundleControllerStateActive
