@@ -94,7 +94,7 @@ type BundleControllerStateEnum string
 const (
 	BundleControllerStateIgnored          BundleControllerStateEnum = "ignored"
 	BundleControllerStateActive           BundleControllerStateEnum = "active"
-	BundleControllerStateUpgradeAvailable BundleControllerStateEnum = "upgradeAvailable"
+	BundleControllerStateUpgradeAvailable BundleControllerStateEnum = "upgrade available"
 	BundleControllerStateDisconnected     BundleControllerStateEnum = "disconnected"
 )
 
