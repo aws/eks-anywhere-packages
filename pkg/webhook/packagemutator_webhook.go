@@ -118,7 +118,7 @@ func updateDefault(values map[string]interface{}, keySegments []string, index in
 	}
 
 	// Unique case, when there is a malformed package that doesn't conform to the json schema
-	// i.e. package contains tls: auto: "value" but json schema contains expose.tls.auto
+	// i.e. package contains expose: tls: "value" but json schema contains expose.tls.auto
 	if _, ok := values[key].(string); ok {
 		return
 	}
