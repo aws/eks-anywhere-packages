@@ -44,7 +44,7 @@ clean: ## Clean output directory, and the built binary
 
 build: ## Build release binary.
 	mkdir -p $(REPO_ROOT)/generatebundlefile/bin
-	$(GO) mod tidy -compat=1.17
+	$(GO) mod tidy
 	$(GO) build -o $(REPO_ROOT)/generatebundlefile/bin/generatebundlefile *.go
 
 build-linux:
