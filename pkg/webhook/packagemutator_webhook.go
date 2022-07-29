@@ -59,7 +59,11 @@ func (m *packageMutator) Handle(ctx context.Context, request admission.Request) 
 		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting json schema for package: %v", err))
 	}
 
-	setDefaults(p, jsonSchema)
+	err = setDefaults(p, jsonSchema)
+	if err != nil {
+		return admission.Errored(http.StatusInternalServerError,
+			fmt.Errorf("setting defaults: %w", err))
+	}
 	newPackage, err := json.Marshal(p)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("marshalling updating configurations to json: %v", err))
@@ -67,19 +71,29 @@ func (m *packageMutator) Handle(ctx context.Context, request admission.Request) 
 	return admission.PatchResponseFromRaw(request.Object.Raw, newPackage)
 }
 
-func setDefaults(p *v1alpha1.Package, jsonSchema []byte) {
-	currentConfigs, _ := p.GetValues()
+func setDefaults(p *v1alpha1.Package, jsonSchema []byte) error {
+	currentConfigs, err := p.GetValues()
+	if err != nil {
+		return err
+	}
 	// Update currentConfigs with Json Schema
 	schemaObj := &types.Schema{}
-	_ = json.Unmarshal(jsonSchema, schemaObj)
+	err = json.Unmarshal(jsonSchema, schemaObj)
+	if err != nil {
+		return fmt.Errorf("unmarshalling schema to an object %v", err)
+	}
 
 	for key, val := range schemaObj.Properties {
 		keySegments := strings.Split(key, ".")
 		updateDefault(currentConfigs, keySegments, 0, val.Default)
 	}
 
-	updatedConfigs, _ := yaml.Marshal(currentConfigs)
+	updatedConfigs, err := yaml.Marshal(currentConfigs)
+	if err != nil {
+		return fmt.Errorf("marshalling updated configurations to yaml %v", err)
+	}
 	p.Spec.Config = string(updatedConfigs)
+	return nil
 }
 
 func updateDefault(values map[string]interface{}, keySegments []string, index int, val string) {
