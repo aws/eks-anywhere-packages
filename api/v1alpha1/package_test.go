@@ -49,3 +49,28 @@ notactuallyyaml
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "error unmarshaling")
 }
+
+func TestPackage_GetFlattenedValuesSuccess(t *testing.T) {
+	provided := `
+make: willys
+models:
+- mb: "41"
+- cj2a:
+    year: "45"
+    day:
+    - month: 3
+  test: 12
+    `
+	expected := map[string]interface{}{
+		"make":                  "willys",
+		"models.mb":             "41",
+		"models.cj2a.year":      "45",
+		"models.cj2a.day.month": 3.,
+		"models.test":           12.,
+	}
+	ao := givenPackage(provided)
+
+	actual, err := ao.GetFlattenedValues()
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}

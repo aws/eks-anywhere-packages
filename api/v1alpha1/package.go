@@ -41,6 +41,16 @@ func (config *Package) flatten(originals map[string]interface{}) (values map[str
 			for nk, nv := range nm {
 				o[k+"."+nk] = nv
 			}
+		case []interface{}:
+			for _, e := range child {
+				switch ele := e.(type) {
+				case map[string]interface{}:
+					nm := config.flatten(ele)
+					for nk, nv := range nm {
+						o[k+"."+nk] = nv
+					}
+				}
+			}
 		default:
 			o[k] = v
 		}
