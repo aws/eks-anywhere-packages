@@ -432,7 +432,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to upgradeAvailable: oops")
+		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to upgrade available: oops")
 	})
 
 	t.Run("active to upgradeAvailable create error", func(t *testing.T) {

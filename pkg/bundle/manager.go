@@ -2,7 +2,6 @@ package bundle
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 	"sort"
 

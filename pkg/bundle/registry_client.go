@@ -3,7 +3,6 @@ package bundle
 import (
 	"bytes"
 	"context"
-	_ "embed"
 	"fmt"
 
 	"github.com/go-logr/logr"
