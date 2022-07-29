@@ -87,7 +87,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		assert.True(t, result.Requeue)
 	})
 
-	t.Run("process error", func(t *testing.T) {
+	t.Run("bundle manager process bundle controller error", func(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
@@ -108,7 +108,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		assert.True(t, result.Requeue)
 	})
 
-	t.Run("marks status ignored bogus name", func(t *testing.T) {
+	t.Run("marks status ignored for bogus package bundle controller name", func(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
@@ -142,7 +142,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		assert.False(t, result.Requeue)
 	})
 
-	t.Run("status error ignored bogus name", func(t *testing.T) {
+	t.Run("error marking status ignored for bogus package bundle controller name", func(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
@@ -168,7 +168,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		assert.False(t, result.Requeue)
 	})
 
-	t.Run("already ignored bogus name", func(t *testing.T) {
+	t.Run("ignore already ignored bogus package bundle controller", func(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()

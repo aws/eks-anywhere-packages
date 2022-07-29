@@ -14,7 +14,10 @@ import (
 	ctrlmocks "github.com/aws/eks-anywhere-packages/controllers/mocks"
 )
 
-const testBundleRegistry = "public.ecr.aws/j0a1m4z9"
+const (
+	testBundleRegistry   = "public.ecr.aws/j0a1m4z9"
+	testBundleRepository = "eks-anywhere-package-bundles"
+)
 
 func givenMockClient(t *testing.T) *ctrlmocks.MockClient {
 	goMockController := gomock.NewController(t)
@@ -55,7 +58,7 @@ func givenPackageBundleController() *api.PackageBundleController {
 			ActiveBundle: testBundleName,
 			Source: api.PackageBundleControllerSource{
 				Registry:   testBundleRegistry,
-				Repository: "eks-anywhere-package-bundles",
+				Repository: testBundleRepository,
 			},
 		},
 		Status: api.PackageBundleControllerStatus{
