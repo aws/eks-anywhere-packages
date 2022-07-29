@@ -13,37 +13,46 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 
-type DockerCredentials struct {
-	Username, Password, Server string
+type ECRAuth struct {
+	Username, Token, Registry string
 }
 
 const (
 	envRoleARN         = "AWS_ROLE_ARN"
 	envWebTokenFile    = "AWS_WEB_IDENTITY_TOKEN_FILE"
-	sessionName        = "dockercreds"
+	sessionName        = "GetECRTOKENSession"
 	sessionTimeSeconds = 1000
 )
 
-func GetDockerCredentials() (*DockerCredentials, error) {
+func GetECRCredentials() (*ECRAuth, error) {
 	svc := ecr.New(session.Must(session.NewSession()))
 	token, err := svc.GetAuthorizationToken(&ecr.GetAuthorizationTokenInput{})
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
-	// We expect the response to always be a single entry
-	auth := token.AuthorizationData[0]
+	if token == nil {
+		return nil, fmt.Errorf("response output from ECR was nil")
+	}
 
+	if len(token.AuthorizationData) == 0 {
+		return nil, fmt.Errorf("authorization data was empty")
+	}
+
+	auth := token.AuthorizationData[0]
 	decode, err := base64.StdEncoding.DecodeString(*auth.AuthorizationToken)
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
 	parts := strings.Split(string(decode), ":")
-	cred := DockerCredentials{
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("error parsing username and password from authorization token")
+	}
+	cred := ECRAuth{
 		Username: parts[0],
-		Password: parts[1],
-		Server:   *auth.ProxyEndpoint,
+		Token:    parts[1],
+		Registry: *auth.ProxyEndpoint,
 	}
 
 	return &cred, nil

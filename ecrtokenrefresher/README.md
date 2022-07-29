@@ -40,10 +40,8 @@ containers:
   - name: ...
     image: ...
     env:
-        - name: DOCKER_SECRET_NAME
+        - name: ECR_TOKEN_SECRET_NAME
           value: ecr-token
-        - name: TARGET_NAMESPACE
-          value: eksa-packages
         - name: AWS_REGION
           valueFrom:
             secretKeyRef:
@@ -70,13 +68,3 @@ by the webhook if the annotations are added to the container spec.
 Using the role arn and web identity token the program will assume the role with web identity and populate
 the standard AWS Credentials as environment variables before getting the ECR Token. Make sure the role has policy with 
 at minimum ecr:GetAuthorizationToken permissions set.
-
-## Key Environment Variables
-Other than AWS Credentials environment variables there are a couple of other important variables
-
-### DOCKER_SECRET_NAME
-This Environment Variable is the name of the secret that is being updated.
-
-### TARGET_NAMESPACE
-This Environment Variable takes a comma seperated list of all namespaces that the program is expected to update
-DOCKER_SECRET_NAME in. If DOCKER_SECRET_NAME does not exist in the namespace it will create it.

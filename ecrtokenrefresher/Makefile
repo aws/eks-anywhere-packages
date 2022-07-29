@@ -26,7 +26,7 @@ clean: ## Clean output directory, and the built binary
 build: ## Build Binary
 	mkdir -p $(REPO_ROOT)/ecrtokenrefresher/bin
 	$(GO) mod tidy -compat=1.17
-	$(GO) build -o $(REPO_ROOT)/ecrtokenrefresher/bin/ecr-refresh *.go
+	$(GO) build -o $(REPO_ROOT)/ecrtokenrefresher/bin/ecr-refresh $(REPO_ROOT)/ecrtokenrefresher/cmd/ecr-token-refresher/*.go
 
 build-linux:
 	[ -d bin ] || mkdir bin
