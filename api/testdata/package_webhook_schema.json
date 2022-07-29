@@ -4,7 +4,9 @@
   "title": "hello-eks-anywhere",
   "type": "object",
   "required": [
-    "subtitle"
+    "subtitle",
+    "nested.prop.test1",
+    "nested.prop.test2"
   ],
   "properties": {
     "sourceRegistry": {
@@ -20,6 +22,16 @@
     "title": {
       "type": "string",
       "default": "Amazon EKS Anywhere",
+      "description": "Container title."
+    },
+    "nested.prop.test1": {
+      "type": "string",
+      "default": "nested property test1",
+      "description": "Container title."
+    },
+    "nested.prop.test2": {
+      "type": "string",
+      "default": "nested property test2",
       "description": "Container title."
     }
   },
