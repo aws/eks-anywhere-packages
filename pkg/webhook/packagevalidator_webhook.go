@@ -16,13 +16,13 @@ package webhook
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"github.com/xeipuuv/gojsonschema"
 	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,10 +30,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-	"sigs.k8s.io/yaml"
-
-	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 )
 
 type packageValidator struct {
@@ -86,7 +82,7 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 }
 
 func (v *packageValidator) isPackageConfigValid(p *v1alpha1.Package, activeBundle *v1alpha1.PackageBundle) (bool, error) {
-	packageInBundle, err := getPackageInBundle(activeBundle, p.Spec.PackageName)
+	packageInBundle, err := activeBundle.GetPackageFromBundle(p.Spec.PackageName)
 	if err != nil {
 		return false, err
 	}
@@ -96,7 +92,7 @@ func (v *packageValidator) isPackageConfigValid(p *v1alpha1.Package, activeBundl
 		return false, fmt.Errorf("package %s does not contain any versions", p.Name)
 	}
 
-	jsonSchema, err := getPackagesJsonSchema(packageInBundle)
+	jsonSchema, err := packageInBundle.GetJsonSchema()
 	if err != nil {
 		return false, err
 	}
@@ -125,45 +121,17 @@ func validatePackage(p *v1alpha1.Package, jsonSchema []byte) (*gojsonschema.Resu
 		return nil, fmt.Errorf("error compiling schema %v", err)
 	}
 
-	packageConfig, err := yaml.YAMLToJSON([]byte(p.Spec.Config))
+	packageConfigurations, err := p.GetFlattenedValues()
+	if err != nil {
+		return nil, fmt.Errorf("error getting flattened values %v", err)
+	}
+	packageConfig, err := json.Marshal(packageConfigurations)
 	if err != nil {
 		return nil, fmt.Errorf("error converting package configurations to yaml %v", err)
 	}
 	configToValidate := gojsonschema.NewStringLoader(string(packageConfig))
 
 	return schema.Validate(configToValidate)
-}
-
-func getPackagesJsonSchema(bundlePackage *v1alpha1.BundlePackage) ([]byte, error) {
-	// The package configuration is gzipped and base64 encoded
-	// When processing the configuration, the reverse occurs: base64 decode, then unzip
-	configuration := bundlePackage.Source.Versions[0].Schema
-	decodedConfiguration, err := base64.StdEncoding.DecodeString(configuration)
-	if err != nil {
-		return nil, fmt.Errorf("error decoding configurations %v", err)
-	}
-
-	reader := bytes.NewReader(decodedConfiguration)
-	gzreader, err := gzip.NewReader(reader)
-	if err != nil {
-		return nil, fmt.Errorf("error when uncompressing configurations %v", err)
-	}
-
-	output, err := ioutil.ReadAll(gzreader)
-	if err != nil {
-		return nil, fmt.Errorf("error reading configurations %v", err)
-	}
-
-	return output, nil
-}
-
-func getPackageInBundle(activeBundle *v1alpha1.PackageBundle, packageName string) (*v1alpha1.BundlePackage, error) {
-	for _, p := range activeBundle.Spec.Packages {
-		if p.Name == packageName {
-			return &p, nil
-		}
-	}
-	return nil, fmt.Errorf("package %s not found", packageName)
 }
 
 // InjectDecoder injects the decoder.
