@@ -25,8 +25,6 @@ type packageMutator struct {
 	decoder      *admission.Decoder
 }
 
-var apilog = ctrl.Log.WithName("webhook")
-
 func InitPackageMutator(mgr ctrl.Manager) error {
 	mgr.GetWebhookServer().
 		Register("/mutate-packages-eks-amazonaws-com-v1alpha1-package",
@@ -38,7 +36,6 @@ func InitPackageMutator(mgr ctrl.Manager) error {
 }
 
 func (m *packageMutator) Handle(ctx context.Context, request admission.Request) admission.Response {
-	apilog.Info("Package Mutator Called!!")
 	p := &v1alpha1.Package{}
 	err := m.decoder.Decode(request, p)
 	if err != nil {
@@ -76,7 +73,8 @@ func setDefaults(p *v1alpha1.Package, jsonSchema []byte) error {
 	if err != nil {
 		return err
 	}
-	// Update currentConfigs with Json Schema
+
+	// Convert json schema to a GO struct
 	schemaObj := &types.Schema{}
 	err = json.Unmarshal(jsonSchema, schemaObj)
 	if err != nil {
@@ -88,6 +86,7 @@ func setDefaults(p *v1alpha1.Package, jsonSchema []byte) error {
 		updateDefault(currentConfigs, keySegments, 0, val.Default)
 	}
 
+	// After updating defaults, marshal the new configs in order to update the packages configuration
 	updatedConfigs, err := yaml.Marshal(currentConfigs)
 	if err != nil {
 		return fmt.Errorf("marshalling updated configurations to yaml %v", err)
@@ -97,12 +96,17 @@ func setDefaults(p *v1alpha1.Package, jsonSchema []byte) error {
 }
 
 func updateDefault(values map[string]interface{}, keySegments []string, index int, val string) {
+	// If no more data to process, consider all the defaults are set
 	if index >= len(keySegments) {
 		return
 	}
 
 	key := keySegments[index]
+
+	// When there is a single data point, no need to continue
+	// e.g. expose.tls.auto, no need to continue further when processing auto
 	if index == len(keySegments)-1 {
+		// We only need to update the values when the key doesn't already exist
 		if _, ok := values[key]; !ok {
 			if bVal, err := strconv.ParseBool(val); err == nil {
 				values[key] = bVal
@@ -112,9 +116,14 @@ func updateDefault(values map[string]interface{}, keySegments []string, index in
 		}
 		return
 	}
+
+	// Unique case, when there is a malformed package that doesn't conform to the json schema
+	// i.e. package contains tls: auto: "value" but json schema contains expose.tls.auto
 	if _, ok := values[key].(string); ok {
 		return
 	}
+
+	// We only need to update the values when the key doesn't exist
 	if _, ok := values[key]; !ok {
 		values[key] = map[string]interface{}{}
 	}
