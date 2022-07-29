@@ -4,18 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/eks-anywhere-packages/pkg/types"
 	"net/http"
+	"strconv"
+	"strings"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"sigs.k8s.io/yaml"
-	"strconv"
-	"strings"
 
 	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	"github.com/aws/eks-anywhere-packages/pkg/types"
 )
 
 type packageMutator struct {
@@ -50,10 +51,19 @@ func (m *packageMutator) Handle(ctx context.Context, request admission.Request) 
 		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting PackageBundle: %v", err))
 	}
 	packageInBundle, err := activeBundle.GetPackageFromBundle(p.Spec.PackageName)
+	if err != nil {
+		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting package from bundle: %v", err))
+	}
 	jsonSchema, err := packageInBundle.GetJsonSchema()
+	if err != nil {
+		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting json schema for package: %v", err))
+	}
 
 	setDefaults(p, jsonSchema)
 	newPackage, err := json.Marshal(p)
+	if err != nil {
+		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("marshalling updating configurations to json: %v", err))
+	}
 	return admission.PatchResponseFromRaw(request.Object.Raw, newPackage)
 }
 
