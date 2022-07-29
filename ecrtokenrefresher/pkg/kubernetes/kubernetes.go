@@ -109,7 +109,7 @@ func createECRAuthConfig(username, password string, server string) ([]byte, erro
 	}
 
 	configJson, err := json.Marshal(config)
-	if if err != nil {
+	if err != nil {
 		return nil, err
 	}
 	return configJson, nil
