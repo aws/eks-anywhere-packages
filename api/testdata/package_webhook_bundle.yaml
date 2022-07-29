@@ -12,7 +12,7 @@ spec:
         registry: public.ecr.aws/l0g8r8j6
         versions:
           - digest: sha256:9bbb33d027b17a5870c47a8b5f29276a84bbc263a1fa377fc9126282a63d85fd
-            schema: H4sIAAAAAAAAA61SsU7DMBDd8xVWxNjYJWO3CjGxIDoihotzSdw6sTk7qkLVf8dxXFTRAYEY/e69e+/ufMoYy+9UnW9Y3nlv3UaIDrU2BR5cAcN07JCQW5AHaNHxgHLo4cMMcHRcml442WEPfO/MkK9itwW57jgXi0Q01IqaoPGiXJfr4r5MHRaxV15jlN6ESITJxrqp9ij9ghG+j4pwHuI1vAPixmrpFJ5vkWPJWCSv0AXWKbHMSBJfsFXO0/SFX7kEXA1tdIl4jQ2M2s8lO1ZaSY6SeFiFuEma+E6Ssl6F5QTNLhoySo6sMcTSankeNefVtwF+F0qOBB7r4nKvf0jylxjb+EPY49OObX/ayYMZPKgBiUWni3uWEuRQ12rmgn6+PmED2mF2zrJPozjcx8ICAAA=
+            schema: H4sIAAAAAAAAA61SPW/CMBDd8yssqyNxICMbqjqxVGWsOhjnkhiM7Z4doRTx3+s4bhWBqoqWzX537927j1NGCH2QFV0S2npv3bIoWlDK5LB3Odf9sQUEZrnY8wYcCyjjB/5hND86JsyhcKKFA2c7ZzSdRbURmSoOwTwlGmyKCnnti3JezvNFmRRGspdeQaRemUgJvY1xs92B8COG8N5JhKGJ1/APiOu2o9Js/GtwHipm0Vjmw3vxU6CkAX+LqgMG6CW4oHtKuqZDAS/QSOex/8YnvgIudZPkA15BzTvlh5DttkoKBgJZGF5x1VvKdwKl9TKMM3A2sSDBVJHUBklaBqORc55dtHybKdEhDxPIvzZ8Byd/sbGKN0We1huy+m0mj0Z7LjUgiZUuql+v+jYnI5+k7fdkei7/9VLewUt5q5cs+aG8quSQy9Xz9LRrrhxk5yz7BM3TQQoMBAAA
             images:
               - digest: sha256:353c27c994f105643dc7455b824c38fcd69c2c203a644cdf6316544e61775a31
                 repository: hello-eks-anywhere
