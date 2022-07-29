@@ -198,7 +198,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		if err != nil {
 			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
 		}
-	case "":
+	default:
 		if pbc.Spec.ActiveBundle == "" {
 			pbc.Spec.ActiveBundle = latestBundle.Name
 		}
