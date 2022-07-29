@@ -47,7 +47,9 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 
 .PHONY: fmt
 fmt: ## Run gofmt against code.
-	gofmt -s -w $(shell find . -name '*go' | grep -v mock)
+	$(GO) install github.com/daixiang0/gci@v0.6.3
+	find . -name '*go' | grep -v mock | xargs gofmt -s -w
+	find . -name '*go' | grep -v mock | xargs gci write --skip-generated -s standard,default -s 'prefix(github.com/aws/eks-anywhere-packages)'
 
 .PHONY: lint
 lint: bin/golangci-lint ## Run golangci-lint
