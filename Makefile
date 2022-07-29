@@ -178,7 +178,7 @@ pkg/bundle/mocks/registry_client.go: pkg/bundle/registry_client.go
 
 pkg/packages/mocks/manager.go: pkg/packages/manager.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/packages/manager.go -destination=pkg/packages/mocks/registrmanagery_client.go -package=mocks Manager
+		$(MOCKGEN) -source pkg/packages/manager.go -destination=pkg/packages/mocks/manager.go -package=mocks Manager
 
 pkg/driver/mocks/packagedriver.go: pkg/driver/packagedriver.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
