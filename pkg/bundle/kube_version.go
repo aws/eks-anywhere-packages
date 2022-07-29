@@ -17,7 +17,7 @@ type kubeVersionClient struct {
 	kubeServerVersion discovery.ServerVersionInterface
 }
 
-func NewKubeVersionClient(serverVersion discovery.ServerVersionInterface) (manager *kubeVersionClient) {
+func NewKubeVersionClient(serverVersion discovery.ServerVersionInterface) (*kubeVersionClient) {
 	return &kubeVersionClient{
 		kubeServerVersion: serverVersion,
 	}
