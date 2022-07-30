@@ -70,7 +70,6 @@ func NewPackageReconciler(client client.Client, scheme *runtime.Scheme,
 
 func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	log := ctrl.Log.WithName(packageName)
-	helmDriver, err := driver.NewHelm(log)
 	if err != nil {
 		return fmt.Errorf("creating helm driver: %w", err)
 	}
@@ -80,6 +79,7 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	if err != nil {
 		return fmt.Errorf("creating discovery client: %s", err)
 	}
+	helmDriver, err := driver.NewHelm(log, cfg)
 	puller := artifacts.NewRegistryPuller()
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
 	bundleManager := bundle.NewBundleManager(log, discovery, puller, bundleClient)

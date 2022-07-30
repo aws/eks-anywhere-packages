@@ -15,6 +15,7 @@ import (
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/registry"
 	"helm.sh/helm/v3/pkg/storage/driver"
+	"k8s.io/client-go/rest"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
@@ -22,18 +23,19 @@ import (
 
 // helmDriver implements PackageDriver to install packages from Helm charts.
 type helmDriver struct {
-	cfg      *action.Configuration
-	log      logr.Logger
-	settings *cli.EnvSettings
+	cfg        *action.Configuration
+	secretAuth auth.Authenticator
+	log        logr.Logger
+	settings   *cli.EnvSettings
 }
 
 var _ PackageDriver = (*helmDriver)(nil)
 
-func NewHelm(log logr.Logger) (*helmDriver, error) {
+func NewHelm(log logr.Logger, k8sconfig *rest.Config) (*helmDriver, error) {
 	settings := cli.New()
 
 	// TODO Catch error here if not provided docker config or continue without an authfile if possible
-	secretAuth := auth.NewHelmSecret()
+	secretAuth := auth.NewECRSecret(k8sconfig)
 	authfile, _ := secretAuth.AuthFilename()
 	if authfile != "" {
 		registry.ClientOptCredentialsFile(authfile)
@@ -50,9 +52,10 @@ func NewHelm(log logr.Logger) (*helmDriver, error) {
 	}
 
 	return &helmDriver{
-		cfg:      cfg,
-		log:      log,
-		settings: settings,
+		cfg:        cfg,
+		secretAuth: secretAuth,
+		log:        log,
+		settings:   settings,
 	}, nil
 }
 
@@ -70,12 +73,25 @@ func (d *helmDriver) Install(ctx context.Context,
 		return fmt.Errorf("loading helm chart %s: %w", name, err)
 	}
 
+	// Update values with imagePullSecrets
+	secretvals, err := d.secretAuth.GetSecretValues(ctx)
+	if err == nil {
+		for key, val := range secretvals {
+			values[key] = val
+		}
+	}
+
 	// Check if there exists a matching helm release.
 	get := action.NewGet(d.cfg)
 	_, err = get.Run(name)
 	if err != nil {
 		if errors.Is(err, driver.ErrReleaseNotFound) {
-			return d.createRelease(ctx, install, helmChart, values)
+			err = d.createRelease(ctx, install, helmChart, values)
+			if err == nil {
+				// Update installed-namespaces on successful install
+				d.secretAuth.UpdateConfigMap(ctx, namespace, true)
+			}
+			return err
 		}
 		return fmt.Errorf("getting helm release %s: %w", name, err)
 	}
@@ -84,6 +100,9 @@ func (d *helmDriver) Install(ctx context.Context,
 	if err != nil {
 		return fmt.Errorf("upgrading helm chart %s: %w", name, err)
 	}
+
+	// Update installed-namespaces on successful install
+	d.secretAuth.UpdateConfigMap(ctx, namespace, true)
 
 	return nil
 }
@@ -105,6 +124,7 @@ func (d *helmDriver) createRelease(ctx context.Context,
 	install *action.Install, helmChart *chart.Chart, values map[string]interface{}) error {
 	_, err := install.RunWithContext(ctx, helmChart, values)
 	if err != nil {
+
 		return fmt.Errorf("installing helm chart %s: %w", install.ReleaseName, err)
 	}
 

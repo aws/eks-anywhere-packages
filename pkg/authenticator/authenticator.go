@@ -1,5 +1,7 @@
 package authenticator
 
+import "context"
+
 // DockerAuth Structure for the authentication file
 type DockerAuth struct {
 	Auths map[string]DockerAuthRegistry `json:"auths,omitempty"`
@@ -16,4 +18,8 @@ type DockerAuthRegistry struct {
 type Authenticator interface {
 	// AuthFilename Gets Authentication File Path for OCI Registry
 	AuthFilename() (string, error)
+
+	UpdateConfigMap(ctx context.Context, namespace string, add bool) error
+
+	GetSecretValues(ctx context.Context) (map[string]interface{}, error)
 }

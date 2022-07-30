@@ -3,6 +3,7 @@ package driver
 import (
 	"context"
 	"fmt"
+	"k8s.io/client-go/rest"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -43,7 +44,7 @@ func TestHelmChartURLIsPrefixed(t *testing.T) {
 }
 
 func TestNewHelm(t *testing.T) {
-	helm, err := NewHelm(logr.Discard())
+	helm, err := NewHelm(logr.Discard(), &rest.Config{})
 	assert.NoError(t, err)
 	assert.NotNil(t, helm.log)
 }
@@ -54,7 +55,7 @@ func TestIsConfigChanged(t *testing.T) {
 
 		ctx := context.Background()
 		values := map[string]interface{}{}
-		helm, err := NewHelm(logr.Discard())
+		helm, err := NewHelm(logr.Discard(), &rest.Config{})
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(fmt.Errorf("blah"))
 
@@ -72,7 +73,7 @@ func TestIsConfigChanged(t *testing.T) {
 		newValues := shallowCopy(t, origValues)
 		newValues["foo"] = foo + 1
 		rel := &release.Release{Config: newValues}
-		helm, err := NewHelm(logr.Discard())
+		helm, err := NewHelm(logr.Discard(), &rest.Config{})
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
 		helm.cfg.Releases.Driver = newMockReleasesDriver(rel, nil)
@@ -90,7 +91,7 @@ func TestIsConfigChanged(t *testing.T) {
 		origValues := map[string]interface{}{"foo": 1, "bar": true}
 		sameValues := shallowCopy(t, origValues)
 		rel := &release.Release{Config: sameValues}
-		helm, err := NewHelm(logr.Discard())
+		helm, err := NewHelm(logr.Discard(), &rest.Config{})
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
 		helm.cfg.Releases.Driver = newMockReleasesDriver(rel, nil)
