@@ -127,7 +127,7 @@ func createECRImageDetails(images ImageDetailsECR) (ImageDetailsBothECR, error) 
 	t := &ImageDetailsBothECR{}
 	//Check for empty structs, if non empty copy to new common struct for ECR imagedetails.
 	if reflect.DeepEqual(images.PublicImageDetails, ecrpublictypes.ImageDetail{}) {
-		if images.PrivateImageDetails.ImageDigest != nil && images.PrivateImageDetails.ImagePushedAt != nil && len(images.PrivateImageDetails.ImageTags) > 0 && images.PrivateImageDetails.RegistryId != nil && images.PrivateImageDetails.RepositoryName != nil {
+		if images.PrivateImageDetails.ImageDigest != nil && images.PrivateImageDetails.ImagePushedAt != nil && images.PrivateImageDetails.RegistryId != nil && images.PrivateImageDetails.RepositoryName != nil {
 			copier.Copy(&t, &images.PrivateImageDetails)
 			return *t, nil
 		}
