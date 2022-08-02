@@ -150,12 +150,12 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 	if err != nil {
 		return fmt.Errorf("getting bundle list: %s", err)
 	}
-	allBundles := knownBundles.Items
-	m.SortBundlesDescending(allBundles)
+	sortedBundles := knownBundles.Items
+	m.SortBundlesDescending(sortedBundles)
 
 	latestBundleIsKnown := false
 	latestBundleIsCurrentBundle := true
-	for _, b := range allBundles {
+	for _, b := range sortedBundles {
 		if b.Name == latestBundle.Name {
 			latestBundleIsKnown = true
 			break
