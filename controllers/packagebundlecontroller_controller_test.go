@@ -12,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/version"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -44,10 +45,10 @@ func givenPackageBundleController() api.PackageBundleController {
 func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 	t.Parallel()
 
-	kvc := bundleMocks.NewMockKubeVersionClient(gomock.NewController(t))
+	info := version.Info{Major: "1", Minor: "21+"}
 	rc := bundleMocks.NewMockRegistryClient(gomock.NewController(t))
 	bc := bundleMocks.NewMockClient(gomock.NewController(t))
-	bm := bundle.NewBundleManager(logr.Discard(), kvc, rc, bc)
+	bm := bundle.NewBundleManager(logr.Discard(), info, rc, bc)
 
 	controllerNN := types.NamespacedName{
 		Namespace: api.PackageNamespace,

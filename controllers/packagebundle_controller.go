@@ -69,10 +69,13 @@ func RegisterPackageBundleReconciler(mgr ctrl.Manager) error {
 	}
 	log := ctrl.Log.WithName(packageBundleName)
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
-	kvc := bundle.NewKubeVersionClient(discovery)
+	info, err := discovery.ServerVersion()
+	if err != nil {
+		return fmt.Errorf("getting server version: %w", err)
+	}
 	puller := artifacts.NewRegistryPuller()
 	registryClient := bundle.NewRegistryClient(puller)
-	bundleManager := bundle.NewBundleManager(log, kvc, registryClient, bundleClient)
+	bundleManager := bundle.NewBundleManager(log, *info, registryClient, bundleClient)
 	r := NewPackageBundleReconciler(mgr.GetClient(), mgr.GetScheme(), bundleClient, bundleManager, registryClient, log)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.PackageBundle{}).
