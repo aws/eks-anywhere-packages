@@ -66,6 +66,8 @@ func TestNewBundleGenerate(t *testing.T) {
 var testTagBundle string = "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214"
 var testShaBundle string = "sha256:d5467083c4d175e7e9bba823e95570d28fff86a2fbccb03f5ec3093db6f039be"
 var testImageMediaType string = "application/vnd.oci.image.manifest.v1+json"
+var testRegistryId string = "public.ecr.aws/eks-anywhere"
+var testRepositoryName string = "hello-eks-anywhere"
 
 func TestNewPackageFromInput(t *testing.T) {
 	client := newMockPublicRegistryClientBundle(nil)
@@ -81,6 +83,7 @@ func TestNewPackageFromInput(t *testing.T) {
 			testproject: Project{
 				Name:       "hello-eks-anywhere",
 				Repository: "hello-eks-anywhere",
+				Registry:   "public.ecr.aws/eks-anywhere",
 				Versions:   []Tag{},
 			},
 			wantErr: true,
@@ -90,6 +93,7 @@ func TestNewPackageFromInput(t *testing.T) {
 			testproject: Project{
 				Name:       "hello-eks-anywhere",
 				Repository: "hello-eks-anywhere",
+				Registry:   "public.ecr.aws/eks-anywhere",
 				Versions: []Tag{
 					{Name: testTagBundle},
 				},
@@ -99,6 +103,7 @@ func TestNewPackageFromInput(t *testing.T) {
 				Name: "hello-eks-anywhere",
 				Source: api.BundlePackageSource{
 					Repository: "hello-eks-anywhere",
+					Registry:   "public.ecr.aws/eks-anywhere",
 					Versions: []api.SourceVersion{
 						{
 							Name:   testTagBundle,
@@ -113,6 +118,7 @@ func TestNewPackageFromInput(t *testing.T) {
 			testproject: Project{
 				Name:       "hello-eks-anywhere",
 				Repository: "hello-eks-anywhere",
+				Registry:   "public.ecr.aws/eks-anywhere",
 				Versions: []Tag{
 					{Name: "latest"},
 				},
@@ -122,6 +128,7 @@ func TestNewPackageFromInput(t *testing.T) {
 				Name: "hello-eks-anywhere",
 				Source: api.BundlePackageSource{
 					Repository: "hello-eks-anywhere",
+					Registry:   "public.ecr.aws/eks-anywhere",
 					Versions: []api.SourceVersion{
 						{
 							Name:   testTagBundle,
@@ -139,9 +146,9 @@ func TestNewPackageFromInput(t *testing.T) {
 					publicRegistryClient: client,
 				},
 			}
-			got, err := clients.ecrPublicClient.NewPackageFromInput(tc.testproject)
+			got, err := clients.NewPackageFromInput(tc.testproject)
 			if (err != nil) != tc.wantErr {
-				tt.Fatalf("NewPackageFromInput() error = %v, wantErr %v", err, tc.wantErr)
+				tt.Fatalf("NewPackageFromInput() error = %v, wantErr %v got %v", err, tc.wantErr, got)
 			}
 			if !reflect.DeepEqual(got, tc.wantBundle) {
 				tt.Fatalf("NewPackageFromInput() = %#v\n\n\n, want %#v", got, tc.wantBundle)
@@ -304,6 +311,8 @@ func (r *mockPublicRegistryClientBundle) DescribeImages(ctx context.Context, par
 				ImageTags:              []string{testTagBundle},
 				ImageManifestMediaType: &testImageMediaType,
 				ImagePushedAt:          &testImagePushedAt,
+				RegistryId:             &testRegistryId,
+				RepositoryName:         &testRepositoryName,
 			},
 		},
 	}, nil

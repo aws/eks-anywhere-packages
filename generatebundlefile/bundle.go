@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"path"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
@@ -74,10 +75,22 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.Packag
 }
 
 // NewPackageFromInput finds the SHA tags for any images in your BundlePackage
-func (c *ecrPublicClient) NewPackageFromInput(project Project) (*api.BundlePackage, error) {
-	versionList, err := c.GetShaForPublicInputs(project)
-	if err != nil {
-		return nil, err
+func (c *SDKClients) NewPackageFromInput(project Project) (*api.BundlePackage, error) {
+	var versionList []api.SourceVersion
+	var err error
+	// Check bundle Input registry for ECR Public Registry
+	if strings.Contains(project.Registry, "public.ecr.aws") {
+		versionList, err = c.ecrPublicClient.GetShaForPublicInputs(project)
+		if err != nil {
+			return nil, err
+		}
+	}
+	// Check bundle Input registry for ECR Private Registry
+	if strings.Contains(project.Registry, "amazonaws.com") {
+		versionList, err = c.ecrClient.GetShaForInputs(project)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if len(versionList) < 1 {
 		return nil, fmt.Errorf("unable to find SHA sum for given input tag %v", project.Versions)
