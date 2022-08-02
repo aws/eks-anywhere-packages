@@ -89,7 +89,7 @@ func (d *helmDriver) Install(ctx context.Context,
 			err = d.createRelease(ctx, install, helmChart, values)
 			if err == nil {
 				// Update installed-namespaces on successful install
-				d.secretAuth.UpdateConfigMap(ctx, namespace, true)
+				err = d.secretAuth.UpdateConfigMap(ctx, namespace, true)
 			}
 			return err
 		}
@@ -102,7 +102,10 @@ func (d *helmDriver) Install(ctx context.Context,
 	}
 
 	// Update installed-namespaces on successful install
-	d.secretAuth.UpdateConfigMap(ctx, namespace, true)
+	err = d.secretAuth.UpdateConfigMap(ctx, namespace, true)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

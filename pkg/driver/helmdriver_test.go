@@ -3,7 +3,6 @@ package driver
 import (
 	"context"
 	"fmt"
-	"k8s.io/client-go/rest"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -11,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"helm.sh/helm/v3/pkg/kube"
 	"helm.sh/helm/v3/pkg/release"
+	"k8s.io/client-go/rest"
 )
 
 func TestHelmChartURLIsPrefixed(t *testing.T) {
