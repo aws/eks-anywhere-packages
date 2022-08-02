@@ -136,7 +136,6 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 	if err != nil {
 		m.log.Error(err, "Unable to get latest bundle")
 		if pbc.Status.State == api.BundleControllerStateActive {
-			m.log.Error(err, "marking disconnected")
 			pbc.Status.State = api.BundleControllerStateDisconnected
 			err = m.bundleClient.SaveStatus(ctx, pbc)
 			if err != nil {
