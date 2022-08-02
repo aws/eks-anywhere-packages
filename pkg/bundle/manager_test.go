@@ -45,7 +45,7 @@ func mockGetBundleList(_ context.Context, bundles *api.PackageBundleList) error 
 				Namespace: "eksa-packages",
 			},
 			Status: api.PackageBundleStatus{
-				State: api.PackageBundleStateInactive,
+				State: api.PackageBundleStateAvailable,
 			},
 		},
 	}
@@ -63,23 +63,10 @@ func givenBundleManager(t *testing.T) (version.Info, *bundleMocks.MockRegistryCl
 func TestProcessBundle(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("isActive error", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateInactive)
-		bc.EXPECT().IsActive(ctx, bundle).Return(false, fmt.Errorf("oops"))
-
-		update, err := bm.ProcessBundle(ctx, bundle)
-
-		assert.False(t, update)
-		assert.EqualError(t, err, "getting active bundle: oops")
-	})
-
 	t.Run("ignore other namespaces", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateInactive)
+		_, _, _, bm := givenBundleManager(t)
+		bundle := GivenBundle("")
 		bundle.Namespace = "billy"
-		bundle.Name = testNextBundleName
-		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 
 		update, err := bm.ProcessBundle(ctx, bundle)
 
@@ -88,38 +75,22 @@ func TestProcessBundle(t *testing.T) {
 		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
 	})
 
-	t.Run("ignore incompatible Kubernetes version", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateInactive)
-		bundle.Name = "v1-01-1"
-		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
-
-		update, err := bm.ProcessBundle(ctx, bundle)
-
-		assert.True(t, update)
-		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateIgnoredVersion, bundle.Status.State)
-	})
-
-	t.Run("already ignored incompatible Kubernetes version", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateInactive)
-		bundle.Name = "v1-01-1"
-		bundle.Status.State = api.PackageBundleStateIgnoredVersion
-		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
+	t.Run("already ignore other namespaces", func(t *testing.T) {
+		_, _, _, bm := givenBundleManager(t)
+		bundle := GivenBundle(api.PackageBundleStateIgnored)
+		bundle.Namespace = "billy"
 
 		update, err := bm.ProcessBundle(ctx, bundle)
 
 		assert.False(t, update)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateIgnoredVersion, bundle.Status.State)
+		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
 	})
 
 	t.Run("ignore invalid Kubernetes version", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateInactive)
+		_, _, _, bm := givenBundleManager(t)
+		bundle := GivenBundle(api.PackageBundleStateAvailable)
 		bundle.Name = "v1-21-x"
-		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
 
 		update, err := bm.ProcessBundle(ctx, bundle)
 
@@ -128,124 +99,27 @@ func TestProcessBundle(t *testing.T) {
 		assert.Equal(t, api.PackageBundleStateInvalidVersion, bundle.Status.State)
 	})
 
-	t.Run("ignored is ignored", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateIgnored)
-		bundle.Namespace = "billy"
-		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
-
-		update, err := bm.ProcessBundle(ctx, bundle)
-
-		assert.False(t, update)
-		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateIgnored, bundle.Status.State)
-	})
-
-	t.Run("marks state active", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateInactive)
-		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
-		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleListNone)
+	t.Run("marks state available", func(t *testing.T) {
+		_, _, _, bm := givenBundleManager(t)
+		bundle := GivenBundle("")
 
 		update, err := bm.ProcessBundle(ctx, bundle)
 
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
+		assert.Equal(t, api.PackageBundleStateAvailable, bundle.Status.State)
 	})
 
-	t.Run("marks state inactive", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateActive)
+	t.Run("already marked state available", func(t *testing.T) {
+		_, _, _, bm := givenBundleManager(t)
+		bundle := GivenBundle(api.PackageBundleStateAvailable)
 		bundle.Name = testPreviousBundleName
-		bc.EXPECT().IsActive(ctx, bundle).Return(false, nil)
-
-		update, err := bm.ProcessBundle(ctx, bundle)
-
-		assert.True(t, update)
-		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
-	})
-
-	t.Run("leaves state as-is (inactive)", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateInactive)
-		bundle.Name = testPreviousBundleName
-		bc.EXPECT().IsActive(ctx, bundle).Return(false, nil)
 
 		update, err := bm.ProcessBundle(ctx, bundle)
 
 		assert.False(t, update)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateInactive, bundle.Status.State)
-	})
-
-	t.Run("leaves state as-is (active) empty list", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateActive)
-		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
-		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleListNone)
-
-		update, err := bm.ProcessBundle(ctx, bundle)
-
-		assert.False(t, update)
-		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
-	})
-
-	t.Run("leaves state as-is (active)", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateActive)
-		bundle.Status.State = api.PackageBundleStateActive
-		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
-		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
-
-		update, err := bm.ProcessBundle(ctx, bundle)
-
-		assert.False(t, update)
-		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateActive, bundle.Status.State)
-	})
-
-	t.Run("marks state upgrade available", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateActive)
-		bundle.Name = testNextBundleName
-		bundle.Status.State = api.PackageBundleStateActive
-		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
-		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
-
-		update, err := bm.ProcessBundle(ctx, bundle)
-
-		assert.True(t, update)
-		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
-	})
-
-	t.Run("leaves state as-is (upgrade available)", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateUpgradeAvailable)
-		bundle.Name = testNextBundleName
-		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
-		bc.EXPECT().GetBundleList(ctx, gomock.Any()).DoAndReturn(mockGetBundleList)
-
-		update, err := bm.ProcessBundle(ctx, bundle)
-
-		assert.False(t, update)
-		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateUpgradeAvailable, bundle.Status.State)
-	})
-
-	t.Run("get bundle list error", func(t *testing.T) {
-		_, _, bc, bm := givenBundleManager(t)
-		bundle := GivenBundle(api.PackageBundleStateActive)
-		bc.EXPECT().IsActive(ctx, bundle).Return(true, nil)
-		bc.EXPECT().GetBundleList(ctx, gomock.Any()).Return(fmt.Errorf("oops"))
-
-		update, err := bm.ProcessBundle(ctx, bundle)
-
-		assert.False(t, update)
-		assert.EqualError(t, err, "getting bundle list: oops")
+		assert.Equal(t, api.PackageBundleStateAvailable, bundle.Status.State)
 	})
 }
 
@@ -274,7 +148,7 @@ func TestSortBundleNewestFirst(t *testing.T) {
 					Name: "v1-16-1003",
 				},
 				Status: api.PackageBundleStatus{
-					State: api.PackageBundleStateInactive,
+					State: api.PackageBundleStateAvailable,
 				},
 			},
 			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_one.yaml"),

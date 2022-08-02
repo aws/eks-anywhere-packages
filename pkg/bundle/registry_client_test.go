@@ -127,7 +127,7 @@ func TestBundleManager_LatestBundle(t *testing.T) {
 
 	t.Run("latest bundle", func(t *testing.T) {
 		puller := testutil.NewMockPuller()
-		bundle := GivenBundle(api.PackageBundleStateInactive)
+		bundle := GivenBundle(api.PackageBundleStateAvailable)
 
 		bundle.Namespace = "billy"
 		bm := NewRegistryClient(puller)
