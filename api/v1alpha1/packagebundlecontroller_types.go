@@ -92,9 +92,10 @@ func (s *PackageBundleControllerSource) BaseRef() (baseRef string) {
 type BundleControllerStateEnum string
 
 const (
-	BundleControllerStateIgnored      BundleControllerStateEnum = "ignored"
-	BundleControllerStateActive       BundleControllerStateEnum = "active"
-	BundleControllerStateDisconnected BundleControllerStateEnum = "disconnected"
+	BundleControllerStateIgnored          BundleControllerStateEnum = "ignored"
+	BundleControllerStateActive           BundleControllerStateEnum = "active"
+	BundleControllerStateUpgradeAvailable BundleControllerStateEnum = "upgrade available"
+	BundleControllerStateDisconnected     BundleControllerStateEnum = "disconnected"
 )
 
 // PackageBundleControllerStatus defines the observed state of

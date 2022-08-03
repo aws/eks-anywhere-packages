@@ -62,9 +62,14 @@ func RegisterPackageBundleControllerReconciler(mgr ctrl.Manager) error {
 	if err != nil {
 		return fmt.Errorf("creating discovery client: %s", err)
 	}
-	puller := artifacts.NewRegistryPuller()
+	info, err := discovery.ServerVersion()
+	if err != nil {
+		return fmt.Errorf("getting server version: %w", err)
+	}
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
-	bm := bundle.NewBundleManager(log, discovery, puller, bundleClient)
+	puller := artifacts.NewRegistryPuller()
+	registryClient := bundle.NewRegistryClient(puller)
+	bm := bundle.NewBundleManager(log, *info, registryClient, bundleClient)
 	reconciler := NewPackageBundleControllerReconciler(mgr.GetClient(),
 		mgr.GetScheme(), bm, log)
 	return ctrl.NewControllerManagedBy(mgr).
@@ -109,51 +114,18 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 			r.Log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 			err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
 			if err != nil {
-				return withoutRequeue(result), fmt.Errorf("updating status to ignored: %s", err)
+				r.Log.Error(err, "updating ignored status")
+				return withoutRequeue(result), nil
 			}
 		}
 		return withoutRequeue(result), nil
 	}
 
 	result.RequeueAfter = pbc.Spec.UpgradeCheckShortInterval.Duration
-	latestBundle, err := r.bundleManager.LatestBundle(ctx, pbc.Spec.Source.BaseRef())
+	err = r.bundleManager.ProcessBundleController(ctx, pbc)
 	if err != nil {
-		r.Log.Error(err, "Unable to get latest bundle")
-		if pbc.Status.State == api.BundleControllerStateActive {
-			pbc.Status.State = api.BundleControllerStateDisconnected
-			r.Log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
-			err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
-			if err != nil {
-				return result, fmt.Errorf("updating status to disconnected: %s", err)
-			}
-		}
+		r.Log.Error(err, "processing bundle controller")
 		return result, nil
-	}
-
-	err = r.bundleManager.ProcessLatestBundle(ctx, latestBundle)
-	if err != nil {
-		return result, fmt.Errorf("processing latest bundle: %s", err)
-	}
-
-	switch pbc.Status.State {
-	case api.BundleControllerStateActive:
-	case api.BundleControllerStateDisconnected:
-		pbc.Status.State = api.BundleControllerStateActive
-		r.Log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
-		err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
-		if err != nil {
-			return result, fmt.Errorf("updating status to disconnected: %s", err)
-		}
-	case "":
-		if pbc.Spec.ActiveBundle == "" {
-			pbc.Spec.ActiveBundle = latestBundle.Name
-		}
-		pbc.Status.State = api.BundleControllerStateActive
-		r.Log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
-		err = r.Client.Update(ctx, pbc, &client.UpdateOptions{})
-		if err != nil {
-			return result, fmt.Errorf("updating status to disconnected: %s", err)
-		}
 	}
 
 	result.RequeueAfter = pbc.Spec.UpgradeCheckInterval.Duration
