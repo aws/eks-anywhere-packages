@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,7 +27,7 @@ type auth struct {
 
 const (
 	defaultEmail      = "test@test.com"
-	configMapName     = "installed-namespaces"
+	configMapName     = "ns-secret-map"
 	packagesNamespace = "eksa-packages"
 )
 
@@ -134,7 +133,10 @@ func getNamespacesFromConfigMap(clientset *kubernetes.Clientset) ([]string, erro
 	if err != nil {
 		return nil, err
 	}
-	values := strings.Split(cm.Data["NAMESPACES"], ",")
+	values := make([]string, 0)
+	for ns := range cm.Data {
+		values = append(values, ns)
+	}
 
 	return values, err
 }
