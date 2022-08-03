@@ -35,7 +35,7 @@ func GivenBundle() *api.PackageBundle {
 			Namespace: api.PackageNamespace,
 		},
 		Status: api.PackageBundleStatus{
-			State: api.PackageBundleStateActive,
+			State: api.PackageBundleStateAvailable,
 		},
 	}
 }

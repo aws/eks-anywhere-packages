@@ -110,6 +110,12 @@ func (config *PackageBundle) KubeVersionMatches(targetKubeVersion string) (match
 	return currKubeMajor == targetKubeMajor && currKubeMinor == targetKubeMinor, nil
 }
 
+// IsValidVersion returns true if the bundle version is valid
+func (config *PackageBundle) IsValidVersion() bool {
+	_, _, _, err := config.getMajorMinorBuild()
+	return err == nil
+}
+
 func (s PackageOCISource) AsRepoURI() string {
 	return path.Join(s.Registry, s.Repository)
 }

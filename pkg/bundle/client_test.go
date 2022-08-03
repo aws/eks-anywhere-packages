@@ -89,7 +89,7 @@ func TestBundleClient_IsActive(t *testing.T) {
 	t.Run("golden path returning true", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-		bundle := GivenBundle(api.PackageBundleStateInactive)
+		bundle := GivenBundle(api.PackageBundleStateAvailable)
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
 
 		active, err := bundleClient.IsActive(ctx, bundle)
@@ -101,7 +101,7 @@ func TestBundleClient_IsActive(t *testing.T) {
 	t.Run("error on failed get", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-		bundle := GivenBundle(api.PackageBundleStateInactive)
+		bundle := GivenBundle(api.PackageBundleStateAvailable)
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).Return(fmt.Errorf("failed get"))
 
 		_, err := bundleClient.IsActive(ctx, bundle)
@@ -117,7 +117,7 @@ func TestBundleClient_IsActive(t *testing.T) {
 				Namespace: "Wrong-Name",
 			},
 			Status: api.PackageBundleStatus{
-				State: api.PackageBundleStateActive,
+				State: api.PackageBundleStateAvailable,
 			},
 		}
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
@@ -137,7 +137,7 @@ func TestBundleClient_IsActive(t *testing.T) {
 				Namespace: api.PackageNamespace,
 			},
 			Status: api.PackageBundleStatus{
-				State: api.PackageBundleStateActive,
+				State: api.PackageBundleStateAvailable,
 			},
 		}
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
