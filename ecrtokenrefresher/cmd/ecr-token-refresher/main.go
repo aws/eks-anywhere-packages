@@ -10,10 +10,8 @@ import (
 )
 
 const (
-	envVarAwsSecret       = "ECR_TOKEN_SECRET_NAME"
-	envVarTargetNamespace = "TARGET_NAMESPACE"
-	envVarRegistries      = "DOCKER_REGISTRIES"
-	envVarIRSAToken       = "AWS_WEB_IDENTITY_TOKEN_FILE"
+	envVarAwsSecret = "ECR_TOKEN_SECRET_NAME"
+	envVarIRSAToken = "AWS_WEB_IDENTITY_TOKEN_FILE"
 )
 
 func checkErrAndLog(err error, logger *log.Logger) {
