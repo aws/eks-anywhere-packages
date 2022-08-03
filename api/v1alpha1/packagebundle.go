@@ -114,6 +114,15 @@ func (config *PackageBundle) KubeVersionMatches(targetKubeVersion string) (match
 	return currKubeMajor == targetKubeMajor && currKubeMinor == targetKubeMinor, nil
 }
 
+func (config *PackageBundle) GetPackageFromBundle(packageName string) (*BundlePackage, error) {
+	for _, p := range config.Spec.Packages {
+		if p.Name == packageName {
+			return &p, nil
+		}
+	}
+	return nil, fmt.Errorf("package %s not found", packageName)
+}
+
 // IsValidVersion returns true if the bundle version is valid
 func (config *PackageBundle) IsValidVersion() bool {
 	_, _, _, err := config.getMajorMinorBuild()

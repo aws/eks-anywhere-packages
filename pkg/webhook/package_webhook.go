@@ -16,11 +16,8 @@ package webhook
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/xeipuuv/gojsonschema"
@@ -132,38 +129,6 @@ func validatePackage(p *v1alpha1.Package, jsonSchema []byte) (*gojsonschema.Resu
 	configToValidate := gojsonschema.NewStringLoader(string(packageConfig))
 
 	return schema.Validate(configToValidate)
-}
-
-func getPackagesJsonSchema(bundlePackage *v1alpha1.BundlePackage) ([]byte, error) {
-	// The package configuration is gzipped and base64 encoded
-	// When processing the configuration, the reverse occurs: base64 decode, then unzip
-	configuration := bundlePackage.Source.Versions[0].Schema
-	decodedConfiguration, err := base64.StdEncoding.DecodeString(configuration)
-	if err != nil {
-		return nil, fmt.Errorf("error decoding configurations %v", err)
-	}
-
-	reader := bytes.NewReader(decodedConfiguration)
-	gzreader, err := gzip.NewReader(reader)
-	if err != nil {
-		return nil, fmt.Errorf("error when uncompressing configurations %v", err)
-	}
-
-	output, err := ioutil.ReadAll(gzreader)
-	if err != nil {
-		return nil, fmt.Errorf("error reading configurations %v", err)
-	}
-
-	return output, nil
-}
-
-func getPackageInBundle(activeBundle *v1alpha1.PackageBundle, packageName string) (*v1alpha1.BundlePackage, error) {
-	for _, p := range activeBundle.Spec.Packages {
-		if p.Name == packageName {
-			return &p, nil
-		}
-	}
-	return nil, fmt.Errorf("package %s not found", packageName)
 }
 
 // InjectDecoder injects the decoder.
