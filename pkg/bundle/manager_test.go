@@ -32,11 +32,6 @@ func GivenBundle(state api.PackageBundleStateEnum) *api.PackageBundle {
 	}
 }
 
-func mockGetBundleListNone(_ context.Context, bundles *api.PackageBundleList) error {
-	bundles.Items = []api.PackageBundle{}
-	return nil
-}
-
 func mockGetBundleList(_ context.Context, bundles *api.PackageBundleList) error {
 	bundles.Items = []api.PackageBundle{
 		{
