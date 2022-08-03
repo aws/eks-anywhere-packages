@@ -86,7 +86,7 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 }
 
 func (v *packageValidator) isPackageConfigValid(p *v1alpha1.Package, activeBundle *v1alpha1.PackageBundle) (bool, error) {
-	packageInBundle, err := getPackageInBundle(activeBundle, p.Spec.PackageName)
+	packageInBundle, err := activeBundle.GetPackageFromBundle(p.Spec.PackageName)
 	if err != nil {
 		return false, err
 	}
@@ -96,7 +96,7 @@ func (v *packageValidator) isPackageConfigValid(p *v1alpha1.Package, activeBundl
 		return false, fmt.Errorf("package %s does not contain any versions", p.Name)
 	}
 
-	jsonSchema, err := getPackagesJsonSchema(packageInBundle)
+	jsonSchema, err := packageInBundle.GetJsonSchema()
 	if err != nil {
 		return false, err
 	}

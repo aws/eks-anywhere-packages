@@ -408,3 +408,104 @@ func TestIsNewer(t *testing.T) {
 		}
 	})
 }
+
+func TestGetPackageFromBundle(t *testing.T) {
+	givenBundle := func(versions []api.SourceVersion) api.PackageBundle {
+		return api.PackageBundle{
+			Spec: api.PackageBundleSpec{
+				Packages: []api.BundlePackage{
+					{
+						Name: "hello-eks-anywhere",
+						Source: api.BundlePackageSource{
+							Registry:   "public.ecr.aws/l0g8r8j6",
+							Repository: "hello-eks-anywhere",
+							Versions:   versions,
+						},
+					},
+				},
+			},
+		}
+	}
+
+	t.Run("Get Package from bundle succeeds", func(t *testing.T) {
+
+		bundle := givenBundle(
+			[]api.SourceVersion{
+				{
+					Name:   "0.1.0",
+					Digest: "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
+				},
+			},
+		)
+
+		result, err := bundle.GetPackageFromBundle("hello-eks-anywhere")
+
+		assert.Nil(t, err)
+		assert.Equal(t, bundle.Spec.Packages[0].Name, result.Name)
+	})
+
+	t.Run("Get Package from bundle fails", func(t *testing.T) {
+
+		bundle := givenBundle(
+			[]api.SourceVersion{
+				{
+					Name:   "0.1.0",
+					Digest: "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
+				},
+			},
+		)
+
+		_, err := bundle.GetPackageFromBundle("harbor")
+
+		assert.NotNil(t, err)
+	})
+}
+
+func TestGetJsonSchemFromBundlePackage(t *testing.T) {
+	givenBundle := func(versions []api.SourceVersion) api.PackageBundle {
+		return api.PackageBundle{
+			Spec: api.PackageBundleSpec{
+				Packages: []api.BundlePackage{
+					{
+						Name: "hello-eks-anywhere",
+						Source: api.BundlePackageSource{
+							Versions: versions,
+						},
+					},
+				},
+			},
+		}
+	}
+
+	t.Run("Get json schema from bundle succeeds", func(t *testing.T) {
+
+		bundle := givenBundle(
+			[]api.SourceVersion{
+				{
+					Schema: "H4sIAAAAAAAAA5VQvW7DIBDe/RQIdawh9ZgtqjplqZonuOCzTYIBHViRG+XdizGNImWoun7/d9eKMf6iW75lfIjRh62UAxrjajyHGux8GZBQeFBn6DGIhAoY4dtZuASh3CiDGnAEcQrO8tectiKPiQtZF6GjXrYEXZTNptnUb01JWM1RR4PZ+jSiCGafeXc8oYor5sl5pKgxJOaakIQFN5HCL+x1iDTf8YeEhGvb54SMt9jBZOJC+elotBKoSKQz5dOKog+KtI86HZ48h1zIqDSyzhErbxM8e26r9X7jfxbt8s/Zx/7Adn8teXc2grZILDf9tldlAYe21YsWzOfj4zowAatb9QNC+U5rEwIAAA==",
+				},
+			},
+		)
+		expected := "{\n  \"$id\": \"https://hello-eks-anywhere.packages.eks.amazonaws.com/schema.json\",\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"title\": \"hello-eks-anywhere\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"sourceRegistry\": {\n      \"type\": \"string\",\n      \"default\": \"public.ecr.aws/eks-anywhere\",\n      \"description\": \"Source registry for package.\"\n    },\n    \"title\": {\n      \"type\": \"string\",\n      \"default\": \"Amazon EKS Anywhere\",\n      \"description\": \"Container title.\"\n    }\n  },\n  \"additionalProperties\": false\n}\n"
+
+		packageBundle := bundle.Spec.Packages[0]
+		schema, err := packageBundle.GetJsonSchema()
+
+		assert.Nil(t, err)
+		assert.Equal(t, expected, string(schema))
+	})
+
+	t.Run("Get json schema from bundle fails when not compressed", func(t *testing.T) {
+		bundle := givenBundle(
+			[]api.SourceVersion{
+				{
+					Schema: "ewogICIkaWQiOiAiaHR0cHM6Ly9oZWxsby1la3MtYW55d2hlcmUucGFja2FnZXMuZWtzLmFtYXpvbmF3cy5jb20vc2NoZW1hLmpzb24iLAogICIkc2NoZW1hIjogImh0dHBzOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LzIwMjAtMTIvc2NoZW1hIiwKICAidGl0bGUiOiAiaGVsbG8tZWtzLWFueXdoZXJlIiwKICAidHlwZSI6ICJvYmplY3QiLAogICJwcm9wZXJ0aWVzIjogewogICAgInNvdXJjZVJlZ2lzdHJ5IjogewogICAgICAidHlwZSI6ICJzdHJpbmciLAogICAgICAiZGVmYXVsdCI6ICJwdWJsaWMuZWNyLmF3cy9la3MtYW55d2hlcmUiLAogICAgICAiZGVzY3JpcHRpb24iOiAiU291cmNlIHJlZ2lzdHJ5IGZvciBwYWNrYWdlLiIKICAgIH0sCiAgICAidGl0bGUiOiB7CiAgICAgICJ0eXBlIjogInN0cmluZyIsCiAgICAgICJkZWZhdWx0IjogIkFtYXpvbiBFS1MgQW55d2hlcmUiLAogICAgICAiZGVzY3JpcHRpb24iOiAiQ29udGFpbmVyIHRpdGxlLiIKICAgIH0KICB9LAp9Cg==",
+				},
+			},
+		)
+		packageBundle := bundle.Spec.Packages[0]
+		_, err := packageBundle.GetJsonSchema()
+
+		assert.NotNil(t, err)
+	})
+}

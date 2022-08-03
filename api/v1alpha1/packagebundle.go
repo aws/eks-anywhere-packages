@@ -1,7 +1,11 @@
 package v1alpha1
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"strconv"
 	"strings"
@@ -150,6 +154,29 @@ func (s BundlePackageSource) PackageMatches(other BundlePackageSource) bool {
 	}
 
 	return true
+}
+
+func (bp *BundlePackage) GetJsonSchema() ([]byte, error) {
+	// The package configuration is gzipped and base64 encoded
+	// When processing the configuration, the reverse occurs: base64 decode, then unzip
+	configuration := bp.Source.Versions[0].Schema
+	decodedConfiguration, err := base64.StdEncoding.DecodeString(configuration)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding configurations %v", err)
+	}
+
+	reader := bytes.NewReader(decodedConfiguration)
+	gzreader, err := gzip.NewReader(reader)
+	if err != nil {
+		return nil, fmt.Errorf("error when uncompressing configurations %v", err)
+	}
+
+	output, err := ioutil.ReadAll(gzreader)
+	if err != nil {
+		return nil, fmt.Errorf("error reading configurations %v", err)
+	}
+
+	return output, nil
 }
 
 func (v SourceVersion) Key() string {

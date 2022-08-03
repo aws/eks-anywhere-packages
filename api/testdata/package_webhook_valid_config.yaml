@@ -9,3 +9,5 @@ spec:
     sourceRegistry: "public.ecr.aws/dev"
     title: "Amazon EKS Anywhere"
     subtitle: "Run EKS in your datacenter"
+    nested:
+      test: "nodePort"
