@@ -137,7 +137,7 @@ func ParseInputConfig(fileName string, inputConfig *Input) error {
 	return fmt.Errorf("cluster spec file %s is invalid or does not contain kind %v", fileName, inputConfig)
 }
 
-func (c *ecrPublicClient) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, string, error) {
+func (c *SDKClients) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, string, error) {
 	packageBundleSpec := api.PackageBundleSpec{}
 	if Input.Name == "" || Input.KubernetesVersion == "" {
 		return packageBundleSpec, "", fmt.Errorf("error: Empty input field from `Name` or `KubernetesVersion`.")

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	"gopkg.in/yaml.v2"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -96,6 +97,16 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
+	conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
+	if err != nil {
+		BundleLog.Error(err, "loading default AWS config: %w", err)
+		os.Exit(1)
+	}
+	ecrClient := ecr.NewFromConfig(conf)
+	clients.ecrClient, err = NewECRClient(ecrClient, true)
+	if err != nil {
+		os.Exit(1)
+	}
 	for _, f := range files {
 		Inputs, err := ValidateInputConfig(f)
 		if err != nil {
@@ -124,7 +135,7 @@ func main() {
 		}
 
 		BundleLog.Info("In Progress: Populating Bundles and looking up Sha256 tags")
-		addOnBundleSpec, name, err := clients.ecrPublicClient.NewBundleFromInput(Inputs)
+		addOnBundleSpec, name, err := clients.NewBundleFromInput(Inputs)
 		if err != nil {
 			BundleLog.Error(err, "Unable to create bundle from input file")
 			os.Exit(1)
