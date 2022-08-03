@@ -108,10 +108,6 @@ type Image struct {
 	Digest     string `json:"digest,omitempty"`
 }
 
-type Values struct {
-	SourceRegistry string `json:"sourceRegistry,omitempty"`
-}
-
 type DockerAuth struct {
 	Auths map[string]DockerAuthRegistry `json:"auths,omitempty"`
 }
