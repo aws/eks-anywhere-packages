@@ -17,9 +17,11 @@ type DockerAuthRegistry struct {
 // For this first implementation, kubernetes secrets will be used to pass in a token
 type Authenticator interface {
 	// AuthFilename Gets Authentication File Path for OCI Registry
-	AuthFilename() (string, error)
+	AuthFilename() string
 
-	UpdateConfigMap(ctx context.Context, namespace string, add bool) error
+	// UpdateConfigMap Updates Config Map of namespaces with name of the installation
+	UpdateConfigMap(ctx context.Context, name string, namespace string, add bool) error
 
-	GetSecretValues(ctx context.Context) (map[string]interface{}, error)
+	// GetSecretValues Retrieves ImagePullSecrets data to pass to helm chart
+	GetSecretValues(ctx context.Context, namespace string) (map[string]interface{}, error)
 }

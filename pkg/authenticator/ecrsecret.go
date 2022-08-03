@@ -3,6 +3,7 @@ package authenticator
 import (
 	"context"
 	b64 "encoding/base64"
+	"fmt"
 	"os"
 	"strings"
 
@@ -14,58 +15,66 @@ import (
 
 const (
 	varPackagesNamespace = "eksa-packages"
-	varConfigMapName     = "installed-namespaces"
-	varConfigMapKey      = "NAMESPACES"
+	varConfigMapName     = "ns-secret-map"
 	varECRTokenName      = "ecr-token"
 )
 
 type ecrSecret struct {
-	clientset kubernetes.Interface
+	clientset    kubernetes.Interface
+	nsReleaseMap map[string]string
 }
 
 var _ Authenticator = (*ecrSecret)(nil)
 
-func NewECRSecret(config *rest.Config) *ecrSecret {
-	clientset, _ := kubernetes.NewForConfig(config)
-
-	return &ecrSecret{
-		clientset: clientset,
+func NewECRSecret(config *rest.Config) (*ecrSecret, error) {
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
 	}
+	cm, err := clientset.CoreV1().ConfigMaps(varPackagesNamespace).
+		Get(context.TODO(), varConfigMapName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return &ecrSecret{
+		clientset:    clientset,
+		nsReleaseMap: cm.Data,
+	}, nil
 }
 
-func (s *ecrSecret) AuthFilename() (string, error) {
+func (s *ecrSecret) AuthFilename() string {
 	// Check if Helm registry config is set
 	helmconfig := os.Getenv("HELM_REGISTRY_CONFIG")
 	if helmconfig != "" {
 		// Use HELM_REGISTRY_CONFIG
-		return helmconfig, nil
+		return helmconfig
 	}
 
-	return "", nil
+	return ""
 }
 
-func (s *ecrSecret) UpdateConfigMap(ctx context.Context, namespace string, add bool) error {
+func (s *ecrSecret) UpdateConfigMap(ctx context.Context, name string, namespace string, add bool) error {
 	cm, err := s.clientset.CoreV1().ConfigMaps(varPackagesNamespace).
 		Get(ctx, varConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	addToConfigMap(cm, namespace, add)
+	addToConfigMap(cm, name, namespace, add)
 	_, err = s.clientset.CoreV1().ConfigMaps(varPackagesNamespace).
 		Update(ctx, cm, metav1.UpdateOptions{})
 	if err != nil {
 		return err
 	}
+	// Store data
+	s.nsReleaseMap = cm.Data
+
 	return nil
 }
 
-func addToConfigMap(cm *v1.ConfigMap, namespace string, add bool) {
-	if namespace == "" {
-		namespace = "default"
-	}
-	values := strings.Split(cm.Data[varConfigMapKey], ",")
+func addToConfigMap(cm *v1.ConfigMap, name string, namespace string, add bool) {
+	values := strings.Split(cm.Data[namespace], ",")
 	if add {
-		values = append(values, namespace)
+		values = append(values, name)
 	}
 
 	result := make([]string, 0, len(values))
@@ -74,7 +83,7 @@ func addToConfigMap(cm *v1.ConfigMap, namespace string, add bool) {
 		_, ok := check[val]
 		if !ok {
 			// Ignore namespace if set to remove
-			if !add && val == namespace {
+			if !add && val == name {
 				continue
 			}
 			check[val] = true
@@ -91,20 +100,35 @@ func addToConfigMap(cm *v1.ConfigMap, namespace string, add bool) {
 		}
 	}
 
-	cm.Data[varConfigMapKey] = update
+	if update == "" {
+		delete(cm.Data, namespace)
+	} else {
+		cm.Data[namespace] = update
+	}
 }
 
-func (s *ecrSecret) GetSecretValues(ctx context.Context) (map[string]interface{}, error) {
+func (s *ecrSecret) GetSecretValues(ctx context.Context, namespace string) (map[string]interface{}, error) {
 	secret, err := s.clientset.CoreV1().Secrets(varPackagesNamespace).Get(ctx, varECRTokenName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
+	// Check there is valid token data in the secret
+	secretData, exist := secret.Data[".dockerconfigjson"]
+	if !exist {
+		return nil, fmt.Errorf("No dockerconfigjson data in secret %s", varECRTokenName)
+	}
+
 	values := make(map[string]interface{})
 	var imagePullSecret [1]map[string]string
 	imagePullSecret[0] = make(map[string]string)
 	imagePullSecret[0]["name"] = varECRTokenName
 	values["imagePullSecrets"] = imagePullSecret
-	values["pullSecretName"] = varECRTokenName
-	values["pullSecretData"] = b64.StdEncoding.EncodeToString(secret.Data[".dockerconfigjson"])
+
+	// if namespace doesn't already have the secret we will fill out the secret.ymal
+	if _, exist := s.nsReleaseMap[namespace]; !exist {
+		values["pullSecretName"] = varECRTokenName
+		values["pullSecretData"] = b64.StdEncoding.EncodeToString(secretData)
+	}
+
 	return values, nil
 }

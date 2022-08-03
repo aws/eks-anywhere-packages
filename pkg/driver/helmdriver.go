@@ -35,8 +35,8 @@ func NewHelm(log logr.Logger, k8sconfig *rest.Config) (*helmDriver, error) {
 	settings := cli.New()
 
 	// TODO Catch error here if not provided docker config or continue without an authfile if possible
-	secretAuth := auth.NewECRSecret(k8sconfig)
-	authfile, _ := secretAuth.AuthFilename()
+	secretAuth, _ := auth.NewECRSecret(k8sconfig)
+	authfile := secretAuth.AuthFilename()
 	if authfile != "" {
 		registry.ClientOptCredentialsFile(authfile)
 	}
@@ -72,9 +72,20 @@ func (d *helmDriver) Install(ctx context.Context,
 	if err != nil {
 		return fmt.Errorf("loading helm chart %s: %w", name, err)
 	}
+	// If no target namespace provided read chart values to find namespace
+	if namespace == "" {
+		val, exists := helmChart.Values["defaultNamespace"]
+		if exists {
+			namespace = val.(string)
+		} else {
+			// Fall back case of assuming its default
+			namespace = "default"
+		}
+	}
 
 	// Update values with imagePullSecrets
-	secretvals, err := d.secretAuth.GetSecretValues(ctx)
+	// If no secret values we should still continue as it could be case of public registry or local registry
+	secretvals, err := d.secretAuth.GetSecretValues(ctx, namespace)
 	if err == nil {
 		for key, val := range secretvals {
 			values[key] = val
@@ -89,7 +100,7 @@ func (d *helmDriver) Install(ctx context.Context,
 			err = d.createRelease(ctx, install, helmChart, values)
 			if err == nil {
 				// Update installed-namespaces on successful install
-				err = d.secretAuth.UpdateConfigMap(ctx, namespace, true)
+				err = d.secretAuth.UpdateConfigMap(ctx, name, namespace, true)
 			}
 			return err
 		}
@@ -102,7 +113,7 @@ func (d *helmDriver) Install(ctx context.Context,
 	}
 
 	// Update installed-namespaces on successful install
-	err = d.secretAuth.UpdateConfigMap(ctx, namespace, true)
+	err = d.secretAuth.UpdateConfigMap(ctx, name, namespace, true)
 	if err != nil {
 		return err
 	}
@@ -127,7 +138,6 @@ func (d *helmDriver) createRelease(ctx context.Context,
 	install *action.Install, helmChart *chart.Chart, values map[string]interface{}) error {
 	_, err := install.RunWithContext(ctx, helmChart, values)
 	if err != nil {
-
 		return fmt.Errorf("installing helm chart %s: %w", install.ReleaseName, err)
 	}
 
