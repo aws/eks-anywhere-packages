@@ -126,7 +126,7 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 
 helm-deploy:
 	helm upgrade --install eksa-packages charts/eks-anywhere-packages/
-	
+
 helm-delete:
 	helm delete eksa-packages
 
@@ -158,7 +158,7 @@ endef
 
 ## Generate mocks
 .PHONY: mocks
-mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/client.go pkg/bundle/mocks/kube_version.go pkg/bundle/mocks/manager.go pkg/bundle/mocks/registry_client.go pkg/packages/mocks/manager.go
+mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/client.go pkg/bundle/mocks/manager.go pkg/bundle/mocks/registry_client.go pkg/packages/mocks/manager.go
 
 pkg/bundle/mocks/client.go: pkg/bundle/client.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \

@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/version"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
@@ -22,18 +24,18 @@ type Manager interface {
 }
 
 type bundleManager struct {
-	log               logr.Logger
-	bundleClient      Client
-	registryClient    RegistryClient
-	kubeVersionClient KubeVersionClient
+	log            logr.Logger
+	bundleClient   Client
+	registryClient RegistryClient
+	info           version.Info
 }
 
-func NewBundleManager(log logr.Logger, kubeVersionClient KubeVersionClient, registryClient RegistryClient, bundleClient Client) *bundleManager {
+func NewBundleManager(log logr.Logger, info version.Info, registryClient RegistryClient, bundleClient Client) *bundleManager {
 	return &bundleManager{
-		log:               log,
-		bundleClient:      bundleClient,
-		registryClient:    registryClient,
-		kubeVersionClient: kubeVersionClient,
+		log:            log,
+		bundleClient:   bundleClient,
+		registryClient: registryClient,
+		info:           info,
 	}
 }
 
@@ -55,11 +57,7 @@ func (m bundleManager) ProcessBundle(ctx context.Context, newBundle *api.Package
 		return false, nil
 	}
 
-	kubeVersion, err := m.kubeVersionClient.ApiVersion()
-	if err != nil {
-		return false, fmt.Errorf("getting kube version: %w", err)
-	}
-
+	kubeVersion := FormatKubeServerVersion(m.info)
 	matches, err := newBundle.KubeVersionMatches(kubeVersion)
 	if !matches {
 		if err != nil {
@@ -127,11 +125,7 @@ func (m bundleManager) SortBundlesDescending(bundles []api.PackageBundle) {
 }
 
 func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.PackageBundleController) error {
-	kubeVersion, err := m.kubeVersionClient.ApiVersion()
-	if err != nil {
-		return fmt.Errorf("getting kube version: %s", err)
-	}
-
+	kubeVersion := FormatKubeServerVersion(m.info)
 	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.Spec.Source.BaseRef(), kubeVersion)
 	if err != nil {
 		m.log.Error(err, "Unable to get latest bundle")
@@ -217,4 +211,12 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 	}
 
 	return nil
+}
+
+// FormatKubeServerVersion builds a string representation of the kubernetes
+// server version.
+func FormatKubeServerVersion(info version.Info) string {
+	version := fmt.Sprintf("v%s-%s", info.Major, info.Minor)
+	// The minor version can have a trailing + character that we don't want.
+	return strings.ReplaceAll(version, "+", "")
 }
