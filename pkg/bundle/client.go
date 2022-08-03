@@ -21,6 +21,9 @@ type Client interface {
 	// currently active bundle.
 	GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error)
 
+	// GetPrivateRegistry retrieves the currently active bundle.
+	GetPrivateRegistry(ctx context.Context) (registry string, err error)
+
 	// GetBundleList get list of bundles worthy of consideration
 	GetBundleList(ctx context.Context, bundles *api.PackageBundleList) error
 
@@ -105,6 +108,15 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.
 	}
 
 	return activeBundle, nil
+}
+
+func (bc *bundleClient) GetPrivateRegistry(ctx context.Context) (registry string, err error) {
+	pbc, err := bc.getPackageBundleController(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return pbc.Spec.PrivateRegistry, nil
 }
 
 // GetActiveBundleNamespacedName retrieves the namespace and name of the

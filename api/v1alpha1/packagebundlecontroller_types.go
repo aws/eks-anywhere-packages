@@ -64,6 +64,10 @@ type PackageBundleControllerSpec struct {
 	// +optional
 	ActiveBundle string `json:"activeBundle"`
 
+	// PrivateRegistry is the registry being used for all images, charts and bundles
+	// +optional
+	PrivateRegistry string `json:"privateRegistry"`
+
 	// +kubebuilder:validation:Required
 	// Source of the bundle.
 	Source PackageBundleControllerSource `json:"source"`

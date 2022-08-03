@@ -26,6 +26,7 @@ type ManagerContext struct {
 	Package       api.Package
 	PackageDriver driver.PackageDriver
 	Source        api.PackageOCISource
+	Registry      string
 	Version       string
 	RequeueAfter  time.Duration
 	Log           logr.Logger
@@ -60,7 +61,9 @@ func processInstalling(mc *ManagerContext) bool {
 		mc.Log.Error(err, "Install failed")
 		return true
 	}
-	values[sourceRegistry] = mc.Source.Registry
+	if mc.Registry != "" && values[sourceRegistry] == "" {
+		values[sourceRegistry] = mc.Registry
+	}
 	if err := mc.PackageDriver.Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, mc.Source, values); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Install failed")
@@ -91,7 +94,9 @@ func processInstalled(mc *ManagerContext) bool {
 			return true
 		}
 
-		newValues[sourceRegistry] = mc.Source.Registry
+		if mc.Registry != "" && newValues[sourceRegistry] == "" {
+			newValues[sourceRegistry] = mc.Registry
+		}
 		needs, err := mc.PackageDriver.IsConfigChanged(mc.Ctx, mc.Package.Name,
 			newValues)
 		if err != nil {
