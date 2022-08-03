@@ -12,9 +12,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
-	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
+
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 type ecrPublicClient struct {

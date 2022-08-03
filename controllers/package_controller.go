@@ -72,17 +72,22 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	log := ctrl.Log.WithName(packageName)
 	manager := packages.NewManager()
 	cfg := mgr.GetConfig()
-	discovery, err := discovery.NewDiscoveryClientForConfig(cfg)
-	if err != nil {
-		return fmt.Errorf("creating discovery client: %s", err)
-	}
 	helmDriver, err := driver.NewHelm(log, cfg)
 	if err != nil {
 		return fmt.Errorf("creating helm driver: %w", err)
 	}
+	discovery, err := discovery.NewDiscoveryClientForConfig(cfg)
+	if err != nil {
+		return fmt.Errorf("creating discovery client: %s", err)
+	}
+	info, err := discovery.ServerVersion()
+	if err != nil {
+		return fmt.Errorf("getting server version: %w", err)
+	}
 	puller := artifacts.NewRegistryPuller()
+	registryClient := bundle.NewRegistryClient(puller)
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
-	bundleManager := bundle.NewBundleManager(log, discovery, puller, bundleClient)
+	bundleManager := bundle.NewBundleManager(log, *info, registryClient, bundleClient)
 	reconciler := NewPackageReconciler(
 		mgr.GetClient(),
 		mgr.GetScheme(),

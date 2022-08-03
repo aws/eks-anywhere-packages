@@ -67,7 +67,7 @@ gosec: ## Run gosec against code.
 	$(GO) install github.com/securego/gosec/v2/cmd/gosec@latest
 	gosec --exclude-dir generatebundlefile  ./...
 
-SIGNED_ARTIFACTS = pkg/signature/testdata/packagebundle_valid.yaml.signed pkg/signature/testdata/pod_valid.yaml.signed api/testdata/bundle_one.yaml.signed api/testdata/bundle_two.yaml.signed
+SIGNED_ARTIFACTS = pkg/signature/testdata/packagebundle_valid.yaml.signed pkg/signature/testdata/pod_valid.yaml.signed api/testdata/bundle_one.yaml.signed api/testdata/bundle_two.yaml.signed api/testdata/package_webhook_bundle.yaml.signed
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 # Test a specific package with something like ./api/... see go help packages for
 # full syntax details.
@@ -126,7 +126,7 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 
 helm-deploy:
 	helm upgrade --install eksa-packages charts/eks-anywhere-packages/
-	
+
 helm-delete:
 	helm delete eksa-packages
 
@@ -158,15 +158,18 @@ endef
 
 ## Generate mocks
 .PHONY: mocks
-mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/client.go pkg/bundle/mocks/manager.go pkg/packages/mocks/manager.go
+mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/client.go pkg/bundle/mocks/manager.go pkg/bundle/mocks/registry_client.go pkg/packages/mocks/manager.go
 
 pkg/bundle/mocks/client.go: pkg/bundle/client.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
 		$(MOCKGEN) -source pkg/bundle/client.go -destination=pkg/bundle/mocks/client.go -package=mocks Client
-
 pkg/bundle/mocks/manager.go: pkg/bundle/manager.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/bundle/manager.go -destination=pkg/bundle/mocks/manager.go -package=mocks Client
+		$(MOCKGEN) -source pkg/bundle/manager.go -destination=pkg/bundle/mocks/manager.go -package=mocks Manager
+
+pkg/bundle/mocks/registry_client.go: pkg/bundle/registry_client.go
+	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
+		$(MOCKGEN) -source pkg/bundle/registry_client.go -destination=pkg/bundle/mocks/registry_client.go -package=mocks RegistryClient
 
 pkg/packages/mocks/manager.go: pkg/packages/manager.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
