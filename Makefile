@@ -163,11 +163,6 @@ mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driv
 pkg/bundle/mocks/client.go: pkg/bundle/client.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
 		$(MOCKGEN) -source pkg/bundle/client.go -destination=pkg/bundle/mocks/client.go -package=mocks Client
-
-pkg/bundle/mocks/kube_version.go: pkg/bundle/kube_version.go
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/bundle/kube_version.go -destination=pkg/bundle/mocks/kube_version.go -package=mocks KubeVersion
-
 pkg/bundle/mocks/manager.go: pkg/bundle/manager.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
 		$(MOCKGEN) -source pkg/bundle/manager.go -destination=pkg/bundle/mocks/manager.go -package=mocks Manager
