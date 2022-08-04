@@ -1,4 +1,4 @@
-module ecrtokenrefresher
+module github.com/aws/eks-anywhere-packages/ecrtokenrefresher
 
 go 1.17
 

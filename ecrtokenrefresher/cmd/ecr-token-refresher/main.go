@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"ecrtokenrefresher/pkg/aws"
-	k8s "ecrtokenrefresher/pkg/kubernetes"
+	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/aws"
+	k8s "github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/kubernetes"
 )
 
 const (
