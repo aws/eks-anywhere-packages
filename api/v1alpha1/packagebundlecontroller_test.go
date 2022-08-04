@@ -23,3 +23,11 @@ func TestPackageBundleController_IsValid(t *testing.T) {
 	assert.True(t, givenBundleController("billy", api.PackageNamespace).IsIgnored())
 	assert.True(t, givenBundleController(api.PackageBundleControllerName, "default").IsIgnored())
 }
+
+func TestPackageBundleControllerSource_GetRef(t *testing.T) {
+	sut := api.PackageBundleControllerSource{
+		Registry:   "public.ecr.aws/l0g8r8j6",
+		Repository: "eks-anywhere-packages-bundles",
+	}
+	assert.Equal(t, "public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles", sut.GetRef())
+}
