@@ -91,7 +91,7 @@ func TestProcessBundle(t *testing.T) {
 
 		assert.True(t, update)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, api.PackageBundleStateInvalidVersion, bundle.Status.State)
+		assert.Equal(t, api.PackageBundleStateInvalid, bundle.Status.State)
 	})
 
 	t.Run("marks state available", func(t *testing.T) {
