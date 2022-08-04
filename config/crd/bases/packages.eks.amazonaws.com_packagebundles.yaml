@@ -249,11 +249,8 @@ spec:
                 type: object
               state:
                 enum:
-                - inactive
-                - active
-                - active (upgrade available)
+                - available
                 - ignored
-                - ignored version
                 - invalid version
                 type: string
             required:
