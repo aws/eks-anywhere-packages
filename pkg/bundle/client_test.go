@@ -216,7 +216,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		bundle, err := bundleClient.GetActiveBundle(ctx)
 
 		assert.Nil(t, bundle)
-		assert.EqualError(t, err, "There is no activeBundle set in PackageBundleController")
+		assert.EqualError(t, err, "no activeBundle set in PackageBundleController")
 	})
 
 	t.Run("error path", func(t *testing.T) {
