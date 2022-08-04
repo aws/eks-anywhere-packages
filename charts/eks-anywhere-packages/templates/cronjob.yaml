@@ -4,7 +4,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   name: cron-ecr-renew
 spec:
-  schedule: "0 */6 * * *"
+  schedule: "0 */5 * * *"
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 5
   jobTemplate:
@@ -15,15 +15,10 @@ spec:
           serviceAccountName: {{ include "eks-anywhere-packages.serviceAccountName" . }}
           containers:
             - name: {{.Values.cronjob.name}}
-              image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.cronjob }}
+              image: {{.Values.sourceRegistry}}{{.Values.cronjob.tag}}
               imagePullPolicy: {{ .Values.imagePullPolicy }}
               env:
-                - name: TARGET_NAMESPACE
-                  valueFrom:
-                    configMapKeyRef:
-                      name: {{.Values.nsconfigmap.name}}
-                      key: NAMESPACES
-                - name: DOCKER_SECRET_NAME
+                - name: ECR_TOKEN_SECRET_NAME
                   value: ecr-token
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:

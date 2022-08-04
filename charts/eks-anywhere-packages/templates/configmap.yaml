@@ -35,4 +35,4 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 data:
-  NAMESPACES: {{ .Values.namespace }}
+  {{ .Values.namespace }}: {{ include "eks-anywhere-packages.fullname" . }}

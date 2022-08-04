@@ -90,9 +90,9 @@ controller:
 cronjob:
   name: ecr-refresher
   # -- ECR refresher repository name.
-  repository: "eks-anywhere-packages"
+  repository: "eks-anywhere-packages/ecr-token-refresher"
   # -- ECR refresher tag, or SHA256 checksum.
   tag: "{{ecr-refresher}}"
 #  Additional Variables for Config Map for namespace
 nsconfigmap:
-  name: installed-namespaces
+  name: ns-secret-map
