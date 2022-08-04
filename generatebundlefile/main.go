@@ -237,6 +237,7 @@ func main() {
 		if o.privateProfile != "" {
 			BundleLog.Info("Starting release to private ECR process....")
 			clients, err := GetSDKClients()
+			clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
 			clients, err = clients.GetProfileSDKConnection("ecr", o.privateProfile)
 			clients, err = clients.GetProfileSDKConnection("sts", o.privateProfile)
 			if err != nil {
@@ -255,6 +256,7 @@ func main() {
 			for _, charts := range addOnBundleSpec.Packages {
 				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, false)
 			}
+			BundleLog.Info("Finished release to private ECR")
 			err = dockerAuth.Remove()
 			return
 		}

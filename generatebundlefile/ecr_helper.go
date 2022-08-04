@@ -9,6 +9,7 @@ import (
 
 	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
+	"github.com/go-logr/logr"
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 
@@ -179,4 +180,16 @@ func getLastestImageSha(details []ImageDetailsBothECR) (*api.SourceVersion, erro
 		return nil, fmt.Errorf("error no images found")
 	}
 	return &api.SourceVersion{Name: latest.ImageTags[0], Digest: *latest.ImageDigest}, nil
+}
+
+// copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
+func copyImage(log logr.Logger, authFile, source, destination string) error {
+	log.Info("Running skopeo copy...", source, destination)
+	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
+	stdout, err := ExecCommand(cmd)
+	fmt.Printf("%s\n", stdout)
+	if err != nil {
+		return err
+	}
+	return nil
 }

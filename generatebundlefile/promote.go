@@ -151,17 +151,30 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 		return fmt.Errorf("Helm chart doesn't have requires.yaml inside %s", err)
 	}
 	// Unpack requires.yaml into a GO struct
-	helmRequires, err := validateHelmRequires(f)
+	helmRequiresImages, err := validateHelmRequires(f)
 	if err != nil {
 		return fmt.Errorf("Unable to parse requires.yaml file to Go Struct %s", err)
 	}
-	// Add the helm chart to the struct before looping through lookup/promote since we need it promoted too.
-	helmRequires.Spec.Images = append(helmRequires.Spec.Images, Image{Repository: chartName, Tag: version, Digest: sha})
+
+	// Create a 2nd struct since the the helm chart is going to Public ECR while the image are going to Private ECR.
+	// Remove this once we add support for Private ECR pull in the Helm Driver.
+	helmRequires := &Requires{
+		Spec: RequiresSpec{
+			Images: []Image{
+				{
+					Repository: chartName,
+					Tag:        version,
+					Digest:     sha,
+				},
+			},
+		},
+	}
+	// Uncomment this out once we add support for Private ECR pull in the Helm Driver.
+	//helmRequires.Spec.Images = append(helmRequires.Spec.Images, Image{Repository: chartName, Tag: version, Digest: sha})
 
 	// Loop through each image, and the helm chart itself and check for existance in ECR Public, skip if we find the SHA already exists in destination.
 	// If we don't find the SHA in public, we lookup the tag from Private, and copy from private to Public with the same tag.
-
-	for _, images := range helmRequires.Spec.Images {
+	for _, images := range helmRequiresImages.Spec.Images {
 		checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)
 		// This is going to run a copy if only 1 check passes because there are scenarios where the correct SHA exists, but the tag is not in sync.
 		// Copy with the correct image SHA, but a new tag will just write a new tag to ECR so it's safe to run.
@@ -206,6 +219,19 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 				continue
 			}
 		}
+	}
+
+	// Remove this once we add support for Private ECR pull in the Helm Driver.
+	// This will hard force the Helm chart to be moved from Private ECR to Public ECR if it didn't exist.
+	for _, images := range helmRequires.Spec.Images {
+		source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, images.Repository, images.Tag)
+		destination := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag)
+		BundleLog.Info("Copying Helm Digest, and Tag to destination location......", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag, images.Digest))
+		err = copyImage(BundleLog, authFile, source, destination)
+		if err != nil {
+			return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
+		}
+		continue
 	}
 	return nil
 }
