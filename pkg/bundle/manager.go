@@ -53,9 +53,9 @@ func (m bundleManager) ProcessBundle(ctx context.Context, newBundle *api.Package
 	}
 
 	if !newBundle.IsValidVersion() {
-		if newBundle.Status.State != api.PackageBundleStateInvalidVersion {
+		if newBundle.Status.State != api.PackageBundleStateInvalid {
 			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
-			newBundle.Status.State = api.PackageBundleStateInvalidVersion
+			newBundle.Status.State = api.PackageBundleStateInvalid
 			m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
 			return true, nil
 		}

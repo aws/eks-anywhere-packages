@@ -120,9 +120,9 @@ type PackageBundleStatus struct {
 type PackageBundleStateEnum string
 
 const (
-	PackageBundleStateAvailable      PackageBundleStateEnum = "available"
-	PackageBundleStateIgnored        PackageBundleStateEnum = "ignored"
-	PackageBundleStateInvalidVersion PackageBundleStateEnum = "invalid version"
+	PackageBundleStateAvailable PackageBundleStateEnum = "available"
+	PackageBundleStateIgnored   PackageBundleStateEnum = "ignored"
+	PackageBundleStateInvalid   PackageBundleStateEnum = "invalid"
 )
 
 //+kubebuilder:object:root=true
