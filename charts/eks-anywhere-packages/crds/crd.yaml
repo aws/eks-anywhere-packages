@@ -15,6 +15,9 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
+    - jsonPath: .spec.activeBundle
+      name: ActiveBundle
+      type: string
     - jsonPath: .status.state
       name: State
       type: string
@@ -24,28 +27,21 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: PackageBundleController is the Schema for the packagebundlecontrollers
-          API
+        description: PackageBundleController is the Schema for the packagebundlecontrollers API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
-            description: PackageBundleControllerSpec defines the desired state of
-              PackageBundleController
+            description: PackageBundleControllerSpec defines the desired state of PackageBundleController
             properties:
               activeBundle:
-                description: ActiveBundle is name of the bundle from which packages
-                  should be sourced.
+                description: ActiveBundle is name of the bundle from which packages should be sourced.
                 type: string
               logLevel:
                 description: LogLevel controls the verbosity of logging in the controller.
@@ -58,8 +54,7 @@ spec:
                     description: Registry is the OCR address hosting the bundle.
                     type: string
                   repository:
-                    description: Repository is the location of the bundle within the
-                      OCR registry.
+                    description: Repository is the location of the bundle within the OCR registry.
                     type: string
                 required:
                 - registry
@@ -67,21 +62,17 @@ spec:
                 type: object
               upgradeCheckInterval:
                 default: 1d
-                description: "UpgradeCheckInterval is the time between upgrade checks.
-                  \n The format is that of time's ParseDuration."
+                description: "UpgradeCheckInterval is the time between upgrade checks. \n The format is that of time's ParseDuration."
                 type: string
               upgradeCheckShortInterval:
                 default: 1h
-                description: "UpgradeCheckShortInterval if there is a problem this
-                  is the time between upgrade checks. \n The format is that of time's
-                  ParseDuration."
+                description: "UpgradeCheckShortInterval if there is a problem this is the time between upgrade checks. \n The format is that of time's ParseDuration."
                 type: string
             required:
             - source
             type: object
           status:
-            description: PackageBundleControllerStatus defines the observed state
-              of PackageBundleController
+            description: PackageBundleControllerStatus defines the observed state of PackageBundleController
             properties:
               detail:
                 description: Detail of the state
@@ -142,14 +133,10 @@ spec:
         description: PackageBundle is the Schema for the packagebundles API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -165,30 +152,23 @@ spec:
                       description: Name of the package
                       type: string
                     source:
-                      description: Source location for the package (probably a helm
-                        chart).
+                      description: Source location for the package (probably a helm chart).
                       properties:
                         registry:
                           description: Registry in which the package is found.
                           type: string
                         repository:
-                          description: Repository within the Registry where the package
-                            is found.
+                          description: Repository within the Registry where the package is found.
                           type: string
                         versions:
                           description: Versions of the package supported by this bundle.
                           items:
-                            description: SourceVersion describes a version of a package
-                              within a repository.
+                            description: SourceVersion describes a version of a package within a repository.
                             properties:
                               configurations:
-                                description: Configurations is a list of configurations
-                                  used by this version of the package. The configurations
-                                  are used for configuration validation and to generate
-                                  sample configurations for users.
+                                description: Configurations is a list of configurations used by this version of the package. The configurations are used for configuration validation and to generate sample configurations for users.
                                 items:
-                                  description: VersionConfiguration is a configuration
-                                    used by a version of a package.
+                                  description: VersionConfiguration is a configuration used by a version of a package.
                                   properties:
                                     default:
                                       description: Default is the name of the configuration
@@ -197,8 +177,7 @@ spec:
                                       description: Name is the name of the configuration
                                       type: string
                                     required:
-                                      description: Required configuration parameter
-                                        the user must specify
+                                      description: Required configuration parameter the user must specify
                                       type: boolean
                                   required:
                                   - default
@@ -207,23 +186,18 @@ spec:
                                   type: object
                                 type: array
                               digest:
-                                description: Digest is a checksum value identifying
-                                  the version of the package and its contents.
+                                description: Digest is a checksum value identifying the version of the package and its contents.
                                 type: string
                               images:
-                                description: Images is a list of images used by this
-                                  version of the package
+                                description: Images is a list of images used by this version of the package
                                 items:
-                                  description: VersionImages is an image used by a
-                                    version of a package.
+                                  description: VersionImages is an image used by a version of a package.
                                   properties:
                                     digest:
-                                      description: Digest is a checksum value identifying
-                                        the version of the package and its contents.
+                                      description: Digest is a checksum value identifying the version of the package and its contents.
                                       type: string
                                     repository:
-                                      description: Repository is source in the registry
-                                        for the image
+                                      description: Repository is source in the registry for the image
                                       type: string
                                   required:
                                   - digest
@@ -231,8 +205,10 @@ spec:
                                   type: object
                                 type: array
                               name:
-                                description: Name is a human-friendly description
-                                  of the version, e.g. "v1.0".
+                                description: Name is a human-friendly description of the version, e.g. "v1.0".
+                                type: string
+                              schema:
+                                description: Schema is a base64 encoded, gzipped json schema used to validate package configurations
                                 type: string
                             required:
                             - digest
@@ -266,42 +242,32 @@ spec:
                           description: Name of the package
                           type: string
                         source:
-                          description: Source location for the package (probably a
-                            helm chart).
+                          description: Source location for the package (probably a helm chart).
                           properties:
                             registry:
                               description: Registry in which the package is found.
                               type: string
                             repository:
-                              description: Repository within the Registry where the
-                                package is found.
+                              description: Repository within the Registry where the package is found.
                               type: string
                             versions:
-                              description: Versions of the package supported by this
-                                bundle.
+                              description: Versions of the package supported by this bundle.
                               items:
-                                description: SourceVersion describes a version of
-                                  a package within a repository.
+                                description: SourceVersion describes a version of a package within a repository.
                                 properties:
                                   configurations:
-                                    description: Configurations is a list of configurations
-                                      used by this version of the package. The configurations
-                                      are used for configuration validation and to
-                                      generate sample configurations for users.
+                                    description: Configurations is a list of configurations used by this version of the package. The configurations are used for configuration validation and to generate sample configurations for users.
                                     items:
-                                      description: VersionConfiguration is a configuration
-                                        used by a version of a package.
+                                      description: VersionConfiguration is a configuration used by a version of a package.
                                       properties:
                                         default:
-                                          description: Default is the name of the
-                                            configuration
+                                          description: Default is the name of the configuration
                                           type: string
                                         name:
                                           description: Name is the name of the configuration
                                           type: string
                                         required:
-                                          description: Required configuration parameter
-                                            the user must specify
+                                          description: Required configuration parameter the user must specify
                                           type: boolean
                                       required:
                                       - default
@@ -310,24 +276,18 @@ spec:
                                       type: object
                                     type: array
                                   digest:
-                                    description: Digest is a checksum value identifying
-                                      the version of the package and its contents.
+                                    description: Digest is a checksum value identifying the version of the package and its contents.
                                     type: string
                                   images:
-                                    description: Images is a list of images used by
-                                      this version of the package
+                                    description: Images is a list of images used by this version of the package
                                     items:
-                                      description: VersionImages is an image used
-                                        by a version of a package.
+                                      description: VersionImages is an image used by a version of a package.
                                       properties:
                                         digest:
-                                          description: Digest is a checksum value
-                                            identifying the version of the package
-                                            and its contents.
+                                          description: Digest is a checksum value identifying the version of the package and its contents.
                                           type: string
                                         repository:
-                                          description: Repository is source in the
-                                            registry for the image
+                                          description: Repository is source in the registry for the image
                                           type: string
                                       required:
                                       - digest
@@ -335,8 +295,10 @@ spec:
                                       type: object
                                     type: array
                                   name:
-                                    description: Name is a human-friendly description
-                                      of the version, e.g. "v1.0".
+                                    description: Name is a human-friendly description of the version, e.g. "v1.0".
+                                    type: string
+                                  schema:
+                                    description: Schema is a base64 encoded, gzipped json schema used to validate package configurations
                                     type: string
                                 required:
                                 - digest
@@ -357,10 +319,9 @@ spec:
                 type: object
               state:
                 enum:
-                - inactive
-                - active
-                - active (upgrade available)
+                - available
                 - ignored
+                - invalid version
                 type: string
             required:
             - state
@@ -418,14 +379,10 @@ spec:
         description: Package is the Schema for the package API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -436,12 +393,10 @@ spec:
                 description: Config for the package
                 type: string
               packageName:
-                description: PackageName is the name of the package as specified in
-                  the bundle.
+                description: PackageName is the name of the package as specified in the bundle.
                 type: string
               packageVersion:
-                description: PackageVersion is a human-friendly version name or sha256
-                  checksum for the package, as specified in the bundle.
+                description: PackageVersion is a human-friendly version name or sha256 checksum for the package, as specified in the bundle.
                 type: string
               targetNamespace:
                 description: TargetNamespace where package resources will be deployed.
@@ -489,19 +444,15 @@ spec:
                 description: Version to be installed
                 type: string
               upgradesAvailable:
-                description: UpgradesAvailable indicates upgraded versions in the
-                  bundle.
+                description: UpgradesAvailable indicates upgraded versions in the bundle.
                 items:
-                  description: PackageAvailableUpgrade details the package's available
-                    upgrades' versions.
+                  description: PackageAvailableUpgrade details the package's available upgrades' versions.
                   properties:
                     tag:
-                      description: Tag is a specific version number or sha256 checksum
-                        for the package upgrade.
+                      description: Tag is a specific version number or sha256 checksum for the package upgrade.
                       type: string
                     version:
-                      description: Version is a human-friendly version name for the
-                        package upgrade.
+                      description: Version is a human-friendly version name for the package upgrade.
                       type: string
                   required:
                   - tag
