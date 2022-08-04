@@ -116,7 +116,7 @@ type PackageBundleStatus struct {
 	State PackageBundleStateEnum `json:"state"`
 }
 
-//+kubebuilder:validation:Enum={"available","ignored","invalid version"}
+//+kubebuilder:validation:Enum={"available","ignored","invalid"}
 type PackageBundleStateEnum string
 
 const (

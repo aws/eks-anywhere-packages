@@ -251,7 +251,7 @@ spec:
                 enum:
                 - available
                 - ignored
-                - invalid version
+                - invalid
                 type: string
             required:
             - state
