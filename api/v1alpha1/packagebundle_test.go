@@ -216,6 +216,18 @@ func TestKubeVersionMatches(t *testing.T) {
 	})
 }
 
+func TestIsValidVersion(t *testing.T) {
+	t.Run("valid version", func(t *testing.T) {
+		bundle := api.PackageBundle{ObjectMeta: metav1.ObjectMeta{Name: "v1-21-1001"}}
+		assert.True(t, bundle.IsValidVersion())
+	})
+
+	t.Run("invalid version", func(t *testing.T) {
+		bundle := api.PackageBundle{ObjectMeta: metav1.ObjectMeta{Name: "v1-21-oops"}}
+		assert.False(t, bundle.IsValidVersion())
+	})
+}
+
 func TestPackageMatches(t *testing.T) {
 	orig := api.BundlePackageSource{
 		Registry:   "registry",
