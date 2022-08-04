@@ -13,3 +13,12 @@ func (config *PackageBundleController) ExpectedKind() string {
 func (config *PackageBundleController) IsIgnored() bool {
 	return config.Name != PackageBundleControllerName || config.Namespace != PackageNamespace
 }
+
+func (s *PackageBundleControllerSource) GetRef() (baseRef string) {
+	baseRef = s.Registry
+	if s.Repository != "" {
+		baseRef += "/" + s.Repository
+	}
+
+	return baseRef
+}

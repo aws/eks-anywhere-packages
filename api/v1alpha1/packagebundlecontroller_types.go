@@ -79,15 +79,6 @@ type PackageBundleControllerSource struct {
 	Repository string `json:"repository"`
 }
 
-func (s *PackageBundleControllerSource) BaseRef() (baseRef string) {
-	baseRef = s.Registry
-	if s.Repository != "" {
-		baseRef += "/" + s.Repository
-	}
-
-	return baseRef
-}
-
 // +kubebuilder:validation:Enum=ignored;active;disconnected
 type BundleControllerStateEnum string
 
