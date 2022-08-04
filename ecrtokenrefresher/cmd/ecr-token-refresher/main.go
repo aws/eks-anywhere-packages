@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	envVarAwsSecret = "ECR_TOKEN_SECRET_NAME"
-	envVarIRSAToken = "AWS_WEB_IDENTITY_TOKEN_FILE"
+	envVarAwsSecret = "ECR_TOKEN_SECRET_NAME"       //#nosec G101
+	envVarIRSAToken = "AWS_WEB_IDENTITY_TOKEN_FILE" //#nosec G101
 )
 
 func checkErrAndLog(err error, logger *log.Logger) {
@@ -25,8 +25,8 @@ func main() {
 	errorLogger := log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 	infoLogger.Println("Running at " + time.Now().UTC().String())
 
-	name := os.Getenv(envVarAwsSecret)
-	if name == "" {
+	secretname := os.Getenv(envVarAwsSecret)
+	if secretname == "" {
 		errorLogger.Fatalf("Environment variable %s is required", envVarAwsSecret)
 	}
 
@@ -43,7 +43,7 @@ func main() {
 	checkErrAndLog(err, errorLogger)
 	infoLogger.Println("Success.")
 
-	err, failedList := k8s.UpdatePasswords(name, credentials.Username, credentials.Token, credentials.Registry)
+	err, failedList := k8s.UpdateTokens(secretname, credentials.Username, credentials.Token, credentials.Registry)
 	if len(failedList) > 0 {
 		errorLogger.Fatalf("Failed to update the following namespaces", failedList)
 		checkErrAndLog(err, errorLogger)

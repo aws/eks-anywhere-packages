@@ -19,7 +19,7 @@ type ECRAuth struct {
 
 const (
 	envRoleARN         = "AWS_ROLE_ARN"
-	envWebTokenFile    = "AWS_WEB_IDENTITY_TOKEN_FILE"
+	envWebTokenFile    = "AWS_WEB_IDENTITY_TOKEN_FILE" //#nosec G101
 	sessionName        = "GetECRTOKENSession"
 	sessionTimeSeconds = 1000
 )

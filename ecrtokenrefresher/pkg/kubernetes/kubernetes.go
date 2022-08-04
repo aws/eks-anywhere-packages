@@ -31,7 +31,7 @@ const (
 	packagesNamespace = "eksa-packages"
 )
 
-func UpdatePasswords(name string, username string, token string, registries string) (error, []string) {
+func UpdateTokens(secretname string, username string, token string, registries string) (error, []string) {
 	failedList := make([]string, 0)
 	clientset, err := getClientSet()
 	if err != nil {
@@ -49,9 +49,9 @@ func UpdatePasswords(name string, username string, token string, registries stri
 	}
 
 	for _, ns := range targetNamespaces {
-		secret, err := getSecret(clientset, name, ns)
+		secret, err := getSecret(clientset, secretname, ns)
 		if secret == nil {
-			secret = createSecret(name, ns)
+			secret = createSecret(secretname, ns)
 			secret.Data[corev1.DockerConfigJsonKey] = ecrAuth
 			_, err = clientset.CoreV1().Secrets(ns).Create(context.TODO(), secret, metav1.CreateOptions{})
 			if err != nil {

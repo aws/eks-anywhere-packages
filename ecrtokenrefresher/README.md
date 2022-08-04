@@ -8,7 +8,6 @@ This program is meant to be run from a container inside a cluster that is trigge
 credentials up to date.
 
 ### Running Locally
-Local currently doesn't support IRSA.
 
 ```
 # set your AWS Enviroment Variables
@@ -37,34 +36,24 @@ The below contains env variable definition to be added to a cronjob
 ```yaml
 kind: CronJob
 containers:
-  - name: ...
+  - secretname: ...
     image: ...
     env:
-        - name: ECR_TOKEN_SECRET_NAME
+        - secretname: ECR_TOKEN_SECRET_NAME
           value: ecr-token
-        - name: AWS_REGION
+        - secretname: AWS_REGION
           valueFrom:
             secretKeyRef:
-              name: ecr-creds
+              secretname: ecr-creds
               key: REGION
-        - name: AWS_ACCESS_KEY_ID
+        - secretname: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
-              name: ecr-creds
+              secretname: ecr-creds
               key: ID
-        - name: AWS_SECRET_ACCESS_KEY
+        - secretname: AWS_SECRET_ACCESS_KEY
           valueFrom:
             secretKeyRef:
-              name: ecr-creds
+              secretname: ecr-creds
               key: SECRET
-
 ```
-
-### IAM roles for service accounts (IRSA)
-Assuming IRSA and the [webhook](https://github.com/aws/amazon-eks-pod-identity-webhook) is setup, the program expects environment variables
-```AWS_ROLE_ARN``` and ```AWS_WEB_IDENTITY_TOKEN_FILE``` to be configured. Note these variables are normally injected
-by the webhook if the annotations are added to the container spec.
-
-Using the role arn and web identity token the program will assume the role with web identity and populate
-the standard AWS Credentials as environment variables before getting the ECR Token. Make sure the role has policy with 
-at minimum ecr:GetAuthorizationToken permissions set.
