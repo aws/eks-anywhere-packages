@@ -15,7 +15,6 @@ import (
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/registry"
 	"helm.sh/helm/v3/pkg/storage/driver"
-	"k8s.io/client-go/rest"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
@@ -31,11 +30,9 @@ type helmDriver struct {
 
 var _ PackageDriver = (*helmDriver)(nil)
 
-func NewHelm(log logr.Logger, k8sconfig *rest.Config) (*helmDriver, error) {
+func NewHelm(log logr.Logger, secretAuth auth.Authenticator) (*helmDriver, error) {
 	settings := cli.New()
 
-	// TODO Catch error here if not provided docker config or continue without an authfile if possible
-	secretAuth, _ := auth.NewECRSecret(k8sconfig)
 	authfile := secretAuth.AuthFilename()
 	if authfile != "" {
 		registry.ClientOptCredentialsFile(authfile)
@@ -74,9 +71,8 @@ func (d *helmDriver) Install(ctx context.Context,
 	}
 	// If no target namespace provided read chart values to find namespace
 	if namespace == "" {
-		val, exists := helmChart.Values["defaultNamespace"]
-		if exists {
-			namespace = val.(string)
+		if chartNS, ok := helmChart.Values["defaultNamespace"]; ok {
+			namespace = chartNS.(string)
 		} else {
 			// Fall back case of assuming its default
 			namespace = "default"
@@ -86,10 +82,12 @@ func (d *helmDriver) Install(ctx context.Context,
 	// Update values with imagePullSecrets
 	// If no secret values we should still continue as it could be case of public registry or local registry
 	secretvals, err := d.secretAuth.GetSecretValues(ctx, namespace)
-	if err == nil {
-		for key, val := range secretvals {
-			values[key] = val
-		}
+	if err != nil {
+		secretvals = nil
+		// Continue as its possible that a private registry is being used here and thus no data necessary
+	}
+	for key, val := range secretvals {
+		values[key] = val
 	}
 
 	// Check if there exists a matching helm release.
@@ -98,11 +96,13 @@ func (d *helmDriver) Install(ctx context.Context,
 	if err != nil {
 		if errors.Is(err, driver.ErrReleaseNotFound) {
 			err = d.createRelease(ctx, install, helmChart, values)
-			if err == nil {
-				// Update installed-namespaces on successful install
-				err = d.secretAuth.UpdateConfigMap(ctx, name, namespace, true)
+			if err != nil {
+				return err
 			}
-			return err
+			if err := d.secretAuth.UpdateConfigMap(ctx, name, namespace, auth.ADD); err != nil {
+				d.log.Info("failed to Update ConfigMap with installed namespace")
+			}
+			return nil
 		}
 		return fmt.Errorf("getting helm release %s: %w", name, err)
 	}
@@ -113,9 +113,9 @@ func (d *helmDriver) Install(ctx context.Context,
 	}
 
 	// Update installed-namespaces on successful install
-	err = d.secretAuth.UpdateConfigMap(ctx, name, namespace, true)
+	err = d.secretAuth.UpdateConfigMap(ctx, name, namespace, auth.ADD)
 	if err != nil {
-		return err
+		d.log.Info("failed to Update ConfigMap with installed namespace")
 	}
 
 	return nil

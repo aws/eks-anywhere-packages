@@ -20,7 +20,7 @@ type Authenticator interface {
 	AuthFilename() string
 
 	// UpdateConfigMap Updates Config Map of namespaces with name of the installation
-	UpdateConfigMap(ctx context.Context, name string, namespace string, add bool) error
+	UpdateConfigMap(ctx context.Context, name string, namespace string, operation int) error
 
 	// GetSecretValues Retrieves ImagePullSecrets data to pass to helm chart
 	GetSecretValues(ctx context.Context, namespace string) (map[string]interface{}, error)

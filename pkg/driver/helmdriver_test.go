@@ -11,6 +11,8 @@ import (
 	"helm.sh/helm/v3/pkg/kube"
 	"helm.sh/helm/v3/pkg/release"
 	"k8s.io/client-go/rest"
+
+	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
 )
 
 func TestHelmChartURLIsPrefixed(t *testing.T) {
@@ -44,7 +46,7 @@ func TestHelmChartURLIsPrefixed(t *testing.T) {
 }
 
 func TestNewHelm(t *testing.T) {
-	helm, err := NewHelm(logr.Discard(), &rest.Config{})
+	err, helm := createNewHelm(t)
 	assert.NoError(t, err)
 	assert.NotNil(t, helm.log)
 }
@@ -55,7 +57,7 @@ func TestIsConfigChanged(t *testing.T) {
 
 		ctx := context.Background()
 		values := map[string]interface{}{}
-		helm, err := NewHelm(logr.Discard(), &rest.Config{})
+		err, helm := createNewHelm(t)
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(fmt.Errorf("blah"))
 
@@ -73,7 +75,7 @@ func TestIsConfigChanged(t *testing.T) {
 		newValues := shallowCopy(t, origValues)
 		newValues["foo"] = foo + 1
 		rel := &release.Release{Config: newValues}
-		helm, err := NewHelm(logr.Discard(), &rest.Config{})
+		err, helm := createNewHelm(t)
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
 		helm.cfg.Releases.Driver = newMockReleasesDriver(rel, nil)
@@ -91,7 +93,7 @@ func TestIsConfigChanged(t *testing.T) {
 		origValues := map[string]interface{}{"foo": 1, "bar": true}
 		sameValues := shallowCopy(t, origValues)
 		rel := &release.Release{Config: sameValues}
-		helm, err := NewHelm(logr.Discard(), &rest.Config{})
+		err, helm := createNewHelm(t)
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
 		helm.cfg.Releases.Driver = newMockReleasesDriver(rel, nil)
@@ -106,6 +108,12 @@ func TestIsConfigChanged(t *testing.T) {
 //
 // Helpers
 //
+func createNewHelm(t *testing.T) (error, *helmDriver) {
+	secretAuth, err := auth.NewECRSecret(&rest.Config{})
+	require.NoError(t, err)
+	helm, err := NewHelm(logr.Discard(), secretAuth)
+	return err, helm
+}
 
 type mockKube struct {
 	kube.Interface

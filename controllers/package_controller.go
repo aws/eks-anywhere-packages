@@ -32,6 +32,7 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
+	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"github.com/aws/eks-anywhere-packages/pkg/driver"
 	"github.com/aws/eks-anywhere-packages/pkg/packages"
@@ -72,7 +73,11 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	log := ctrl.Log.WithName(packageName)
 	manager := packages.NewManager()
 	cfg := mgr.GetConfig()
-	helmDriver, err := driver.NewHelm(log, cfg)
+	secretAuth, err := auth.NewECRSecret(cfg)
+	if err != nil {
+		return fmt.Errorf("creating ECR secret %s", err)
+	}
+	helmDriver, err := driver.NewHelm(log, secretAuth)
 	if err != nil {
 		return fmt.Errorf("creating helm driver: %w", err)
 	}
