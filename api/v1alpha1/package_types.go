@@ -26,7 +26,7 @@ import (
 // +kubebuilder:printcolumn:name="CurrentVersion",type=string,JSONPath=`.status.currentVersion`
 // +kubebuilder:printcolumn:name="TargetVersion",type=string,JSONPath=`.status.targetVersion`
 // +kubebuilder:printcolumn:name="Detail",type=string,JSONPath=`.status.detail`
-// Package is the Schema for the package API
+// Package is the Schema for the package API.
 type Package struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -44,10 +44,10 @@ type PackageSpec struct {
 	// package, as specified in the bundle.
 	PackageVersion string `json:"packageVersion,omitempty"`
 
-	// Config for the package
+	// Config for the package.
 	Config string `json:"config,omitempty"`
 
-	// TargetNamespace where package resources will be deployed.
+	// TargetNamespace defines where package resources will be deployed.
 	TargetNamespace string `json:"targetNamespace,omitempty"`
 }
 
@@ -63,24 +63,24 @@ const (
 	StateUnknown      StateEnum = "unknown"
 )
 
-// PackageStatus defines the observed state of Package
+// PackageStatus defines the observed state of Package.
 type PackageStatus struct {
 	// +kubebuilder:validation:Required
-	// Source associated with the installation
+	// Source associated with the installation.
 	Source PackageOCISource `json:"source"`
 
 	// +kubebuilder:validation:Required
-	// Version currently installed
+	// Version currently installed.
 	CurrentVersion string `json:"currentVersion"`
 
 	// +kubebuilder:validation:Required
-	// Version to be installed
+	// Version to be installed.
 	TargetVersion string `json:"targetVersion,omitempty"`
 
-	// State of the installation
+	// State of the installation.
 	State StateEnum `json:"state,omitempty"`
 
-	// Detail of the state
+	// Detail of the state.
 	Detail string `json:"detail,omitempty"`
 
 	// UpgradesAvailable indicates upgraded versions in the bundle.
@@ -100,7 +100,7 @@ type PackageAvailableUpgrade struct {
 }
 
 // +kubebuilder:object:root=true
-// PackageList contains a list of Package
+// PackageList contains a list of Package.
 type PackageList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

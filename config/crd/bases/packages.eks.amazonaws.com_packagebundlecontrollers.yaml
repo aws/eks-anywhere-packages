@@ -30,7 +30,7 @@ spec:
     schema:
       openAPIV3Schema:
         description: PackageBundleController is the Schema for the packagebundlecontrollers
-          API
+          API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -46,7 +46,7 @@ spec:
             type: object
           spec:
             description: PackageBundleControllerSpec defines the desired state of
-              PackageBundleController
+              PackageBundleController.
             properties:
               activeBundle:
                 description: ActiveBundle is name of the bundle from which packages
@@ -76,22 +76,21 @@ spec:
                 type: string
               upgradeCheckShortInterval:
                 default: 1h
-                description: "UpgradeCheckShortInterval if there is a problem this
-                  is the time between upgrade checks. \n The format is that of time's
-                  ParseDuration."
+                description: "UpgradeCheckShortInterval if there is a problem is the
+                  time between upgrade checks. \n The format is that of time's ParseDuration."
                 type: string
             required:
             - source
             type: object
           status:
             description: PackageBundleControllerStatus defines the observed state
-              of PackageBundleController
+              of PackageBundleController.
             properties:
               detail:
-                description: Detail of the state
+                description: Detail of the state.
                 type: string
               state:
-                description: State of the bundle controller
+                description: State of the bundle controller.
                 enum:
                 - ignored
                 - active
