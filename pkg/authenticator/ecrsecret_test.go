@@ -10,17 +10,21 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/client-go/rest"
+	fakerest "k8s.io/client-go/rest/fake"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 func TestAuthFilename(t *testing.T) {
-	config := rest.Config{}
+	fakeRestClient := fakerest.RESTClient{
+		GroupVersion: api.GroupVersion,
+	}
+
 	t.Run("golden path for set HELM_REGISTRY_CONFIG", func(t *testing.T) {
 		testfile := "/test.txt"
 		t.Setenv("HELM_REGISTRY_CONFIG", testfile)
-		ecrAuth, _ := NewECRSecret(&config)
+		ecrAuth, err := NewECRSecret(&fakeRestClient)
+		require.NoError(t, err)
 		val := ecrAuth.AuthFilename()
 
 		assert.Equal(t, val, testfile)
@@ -28,7 +32,7 @@ func TestAuthFilename(t *testing.T) {
 
 	t.Run("golden path for no config or secrets", func(t *testing.T) {
 		t.Setenv("HELM_REGISTRY_CONFIG", "")
-		ecrAuth, _ := NewECRSecret(&config)
+		ecrAuth, _ := NewECRSecret(&fakeRestClient)
 		val := ecrAuth.AuthFilename()
 
 		assert.Equal(t, val, "")

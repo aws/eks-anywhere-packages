@@ -34,13 +34,13 @@ func NewHelm(log logr.Logger, secretAuth auth.Authenticator) (*helmDriver, error
 	settings := cli.New()
 
 	authfile := secretAuth.AuthFilename()
-	if authfile != "" {
-		registry.ClientOptCredentialsFile(authfile)
-	}
-	client, err := registry.NewClient()
+	// Blank authfile here is actually fine as helm registry will use default in that case
+	client, err := registry.NewClient(registry.ClientOptCredentialsFile(authfile))
+
 	if err != nil {
 		return nil, fmt.Errorf("creating registry client while initializing helm driver: %w", err)
 	}
+
 	cfg := &action.Configuration{RegistryClient: client}
 	err = cfg.Init(settings.RESTClientGetter(), settings.Namespace(),
 		os.Getenv("HELM_DRIVER"), helmLog(log))

@@ -33,11 +33,8 @@ type ecrSecret struct {
 
 var _ Authenticator = (*ecrSecret)(nil)
 
-func NewECRSecret(config *rest.Config) (*ecrSecret, error) {
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, err
-	}
+func NewECRSecret(config rest.Interface) (*ecrSecret, error) {
+	clientset := kubernetes.New(config)
 	nsReleaseMap := make(map[string]string)
 	return &ecrSecret{
 		clientset:    clientset,

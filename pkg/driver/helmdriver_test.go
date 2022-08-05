@@ -10,8 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"helm.sh/helm/v3/pkg/kube"
 	"helm.sh/helm/v3/pkg/release"
-	"k8s.io/client-go/rest"
+	fakerest "k8s.io/client-go/rest/fake"
 
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
 )
 
@@ -109,7 +110,10 @@ func TestIsConfigChanged(t *testing.T) {
 // Helpers
 //
 func createNewHelm(t *testing.T) (error, *helmDriver) {
-	secretAuth, err := auth.NewECRSecret(&rest.Config{})
+	fakeRestClient := fakerest.RESTClient{
+		GroupVersion: api.GroupVersion,
+	}
+	secretAuth, err := auth.NewECRSecret(&fakeRestClient)
 	require.NoError(t, err)
 	helm, err := NewHelm(logr.Discard(), secretAuth)
 	return err, helm
