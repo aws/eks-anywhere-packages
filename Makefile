@@ -76,7 +76,7 @@ GOTESTS ?= ./...
 # go help testflags to see all options.
 GOTESTFLAGS ?= ""
 test: manifests generate vet mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ## Run tests.
-	source <(setup-envtest use -i -p env 1.23.x)
+	source <($(GOBIN)/setup-envtest use -i -p env 1.23.x)
 	$(GO) test $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks | grep -v fake | grep -v testutil` -coverprofile cover.out
 
 $(GOBIN)/setup-envtest: ## Install setup-envtest
