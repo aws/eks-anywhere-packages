@@ -103,13 +103,13 @@ func (c *SDKClients) GetProfileSDKConnection(service, profile string) (*SDKClien
 }
 
 // PromoteHelmChart will take a given repository, and authFile and handle helm and image promotion for the mentioned chart.
-func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount bool) error {
+func (c *SDKClients) PromoteHelmChart(repository, authFile string, copyImages bool) error {
 	var name, version, sha string
 	pwd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("Error getting pwd %s", err)
 	}
-	if crossAccount {
+	if copyImages {
 		name, version, sha, err = c.getNameAndVersionPublic(repository, c.stsClient.AccountID)
 		if err != nil {
 			return fmt.Errorf("Error getting name and version from helmchart %s", err)
@@ -122,7 +122,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 	}
 
 	// Pull the Helm chart to Helm Cache
-	BundleLog.Info("Found Helm Chart to read for information ", "Chart", fmt.Sprintf("%s:%s", name, version))
+	BundleLog.Info("Found Helm Chart to read requires.yaml for image information", "Chart", fmt.Sprintf("%s:%s", name, version))
 	semVer := strings.Replace(version, "_", "+", 1) // TODO use the Semvar library instead of this hack.
 	driver, err := NewHelm(BundleLog, authFile)
 	if err != nil {
@@ -156,8 +156,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 		return fmt.Errorf("Unable to parse requires.yaml file to Go Struct %s", err)
 	}
 
-	// Create a 2nd struct since the the helm chart is going to Public ECR while the image are going to Private ECR.
-	// Remove this once we add support for Private ECR pull in the Helm Driver.
+	// Create a 2nd struct since the the helm chart is going to Public ECR while the images are going to Private ECR.
 	helmRequires := &Requires{
 		Spec: RequiresSpec{
 			Images: []Image{
@@ -169,28 +168,15 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 			},
 		},
 	}
-	// Uncomment this out once we add support for Private ECR pull in the Helm Driver.
-	//helmRequires.Spec.Images = append(helmRequires.Spec.Images, Image{Repository: chartName, Tag: version, Digest: sha})
-
 	// Loop through each image, and the helm chart itself and check for existance in ECR Public, skip if we find the SHA already exists in destination.
-	// If we don't find the SHA in public, we lookup the tag from Private, and copy from private to Public with the same tag.
-	for _, images := range helmRequiresImages.Spec.Images {
-		checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)
-		// This is going to run a copy if only 1 check passes because there are scenarios where the correct SHA exists, but the tag is not in sync.
-		// Copy with the correct image SHA, but a new tag will just write a new tag to ECR so it's safe to run.
-		if checkSha && checkTag {
-			BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("%s:%s  %s", images.Repository, images.Tag, images.Digest))
-			continue
-		} else {
-			// If using a profile we just copy from source account to destination account
-			if crossAccount {
-				BundleLog.Info("Image Digest, and Tag dont exist in destination location...... copy to", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClientRelease.SourceRegistry, images.Repository, images.Tag, images.Digest))
-				source := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag)
-				destination := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClientRelease.SourceRegistry, images.Repository, images.Tag)
-				err := copyImage(BundleLog, authFile, source, destination)
-				if err != nil {
-					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
-				}
+	// If we don't find the SHA in public, we lookup the tag from Private Dev account, and move to Private Artifact account.
+	if copyImages {
+		for _, images := range helmRequiresImages.Spec.Images {
+			checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)
+			// This is going to run a copy if only 1 check passes because there are scenarios where the correct SHA exists, but the tag is not in sync.
+			// Copy with the correct image SHA, but a new tag will just write a new tag to ECR so it's safe to run.
+			if checkSha && checkTag {
+				BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s @ %s", c.stsClientRelease.AccountID, images.Repository, images.Tag, images.Digest))
 				continue
 			} else {
 				BundleLog.Info("Image Digest, and Tag dont exist in destination location...... copy to", "Location", fmt.Sprintf("%s/%s sha:%s", images.Repository, images.Tag, images.Digest))
@@ -201,17 +187,9 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 				if err != nil {
 					BundleLog.Error(err, "Unable to find Tag from Digest")
 				}
+				BundleLog.Info("Moving images to private ECR in artifact account")
 				source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, images.Repository, images.Tag)
-				// TODO Remove this if/else logic once we move away from public ECR 100% so we don't need both cases.
-				var destination string
-				if c.stsClientRelease != nil {
-					BundleLog.Info("Moving images to private ECR in artifact account")
-					destination = fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClientRelease.AccountID, images.Repository, images.Tag)
-				} else {
-					BundleLog.Info("Moving images to Public ECR in same account")
-					destination = fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag)
-				}
-				BundleLog.Info("Running copy OCI artifact command....")
+				destination := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClientRelease.AccountID, images.Repository, images.Tag)
 				err := copyImage(BundleLog, authFile, source, destination)
 				if err != nil {
 					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
@@ -221,17 +199,26 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, crossAccount 
 		}
 	}
 
-	// Remove this once we add support for Private ECR pull in the Helm Driver.
-	// This will hard force the Helm chart to be moved from Private ECR to Public ECR if it didn't exist.
+	// This will move the Helm chart from Private ECR to Public ECR if it doesn't exist. This goes to either dev or prod depending on the flags passed in.
 	for _, images := range helmRequires.Spec.Images {
-		source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, images.Repository, images.Tag)
-		destination := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag)
-		BundleLog.Info("Copying Helm Digest, and Tag to destination location......", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag, images.Digest))
-		err = copyImage(BundleLog, authFile, source, destination)
-		if err != nil {
-			return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
+		//Check if the Helm chart is going to Prod, or dev account.
+		destinationRegistry := c.ecrPublicClient.SourceRegistry
+		if c.ecrPublicClientRelease != nil {
+			destinationRegistry = c.ecrPublicClientRelease.SourceRegistry
 		}
-		continue
+		checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)
+		if checkSha && checkTag {
+			BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("docker://%s/%s:%s @ %s", destinationRegistry, images.Repository, images.Tag, images.Digest))
+			continue
+		} else {
+			source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, images.Repository, images.Tag)
+			destination := fmt.Sprintf("docker://%s/%s:%s", destinationRegistry, images.Repository, images.Tag)
+			BundleLog.Info("Copying Helm Digest, and Tag to destination location......", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag, images.Digest))
+			err = copyImage(BundleLog, authFile, source, destination)
+			if err != nil {
+				return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
+			}
+		}
 	}
 	return nil
 }
@@ -241,13 +228,13 @@ func (c *SDKClients) CheckDestinationECR(images Image, version string) (bool, bo
 	var err error
 	var check CheckECR
 
-	// Change the source destination check depending on release to another account or not
+	// Change the source destination check depending on release to dev or prod.
 	destination := c.ecrPublicClient
 	if c.ecrPublicClientRelease != nil {
 		destination = c.ecrPublicClientRelease
 	}
 
-	// Release to ECR private in another account if we did an sts lookup for the other account ID
+	// We either check in private ECR or public ECR depending on what's passed in.
 	if c.stsClientRelease != nil {
 		check = c.ecrClientRelease
 	} else {

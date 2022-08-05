@@ -52,7 +52,7 @@ func main() {
 	}
 
 	if o.promote != "" {
-		BundleLog.Info("Starting Promote from private ECR to Public ECR....")
+		BundleLog.Info("Starting Promote of Helm chart from private ECR to Public ECR....")
 		clients, err := GetSDKClients()
 		clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
 		dockerStruct := &DockerAuth{
@@ -134,7 +134,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		BundleLog.Info("In Progress: Populating Bundles and looking up Sha256 tags")
+		BundleLog.Info("In Progress: Populating Bundle fields and looking up Sha256 tags")
 		addOnBundleSpec, name, err := clients.NewBundleFromInput(Inputs)
 		if err != nil {
 			BundleLog.Error(err, "Unable to create bundle from input file")
@@ -190,8 +190,6 @@ func main() {
 		}
 
 		err = dockerAuth.Remove()
-		// Write list of bundle structs into Bundle CRD files
-		BundleLog.Info("In Progress: Writing bundle to output")
 		bundle := AddMetadata(addOnBundleSpec, name)
 
 		// We will make a compound check for public and private profile after the launch once we want to stop
@@ -226,7 +224,7 @@ func main() {
 				BundleLog.Error(err, "Unable remove AuthFile")
 			}
 			for _, charts := range addOnBundleSpec.Packages {
-				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, true)
+				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, false)
 			}
 			err = dockerAuth.Remove()
 			return
@@ -254,7 +252,7 @@ func main() {
 				BundleLog.Error(err, "Unable create AuthFile")
 			}
 			for _, charts := range addOnBundleSpec.Packages {
-				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, false)
+				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, true)
 			}
 			BundleLog.Info("Finished release to private ECR")
 			err = dockerAuth.Remove()

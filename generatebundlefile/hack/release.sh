@@ -21,19 +21,18 @@ set -o pipefail
 export LANG=C.UTF-8
 
 cat << EOF > configfile
-[profile prod]
-role_arn=$PROD_ARTIFACT_DEPLOYMENT_ROLE
-region=us-east-1
+[profile packages]
+role_arn=$PACKAGES_ARTIFACT_DEPLOYMENT_ROLE
+region=us-west-2
 credential_source=EcsContainer
 EOF
 
+# Release Package Images to Packages Artifact account
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/configfile
-PROFILE=prod
+PROFILE=packages
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
-ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
-REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
 ORAS_BIN=${BASE_DIRECTORY}/bin/oras
 
 make build
@@ -42,10 +41,30 @@ chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile
 aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
+${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
+    --private-profile ${PROFILE}
+
+# Release Helm Chart, and bundle to Production account
+cat << EOF > configfile
+[profile prod]
+role_arn=$PROD_ARTIFACT_DEPLOYMENT_ROLE
+region=us-east-1
+credential_source=EcsContainer
+EOF
+
+PROFILE=prod
+. "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
+ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
+REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
+
+aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
+
 # Move Helm charts within the bundle to another account
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
     --public-profile ${PROFILE}
+
 
 if [ ! -x "${ORAS_BIN}" ]; then
     make oras-install

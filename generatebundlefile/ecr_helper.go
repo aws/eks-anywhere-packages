@@ -182,7 +182,7 @@ func getLastestImageSha(details []ImageDetailsBothECR) (*api.SourceVersion, erro
 	return &api.SourceVersion{Name: latest.ImageTags[0], Digest: *latest.ImageDigest}, nil
 }
 
-// copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
+// copyImage will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
 func copyImage(log logr.Logger, authFile, source, destination string) error {
 	log.Info("Running skopeo copy...", source, destination)
 	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
