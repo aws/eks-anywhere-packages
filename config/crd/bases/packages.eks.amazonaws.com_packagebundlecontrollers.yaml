@@ -56,6 +56,10 @@ spec:
                 description: LogLevel controls the verbosity of logging in the controller.
                 format: int32
                 type: integer
+              privateRegistry:
+                description: PrivateRegistry is the registry being used for all images,
+                  charts and bundles
+                type: string
               source:
                 description: Source of the bundle.
                 properties:
