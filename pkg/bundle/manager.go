@@ -3,6 +3,8 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/rest"
 	"sort"
 	"strings"
 
@@ -167,6 +169,18 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 	}
 
 	return nil
+}
+
+func GetKubeServerVersion(cfg *rest.Config) (serverVersion string, err error) {
+	discovery, err := discovery.NewDiscoveryClientForConfig(cfg)
+	if err != nil {
+		return "", fmt.Errorf("creating discovery client: %s", err)
+	}
+	info, err := discovery.ServerVersion()
+	if err != nil {
+		return "", fmt.Errorf("getting server version: %s", err)
+	}
+	return FormatKubeServerVersion(*info), nil
 }
 
 // FormatKubeServerVersion builds a string representation of the kubernetes

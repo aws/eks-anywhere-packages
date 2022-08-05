@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package webhook
 
 import (
 	"context"
 	"fmt"
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	"k8s.io/client-go/rest"
 	"net/http"
 
 	admissionv1 "k8s.io/api/admission/v1"
@@ -29,6 +32,7 @@ import (
 
 type activeBundleValidator struct {
 	Client  client.Client
+	Config  *rest.Config
 	decoder *admission.Decoder
 }
 
@@ -37,6 +41,7 @@ func InitActiveBundleValidator(mgr ctrl.Manager) error {
 		Register("/validate-packages-eks-amazonaws-com-v1alpha1-packagebundlecontroller",
 			&webhook.Admission{Handler: &activeBundleValidator{
 				Client: mgr.GetClient(),
+				Config: mgr.GetConfig(),
 			}})
 	return nil
 }
@@ -44,15 +49,15 @@ func InitActiveBundleValidator(mgr ctrl.Manager) error {
 func (v *activeBundleValidator) Handle(ctx context.Context,
 	req admission.Request) admission.Response {
 
-	pbc := &PackageBundleController{}
+	pbc := &v1alpha1.PackageBundleController{}
 	err := v.decoder.Decode(req, pbc)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError,
 			fmt.Errorf("decoding request: %w", err))
 	}
 
-	bundles := &PackageBundleList{}
-	err = v.Client.List(ctx, bundles, &client.ListOptions{Namespace: PackageNamespace})
+	bundles := &v1alpha1.PackageBundleList{}
+	err = v.Client.List(ctx, bundles, &client.ListOptions{Namespace: v1alpha1.PackageNamespace})
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError,
 			fmt.Errorf("listing package bundles: %w", err))
@@ -66,33 +71,46 @@ func (v *activeBundleValidator) Handle(ctx context.Context,
 	return *resp
 }
 
+func getResponse(allowed bool) *admission.Response {
+	return &admission.Response{
+		AdmissionResponse: admissionv1.AdmissionResponse{Allowed: allowed},
+	}
+}
+
 func (v *activeBundleValidator) handleInner(ctx context.Context,
-	pbc *PackageBundleController, bundles *PackageBundleList) (
+	pbc *v1alpha1.PackageBundleController, bundles *v1alpha1.PackageBundleList) (
 	*admission.Response, error) {
 
-	found := false
+	var found *v1alpha1.PackageBundle
 	for _, bundle := range bundles.Items {
 		if bundle.Name == pbc.Spec.ActiveBundle {
-			found = true
+			found = &bundle
 			break
 		}
 	}
 
-	resp := &admission.Response{
-		AdmissionResponse: admissionv1.AdmissionResponse{Allowed: found},
-	}
-
-	if !found {
+	if found == nil {
 		msg := fmt.Sprintf("package bundle not found with name: %q", pbc.Spec.ActiveBundle)
+		resp := getResponse(false)
 		resp.AdmissionResponse.Result = &metav1.Status{
 			Status:  metav1.StatusFailure,
 			Code:    http.StatusNotFound,
 			Message: msg,
 			Reason:  metav1.StatusReasonNotFound,
 		}
+		return resp, nil
+	}
+	kubeVersion, err := bundle.GetKubeServerVersion(v.Config)
+	if err != nil {
+		return getResponse(false), fmt.Errorf("getting kubeVersion: %s", err)
 	}
 
-	return resp, nil
+	matches, err := found.KubeVersionMatches(kubeVersion)
+	if !matches {
+		return getResponse(false), fmt.Errorf("matching kubeVersion: %s", err)
+	}
+
+	return getResponse(true), nil
 }
 
 var _ admission.DecoderInjector = (*activeBundleValidator)(nil)
