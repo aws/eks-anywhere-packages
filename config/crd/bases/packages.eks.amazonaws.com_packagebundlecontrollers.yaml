@@ -76,8 +76,8 @@ spec:
                 type: string
               upgradeCheckShortInterval:
                 default: 1h
-                description: "UpgradeCheckShortInterval if there is a problem is the
-                  time between upgrade checks. \n The format is that of time's ParseDuration."
+                description: "UpgradeCheckShortInterval time between upgrade checks
+                  if there is a problem. \n The format is that of time's ParseDuration."
                 type: string
             required:
             - source
