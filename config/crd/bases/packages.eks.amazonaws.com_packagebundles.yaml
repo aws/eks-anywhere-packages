@@ -23,7 +23,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: PackageBundle is the Schema for the packagebundles API
+        description: PackageBundle is the Schema for the packagebundles API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -38,7 +38,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: PackageBundleSpec defines the desired state of PackageBundle
+            description: PackageBundleSpec defines the desired state of PackageBundle.
             properties:
               packages:
                 description: Packages supported by this bundle.
@@ -46,7 +46,7 @@ spec:
                   description: BundlePackage specifies a package within a bundle.
                   properties:
                     name:
-                      description: Name of the package
+                      description: Name of the package.
                       type: string
                     source:
                       description: Source location for the package (probably a helm
@@ -75,14 +75,15 @@ spec:
                                     used by a version of a package.
                                   properties:
                                     default:
-                                      description: Default is the name of the configuration
+                                      description: Default is the default name of
+                                        the configuration.
                                       type: string
                                     name:
-                                      description: Name is the name of the configuration
+                                      description: Name is the name of the configuration.
                                       type: string
                                     required:
                                       description: Required configuration parameter
-                                        the user must specify
+                                        the user must specify.
                                       type: boolean
                                   required:
                                   - default
@@ -96,7 +97,7 @@ spec:
                                 type: string
                               images:
                                 description: Images is a list of images used by this
-                                  version of the package
+                                  version of the package.
                                 items:
                                   description: VersionImages is an image used by a
                                     version of a package.
@@ -106,8 +107,8 @@ spec:
                                         the version of the package and its contents.
                                       type: string
                                     repository:
-                                      description: Repository is source in the registry
-                                        for the image
+                                      description: Repository is the source registry
+                                        for the image.
                                       type: string
                                   required:
                                   - digest
@@ -120,7 +121,7 @@ spec:
                                 type: string
                               schema:
                                 description: Schema is a base64 encoded, gzipped json
-                                  schema used to validate package configurations
+                                  schema used to validate package configurations.
                                 type: string
                             required:
                             - digest
@@ -140,10 +141,10 @@ spec:
             - packages
             type: object
           status:
-            description: PackageBundleStatus defines the observed state of PackageBundle
+            description: PackageBundleStatus defines the observed state of PackageBundle.
             properties:
               spec:
-                description: PackageBundleSpec defines the desired state of PackageBundle
+                description: PackageBundleSpec defines the desired state of PackageBundle.
                 properties:
                   packages:
                     description: Packages supported by this bundle.
@@ -151,7 +152,7 @@ spec:
                       description: BundlePackage specifies a package within a bundle.
                       properties:
                         name:
-                          description: Name of the package
+                          description: Name of the package.
                           type: string
                         source:
                           description: Source location for the package (probably a
@@ -181,15 +182,15 @@ spec:
                                         used by a version of a package.
                                       properties:
                                         default:
-                                          description: Default is the name of the
-                                            configuration
+                                          description: Default is the default name
+                                            of the configuration.
                                           type: string
                                         name:
-                                          description: Name is the name of the configuration
+                                          description: Name is the name of the configuration.
                                           type: string
                                         required:
                                           description: Required configuration parameter
-                                            the user must specify
+                                            the user must specify.
                                           type: boolean
                                       required:
                                       - default
@@ -203,7 +204,7 @@ spec:
                                     type: string
                                   images:
                                     description: Images is a list of images used by
-                                      this version of the package
+                                      this version of the package.
                                     items:
                                       description: VersionImages is an image used
                                         by a version of a package.
@@ -214,8 +215,8 @@ spec:
                                             and its contents.
                                           type: string
                                         repository:
-                                          description: Repository is source in the
-                                            registry for the image
+                                          description: Repository is the source registry
+                                            for the image.
                                           type: string
                                       required:
                                       - digest
@@ -228,7 +229,7 @@ spec:
                                     type: string
                                   schema:
                                     description: Schema is a base64 encoded, gzipped
-                                      json schema used to validate package configurations
+                                      json schema used to validate package configurations.
                                     type: string
                                 required:
                                 - digest
@@ -248,6 +249,8 @@ spec:
                 - packages
                 type: object
               state:
+                description: PackageBundleStateEnum defines the observed state of
+                  PackageBundle.
                 enum:
                 - available
                 - ignored
