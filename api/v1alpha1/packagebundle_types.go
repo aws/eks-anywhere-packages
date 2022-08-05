@@ -79,9 +79,6 @@ type SourceVersion struct {
 	// Images is a list of images used by this version of the package.
 	Images []VersionImages `json:"images,omitempty"`
 
-	// Configurations is a list of configurations used by this version of the package. The configurations are used for configuration validation and to generate sample configurations for users.
-	Configurations []VersionConfiguration `json:"configurations,omitempty"`
-
 	// Schema is a base64 encoded, gzipped json schema used to validate package configurations.
 	Schema string `json:"schema,omitempty"`
 }
@@ -95,19 +92,6 @@ type VersionImages struct {
 	// +kubebuilder:validation:Required
 	// Digest is a checksum value identifying the version of the package and its contents.
 	Digest string `json:"digest"`
-}
-
-// VersionConfiguration is a configuration used by a version of a package.
-type VersionConfiguration struct {
-	// +kubebuilder:validation:Required
-	// Name is the name of the configuration.
-	Name string `json:"name"`
-
-	// Required configuration parameter the user must specify.
-	Required bool `json:"required"`
-
-	// Default is the default name of the configuration.
-	Default string `json:"default"`
 }
 
 // PackageBundleStatus defines the observed state of PackageBundle.
