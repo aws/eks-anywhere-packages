@@ -112,13 +112,13 @@ func TestManagerContext_getRegistry(t *testing.T) {
 		assert.Equal(t, "public.ecr.aws/j0a1m4z9/", sut.getRegistry(values))
 	})
 
-	t.Run("registry from bundle source", func(t *testing.T) {
+	t.Run("registry from default gated registry", func(t *testing.T) {
 		sut := givenManagerContext(givenMockDriver(t))
 		values := make(map[string]interface{})
 		sut.PBC.Spec.PrivateRegistry = ""
 		sut.Source.Registry = ""
 
-		assert.Equal(t, "sourceRegistry", sut.getRegistry(values))
+		assert.Equal(t, "783794618700.dkr.ecr.us-west-2.amazonaws.com", sut.getRegistry(values))
 	})
 }
 
