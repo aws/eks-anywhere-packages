@@ -13,12 +13,13 @@ import (
 )
 
 const (
-	retryNever     = time.Duration(0)
-	retryNow       = time.Duration(1)
-	retryShort     = time.Duration(30) * time.Second
-	retryLong      = time.Duration(60) * time.Second
-	retryVeryLong  = time.Duration(180) * time.Second
-	sourceRegistry = "sourceRegistry"
+	retryNever           = time.Duration(0)
+	retryNow             = time.Duration(1)
+	retryShort           = time.Duration(30) * time.Second
+	retryLong            = time.Duration(60) * time.Second
+	retryVeryLong        = time.Duration(180) * time.Second
+	sourceRegistry       = "sourceRegistry"
+	defaultGatedRegistry = "783794618700.dkr.ecr.us-west-2.amazonaws.com"
 )
 
 type ManagerContext struct {
@@ -49,7 +50,7 @@ func (mc *ManagerContext) getRegistry(values map[string]interface{}) string {
 	if mc.Source.Registry != "" {
 		return mc.Source.Registry
 	}
-	return mc.PBC.Spec.Source.Registry
+	return defaultGatedRegistry
 }
 
 func processInitializing(mc *ManagerContext) bool {
