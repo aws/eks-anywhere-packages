@@ -26,7 +26,7 @@ type ManagerContext struct {
 	Package       api.Package
 	PackageDriver driver.PackageDriver
 	Source        api.PackageOCISource
-	Controller    api.PackageBundleController
+	PBC           api.PackageBundleController
 	Version       string
 	RequeueAfter  time.Duration
 	Log           logr.Logger
@@ -43,13 +43,13 @@ func (mc *ManagerContext) getRegistry(values map[string]interface{}) string {
 			return val.(string)
 		}
 	}
-	if mc.Controller.Spec.PrivateRegistry != "" {
-		return mc.Controller.Spec.PrivateRegistry
+	if mc.PBC.Spec.PrivateRegistry != "" {
+		return mc.PBC.Spec.PrivateRegistry
 	}
 	if mc.Source.Registry != "" {
 		return mc.Source.Registry
 	}
-	return mc.Controller.Spec.Source.Registry
+	return mc.PBC.Spec.Source.Registry
 }
 
 func processInitializing(mc *ManagerContext) bool {
