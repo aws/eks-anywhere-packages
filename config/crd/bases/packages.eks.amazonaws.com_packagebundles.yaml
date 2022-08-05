@@ -107,8 +107,8 @@ spec:
                                         the version of the package and its contents.
                                       type: string
                                     repository:
-                                      description: Repository is the source registry
-                                        for the image.
+                                      description: Repository within the Registry
+                                        where the package is found.
                                       type: string
                                   required:
                                   - digest
@@ -215,8 +215,8 @@ spec:
                                             and its contents.
                                           type: string
                                         repository:
-                                          description: Repository is the source registry
-                                            for the image.
+                                          description: Repository within the Registry
+                                            where the package is found.
                                           type: string
                                       required:
                                       - digest

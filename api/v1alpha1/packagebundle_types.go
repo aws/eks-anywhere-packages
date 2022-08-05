@@ -89,7 +89,7 @@ type SourceVersion struct {
 // VersionImages is an image used by a version of a package.
 type VersionImages struct {
 	// +kubebuilder:validation:Required
-	// Repository is the source repository for the image.
+	// Repository within the Registry where the package is found.
 	Repository string `json:"repository"`
 
 	// +kubebuilder:validation:Required
