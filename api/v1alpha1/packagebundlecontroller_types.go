@@ -54,7 +54,7 @@ type PackageBundleControllerSpec struct {
 	UpgradeCheckInterval metav1.Duration `json:"upgradeCheckInterval,omitempty"`
 
 	// +kubebuilder:default:="1h"
-	// UpgradeCheckShortInterval if there is a problem is the time between upgrade checks.
+	// UpgradeCheckShortInterval time between upgrade checks if there is a problem.
 	//
 	// The format is that of time's ParseDuration.
 	// +optional
