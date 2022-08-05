@@ -54,7 +54,15 @@ func main() {
 	if o.promote != "" {
 		BundleLog.Info("Starting Promote from private ECR to Public ECR....")
 		clients, err := GetSDKClients()
+		if err != nil {
+			BundleLog.Error(err, "getting SDK clients")
+			os.Exit(1)
+		}
 		clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
+		if err != nil {
+			BundleLog.Error(err, "getting registry URI")
+			os.Exit(1)
+		}
 		dockerStruct := &DockerAuth{
 			Auths: map[string]DockerAuthRegistry{
 				fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): {clients.ecrClient.AuthConfig},
@@ -64,15 +72,19 @@ func main() {
 		dockerAuth, err := NewAuthFile(dockerStruct)
 		if err != nil || dockerAuth.Authfile == "" {
 			BundleLog.Error(err, "Unable create AuthFile")
-		}
-		if err != nil {
-			BundleLog.Error(err, "Unable remove AuthFile")
+			os.Exit(1)
 		}
 		err = clients.PromoteHelmChart(o.promote, dockerAuth.Authfile, false)
 		if err != nil {
 			BundleLog.Error(err, "Unable to promote Helm Chart")
+			os.Exit(1)
 		}
 		err = dockerAuth.Remove()
+		if err != nil {
+			BundleLog.Error(err, "Unable to remove docker auth file")
+			os.Exit(1)
+		}
+
 		BundleLog.Info("Promote Finished, exiting gracefully")
 		return
 	}
