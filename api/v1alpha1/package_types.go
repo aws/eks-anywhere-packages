@@ -87,6 +87,21 @@ type PackageStatus struct {
 	UpgradesAvailable []PackageAvailableUpgrade `json:"upgradesAvailable,omitempty"`
 }
 
+type PackageOCISource struct {
+	// +kubebuilder:validation:Required
+	// Versions of the package supported.
+	Version string `json:"version"`
+	// +kubebuilder:validation:Required
+	// Registry in which the package is found.
+	Registry string `json:"registry"`
+	// +kubebuilder:validation:Required
+	// Repository within the Registry where the package is found.
+	Repository string `json:"repository"`
+	// +kubebuilder:validation:Required
+	// Digest is a checksum value identifying the version of the package and its contents.
+	Digest string `json:"digest"`
+}
+
 // PackageAvailableUpgrade details the package's available upgrades' versions.
 type PackageAvailableUpgrade struct {
 	// +kubebuilder:validation:Required

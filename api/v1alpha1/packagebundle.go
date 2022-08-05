@@ -11,13 +11,6 @@ import (
 	"strings"
 )
 
-type PackageOCISource struct {
-	Version    string `json:"version"`
-	Registry   string `json:"registry"`
-	Repository string `json:"repository"`
-	Digest     string `json:"digest"`
-}
-
 const (
 	PackageBundleKind           = "PackageBundle"
 	PackageBundleControllerName = "eksa-packages-bundle-controller"
