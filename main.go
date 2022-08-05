@@ -28,6 +28,7 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/controllers"
+	"github.com/aws/eks-anywhere-packages/pkg/webhook"
 )
 
 var (
@@ -92,6 +93,10 @@ func main() {
 		}
 		if err := api.InitActiveBundleValidator(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "ActiveBundleValidator")
+			os.Exit(1)
+		}
+		if err = webhook.InitPackageValidator(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Package")
 			os.Exit(1)
 		}
 	}

@@ -41,21 +41,23 @@ const packageBundleName = "PackageBundle"
 // PackageBundleReconciler reconciles a PackageBundle object
 type PackageBundleReconciler struct {
 	client.Client
-	Log           logr.Logger
-	Scheme        *runtime.Scheme
-	bundleClient  bundle.Client
-	bundleManager bundle.Manager
+	Log            logr.Logger
+	Scheme         *runtime.Scheme
+	bundleClient   bundle.Client
+	registryClient bundle.RegistryClient
+	bundleManager  bundle.Manager
 }
 
 func NewPackageBundleReconciler(client client.Client, scheme *runtime.Scheme,
-	bundleClient bundle.Client, bundleManager bundle.Manager, log logr.Logger) *PackageBundleReconciler {
+	bundleClient bundle.Client, bundleManager bundle.Manager, registryClient bundle.RegistryClient, log logr.Logger) *PackageBundleReconciler {
 
 	return &(PackageBundleReconciler{
-		Client:        client,
-		Scheme:        scheme,
-		Log:           log.WithName(packageBundleName),
-		bundleClient:  bundleClient,
-		bundleManager: bundleManager,
+		Client:         client,
+		Scheme:         scheme,
+		Log:            log.WithName(packageBundleName),
+		bundleClient:   bundleClient,
+		registryClient: registryClient,
+		bundleManager:  bundleManager,
 	})
 }
 
@@ -66,10 +68,15 @@ func RegisterPackageBundleReconciler(mgr ctrl.Manager) error {
 		return fmt.Errorf("creating discovery client: %s", err)
 	}
 	log := ctrl.Log.WithName(packageBundleName)
-	puller := artifacts.NewRegistryPuller()
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
-	bm := bundle.NewBundleManager(log, discovery, puller, bundleClient)
-	r := NewPackageBundleReconciler(mgr.GetClient(), mgr.GetScheme(), bundleClient, bm, log)
+	info, err := discovery.ServerVersion()
+	if err != nil {
+		return fmt.Errorf("getting server version: %w", err)
+	}
+	puller := artifacts.NewRegistryPuller()
+	registryClient := bundle.NewRegistryClient(puller)
+	bundleManager := bundle.NewBundleManager(log, *info, registryClient, bundleClient)
+	r := NewPackageBundleReconciler(mgr.GetClient(), mgr.GetScheme(), bundleClient, bundleManager, registryClient, log)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.PackageBundle{}).
 		// Watch for changes in the PackageBundleController, and reconcile
@@ -124,7 +131,7 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 
 		// Download the bundle using name tag.
-		bundle, err := r.bundleManager.DownloadBundle(ctx, req.Name)
+		bundle, err := r.registryClient.DownloadBundle(ctx, req.Name)
 		if err != nil {
 			r.Log.Error(err, "Active bundle deleted and failed to download",
 				"bundle", req.NamespacedName)

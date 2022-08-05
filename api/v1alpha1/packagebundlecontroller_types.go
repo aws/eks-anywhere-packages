@@ -30,7 +30,7 @@ const (
 // +kubebuilder:printcolumn:name="ActiveBundle",type=string,JSONPath=`.spec.activeBundle`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="Detail",type=string,JSONPath=`.status.detail`
-// PackageBundleController is the Schema for the packagebundlecontrollers API
+// PackageBundleController is the Schema for the packagebundlecontrollers API.
 type PackageBundleController struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -40,7 +40,7 @@ type PackageBundleController struct {
 }
 
 // PackageBundleControllerSpec defines the desired state of
-// PackageBundleController
+// PackageBundleController.
 type PackageBundleControllerSpec struct {
 	// LogLevel controls the verbosity of logging in the controller.
 	// +optional
@@ -54,7 +54,7 @@ type PackageBundleControllerSpec struct {
 	UpgradeCheckInterval metav1.Duration `json:"upgradeCheckInterval,omitempty"`
 
 	// +kubebuilder:default:="1h"
-	// UpgradeCheckShortInterval if there is a problem this is the time between upgrade checks.
+	// UpgradeCheckShortInterval time between upgrade checks if there is a problem.
 	//
 	// The format is that of time's ParseDuration.
 	// +optional
@@ -71,44 +71,36 @@ type PackageBundleControllerSpec struct {
 
 type PackageBundleControllerSource struct {
 	// +kubebuilder:validation:Required
-	// Registry is the OCR address hosting the bundle.
+	// Registry portion of an OCI address to the bundle
 	Registry string `json:"registry"`
 
 	// +kubebuilder:validation:Required
-	// Repository is the location of the bundle within the OCR registry.
+	// Repository portion of an OCI address to the bundle
 	Repository string `json:"repository"`
-}
-
-func (s *PackageBundleControllerSource) BaseRef() (baseRef string) {
-	baseRef = s.Registry
-	if s.Repository != "" {
-		baseRef += "/" + s.Repository
-	}
-
-	return baseRef
 }
 
 // +kubebuilder:validation:Enum=ignored;active;disconnected
 type BundleControllerStateEnum string
 
 const (
-	BundleControllerStateIgnored      BundleControllerStateEnum = "ignored"
-	BundleControllerStateActive       BundleControllerStateEnum = "active"
-	BundleControllerStateDisconnected BundleControllerStateEnum = "disconnected"
+	BundleControllerStateIgnored          BundleControllerStateEnum = "ignored"
+	BundleControllerStateActive           BundleControllerStateEnum = "active"
+	BundleControllerStateUpgradeAvailable BundleControllerStateEnum = "upgrade available"
+	BundleControllerStateDisconnected     BundleControllerStateEnum = "disconnected"
 )
 
 // PackageBundleControllerStatus defines the observed state of
-// PackageBundleController
+// PackageBundleController.
 type PackageBundleControllerStatus struct {
-	// State of the bundle controller
+	// State of the bundle controller.
 	State BundleControllerStateEnum `json:"state,omitempty"`
 
-	// Detail of the state
+	// Detail of the state.
 	Detail string `json:"detail,omitempty"`
 }
 
 //+kubebuilder:object:root=true
-// PackageBundleControllerList contains a list of PackageBundleController
+// PackageBundleControllerList contains a list of PackageBundleController.
 type PackageBundleControllerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

@@ -6,11 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	"gopkg.in/yaml.v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
 )
@@ -56,8 +57,8 @@ func main() {
 		clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
 		dockerStruct := &DockerAuth{
 			Auths: map[string]DockerAuthRegistry{
-				fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): DockerAuthRegistry{clients.ecrClient.AuthConfig},
-				"public.ecr.aws": DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
+				fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): {clients.ecrClient.AuthConfig},
+				"public.ecr.aws": {clients.ecrPublicClient.AuthConfig},
 			},
 		}
 		dockerAuth, err := NewAuthFile(dockerStruct)
@@ -96,6 +97,16 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
+	conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
+	if err != nil {
+		BundleLog.Error(err, "loading default AWS config: %w", err)
+		os.Exit(1)
+	}
+	ecrClient := ecr.NewFromConfig(conf)
+	clients.ecrClient, err = NewECRClient(ecrClient, true)
+	if err != nil {
+		os.Exit(1)
+	}
 	for _, f := range files {
 		Inputs, err := ValidateInputConfig(f)
 		if err != nil {
@@ -106,7 +117,7 @@ func main() {
 		// Create Authfile for Helm Driver
 		dockerReleaseStruct := &DockerAuth{
 			Auths: map[string]DockerAuthRegistry{
-				fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
+				fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): {clients.ecrPublicClient.AuthConfig},
 			},
 		}
 
@@ -124,9 +135,9 @@ func main() {
 		}
 
 		BundleLog.Info("In Progress: Populating Bundles and looking up Sha256 tags")
-		addOnBundleSpec, name, err := clients.ecrPublicClient.NewBundleFromInput(Inputs)
+		addOnBundleSpec, name, err := clients.NewBundleFromInput(Inputs)
 		if err != nil {
-			BundleLog.Error(err, "Unable to create CRD skaffolding of AddoOBundle from input file")
+			BundleLog.Error(err, "Unable to create bundle from input file")
 			os.Exit(1)
 		}
 
@@ -203,8 +214,8 @@ func main() {
 			}
 			dockerReleaseStruct = &DockerAuth{
 				Auths: map[string]DockerAuthRegistry{
-					fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): DockerAuthRegistry{clients.ecrPublicClient.AuthConfig},
-					"public.ecr.aws": DockerAuthRegistry{clients.ecrPublicClientRelease.AuthConfig},
+					fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): {clients.ecrPublicClient.AuthConfig},
+					"public.ecr.aws": {clients.ecrPublicClientRelease.AuthConfig},
 				},
 			}
 			dockerAuth, err = NewAuthFile(dockerReleaseStruct)
@@ -233,8 +244,8 @@ func main() {
 			}
 			dockerReleaseStruct = &DockerAuth{
 				Auths: map[string]DockerAuthRegistry{
-					fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion):        DockerAuthRegistry{clients.ecrClient.AuthConfig},
-					fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClientRelease.AccountID, ecrRegion): DockerAuthRegistry{clients.ecrClientRelease.AuthConfig},
+					fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion):        {clients.ecrClient.AuthConfig},
+					fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClientRelease.AccountID, ecrRegion): {clients.ecrClientRelease.AuthConfig},
 				},
 			}
 			dockerAuth, err = NewAuthFile(dockerReleaseStruct)

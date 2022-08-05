@@ -55,6 +55,11 @@ func (r *PackageBundle) ValidateDelete() error {
 }
 
 func (r *PackageBundle) validate() error {
+	if !r.IsValidVersion() {
+		apilog.Info("Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): " + r.Name)
+		return errors.New("Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): " + r.Name)
+	}
+
 	keyOverride := os.Getenv(PublicKeyEnvVar)
 	domain := signature.EksaDomain
 	if keyOverride != "" {
