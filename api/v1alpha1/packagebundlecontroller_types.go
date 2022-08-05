@@ -71,11 +71,11 @@ type PackageBundleControllerSpec struct {
 
 type PackageBundleControllerSource struct {
 	// +kubebuilder:validation:Required
-	// Registry is the OCR address hosting the bundle.
+	// Registry portion of an OCI address to the bundle
 	Registry string `json:"registry"`
 
 	// +kubebuilder:validation:Required
-	// Repository is the location of the bundle within the OCR registry.
+	// Repository portion of an OCI address to the bundle
 	Repository string `json:"repository"`
 }
 

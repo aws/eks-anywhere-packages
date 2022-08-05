@@ -60,11 +60,10 @@ spec:
                 description: Source of the bundle.
                 properties:
                   registry:
-                    description: Registry is the OCR address hosting the bundle.
+                    description: Registry portion of an OCI address to the bundle
                     type: string
                   repository:
-                    description: Repository is the location of the bundle within the
-                      OCR registry.
+                    description: Repository portion of an OCI address to the bundle
                     type: string
                 required:
                 - registry
