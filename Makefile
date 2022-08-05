@@ -104,6 +104,7 @@ docker-build: test ## Build docker image with the package-manager.
 docker-push: ## Push docker image with the package-manager.
 	docker push ${IMG}
 
+helm/build: helm-build
 helm-build: kustomize ## Build helm chart into tar file
 	hack/helm.sh
 
