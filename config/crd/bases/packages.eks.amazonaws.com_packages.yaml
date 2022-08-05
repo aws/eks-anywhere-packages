@@ -85,12 +85,18 @@ spec:
                 description: Source associated with the installation
                 properties:
                   digest:
+                    description: Digest is a checksum value identifying the version
+                      of the package and its contents.
                     type: string
                   registry:
+                    description: Registry in which the package is found.
                     type: string
                   repository:
+                    description: Repository within the Registry where the package
+                      is found.
                     type: string
                   version:
+                    description: Versions of the package supported.
                     type: string
                 required:
                 - digest
