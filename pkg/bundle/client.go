@@ -21,8 +21,8 @@ type Client interface {
 	// currently active bundle.
 	GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error)
 
-	// GetPrivateRegistry retrieves the currently active bundle.
-	GetPrivateRegistry(ctx context.Context) (registry string, err error)
+	// GetPackageBundleController retrieves clusters package bundle controller
+	GetPackageBundleController(ctx context.Context) (controller *api.PackageBundleController, err error)
 
 	// GetBundleList get list of bundles worthy of consideration
 	GetBundleList(ctx context.Context, bundles *api.PackageBundleList) error
@@ -49,23 +49,10 @@ func NewPackageBundleClient(client client.Client) *bundleClient {
 
 var _ Client = (*bundleClient)(nil)
 
-func (bc *bundleClient) getPackageBundleController(ctx context.Context) (*api.PackageBundleController, error) {
-	pbc := api.PackageBundleController{}
-	key := types.NamespacedName{
-		Namespace: api.PackageNamespace,
-		Name:      api.PackageBundleControllerName,
-	}
-	err := bc.Get(ctx, key, &pbc)
-	if err != nil {
-		return nil, fmt.Errorf("getting PackageBundleController: %v", err)
-	}
-	return &pbc, nil
-}
-
 // IsActive returns true of the bundle is the active bundle
 func (bc *bundleClient) IsActive(ctx context.Context, packageBundle *api.PackageBundle) (bool, error) {
 
-	pbc, err := bc.getPackageBundleController(ctx)
+	pbc, err := bc.GetPackageBundleController(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -78,7 +65,7 @@ func (bc *bundleClient) IsActive(ctx context.Context, packageBundle *api.Package
 // It retrieves the name of the active bundle from the PackageBundleController,
 // then uses the K8s API to retrieve and return the active bundle.
 func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.PackageBundle, err error) {
-	pbc, err := bc.getPackageBundleController(ctx)
+	pbc, err := bc.GetPackageBundleController(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -110,19 +97,23 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.
 	return activeBundle, nil
 }
 
-func (bc *bundleClient) GetPrivateRegistry(ctx context.Context) (registry string, err error) {
-	pbc, err := bc.getPackageBundleController(ctx)
-	if err != nil {
-		return "", err
+func (bc *bundleClient) GetPackageBundleController(ctx context.Context) (*api.PackageBundleController, error) {
+	pbc := api.PackageBundleController{}
+	key := types.NamespacedName{
+		Namespace: api.PackageNamespace,
+		Name:      api.PackageBundleControllerName,
 	}
-
-	return pbc.Spec.PrivateRegistry, nil
+	err := bc.Get(ctx, key, &pbc)
+	if err != nil {
+		return nil, fmt.Errorf("getting PackageBundleController: %v", err)
+	}
+	return &pbc, nil
 }
 
 // GetActiveBundleNamespacedName retrieves the namespace and name of the
 // currently active bundle from the PackageBundleController.
 func (bc *bundleClient) GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error) {
-	pbc, err := bc.getPackageBundleController(ctx)
+	pbc, err := bc.GetPackageBundleController(ctx)
 	if err != nil {
 		return types.NamespacedName{}, err
 	}

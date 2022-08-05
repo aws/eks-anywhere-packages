@@ -95,19 +95,19 @@ func (mr *MockClientMockRecorder) GetBundleList(ctx, bundles interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBundleList", reflect.TypeOf((*MockClient)(nil).GetBundleList), ctx, bundles)
 }
 
-// GetPrivateRegistry mocks base method.
-func (m *MockClient) GetPrivateRegistry(ctx context.Context) (string, error) {
+// GetPackageBundleController mocks base method.
+func (m *MockClient) GetPackageBundleController(ctx context.Context) (*v1alpha1.PackageBundleController, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPrivateRegistry", ctx)
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "GetPackageBundleController", ctx)
+	ret0, _ := ret[0].(*v1alpha1.PackageBundleController)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetPrivateRegistry indicates an expected call of GetPrivateRegistry.
-func (mr *MockClientMockRecorder) GetPrivateRegistry(ctx interface{}) *gomock.Call {
+// GetPackageBundleController indicates an expected call of GetPackageBundleController.
+func (mr *MockClientMockRecorder) GetPackageBundleController(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPrivateRegistry", reflect.TypeOf((*MockClient)(nil).GetPrivateRegistry), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackageBundleController", reflect.TypeOf((*MockClient)(nil).GetPackageBundleController), ctx)
 }
 
 // IsActive mocks base method.

@@ -26,7 +26,7 @@ type ManagerContext struct {
 	Package       api.Package
 	PackageDriver driver.PackageDriver
 	Source        api.PackageOCISource
-	Registry      string
+	Controller    api.PackageBundleController
 	Version       string
 	RequeueAfter  time.Duration
 	Log           logr.Logger
@@ -35,6 +35,21 @@ type ManagerContext struct {
 func (mc *ManagerContext) SetUninstalling(name string) {
 	mc.Package.Name = name
 	mc.Package.Status.State = api.StateUninstalling
+}
+
+func (mc *ManagerContext) getRegistry(values map[string]interface{}) string {
+	if val, ok := values[sourceRegistry]; ok {
+		if val != "" {
+			return val.(string)
+		}
+	}
+	if mc.Controller.Spec.PrivateRegistry != "" {
+		return mc.Controller.Spec.PrivateRegistry
+	}
+	if mc.Source.Registry != "" {
+		return mc.Source.Registry
+	}
+	return mc.Controller.Spec.Source.Registry
 }
 
 func processInitializing(mc *ManagerContext) bool {
@@ -61,9 +76,7 @@ func processInstalling(mc *ManagerContext) bool {
 		mc.Log.Error(err, "Install failed")
 		return true
 	}
-	if mc.Registry != "" && values[sourceRegistry] == "" {
-		values[sourceRegistry] = mc.Registry
-	}
+	values[sourceRegistry] = mc.getRegistry(values)
 	if err := mc.PackageDriver.Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, mc.Source, values); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Install failed")
@@ -94,9 +107,7 @@ func processInstalled(mc *ManagerContext) bool {
 			return true
 		}
 
-		if mc.Registry != "" && newValues[sourceRegistry] == "" {
-			newValues[sourceRegistry] = mc.Registry
-		}
+		newValues[sourceRegistry] = mc.getRegistry(newValues)
 		needs, err := mc.PackageDriver.IsConfigChanged(mc.Ctx, mc.Package.Name,
 			newValues)
 		if err != nil {
