@@ -107,6 +107,7 @@ func main() {
 	client := ecrpublic.NewFromConfig(conf)
 	clients.ecrPublicClient, err = NewECRPublicClient(client, true)
 	if err != nil {
+		BundleLog.Error(err, "creating public ECR client")
 		os.Exit(1)
 	}
 	conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
@@ -117,6 +118,7 @@ func main() {
 	ecrClient := ecr.NewFromConfig(conf)
 	clients.ecrClient, err = NewECRClient(ecrClient, true)
 	if err != nil {
+		BundleLog.Error(err, "creating ECR client")
 		os.Exit(1)
 	}
 	for _, f := range files {
@@ -136,9 +138,7 @@ func main() {
 		dockerAuth, err := NewAuthFile(dockerReleaseStruct)
 		if err != nil || dockerAuth.Authfile == "" {
 			BundleLog.Error(err, "Unable create AuthFile")
-		}
-		if err != nil {
-			BundleLog.Error(err, "Unable remove AuthFile")
+			os.Exit(1)
 		}
 		driver, err := NewHelm(BundleLog, dockerAuth.Authfile)
 		if err != nil {
@@ -202,6 +202,11 @@ func main() {
 		}
 
 		err = dockerAuth.Remove()
+		if err != nil {
+			BundleLog.Error(err, "unable to remove docker auth file")
+			os.Exit(1)
+		}
+
 		// Write list of bundle structs into Bundle CRD files
 		BundleLog.Info("In Progress: Writing bundle to output")
 		bundle := AddMetadata(addOnBundleSpec, name)
@@ -211,18 +216,26 @@ func main() {
 		if o.publicProfile != "" {
 			BundleLog.Info("Starting release public ECR process....")
 			clients, err := GetSDKClients()
+			if err != nil {
+				BundleLog.Error(err, "getting sdk clients")
+				os.Exit(1)
+			}
+
 			clients, err = clients.GetProfileSDKConnection("ecrpublic", o.publicProfile)
 			if err != nil {
 				BundleLog.Error(err, "Unable create SDK Client connections")
+				os.Exit(1)
 			}
 
 			clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
 			if err != nil {
 				BundleLog.Error(err, "Unable create find Public ECR URI from calling account")
+				os.Exit(1)
 			}
 			clients.ecrPublicClientRelease.SourceRegistry, err = clients.ecrPublicClientRelease.GetRegistryURI()
 			if err != nil {
 				BundleLog.Error(err, "Unable create find Public ECR URI for destination account")
+				os.Exit(1)
 			}
 			dockerReleaseStruct = &DockerAuth{
 				Auths: map[string]DockerAuthRegistry{
@@ -233,14 +246,22 @@ func main() {
 			dockerAuth, err = NewAuthFile(dockerReleaseStruct)
 			if err != nil || dockerAuth.Authfile == "" {
 				BundleLog.Error(err, "Unable create AuthFile")
-			}
-			if err != nil {
-				BundleLog.Error(err, "Unable remove AuthFile")
+				os.Exit(1)
 			}
 			for _, charts := range addOnBundleSpec.Packages {
 				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, true)
+				if err != nil {
+					BundleLog.Error(err, "promoting helm chart",
+						"name", charts.Source.Repository)
+					os.Exit(1)
+				}
 			}
 			err = dockerAuth.Remove()
+			if err != nil {
+				BundleLog.Error(err, "removing docker auth file")
+				os.Exit(1)
+			}
+
 			return
 		}
 
@@ -249,10 +270,20 @@ func main() {
 		if o.privateProfile != "" {
 			BundleLog.Info("Starting release to private ECR process....")
 			clients, err := GetSDKClients()
+			if err != nil {
+				BundleLog.Error(err, "getting SDK clients")
+				os.Exit(1)
+			}
+
 			clients, err = clients.GetProfileSDKConnection("ecr", o.privateProfile)
+			if err != nil {
+				BundleLog.Error(err, "getting SDK connection")
+				os.Exit(1)
+			}
 			clients, err = clients.GetProfileSDKConnection("sts", o.privateProfile)
 			if err != nil {
-				BundleLog.Error(err, "Unable create SDK Client connections")
+				BundleLog.Error(err, "getting profile SDK connection")
+				os.Exit(1)
 			}
 			dockerReleaseStruct = &DockerAuth{
 				Auths: map[string]DockerAuthRegistry{
@@ -263,11 +294,23 @@ func main() {
 			dockerAuth, err = NewAuthFile(dockerReleaseStruct)
 			if err != nil {
 				BundleLog.Error(err, "Unable create AuthFile")
+				os.Exit(1)
 			}
 			for _, charts := range addOnBundleSpec.Packages {
 				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, false)
+				if err != nil {
+					BundleLog.Error(err, "promoting helm chart",
+						"name", charts.Source.Repository)
+					os.Exit(1)
+				}
+
 			}
 			err = dockerAuth.Remove()
+			if err != nil {
+				BundleLog.Error(err, "removing docker auth file")
+				os.Exit(1)
+			}
+
 			return
 		}
 
