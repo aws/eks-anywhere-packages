@@ -69,6 +69,14 @@ type PackageBundleControllerSpec struct {
 	// +optional
 	PrivateRegistry string `json:"privateRegistry"`
 
+	// DefaultRegistry for pulling helm charts and the bundle
+	// +optional
+	DefaultRegistry string `json:"defaultRegistry"`
+
+	// DefaultImageRegistry for pulling images
+	// +optional
+	DefaultImageRegistry string `json:"defaultImageRegistry"`
+
 	// +kubebuilder:validation:Required
 	// Source of the bundle.
 	Source PackageBundleControllerSource `json:"source"`

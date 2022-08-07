@@ -1,5 +1,7 @@
 package v1alpha1
 
+import "path"
+
 const PackageBundleControllerKind = "PackageBundleController"
 
 func (config *PackageBundleController) MetaKind() string {
@@ -15,18 +17,19 @@ func (config *PackageBundleController) IsIgnored() bool {
 }
 
 func (config *PackageBundleController) GetDefaultRegistry() string {
+	if config.Spec.DefaultRegistry != "" {
+		return config.Spec.DefaultRegistry
+	}
 	return defaultRegistry
 }
 
 func (config *PackageBundleController) GetDefaultImageRegistry() string {
+	if config.Spec.DefaultImageRegistry != "" {
+		return config.Spec.DefaultImageRegistry
+	}
 	return defaultImageRegistry
 }
 
-func (s *PackageBundleControllerSource) GetRef() (baseRef string) {
-	baseRef = s.Registry
-	if s.Repository != "" {
-		baseRef += "/" + s.Repository
-	}
-
-	return baseRef
+func (config *PackageBundleController) GetBundleUri() (uri string) {
+	return path.Join(config.GetDefaultRegistry(), config.Spec.Source.Repository)
 }

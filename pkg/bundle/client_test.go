@@ -55,7 +55,9 @@ func givenPackageBundleController() *api.PackageBundleController {
 			Namespace: api.PackageNamespace,
 		},
 		Spec: api.PackageBundleControllerSpec{
-			ActiveBundle: testBundleName,
+			ActiveBundle:         testBundleName,
+			DefaultRegistry:      "public.ecr.aws/j0a1m4z9",
+			DefaultImageRegistry: "783794618700.dkr.ecr.us-west-2.amazonaws.com",
 			Source: api.PackageBundleControllerSource{
 				Registry:   testBundleRegistry,
 				Repository: testBundleRepository,

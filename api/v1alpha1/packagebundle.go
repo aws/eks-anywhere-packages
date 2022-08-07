@@ -122,8 +122,8 @@ func (config *PackageBundle) IsValidVersion() bool {
 	return err == nil
 }
 
-func (s PackageOCISource) AsRepoURI() string {
-	return path.Join(s.Registry, s.Repository)
+func (s PackageOCISource) GetChartUri() string {
+	return "oci://" + path.Join(s.Registry, s.Repository)
 }
 
 // PackageMatches returns true if the given source locations match one another.
