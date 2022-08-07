@@ -153,6 +153,17 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 		managerContext.SetUninstalling(req.Name)
 	} else {
+		pbc, err := r.bundleClient.GetPackageBundleController(ctx)
+		if err != nil {
+			r.Log.Error(err, "Getting package bundle controller")
+			managerContext.Package.Status.Detail = err.Error()
+			if err = r.Status().Update(ctx, &managerContext.Package); err != nil {
+				return ctrl.Result{RequeueAfter: retryLong}, err
+			}
+			return ctrl.Result{RequeueAfter: retryLong}, nil
+		}
+		managerContext.PBC = *pbc
+
 		bundle, err := r.bundleClient.GetActiveBundle(ctx)
 		if err != nil {
 			r.Log.Error(err, "Getting active bundle")
