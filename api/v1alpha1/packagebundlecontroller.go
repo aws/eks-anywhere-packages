@@ -14,6 +14,14 @@ func (config *PackageBundleController) IsIgnored() bool {
 	return config.Name != PackageBundleControllerName || config.Namespace != PackageNamespace
 }
 
+func (config *PackageBundleController) GetDefaultRegistry() string {
+	return defaultRegistry
+}
+
+func (config *PackageBundleController) GetDefaultImageRegistry() string {
+	return defaultImageRegistry
+}
+
 func (s *PackageBundleControllerSource) GetRef() (baseRef string) {
 	baseRef = s.Registry
 	if s.Repository != "" {

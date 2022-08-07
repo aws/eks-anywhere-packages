@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	DefaultPackageRegistry = "public.ecr.aws/eks-anywhere"
+	defaultRegistry      = "public.ecr.aws/eks-anywhere"
+	defaultImageRegistry = "783794618700.dkr.ecr.us-west-2.amazonaws.com"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
