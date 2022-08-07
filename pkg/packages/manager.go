@@ -13,13 +13,12 @@ import (
 )
 
 const (
-	retryNever           = time.Duration(0)
-	retryNow             = time.Duration(1)
-	retryShort           = time.Duration(30) * time.Second
-	retryLong            = time.Duration(60) * time.Second
-	retryVeryLong        = time.Duration(180) * time.Second
-	sourceRegistry       = "sourceRegistry"
-	defaultGatedRegistry = "783794618700.dkr.ecr.us-west-2.amazonaws.com"
+	retryNever     = time.Duration(0)
+	retryNow       = time.Duration(1)
+	retryShort     = time.Duration(30) * time.Second
+	retryLong      = time.Duration(60) * time.Second
+	retryVeryLong  = time.Duration(180) * time.Second
+	sourceRegistry = "sourceRegistry"
 )
 
 type ManagerContext struct {
@@ -50,7 +49,7 @@ func (mc *ManagerContext) getRegistry(values map[string]interface{}) string {
 	if mc.Source.Registry != "" {
 		return mc.Source.Registry
 	}
-	return defaultGatedRegistry
+	return mc.PBC.GetDefaultImageRegistry()
 }
 
 func processInitializing(mc *ManagerContext) bool {
@@ -78,6 +77,9 @@ func processInstalling(mc *ManagerContext) bool {
 		return true
 	}
 	values[sourceRegistry] = mc.getRegistry(values)
+	if mc.Source.Registry == "" {
+		mc.Source.Registry = mc.PBC.GetDefaultRegistry()
+	}
 	if err := mc.PackageDriver.Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, mc.Source, values); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Install failed")
