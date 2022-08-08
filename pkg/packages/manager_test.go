@@ -77,12 +77,8 @@ func TestManagerContext_SetUninstalling(t *testing.T) {
 
 	sut.SetUninstalling(expectedName)
 
-	if sut.Package.Name != expectedName {
-		t.Errorf("expected <%s> actual <%s>", expectedName, sut.Package.Name)
-	}
-	if sut.Package.Status.State != expectedState {
-		t.Errorf("expected <%s> actual <%s>", expectedState, sut.Package.Status.State)
-	}
+	assert.Equal(t, expectedName, sut.Package.Name)
+	assert.Equal(t, expectedState, sut.Package.Status.State)
 }
 
 func TestManagerContext_getRegistry(t *testing.T) {
@@ -122,9 +118,7 @@ func TestManagerContext_getRegistry(t *testing.T) {
 func TestNewManager(t *testing.T) {
 	expectedManager := NewManager()
 	actualManager := NewManager()
-	if expectedManager != actualManager {
-		t.Errorf("expected <%s> actual <%s>", expectedManager, actualManager)
-	}
+	assert.Equal(t, expectedManager, actualManager)
 }
 
 func TestManagerLifecycle(t *testing.T) {

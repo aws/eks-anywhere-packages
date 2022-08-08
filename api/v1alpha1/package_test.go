@@ -46,6 +46,6 @@ notactuallyyaml
     `
 	ao := givenPackage(provided)
 	_, err := ao.GetValues()
-	assert.EqualError(t, err, "asdf")
+	assert.EqualError(t, err, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type map[string]interface {}")
 	assert.Contains(t, err.Error(), "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type map[string]interface {}")
 }

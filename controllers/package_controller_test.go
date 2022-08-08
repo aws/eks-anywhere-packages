@@ -60,9 +60,7 @@ func TestReconcile(t *testing.T) {
 		}
 
 		expected := time.Duration(0)
-		if got.RequeueAfter != expected {
-			t.Errorf("expected <%s> got <%s>", expected, got.RequeueAfter)
-		}
+		assert.Equal(t, expected, got.RequeueAfter)
 	})
 
 	t.Run("happy path no status update", func(t *testing.T) {
@@ -90,9 +88,7 @@ func TestReconcile(t *testing.T) {
 		}
 
 		expected := time.Duration(0)
-		if got.RequeueAfter != expected {
-			t.Errorf("expected <%s> got <%s>", expected, got.RequeueAfter)
-		}
+		assert.Equal(t, expected, got.RequeueAfter)
 	})
 
 	t.Run("handles errors getting the package", func(t *testing.T) {
@@ -112,9 +108,7 @@ func TestReconcile(t *testing.T) {
 		}
 
 		expected := time.Duration(0)
-		if got.RequeueAfter != expected {
-			t.Errorf("expected <%s> got <%s>", expected, got.RequeueAfter)
-		}
+		assert.Equal(t, expected, got.RequeueAfter)
 	})
 
 	t.Run("handles errors getting the active bundle", func(t *testing.T) {
@@ -135,14 +129,10 @@ func TestReconcile(t *testing.T) {
 		sut := tf.newReconciler()
 		req := tf.mockRequest()
 		got, err := sut.Reconcile(ctx, req)
-		if err != nil {
-			t.Errorf("expected <nil> got <%s>", err)
-		}
+		assert.Nil(t, err)
 
 		expected := retryLong
-		if got.RequeueAfter != expected {
-			t.Errorf("expected <%s> got <%s>", expected, got.RequeueAfter)
-		}
+		assert.Equal(t, expected, got.RequeueAfter)
 	})
 
 	t.Run("status error getting active bundle", func(t *testing.T) {
@@ -167,9 +157,7 @@ func TestReconcile(t *testing.T) {
 		assert.EqualError(t, err, "status update test error")
 
 		expected := retryLong
-		if got.RequeueAfter != expected {
-			t.Errorf("expected <%s> got <%s>", expected, got.RequeueAfter)
-		}
+		assert.Equal(t, expected, got.RequeueAfter)
 	})
 
 	t.Run("handles errors updating status", func(t *testing.T) {
@@ -205,9 +193,7 @@ func TestReconcile(t *testing.T) {
 		}
 
 		expected := time.Duration(0)
-		if got.RequeueAfter != expected {
-			t.Errorf("expected <%s> got <%s>", expected, got.RequeueAfter)
-		}
+		assert.Equal(t, expected, got.RequeueAfter)
 	})
 
 	t.Run("Reports error when requested package version is not in the bundle", func(t *testing.T) {
