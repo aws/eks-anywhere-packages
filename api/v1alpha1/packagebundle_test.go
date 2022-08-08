@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -246,9 +245,7 @@ func TestPackageMatches(t *testing.T) {
 			},
 		}
 		result := orig.PackageMatches(other)
-		if !result {
-			t.Errorf("expected <%t> got <%t>", true, result)
-		}
+		assert.True(t, result)
 	})
 
 	t.Run("package registries must match", func(t *testing.T) {
@@ -261,9 +258,7 @@ func TestPackageMatches(t *testing.T) {
 			},
 		}
 		result := orig.PackageMatches(other)
-		if result {
-			t.Errorf("expected <%t> got <%t>", false, result)
-		}
+		assert.False(t, result)
 	})
 
 	t.Run("package repositories must match", func(t *testing.T) {
@@ -276,9 +271,7 @@ func TestPackageMatches(t *testing.T) {
 			},
 		}
 		result := orig.PackageMatches(other)
-		if result {
-			t.Errorf("expected <%t> got <%t>", false, result)
-		}
+		assert.False(t, result)
 	})
 
 	t.Run("package added versions cause mismatch", func(t *testing.T) {
@@ -292,9 +285,7 @@ func TestPackageMatches(t *testing.T) {
 			},
 		}
 		result := orig.PackageMatches(other)
-		if result {
-			t.Errorf("expected <%t> got <%t>", false, result)
-		}
+		assert.False(t, result)
 	})
 
 	t.Run("package removed versions cause mismatch", func(t *testing.T) {
@@ -306,9 +297,7 @@ func TestPackageMatches(t *testing.T) {
 			},
 		}
 		result := orig.PackageMatches(other)
-		if result {
-			t.Errorf("expected <%t> got <%t>", false, result)
-		}
+		assert.False(t, result)
 	})
 
 	t.Run("package changed tags cause mismatch", func(t *testing.T) {
@@ -321,9 +310,7 @@ func TestPackageMatches(t *testing.T) {
 			},
 		}
 		result := orig.PackageMatches(other)
-		if result {
-			t.Errorf("expected <%t> got <%t>", false, result)
-		}
+		assert.False(t, result)
 	})
 }
 
@@ -337,27 +324,21 @@ func TestSourceVersionKey(t *testing.T) {
 	t.Run("smoke test", func(t *testing.T) {
 		t.Parallel()
 
-		if s.Key() != "v1 sha256:blah" {
-			t.Errorf("smoke test")
-		}
+		assert.Equal(t, s.Key(), "v1 sha256:blah")
 	})
 
 	t.Run("includes the name", func(t *testing.T) {
 		t.Parallel()
 
 		got := s.Key()
-		if !strings.Contains(got, "v1") {
-			t.Errorf("expected key to contain the name, but it didn't")
-		}
+		assert.Contains(t, got, "v1")
 	})
 
 	t.Run("includes the tag", func(t *testing.T) {
 		t.Parallel()
 
 		got := s.Key()
-		if !strings.Contains(got, "sha256:blah") {
-			t.Errorf("expected key to contain the tag, but it didn't")
-		}
+		assert.Contains(t, got, "sha256:blah")
 	})
 }
 
