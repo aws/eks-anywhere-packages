@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"log"
 	"testing"
 
@@ -30,6 +29,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	clientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 func TestHandleInner(t *testing.T) {

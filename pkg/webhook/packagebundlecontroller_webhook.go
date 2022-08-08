@@ -17,18 +17,19 @@ package webhook
 import (
 	"context"
 	"fmt"
-	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	"github.com/aws/eks-anywhere-packages/pkg/bundle"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/rest"
 	"net/http"
 
 	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 )
 
 type activeBundleValidator struct {
@@ -80,15 +81,17 @@ func (v *activeBundleValidator) Handle(ctx context.Context, req admission.Reques
 func (v *activeBundleValidator) handleInner(_ context.Context, pbc *v1alpha1.PackageBundleController, bundles *v1alpha1.PackageBundleList) (
 	*admission.Response, error) {
 
-	var theBundle *v1alpha1.PackageBundle
+	var found bool
+	var theBundle v1alpha1.PackageBundle
 	for _, b := range bundles.Items {
 		if b.Name == pbc.Spec.ActiveBundle {
-			theBundle = &b
+			theBundle = b
+			found = true
 			break
 		}
 	}
 
-	if theBundle == nil {
+	if !found {
 		msg := fmt.Sprintf("package bundle not theBundle with name: %q", pbc.Spec.ActiveBundle)
 		resp := &admission.Response{
 			AdmissionResponse: admissionv1.AdmissionResponse{
