@@ -32,9 +32,6 @@ func givenPackageBundleController() api.PackageBundleController {
 		},
 		Spec: api.PackageBundleControllerSpec{
 			ActiveBundle: testBundleName,
-			Source: api.PackageBundleControllerSource{
-				Registry: "public.ecr.aws/j0a1m4z9",
-			},
 		},
 		Status: api.PackageBundleControllerStatus{
 			State: api.BundleControllerStateActive,
