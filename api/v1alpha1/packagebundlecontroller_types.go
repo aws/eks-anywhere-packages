@@ -31,7 +31,7 @@ const (
 // +kubebuilder:printcolumn:name="ActiveBundle",type=string,JSONPath=`.spec.activeBundle`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="Detail",type=string,JSONPath=`.status.detail`
-// PackageBundleController is the Schema for the packagebundlecontrollers API.
+// PackageBundleController is the Schema for the packagebundlecontroller API.
 type PackageBundleController struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
