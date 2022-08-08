@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"net/http"
 
@@ -31,23 +32,28 @@ import (
 )
 
 type activeBundleValidator struct {
-	Client  client.Client
-	Config  *rest.Config
-	decoder *admission.Decoder
+	Client      client.Client
+	Config      *rest.Config
+	decoder     *admission.Decoder
+	kubeVersion string
 }
 
 func InitActiveBundleValidator(mgr ctrl.Manager) error {
+	kubeVersion, err := getKubeServerVersion(mgr.GetConfig())
+	if err != nil {
+		return err
+	}
 	mgr.GetWebhookServer().
 		Register("/validate-packages-eks-amazonaws-com-v1alpha1-packagebundlecontroller",
 			&webhook.Admission{Handler: &activeBundleValidator{
-				Client: mgr.GetClient(),
-				Config: mgr.GetConfig(),
+				Client:      mgr.GetClient(),
+				Config:      mgr.GetConfig(),
+				kubeVersion: kubeVersion,
 			}})
 	return nil
 }
 
-func (v *activeBundleValidator) Handle(ctx context.Context,
-	req admission.Request) admission.Response {
+func (v *activeBundleValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
 
 	pbc := &v1alpha1.PackageBundleController{}
 	err := v.decoder.Decode(req, pbc)
@@ -71,46 +77,72 @@ func (v *activeBundleValidator) Handle(ctx context.Context,
 	return *resp
 }
 
-func getResponse(allowed bool) *admission.Response {
-	return &admission.Response{
-		AdmissionResponse: admissionv1.AdmissionResponse{Allowed: allowed},
-	}
-}
-
-func (v *activeBundleValidator) handleInner(ctx context.Context,
-	pbc *v1alpha1.PackageBundleController, bundles *v1alpha1.PackageBundleList) (
+func (v *activeBundleValidator) handleInner(_ context.Context, pbc *v1alpha1.PackageBundleController, bundles *v1alpha1.PackageBundleList) (
 	*admission.Response, error) {
 
-	var found *v1alpha1.PackageBundle
-	for _, bundle := range bundles.Items {
-		if bundle.Name == pbc.Spec.ActiveBundle {
-			found = &bundle
+	var theBundle *v1alpha1.PackageBundle
+	for _, b := range bundles.Items {
+		if b.Name == pbc.Spec.ActiveBundle {
+			theBundle = &b
 			break
 		}
 	}
 
-	if found == nil {
-		msg := fmt.Sprintf("package bundle not found with name: %q", pbc.Spec.ActiveBundle)
-		resp := getResponse(false)
-		resp.AdmissionResponse.Result = &metav1.Status{
-			Status:  metav1.StatusFailure,
-			Code:    http.StatusNotFound,
-			Message: msg,
-			Reason:  metav1.StatusReasonNotFound,
+	if theBundle == nil {
+		msg := fmt.Sprintf("package bundle not theBundle with name: %q", pbc.Spec.ActiveBundle)
+		resp := &admission.Response{
+			AdmissionResponse: admissionv1.AdmissionResponse{
+				Allowed: false,
+				Result: &metav1.Status{
+					Status:  metav1.StatusFailure,
+					Code:    http.StatusNotFound,
+					Message: msg,
+					Reason:  metav1.StatusReasonNotFound,
+				},
+			},
 		}
 		return resp, nil
 	}
-	kubeVersion, err := bundle.GetKubeServerVersion(v.Config)
+
+	matches, err := theBundle.KubeVersionMatches(v.kubeVersion)
 	if err != nil {
-		return getResponse(false), fmt.Errorf("getting kubeVersion: %s", err)
+		return nil, fmt.Errorf("listing package bundles: %w", err)
 	}
 
-	matches, err := found.KubeVersionMatches(kubeVersion)
 	if !matches {
-		return getResponse(false), fmt.Errorf("matching kubeVersion: %s", err)
+		msg := fmt.Sprintf("kuberneetes version %s does not match %s", v.kubeVersion, pbc.Spec.ActiveBundle)
+		resp := &admission.Response{
+			AdmissionResponse: admissionv1.AdmissionResponse{
+				Allowed: false,
+				Result: &metav1.Status{
+					Status:  metav1.StatusFailure,
+					Code:    http.StatusBadRequest,
+					Message: msg,
+					Reason:  metav1.StatusReasonInvalid,
+				},
+			},
+		}
+		return resp, nil
 	}
 
-	return getResponse(true), nil
+	resp := &admission.Response{
+		AdmissionResponse: admissionv1.AdmissionResponse{
+			Allowed: true,
+		},
+	}
+	return resp, nil
+}
+
+func getKubeServerVersion(cfg *rest.Config) (serverVersion string, err error) {
+	disco, err := discovery.NewDiscoveryClientForConfig(cfg)
+	if err != nil {
+		return "", fmt.Errorf("creating discovery client: %s", err)
+	}
+	info, err := disco.ServerVersion()
+	if err != nil {
+		return "", fmt.Errorf("getting server version: %s", err)
+	}
+	return bundle.FormatKubeServerVersion(*info), nil
 }
 
 var _ admission.DecoderInjector = (*activeBundleValidator)(nil)

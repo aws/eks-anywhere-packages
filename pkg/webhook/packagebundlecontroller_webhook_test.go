@@ -36,7 +36,9 @@ func TestHandleInner(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("validates successfully", func(t *testing.T) {
-		v := &activeBundleValidator{}
+		v := &activeBundleValidator{
+			kubeVersion: "v1-21",
+		}
 		pbc := &v1alpha1.PackageBundleController{
 			Spec: v1alpha1.PackageBundleControllerSpec{
 				ActiveBundle: "v1-21-1001",
@@ -58,6 +60,34 @@ func TestHandleInner(t *testing.T) {
 		if assert.NoError(t, err) {
 			assert.NotNil(t, resp)
 			assert.True(t, resp.AdmissionResponse.Allowed)
+		}
+	})
+
+	t.Run("invalidates successfully", func(t *testing.T) {
+		v := &activeBundleValidator{
+			kubeVersion: "v1-20",
+		}
+		pbc := &v1alpha1.PackageBundleController{
+			Spec: v1alpha1.PackageBundleControllerSpec{
+				ActiveBundle: "v1-21-1001",
+			},
+		}
+		bundles := &v1alpha1.PackageBundleList{
+			Items: []v1alpha1.PackageBundle{
+				{
+					TypeMeta: metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "v1-21-1001",
+					},
+					Spec:   v1alpha1.PackageBundleSpec{},
+					Status: v1alpha1.PackageBundleStatus{},
+				},
+			},
+		}
+		resp, err := v.handleInner(ctx, pbc, bundles)
+		if assert.NoError(t, err) {
+			assert.NotNil(t, resp)
+			assert.False(t, resp.AdmissionResponse.Allowed)
 		}
 	})
 
