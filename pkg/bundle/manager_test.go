@@ -3,7 +3,6 @@ package bundle
 import (
 	"context"
 	"fmt"
-	"github.com/aws/eks-anywhere-packages/pkg/file"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -14,6 +13,7 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
+	"github.com/aws/eks-anywhere-packages/pkg/file"
 )
 
 const testPreviousBundleName = "v1-21-1002"

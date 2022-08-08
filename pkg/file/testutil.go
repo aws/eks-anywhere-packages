@@ -2,8 +2,9 @@ package file
 
 import (
 	"fmt"
-	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"testing"
+
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 func givenFile(file string, config KindAccessor) error {

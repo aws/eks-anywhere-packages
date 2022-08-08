@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"github.com/aws/eks-anywhere-packages/pkg/file"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -14,6 +13,7 @@ import (
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
 	bundlefake "github.com/aws/eks-anywhere-packages/pkg/bundle/fake"
 	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
+	"github.com/aws/eks-anywhere-packages/pkg/file"
 )
 
 func TestPackageBundleReconciler_mapBundleReconcileRequests(t *testing.T) {

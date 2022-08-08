@@ -3,7 +3,6 @@ package signature_test
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"github.com/aws/eks-anywhere-packages/pkg/file"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/aws/eks-anywhere-packages/pkg/file"
 	"github.com/aws/eks-anywhere-packages/pkg/signature"
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
@@ -190,6 +190,7 @@ func TestMetadata(t *testing.T) {
 func TestDigest(t *testing.T) {
 	t.Run("Basic digest on valid manifest", func(t *testing.T) {
 		bundle, err := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		assert.NoError(t, err)
 		expectedDigest, err := os.ReadFile(filepath.Clean("testdata/packagebundle_valid.yaml") + ".digest")
 		assert.NoError(t, err)
 		digest, _, err := GetDigest(bundle, EksaDomain)
