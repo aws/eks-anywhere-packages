@@ -241,7 +241,7 @@ func TestReconcile(t *testing.T) {
 		req := tf.mockRequest()
 		got, err := sut.Reconcile(ctx, req)
 
-		assert.Error(t, err, testErr)
+		assert.EqualError(t, err, "status update test error")
 		expected := time.Duration(0)
 		assert.Equal(t, expected, got.RequeueAfter)
 

@@ -60,7 +60,7 @@ func TestIsConfigChanged(t *testing.T) {
 
 		_, err = helm.IsConfigChanged(ctx, "name-does-not-exist", values)
 
-		assert.Error(t, err)
+		assert.EqualError(t, err, "installation not found \"name-does-not-exist\": IsReachable test error blah")
 	})
 
 	t.Run("golden path returning true", func(t *testing.T) {

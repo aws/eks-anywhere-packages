@@ -79,7 +79,7 @@ func TestPackageBundleReconciler_ReconcileError(t *testing.T) {
 
 	_, actualError := sut.Reconcile(ctx, request)
 
-	assert.Error(t, expectedError, actualError)
+	assert.EqualError(t, actualError, "error reading")
 }
 
 func TestPackageBundleReconciler_ReconcileIgnored(t *testing.T) {
