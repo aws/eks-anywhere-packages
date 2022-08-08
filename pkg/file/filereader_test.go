@@ -88,12 +88,12 @@ func TestFileReaderOnApiDatatypes(t *testing.T) {
 		t.Errorf("expected <%v> actual <%v>", nil, err)
 	}
 
-	_, _, err = GivenPackageBundle("../../api/testdata/bundle_two.yaml")
+	_, err = GivenPackageBundle("../../api/testdata/bundle_two.yaml")
 	if err != nil {
 		t.Errorf("expected <%v> actual <%v>", nil, err)
 	}
 
-	_, _, err = GivenPackageBundle("../../api/testdata/bundle_one.yaml")
+	_, err = GivenPackageBundle("../../api/testdata/bundle_one.yaml")
 	if err != nil {
 		t.Errorf("expected <%v> actual <%v>", nil, err)
 	}

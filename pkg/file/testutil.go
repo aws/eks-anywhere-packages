@@ -3,8 +3,6 @@ package file
 import (
 	"fmt"
 	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -23,22 +21,18 @@ func GivenPackage(fileName string) (*v1alpha1.Package, error) {
 	return config, err
 }
 
-func GivenPackageBundle(filename string) (*v1alpha1.PackageBundle, string, error) {
+func GivenPackageBundle(filename string) (*v1alpha1.PackageBundle, error) {
 	config := &v1alpha1.PackageBundle{}
 	reader := NewFileReader(filename + ".signed")
 	initError := reader.Initialize(config)
 	if initError != nil {
-		return nil, "", initError
+		return nil, initError
 	}
 	actual := reader.Parse(config)
 	if actual != nil {
-		return nil, "", actual
+		return nil, actual
 	}
-	digest, err := os.ReadFile(filepath.Clean(filename) + ".digest")
-	if err != nil {
-		return nil, "", err
-	}
-	return config, string(digest), nil
+	return config, nil
 }
 
 func GivenBundleController(fileName string) (*v1alpha1.PackageBundleController, error) {

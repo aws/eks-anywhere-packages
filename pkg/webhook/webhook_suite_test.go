@@ -82,7 +82,7 @@ var _ = Describe("Webhooks are Validated", func() {
 				err := os.Setenv(PublicKeyEnvVar, "")
 				Expect(err).ShouldNot(HaveOccurred())
 
-				bundle, _, err := file.GivenPackageBundle("../testdata/bundle_one.yaml")
+				bundle, err := file.GivenPackageBundle("../testdata/bundle_one.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, bundle)
 
@@ -95,7 +95,7 @@ var _ = Describe("Webhooks are Validated", func() {
 				//Test public key
 				err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
 				Expect(err).ShouldNot(HaveOccurred())
-				bundle, _, err := file.GivenPackageBundle("../testdata/bundle_one.yaml")
+				bundle, err := file.GivenPackageBundle("../testdata/bundle_one.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, bundle)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -104,7 +104,7 @@ var _ = Describe("Webhooks are Validated", func() {
 			It("validates the signature against the default key if the environment variable exists but is empty", func() {
 				err := os.Setenv(PublicKeyEnvVar, "")
 				Expect(err).ShouldNot(HaveOccurred())
-				bundle, _, err := file.GivenPackageBundle("../testdata/bundle_one.yaml")
+				bundle, err := file.GivenPackageBundle("../testdata/bundle_one.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, bundle)
 				Expect(err).Should(HaveOccurred())
@@ -119,7 +119,7 @@ var _ = Describe("Webhooks are Validated", func() {
 			err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			bundle, _, err := file.GivenPackageBundle("../testdata/package_webhook_bundle.yaml")
+			bundle, err := file.GivenPackageBundle("../testdata/package_webhook_bundle.yaml")
 			Expect(err).ShouldNot(HaveOccurred())
 			err = k8sClient.Create(ctx, bundle)
 			Expect(err).ShouldNot(HaveOccurred())
