@@ -21,9 +21,9 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // PackageBundle is the Schema for the packagebundles API.
 type PackageBundle struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -100,7 +100,7 @@ type PackageBundleStatus struct {
 	State PackageBundleStateEnum `json:"state"`
 }
 
-//+kubebuilder:validation:Enum={"available","ignored","invalid"}
+// +kubebuilder:validation:Enum={"available","ignored","invalid"}
 // PackageBundleStateEnum defines the observed state of PackageBundle.
 type PackageBundleStateEnum string
 
