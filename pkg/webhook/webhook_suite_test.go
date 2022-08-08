@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1_test
+package webhook
 
 import (
 	"context"
@@ -37,9 +37,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	. "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/file"
 	"github.com/aws/eks-anywhere-packages/pkg/signature"
-	"github.com/aws/eks-anywhere-packages/pkg/testutil"
-	. "github.com/aws/eks-anywhere-packages/pkg/webhook"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
@@ -83,7 +82,7 @@ var _ = Describe("Webhooks are Validated", func() {
 				err := os.Setenv(PublicKeyEnvVar, "")
 				Expect(err).ShouldNot(HaveOccurred())
 
-				bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+				bundle, _, err := file.GivenPackageBundle("../testdata/bundle_one.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, bundle)
 
@@ -96,7 +95,7 @@ var _ = Describe("Webhooks are Validated", func() {
 				//Test public key
 				err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
 				Expect(err).ShouldNot(HaveOccurred())
-				bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+				bundle, _, err := file.GivenPackageBundle("../testdata/bundle_one.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, bundle)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -105,7 +104,7 @@ var _ = Describe("Webhooks are Validated", func() {
 			It("validates the signature against the default key if the environment variable exists but is empty", func() {
 				err := os.Setenv(PublicKeyEnvVar, "")
 				Expect(err).ShouldNot(HaveOccurred())
-				bundle, _, err := testutil.GivenPackageBundle("../testdata/bundle_one.yaml")
+				bundle, _, err := file.GivenPackageBundle("../testdata/bundle_one.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, bundle)
 				Expect(err).Should(HaveOccurred())
@@ -120,12 +119,12 @@ var _ = Describe("Webhooks are Validated", func() {
 			err := os.Setenv(PublicKeyEnvVar, "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvME/v61IfA4ulmgdF10Ae/WCRqtXvrUtF+0nu0dbdP36u3He4GRepYdQGCmbPe0463yAABZs01/Vv/v52ktlmg==")
 			Expect(err).ShouldNot(HaveOccurred())
 
-			bundle, _, err := testutil.GivenPackageBundle("../testdata/package_webhook_bundle.yaml")
+			bundle, _, err := file.GivenPackageBundle("../testdata/package_webhook_bundle.yaml")
 			Expect(err).ShouldNot(HaveOccurred())
 			err = k8sClient.Create(ctx, bundle)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			pbc, err := GivenBundleController("../testdata/package_webhook_bundle_controller.yaml")
+			pbc, err := file.GivenBundleController("../testdata/package_webhook_bundle_controller.yaml")
 			Expect(err).ShouldNot(HaveOccurred())
 			err = k8sClient.Create(ctx, pbc)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -133,14 +132,14 @@ var _ = Describe("Webhooks are Validated", func() {
 
 		When("Hello Eks Anywhere Package is created", func() {
 			It("succeeds when the package configuration is valid", func() {
-				p, err := GivenPackage("../testdata/package_webhook_valid_config.yaml")
+				p, err := file.GivenPackage("../testdata/package_webhook_valid_config.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, p)
 				Expect(err).ShouldNot(HaveOccurred())
 			})
 
 			It("fails when the package configuration contains unknown config", func() {
-				p, err := GivenPackage("../testdata/package_webhook_invalid_config.yaml")
+				p, err := file.GivenPackage("../testdata/package_webhook_invalid_config.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, p)
 				Expect(err).Should(HaveOccurred())
@@ -148,7 +147,7 @@ var _ = Describe("Webhooks are Validated", func() {
 			})
 
 			It("fails when the package configuration contains wrong type", func() {
-				p, err := GivenPackage("../testdata/package_webhook_invalid_type.yaml")
+				p, err := file.GivenPackage("../testdata/package_webhook_invalid_type.yaml")
 				Expect(err).ShouldNot(HaveOccurred())
 				err = k8sClient.Create(ctx, p)
 				Expect(err).Should(HaveOccurred())

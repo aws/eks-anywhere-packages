@@ -3,6 +3,7 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"github.com/aws/eks-anywhere-packages/pkg/file"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -124,8 +125,8 @@ func TestSortBundleNewestFirst(t *testing.T) {
 	t.Run("it sorts newest version first", func(t *testing.T) {
 		_, _, _, bm := givenBundleManager(t)
 		allBundles := []api.PackageBundle{
-			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_one.yaml"),
-			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
+			*file.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_one.yaml"),
+			*file.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
 		}
 
 		bm.SortBundlesDescending(allBundles)
@@ -146,8 +147,8 @@ func TestSortBundleNewestFirst(t *testing.T) {
 					State: api.PackageBundleStateAvailable,
 				},
 			},
-			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_one.yaml"),
-			*api.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
+			*file.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_one.yaml"),
+			*file.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
 		}
 
 		bm.SortBundlesDescending(allBundles)

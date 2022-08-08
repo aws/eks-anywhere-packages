@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"github.com/aws/eks-anywhere-packages/pkg/file"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -17,8 +18,8 @@ import (
 
 func TestPackageBundleReconciler_mapBundleReconcileRequests(t *testing.T) {
 	ctx := context.Background()
-	bundleOne := *api.MustPackageBundleFromFilename(t, "../api/testdata/bundle_one.yaml")
-	bundleTwo := *api.MustPackageBundleFromFilename(t, "../api/testdata/bundle_two.yaml")
+	bundleOne := *file.MustPackageBundleFromFilename(t, "../api/testdata/bundle_one.yaml")
+	bundleTwo := *file.MustPackageBundleFromFilename(t, "../api/testdata/bundle_two.yaml")
 	mockClient := mocks.NewMockClient(gomock.NewController(t))
 	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 	mockClient.EXPECT().
