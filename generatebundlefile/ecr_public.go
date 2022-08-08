@@ -3,14 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"os/exec"
 	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
-	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
@@ -206,18 +204,6 @@ func (c *ecrPublicClient) GetPublicAuthToken() (string, error) {
 	authToken := *authTokenOutput.AuthorizationData.AuthorizationToken
 
 	return authToken, nil
-}
-
-// copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
-func copyImage(log logr.Logger, authFile, source, destination string) error {
-	log.Info("Running skopeo copy...", source, destination)
-	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
-	stdout, err := ExecCommand(cmd)
-	fmt.Printf("%s\n", stdout)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // getNameAndVersionPublic looks up the latest pushed helm chart's tag from a given repo name Full name in Public ECR OCI format.
