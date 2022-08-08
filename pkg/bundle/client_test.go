@@ -15,8 +15,7 @@ import (
 )
 
 const (
-	testBundleRegistry   = "public.ecr.aws/j0a1m4z9"
-	testBundleRepository = "eks-anywhere-package-bundles"
+	testBundleRegistry = "public.ecr.aws/j0a1m4z9"
 )
 
 func givenMockClient(t *testing.T) *ctrlmocks.MockClient {
@@ -55,11 +54,10 @@ func givenPackageBundleController() *api.PackageBundleController {
 			Namespace: api.PackageNamespace,
 		},
 		Spec: api.PackageBundleControllerSpec{
-			ActiveBundle: testBundleName,
-			Source: api.PackageBundleControllerSource{
-				Registry:   testBundleRegistry,
-				Repository: testBundleRepository,
-			},
+			ActiveBundle:         testBundleName,
+			DefaultRegistry:      "public.ecr.aws/j0a1m4z9",
+			DefaultImageRegistry: "783794618700.dkr.ecr.us-west-2.amazonaws.com",
+			BundleRepository:     "eks-anywhere-package-bundles",
 		},
 		Status: api.PackageBundleControllerStatus{
 			State: api.BundleControllerStateActive,
@@ -171,41 +169,6 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("no registry", func(t *testing.T) {
-		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
-		testBundle := givenBundle()
-		testBundle.Spec.Packages[0].Source.Registry = ""
-
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(testBundle)).SetArg(2, *testBundle)
-
-		bundle, err := bundleClient.GetActiveBundle(ctx)
-
-		assert.Equal(t, bundle.Name, testBundleName)
-		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
-		assert.Equal(t, "public.ecr.aws/j0a1m4z9", bundle.Spec.Packages[0].Source.Registry)
-		assert.Nil(t, err)
-	})
-
-	t.Run("no registry anywhere", func(t *testing.T) {
-		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
-		testBundle := givenBundle()
-		testBundle.Spec.Packages[0].Source.Registry = ""
-		pbc.Spec.Source.Registry = ""
-
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(testBundle)).SetArg(2, *testBundle)
-
-		bundle, err := bundleClient.GetActiveBundle(ctx)
-
-		assert.Equal(t, bundle.Name, testBundleName)
-		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
-		assert.Equal(t, "public.ecr.aws/eks-anywhere", bundle.Spec.Packages[0].Source.Registry)
-		assert.Nil(t, err)
-	})
-
 	t.Run("no active bundle", func(t *testing.T) {
 		pbc := givenPackageBundleController()
 		mockClient := givenMockClient(t)
@@ -216,7 +179,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		bundle, err := bundleClient.GetActiveBundle(ctx)
 
 		assert.Nil(t, bundle)
-		assert.EqualError(t, err, "There is no activeBundle set in PackageBundleController")
+		assert.EqualError(t, err, "no activeBundle set in PackageBundleController")
 	})
 
 	t.Run("error path", func(t *testing.T) {

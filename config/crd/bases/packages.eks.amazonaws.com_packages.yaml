@@ -38,7 +38,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Package is the Schema for the package API
+        description: Package is the Schema for the package API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -56,7 +56,7 @@ spec:
             description: PackageSpec defines the desired state of an package.
             properties:
               config:
-                description: Config for the package
+                description: Config for the package.
                 type: string
               packageName:
                 description: PackageName is the name of the package as specified in
@@ -67,30 +67,37 @@ spec:
                   checksum for the package, as specified in the bundle.
                 type: string
               targetNamespace:
-                description: TargetNamespace where package resources will be deployed.
+                description: TargetNamespace defines where package resources will
+                  be deployed.
                 type: string
             required:
             - packageName
             type: object
           status:
-            description: PackageStatus defines the observed state of Package
+            description: PackageStatus defines the observed state of Package.
             properties:
               currentVersion:
-                description: Version currently installed
+                description: Version currently installed.
                 type: string
               detail:
-                description: Detail of the state
+                description: Detail of the state.
                 type: string
               source:
-                description: Source associated with the installation
+                description: Source associated with the installation.
                 properties:
                   digest:
+                    description: Digest is a checksum value identifying the version
+                      of the package and its contents.
                     type: string
                   registry:
+                    description: Registry in which the package is found.
                     type: string
                   repository:
+                    description: Repository within the Registry where the package
+                      is found.
                     type: string
                   version:
+                    description: Versions of the package supported.
                     type: string
                 required:
                 - digest
@@ -99,7 +106,7 @@ spec:
                 - version
                 type: object
               state:
-                description: State of the installation
+                description: State of the installation.
                 enum:
                 - initializing
                 - installing
@@ -109,7 +116,7 @@ spec:
                 - unknown
                 type: string
               targetVersion:
-                description: Version to be installed
+                description: Version to be installed.
                 type: string
               upgradesAvailable:
                 description: UpgradesAvailable indicates upgraded versions in the

@@ -11,8 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
-	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/pkg/errors"
+
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 const (

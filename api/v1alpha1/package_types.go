@@ -18,15 +18,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Package",type=string,JSONPath=`.spec.packageName`
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="CurrentVersion",type=string,JSONPath=`.status.currentVersion`
 // +kubebuilder:printcolumn:name="TargetVersion",type=string,JSONPath=`.status.targetVersion`
 // +kubebuilder:printcolumn:name="Detail",type=string,JSONPath=`.status.detail`
-// Package is the Schema for the package API
+// Package is the Schema for the package API.
 type Package struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -44,10 +44,10 @@ type PackageSpec struct {
 	// package, as specified in the bundle.
 	PackageVersion string `json:"packageVersion,omitempty"`
 
-	// Config for the package
+	// Config for the package.
 	Config string `json:"config,omitempty"`
 
-	// TargetNamespace where package resources will be deployed.
+	// TargetNamespace defines where package resources will be deployed.
 	TargetNamespace string `json:"targetNamespace,omitempty"`
 }
 
@@ -63,28 +63,43 @@ const (
 	StateUnknown      StateEnum = "unknown"
 )
 
-// PackageStatus defines the observed state of Package
+// PackageStatus defines the observed state of Package.
 type PackageStatus struct {
 	// +kubebuilder:validation:Required
-	// Source associated with the installation
+	// Source associated with the installation.
 	Source PackageOCISource `json:"source"`
 
 	// +kubebuilder:validation:Required
-	// Version currently installed
+	// Version currently installed.
 	CurrentVersion string `json:"currentVersion"`
 
 	// +kubebuilder:validation:Required
-	// Version to be installed
+	// Version to be installed.
 	TargetVersion string `json:"targetVersion,omitempty"`
 
-	// State of the installation
+	// State of the installation.
 	State StateEnum `json:"state,omitempty"`
 
-	// Detail of the state
+	// Detail of the state.
 	Detail string `json:"detail,omitempty"`
 
 	// UpgradesAvailable indicates upgraded versions in the bundle.
 	UpgradesAvailable []PackageAvailableUpgrade `json:"upgradesAvailable,omitempty"`
+}
+
+type PackageOCISource struct {
+	// +kubebuilder:validation:Required
+	// Versions of the package supported.
+	Version string `json:"version"`
+	// +kubebuilder:validation:Required
+	// Registry in which the package is found.
+	Registry string `json:"registry"`
+	// +kubebuilder:validation:Required
+	// Repository within the Registry where the package is found.
+	Repository string `json:"repository"`
+	// +kubebuilder:validation:Required
+	// Digest is a checksum value identifying the version of the package and its contents.
+	Digest string `json:"digest"`
 }
 
 // PackageAvailableUpgrade details the package's available upgrades' versions.
@@ -100,7 +115,7 @@ type PackageAvailableUpgrade struct {
 }
 
 // +kubebuilder:object:root=true
-// PackageList contains a list of Package
+// PackageList contains a list of Package.
 type PackageList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

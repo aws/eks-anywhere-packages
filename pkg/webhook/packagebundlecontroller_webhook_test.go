@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package webhook
 
 import (
 	"context"
@@ -29,27 +29,31 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	clientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 func TestHandleInner(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("validates successfully", func(t *testing.T) {
-		v := &activeBundleValidator{}
-		pbc := &PackageBundleController{
-			Spec: PackageBundleControllerSpec{
+		v := &activeBundleValidator{
+			kubeVersion: "v1-21",
+		}
+		pbc := &v1alpha1.PackageBundleController{
+			Spec: v1alpha1.PackageBundleControllerSpec{
 				ActiveBundle: "v1-21-1001",
 			},
 		}
-		bundles := &PackageBundleList{
-			Items: []PackageBundle{
+		bundles := &v1alpha1.PackageBundleList{
+			Items: []v1alpha1.PackageBundle{
 				{
 					TypeMeta: metav1.TypeMeta{},
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "v1-21-1001",
 					},
-					Spec:   PackageBundleSpec{},
-					Status: PackageBundleStatus{},
+					Spec:   v1alpha1.PackageBundleSpec{},
+					Status: v1alpha1.PackageBundleStatus{},
 				},
 			},
 		}
@@ -57,6 +61,34 @@ func TestHandleInner(t *testing.T) {
 		if assert.NoError(t, err) {
 			assert.NotNil(t, resp)
 			assert.True(t, resp.AdmissionResponse.Allowed)
+		}
+	})
+
+	t.Run("invalidates successfully", func(t *testing.T) {
+		v := &activeBundleValidator{
+			kubeVersion: "v1-20",
+		}
+		pbc := &v1alpha1.PackageBundleController{
+			Spec: v1alpha1.PackageBundleControllerSpec{
+				ActiveBundle: "v1-21-1001",
+			},
+		}
+		bundles := &v1alpha1.PackageBundleList{
+			Items: []v1alpha1.PackageBundle{
+				{
+					TypeMeta: metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "v1-21-1001",
+					},
+					Spec:   v1alpha1.PackageBundleSpec{},
+					Status: v1alpha1.PackageBundleStatus{},
+				},
+			},
+		}
+		resp, err := v.handleInner(ctx, pbc, bundles)
+		if assert.NoError(t, err) {
+			assert.NotNil(t, resp)
+			assert.False(t, resp.AdmissionResponse.Allowed)
 		}
 	})
 
@@ -75,16 +107,16 @@ func TestHandleInner(t *testing.T) {
 	})
 
 	t.Run("handles list errors", func(t *testing.T) {
-		pbc := &PackageBundleController{
-			Spec: PackageBundleControllerSpec{
+		pbc := &v1alpha1.PackageBundleController{
+			Spec: v1alpha1.PackageBundleControllerSpec{
 				ActiveBundle: "v1-21-1001",
 			},
-			Status: PackageBundleControllerStatus{},
+			Status: v1alpha1.PackageBundleControllerStatus{},
 		}
 		pbcBytes, err := json.Marshal(pbc)
 		require.NoError(t, err)
 		scheme := runtime.NewScheme()
-		require.NoError(t, AddToScheme(scheme))
+		require.NoError(t, v1alpha1.AddToScheme(scheme))
 		decoder, err := admission.NewDecoder(scheme)
 		require.NoError(t, err)
 		v := &activeBundleValidator{
@@ -105,20 +137,20 @@ func TestHandleInner(t *testing.T) {
 
 	t.Run("rejects unknown bundle names", func(t *testing.T) {
 		v := &activeBundleValidator{}
-		pbc := &PackageBundleController{
-			Spec: PackageBundleControllerSpec{
+		pbc := &v1alpha1.PackageBundleController{
+			Spec: v1alpha1.PackageBundleControllerSpec{
 				ActiveBundle: "v1-21-1002",
 			},
 		}
-		bundles := &PackageBundleList{
-			Items: []PackageBundle{
+		bundles := &v1alpha1.PackageBundleList{
+			Items: []v1alpha1.PackageBundle{
 				{
 					TypeMeta: metav1.TypeMeta{},
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "v1-21-1001",
 					},
-					Spec:   PackageBundleSpec{},
-					Status: PackageBundleStatus{},
+					Spec:   v1alpha1.PackageBundleSpec{},
+					Status: v1alpha1.PackageBundleStatus{},
 				},
 			},
 		}
