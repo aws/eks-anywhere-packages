@@ -15,8 +15,7 @@ import (
 )
 
 const (
-	testBundleRegistry   = "public.ecr.aws/j0a1m4z9"
-	testBundleRepository = "eks-anywhere-package-bundles"
+	testBundleRegistry = "public.ecr.aws/j0a1m4z9"
 )
 
 func givenMockClient(t *testing.T) *ctrlmocks.MockClient {
