@@ -56,9 +56,6 @@ func givenManagerContext(driver *mocks.MockPackageDriver) *ManagerContext {
 		PBC: api.PackageBundleController{
 			Spec: api.PackageBundleControllerSpec{
 				PrivateRegistry: "privateRegistry",
-				Source: api.PackageBundleControllerSource{
-					Registry: "sourceRegistry",
-				},
 			},
 		},
 		RequeueAfter: time.Duration(100),

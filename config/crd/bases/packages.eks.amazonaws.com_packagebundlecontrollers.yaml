@@ -52,7 +52,12 @@ spec:
                 description: ActiveBundle is name of the bundle from which packages
                   should be sourced.
                 type: string
+              bundleRepository:
+                default: eks-anywhere-package-bundles
+                description: Repository portion of an OCI address to the bundle
+                type: string
               defaultImageRegistry:
+                default: 783794618700.dkr.ecr.us-west-2.amazonaws.com
                 description: DefaultImageRegistry for pulling images
                 type: string
               defaultRegistry:
@@ -66,19 +71,6 @@ spec:
                 description: PrivateRegistry is the registry being used for all images,
                   charts and bundles
                 type: string
-              source:
-                description: Source of the bundle.
-                properties:
-                  registry:
-                    description: Registry portion of an OCI address to the bundle
-                    type: string
-                  repository:
-                    description: Repository portion of an OCI address to the bundle
-                    type: string
-                required:
-                - registry
-                - repository
-                type: object
               upgradeCheckInterval:
                 default: 1d
                 description: "UpgradeCheckInterval is the time between upgrade checks.
@@ -90,7 +82,7 @@ spec:
                   if there is a problem. \n The format is that of time's ParseDuration."
                 type: string
             required:
-            - source
+            - bundleRepository
             type: object
           status:
             description: PackageBundleControllerStatus defines the observed state

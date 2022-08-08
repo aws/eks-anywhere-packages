@@ -40,10 +40,7 @@ func GivenPackageBundleController() *api.PackageBundleController {
 			ActiveBundle:         TestBundleName,
 			DefaultRegistry:      "public.ecr.aws/j0a1m4z9",
 			DefaultImageRegistry: "783794618700.dkr.ecr.us-west-2.amazonaws.com",
-			Source: api.PackageBundleControllerSource{
-				Registry:   TestBundleRegistry,
-				Repository: TestBundleRepository,
-			},
+			BundleRepository:     "eks-anywhere-package-bundles",
 		},
 		Status: api.PackageBundleControllerStatus{
 			State: api.BundleControllerStateActive,
@@ -51,7 +48,7 @@ func GivenPackageBundleController() *api.PackageBundleController {
 	}
 }
 
-func TestPackageBundleControllerSource_GetRef(t *testing.T) {
+func TestPackageBundleController_GetBundleUri(t *testing.T) {
 	sut := GivenPackageBundleController()
 	assert.Equal(t, "public.ecr.aws/j0a1m4z9/eks-anywhere-package-bundles", sut.GetBundleUri())
 }

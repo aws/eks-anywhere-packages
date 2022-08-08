@@ -73,23 +73,15 @@ type PackageBundleControllerSpec struct {
 	// +optional
 	DefaultRegistry string `json:"defaultRegistry"`
 
+	// +kubebuilder:default:="783794618700.dkr.ecr.us-west-2.amazonaws.com"
 	// DefaultImageRegistry for pulling images
 	// +optional
 	DefaultImageRegistry string `json:"defaultImageRegistry"`
 
-	// +kubebuilder:validation:Required
-	// Source of the bundle.
-	Source PackageBundleControllerSource `json:"source"`
-}
-
-type PackageBundleControllerSource struct {
-	// +kubebuilder:validation:Required
-	// Registry portion of an OCI address to the bundle
-	Registry string `json:"registry"`
-
+	// +kubebuilder:default:="eks-anywhere-package-bundles"
 	// +kubebuilder:validation:Required
 	// Repository portion of an OCI address to the bundle
-	Repository string `json:"repository"`
+	BundleRepository string `json:"bundleRepository"`
 }
 
 // +kubebuilder:validation:Enum=ignored;active;disconnected
