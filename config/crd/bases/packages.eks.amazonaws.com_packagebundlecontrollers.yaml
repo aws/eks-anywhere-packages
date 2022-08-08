@@ -52,6 +52,12 @@ spec:
                 description: ActiveBundle is name of the bundle from which packages
                   should be sourced.
                 type: string
+              defaultImageRegistry:
+                description: DefaultImageRegistry for pulling images
+                type: string
+              defaultRegistry:
+                description: DefaultRegistry for pulling helm charts and the bundle
+                type: string
               logLevel:
                 description: LogLevel controls the verbosity of logging in the controller.
                 format: int32

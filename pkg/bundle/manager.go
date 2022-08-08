@@ -82,7 +82,7 @@ func (m bundleManager) SortBundlesDescending(bundles []api.PackageBundle) {
 
 func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.PackageBundleController) error {
 	kubeVersion := FormatKubeServerVersion(m.info)
-	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.Spec.Source.GetRef(), kubeVersion)
+	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleUri(), kubeVersion)
 	if err != nil {
 		m.log.Error(err, "Unable to get latest bundle")
 		if pbc.Status.State == api.BundleControllerStateActive {

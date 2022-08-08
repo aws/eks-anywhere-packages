@@ -9,6 +9,12 @@ import (
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
+const (
+	TestBundleName       = "v1-21-1003"
+	TestBundleRegistry   = "public.ecr.aws/j0a1m4z9"
+	TestBundleRepository = "eks-anywhere-package-bundles"
+)
+
 func TestPackageBundleController_IsValid(t *testing.T) {
 	givenBundleController := func(name string, namespace string) *api.PackageBundleController {
 		return &api.PackageBundleController{
@@ -24,10 +30,28 @@ func TestPackageBundleController_IsValid(t *testing.T) {
 	assert.True(t, givenBundleController(api.PackageBundleControllerName, "default").IsIgnored())
 }
 
-func TestPackageBundleControllerSource_GetRef(t *testing.T) {
-	sut := api.PackageBundleControllerSource{
-		Registry:   "public.ecr.aws/l0g8r8j6",
-		Repository: "eks-anywhere-packages-bundles",
+func GivenPackageBundleController() *api.PackageBundleController {
+	return &api.PackageBundleController{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      api.PackageBundleControllerName,
+			Namespace: api.PackageNamespace,
+		},
+		Spec: api.PackageBundleControllerSpec{
+			ActiveBundle:         TestBundleName,
+			DefaultRegistry:      "public.ecr.aws/j0a1m4z9",
+			DefaultImageRegistry: "783794618700.dkr.ecr.us-west-2.amazonaws.com",
+			Source: api.PackageBundleControllerSource{
+				Registry:   TestBundleRegistry,
+				Repository: TestBundleRepository,
+			},
+		},
+		Status: api.PackageBundleControllerStatus{
+			State: api.BundleControllerStateActive,
+		},
 	}
-	assert.Equal(t, "public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles", sut.GetRef())
+}
+
+func TestPackageBundleControllerSource_GetRef(t *testing.T) {
+	sut := GivenPackageBundleController()
+	assert.Equal(t, "public.ecr.aws/j0a1m4z9/eks-anywhere-package-bundles", sut.GetBundleUri())
 }
