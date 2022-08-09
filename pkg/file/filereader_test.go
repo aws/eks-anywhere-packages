@@ -1,8 +1,9 @@
 package file
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type testObject struct {

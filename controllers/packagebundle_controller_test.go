@@ -3,11 +3,11 @@ package controllers_test
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"

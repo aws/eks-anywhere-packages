@@ -3,8 +3,9 @@ package bundle
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
