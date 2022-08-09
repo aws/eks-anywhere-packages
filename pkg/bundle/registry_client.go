@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 
 	"sigs.k8s.io/yaml"
 
@@ -40,7 +41,12 @@ var _ RegistryClient = (*registryClient)(nil)
 // returned, which is not acceptable.
 func (rc *registryClient) LatestBundle(ctx context.Context, baseRef string, kubeVersion string) (*api.PackageBundle, error) {
 	tag := "latest"
-	ref := fmt.Sprintf("%s:%s-%s", baseRef, kubeVersion, tag)
+	kubeVersionSplit := strings.Split(kubeVersion, ".")
+	if len(kubeVersionSplit) < 1 {
+		return nil, fmt.Errorf("kubeversion should be in <major>.<minor> format")
+	}
+	major, minor := kubeVersionSplit[0], kubeVersionSplit[1]
+	ref := fmt.Sprintf("%s:v%s-%s-%s", baseRef, major, minor, tag)
 	return rc.DownloadBundle(ctx, ref)
 }
 
