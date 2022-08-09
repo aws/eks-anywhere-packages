@@ -32,7 +32,11 @@ if [ ! -x "${ORAS_BIN}" ]; then
 fi
 
 make build
+<<<<<<< HEAD
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin
+=======
+chmod +x ${BASE_DIRECTORY}/bin/generatebundlefile 
+>>>>>>> 299b1c2 (adding build to bundle stage (#378))
 
 function generate () {
     local version=$1
