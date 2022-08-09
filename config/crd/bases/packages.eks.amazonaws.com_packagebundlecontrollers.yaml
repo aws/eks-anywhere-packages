@@ -29,7 +29,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: PackageBundleController is the Schema for the packagebundlecontrollers
+        description: PackageBundleController is the Schema for the packagebundlecontroller
           API.
         properties:
           apiVersion:

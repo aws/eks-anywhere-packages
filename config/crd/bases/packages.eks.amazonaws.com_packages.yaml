@@ -123,7 +123,7 @@ spec:
                   bundle.
                 items:
                   description: PackageAvailableUpgrade details the package's available
-                    upgrades' versions.
+                    upgrade versions.
                   properties:
                     tag:
                       description: Tag is a specific version number or sha256 checksum

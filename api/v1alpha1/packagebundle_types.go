@@ -24,7 +24,7 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
-// PackageBundle is the Schema for the packagebundles API.
+// PackageBundle is the Schema for the packagebundle API.
 type PackageBundle struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
