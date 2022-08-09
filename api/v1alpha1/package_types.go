@@ -102,7 +102,7 @@ type PackageOCISource struct {
 	Digest string `json:"digest"`
 }
 
-// PackageAvailableUpgrade details the package's available upgrades' versions.
+// PackageAvailableUpgrade details the package's available upgrade versions.
 type PackageAvailableUpgrade struct {
 	// +kubebuilder:validation:Required
 	// Version is a human-friendly version name for the package upgrade.
