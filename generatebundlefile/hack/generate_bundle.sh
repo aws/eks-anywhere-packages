@@ -31,6 +31,9 @@ if [ ! -x "${ORAS_BIN}" ]; then
     make oras-install
 fi
 
+make build
+chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin
+
 function generate () {
     local version=$1
     local kms_key=signingPackagesKey
