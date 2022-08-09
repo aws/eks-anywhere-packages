@@ -11,9 +11,6 @@ import (
 )
 
 type Client interface {
-	// IsActive returns true if the bundle is the active bundle
-	IsActive(ctx context.Context, packageBundle *api.PackageBundle) (bool, error)
-
 	// GetActiveBundle retrieves the currently active bundle.
 	GetActiveBundle(ctx context.Context) (activeBundle *api.PackageBundle, err error)
 
@@ -48,17 +45,6 @@ func NewPackageBundleClient(client client.Client) *bundleClient {
 }
 
 var _ Client = (*bundleClient)(nil)
-
-// IsActive returns true of the bundle is the active bundle
-func (bc *bundleClient) IsActive(ctx context.Context, packageBundle *api.PackageBundle) (bool, error) {
-
-	pbc, err := bc.GetPackageBundleController(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	return packageBundle.Namespace == api.PackageNamespace && packageBundle.Name == pbc.Spec.ActiveBundle, nil
-}
 
 // GetActiveBundle retrieves the bundle from which package are installed.
 //

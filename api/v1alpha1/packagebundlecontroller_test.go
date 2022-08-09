@@ -26,7 +26,7 @@ func TestPackageBundleController_IsValid(t *testing.T) {
 	}
 
 	assert.False(t, givenBundleController(api.PackageBundleControllerName, api.PackageNamespace).IsIgnored())
-	assert.True(t, givenBundleController("billy", api.PackageNamespace).IsIgnored())
+	assert.False(t, givenBundleController("billy", api.PackageNamespace).IsIgnored())
 	assert.True(t, givenBundleController(api.PackageBundleControllerName, "default").IsIgnored())
 }
 

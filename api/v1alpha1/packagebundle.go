@@ -12,9 +12,8 @@ import (
 )
 
 const (
-	PackageBundleKind           = "PackageBundle"
-	PackageBundleControllerName = "eksa-packages-bundle-controller"
-	Latest                      = "latest"
+	PackageBundleKind = "PackageBundle"
+	Latest            = "latest"
 )
 
 func (config *PackageBundle) MetaKind() string {
