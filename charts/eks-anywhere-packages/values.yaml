@@ -88,3 +88,13 @@ controller:
     limits:
       cpu: 500m
       memory: 300Mi
+# Additional Variables to configure cronjob
+cronjob:
+  name: ecr-refresher
+  # -- ECR refresher repository name.
+  repository: "ecr-token-refresher"
+  # -- ECR refresher tag, or SHA256 checksum.
+  tag: "{{ecr-token-refresher}}"
+#  Additional Variables for Config Map for namespace
+nsconfigmap:
+  name: ns-secret-map
