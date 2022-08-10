@@ -19,8 +19,11 @@ type Authenticator interface {
 	// AuthFilename Gets Authentication File Path for OCI Registry
 	AuthFilename() string
 
-	// UpdateConfigMap Updates Config Map of namespaces with name of the installation
-	UpdateConfigMap(ctx context.Context, name string, namespace string, operation int) error
+	// AddToConfigMap Adds Namespace to config map
+	AddToConfigMap(ctx context.Context, name string, namespace string) error
+
+	// DelFromConfigMap Removes Namespace from config map
+	DelFromConfigMap(ctx context.Context, name string, namespace string) error
 
 	// GetSecretValues Retrieves ImagePullSecrets data to pass to helm chart
 	GetSecretValues(ctx context.Context, namespace string) (map[string]interface{}, error)

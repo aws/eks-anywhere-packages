@@ -45,8 +45,7 @@ func TestUpdateConfigMap(t *testing.T) {
 	namespace := "eksa-packages"
 	cmdata := make(map[string]string)
 
-	t.Run("golden path for UpdateConfigMap adding new namespace", func(t *testing.T) {
-		operation := ADD
+	t.Run("golden path for adding new namespace", func(t *testing.T) {
 		cmdata["otherns"] = "a"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
@@ -57,7 +56,7 @@ func TestUpdateConfigMap(t *testing.T) {
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
 
-		err := ecrAuth.UpdateConfigMap(ctx, name, namespace, operation)
+		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
 		require.NoError(t, err)
 
 		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
@@ -66,8 +65,7 @@ func TestUpdateConfigMap(t *testing.T) {
 		assert.Equal(t, "a", updatedCM.Data["otherns"])
 	})
 
-	t.Run("golden path for UpdateConfigMap adding one namespace", func(t *testing.T) {
-		operation := ADD
+	t.Run("golden path for adding one namespace", func(t *testing.T) {
 		cmdata[namespace] = "a"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
@@ -78,7 +76,7 @@ func TestUpdateConfigMap(t *testing.T) {
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
 
-		err := ecrAuth.UpdateConfigMap(ctx, name, namespace, operation)
+		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
 		require.NoError(t, err)
 
 		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
@@ -86,8 +84,7 @@ func TestUpdateConfigMap(t *testing.T) {
 		assert.Equal(t, "a,"+name, updatedCM.Data[namespace])
 	})
 
-	t.Run("golden path for UpdateConfigMap not repeating name", func(t *testing.T) {
-		operation := ADD
+	t.Run("golden path for not repeating name", func(t *testing.T) {
 		name = "a"
 		cmdata[namespace] = "a"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
@@ -99,7 +96,7 @@ func TestUpdateConfigMap(t *testing.T) {
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
 
-		err := ecrAuth.UpdateConfigMap(ctx, name, namespace, operation)
+		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
 		require.NoError(t, err)
 
 		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
@@ -107,31 +104,29 @@ func TestUpdateConfigMap(t *testing.T) {
 		assert.Equal(t, "a", updatedCM.Data[namespace])
 	})
 
-	t.Run("golden path for UpdateConfigMap removing one name", func(t *testing.T) {
-		operation := REMOVE
-		name = "a"
-		cmdata[namespace] = "a"
+	t.Run("fails if config map doesnt exist", func(t *testing.T) {
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      configMapName,
-				Namespace: api.PackageNamespace,
+				Namespace: "wrong-ns",
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
 
-		err := ecrAuth.UpdateConfigMap(ctx, name, namespace, operation)
+		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
 
-		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
-			Get(ctx, configMapName, metav1.GetOptions{})
-
-		_, exists := updatedCM.Data["eksa-packages"]
-		assert.Nil(t, err)
-		assert.False(t, exists)
+		assert.NotNil(t, err)
 	})
+}
 
-	t.Run("golden path for UpdateConfigMap removing one name but still exists", func(t *testing.T) {
-		operation := REMOVE
+func TestDelFromConfigMap(t *testing.T) {
+	ctx := context.TODO()
+	name := "test-name"
+	namespace := "eksa-packages"
+	cmdata := make(map[string]string)
+
+	t.Run("golden path for removing one name but still exists", func(t *testing.T) {
 		name = "a"
 		cmdata[namespace] = "a,b"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
@@ -143,7 +138,7 @@ func TestUpdateConfigMap(t *testing.T) {
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
 
-		err := ecrAuth.UpdateConfigMap(ctx, name, namespace, operation)
+		err := ecrAuth.DelFromConfigMap(ctx, name, namespace)
 
 		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
 			Get(ctx, configMapName, metav1.GetOptions{})
@@ -154,20 +149,26 @@ func TestUpdateConfigMap(t *testing.T) {
 		assert.Equal(t, "b", val)
 	})
 
-	t.Run("fails if config map doesnt exist", func(t *testing.T) {
-		operation := ADD
+	t.Run("golden path for removing one name", func(t *testing.T) {
+		name = "a"
+		cmdata[namespace] = "a"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      configMapName,
-				Namespace: "wrong-ns",
+				Namespace: api.PackageNamespace,
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
 
-		err := ecrAuth.UpdateConfigMap(ctx, name, namespace, operation)
+		err := ecrAuth.DelFromConfigMap(ctx, name, namespace)
 
-		assert.NotNil(t, err)
+		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+			Get(ctx, configMapName, metav1.GetOptions{})
+
+		_, exists := updatedCM.Data["eksa-packages"]
+		assert.Nil(t, err)
+		assert.False(t, exists)
 	})
 }
 

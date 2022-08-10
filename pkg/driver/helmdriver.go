@@ -99,7 +99,7 @@ func (d *helmDriver) Install(ctx context.Context,
 			if err != nil {
 				return err
 			}
-			if err := d.secretAuth.UpdateConfigMap(ctx, name, namespace, auth.ADD); err != nil {
+			if err := d.secretAuth.AddToConfigMap(ctx, name, namespace); err != nil {
 				d.log.Info("failed to Update ConfigMap with installed namespace")
 			}
 			return nil
@@ -113,7 +113,7 @@ func (d *helmDriver) Install(ctx context.Context,
 	}
 
 	// Update installed-namespaces on successful install
-	err = d.secretAuth.UpdateConfigMap(ctx, name, namespace, auth.ADD)
+	err = d.secretAuth.AddToConfigMap(ctx, name, namespace)
 	if err != nil {
 		d.log.Info("failed to Update ConfigMap with installed namespace")
 	}

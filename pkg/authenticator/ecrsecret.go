@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -18,12 +17,6 @@ import (
 const (
 	configMapName = "ns-secret-map"
 	ecrTokenName  = "ecr-token"
-)
-
-// ConfigMap Modify Enums
-const (
-	REMOVE = 0
-	ADD    = 1
 )
 
 type ecrSecret struct {
@@ -53,13 +46,33 @@ func (s *ecrSecret) AuthFilename() string {
 	return ""
 }
 
-func (s *ecrSecret) UpdateConfigMap(ctx context.Context, name string, namespace string, operation int) error {
+func (s *ecrSecret) AddToConfigMap(ctx context.Context, name string, namespace string) error {
 	cm, err := s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
 		Get(ctx, configMapName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	modifyToConfigMap(cm, name, namespace, operation)
+	var values []string
+	if data, ok := cm.Data[namespace]; ok {
+		values = strings.Split(data, ",")
+	}
+	values = append(values, name)
+	result := make([]string, 0, len(values))
+	check := map[string]bool{}
+	for _, val := range values {
+		_, exists := check[val]
+		if !exists {
+			check[val] = true
+			result = append(result, val)
+		}
+	}
+
+	update := strings.Join(result, ",")
+	if update == "" {
+		delete(cm.Data, namespace)
+	} else {
+		cm.Data[namespace] = update
+	}
 	_, err = s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
 		Update(ctx, cm, metav1.UpdateOptions{})
 	if err != nil {
@@ -71,27 +84,24 @@ func (s *ecrSecret) UpdateConfigMap(ctx context.Context, name string, namespace 
 	return nil
 }
 
-func modifyToConfigMap(cm *v1.ConfigMap, name string, namespace string, operation int) {
+func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name string, namespace string) error {
+	cm, err := s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		Get(ctx, configMapName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
 	var values []string
 	if data, ok := cm.Data[namespace]; ok {
 		values = strings.Split(data, ",")
 	}
-
-	if operation == ADD {
-		values = append(values, name)
-	}
-
-	if operation == ADD {
-		values = append(values, name)
-	}
-
 	result := make([]string, 0, len(values))
 	check := map[string]bool{}
 	for _, val := range values {
 		_, exists := check[val]
 		if !exists {
 			// Ignore namespace if set to remove
-			if operation == REMOVE && val == name {
+			if val == name {
 				continue
 			}
 			check[val] = true
@@ -106,6 +116,16 @@ func modifyToConfigMap(cm *v1.ConfigMap, name string, namespace string, operatio
 	} else {
 		cm.Data[namespace] = update
 	}
+
+	_, err = s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		Update(ctx, cm, metav1.UpdateOptions{})
+	if err != nil {
+		return err
+	}
+	// Store data
+	s.nsReleaseMap = cm.Data
+
+	return nil
 }
 
 func (s *ecrSecret) GetSecretValues(ctx context.Context, namespace string) (map[string]interface{}, error) {
