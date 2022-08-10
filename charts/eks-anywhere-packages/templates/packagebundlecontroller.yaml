@@ -1,11 +1,11 @@
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: PackageBundleController
 metadata:
-  name: eksa-packages-bundle-controller
+  name: {{.Values.clusterName}}
   namespace: eksa-packages
 spec:
-  logLevel: 4
-  upgradeCheckInterval: "24h"
-  source:
-    registry: {{.Values.sourceRegistry}}
-    repository: eks-anywhere-packages-bundles
+  bundleRepository: eks-anywhere-packages-bundles
+  defaultImageRegistry: {{.Values.sourceRegistry}}
+  defaultRegistry: {{.Values.sourceRegistry}}
+  upgradeCheckInterval: 24h
+  upgradeCheckShortInterval: 1h

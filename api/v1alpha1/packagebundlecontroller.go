@@ -2,7 +2,10 @@ package v1alpha1
 
 import "path"
 
-const PackageBundleControllerKind = "PackageBundleController"
+const (
+	PackageBundleControllerKind = "PackageBundleController"
+	PackageBundleControllerName = "eksa-packages-bundle-controller"
+)
 
 func (config *PackageBundleController) MetaKind() string {
 	return config.TypeMeta.Kind
@@ -13,7 +16,7 @@ func (config *PackageBundleController) ExpectedKind() string {
 }
 
 func (config *PackageBundleController) IsIgnored() bool {
-	return config.Name != PackageBundleControllerName || config.Namespace != PackageNamespace
+	return config.Namespace != PackageNamespace
 }
 
 func (config *PackageBundleController) GetDefaultRegistry() string {
