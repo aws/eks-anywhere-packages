@@ -79,7 +79,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.True(t, result.Requeue)
 	})
 
@@ -98,7 +98,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.True(t, result.Requeue)
 	})
 

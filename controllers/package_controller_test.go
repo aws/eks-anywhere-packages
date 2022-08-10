@@ -129,7 +129,7 @@ func TestReconcile(t *testing.T) {
 		sut := tf.newReconciler()
 		req := tf.mockRequest()
 		got, err := sut.Reconcile(ctx, req)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		expected := retryLong
 		assert.Equal(t, expected, got.RequeueAfter)

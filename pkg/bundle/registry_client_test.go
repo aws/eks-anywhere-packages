@@ -31,7 +31,7 @@ func TestDownloadBundle(t *testing.T) {
 
 		bundle, err := ecr.DownloadBundle(ctx, ref)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.NotNil(t, bundle)
 		assert.Equal(t, 3, len(bundle.Spec.Packages))
 		assert.Equal(t, "test", bundle.Spec.Packages[0].Name)
