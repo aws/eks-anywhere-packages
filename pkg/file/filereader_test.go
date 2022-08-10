@@ -1,8 +1,9 @@
 package file
 
 import (
-	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type testObject struct {
@@ -23,10 +24,7 @@ func TestFileReaderInitializeEnoent(t *testing.T) {
 
 	actual := sut.Initialize(&testObject{})
 
-	expected := errors.New("reading <../../api/testdata/enoent.yaml>: open ../../api/testdata/enoent.yaml: no such file or directory")
-	if actual == nil || actual.Error() != expected.Error() {
-		t.Errorf("expected <%v> actual <%v>", expected, actual)
-	}
+	assert.EqualError(t, actual, "reading <../../api/testdata/enoent.yaml>: open ../../api/testdata/enoent.yaml: no such file or directory")
 }
 
 func TestFileReaderInitializeBogus(t *testing.T) {
@@ -34,10 +32,7 @@ func TestFileReaderInitializeBogus(t *testing.T) {
 
 	actual := sut.Initialize(&testObject{})
 
-	expected := errors.New("error parsing <../../api/testdata/bogus.yaml>:\nbogus\n")
-	if actual == nil || actual.Error() != expected.Error() {
-		t.Errorf("expected <%v> actual <%v>", expected, actual)
-	}
+	assert.EqualError(t, actual, "error parsing <../../api/testdata/bogus.yaml>:\nbogus\n")
 }
 
 func TestFileReaderInitializeGood(t *testing.T) {
@@ -45,61 +40,42 @@ func TestFileReaderInitializeGood(t *testing.T) {
 
 	actual := sut.Initialize(&testObject{})
 
-	if actual != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, actual)
-	}
+	assert.Nil(t, actual)
 }
 
 func TestFileReaderParseMissing(t *testing.T) {
 	config := testObject{}
 	sut := NewFileReader("../../api/testdata/missing.yaml")
 	initError := sut.Initialize(&config)
-	if initError != nil {
-		t.Errorf("Initialize expected <nil> actual <%v>", initError)
-	}
+	assert.Nil(t, initError)
 
 	actual := sut.Parse(&config)
 
-	expected := errors.New("could not find <testObject> in cluster configuration ../../api/testdata/missing.yaml")
-	if actual == nil || actual.Error() != expected.Error() {
-		t.Errorf("expected <%v> actual <%v>", expected, actual)
-	}
+	assert.EqualError(t, actual, "could not find <testObject> in cluster configuration ../../api/testdata/missing.yaml")
 }
 
 func TestFileReaderParseGood(t *testing.T) {
 	config := &testObject{}
 	sut := NewFileReader("../../api/testdata/multiple.yaml")
 	initError := sut.Initialize(config)
-	if initError != nil {
-		t.Errorf("Initialize expected <nil> actual <%v>", initError)
-	}
+	assert.Nil(t, initError)
 
 	actual := sut.Parse(config)
 
-	if actual != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, actual)
-	}
+	assert.Nil(t, actual)
 }
 
 // Ensure that the api.FileReader can correctly unmarshal the API types we've defined.
 func TestFileReaderOnApiDatatypes(t *testing.T) {
 	_, err := GivenBundleController("../../api/testdata/packagebundlecontroller.yaml")
-	if err != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, err)
-	}
+	assert.Nil(t, err)
 
 	_, err = GivenPackageBundle("../../api/testdata/bundle_two.yaml")
-	if err != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, err)
-	}
+	assert.Nil(t, err)
 
 	_, err = GivenPackageBundle("../../api/testdata/bundle_one.yaml")
-	if err != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, err)
-	}
+	assert.Nil(t, err)
 
 	_, err = GivenPackage("../../api/testdata/test.yaml")
-	if err != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, err)
-	}
+	assert.Nil(t, err)
 }

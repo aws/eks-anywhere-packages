@@ -79,9 +79,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
-		if err != nil {
-			t.Errorf("expected no error, got %s", err)
-		}
+		assert.Nil(t, err)
 		assert.True(t, result.Requeue)
 	})
 
@@ -100,9 +98,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
-		if err != nil {
-			t.Errorf("expected no error, got %s", err)
-		}
+		assert.Nil(t, err)
 		assert.True(t, result.Requeue)
 	})
 
@@ -124,10 +120,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, pbc *api.PackageBundleController,
 				opts *client.UpdateOptions) error {
-				if pbc.Status.State != api.BundleControllerStateIgnored {
-					t.Errorf("expected state to be set to Ignored, got %q",
-						pbc.Status.State)
-				}
+				assert.Equal(t, pbc.Status.State, api.BundleControllerStateIgnored)
 				return nil
 			})
 

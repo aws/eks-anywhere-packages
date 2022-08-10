@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -63,9 +64,7 @@ func TestPackageBundleReconciler_ReconcileAddUpdate(t *testing.T) {
 
 	_, actualError := sut.Reconcile(ctx, request)
 
-	if actualError != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, actualError)
-	}
+	assert.Nil(t, actualError)
 }
 
 func TestPackageBundleReconciler_ReconcileError(t *testing.T) {
@@ -80,9 +79,7 @@ func TestPackageBundleReconciler_ReconcileError(t *testing.T) {
 
 	_, actualError := sut.Reconcile(ctx, request)
 
-	if actualError == nil || actualError != expectedError {
-		t.Errorf("expected <%v> actual <%v>", expectedError, actualError)
-	}
+	assert.EqualError(t, actualError, "error reading")
 }
 
 func TestPackageBundleReconciler_ReconcileIgnored(t *testing.T) {
@@ -99,9 +96,7 @@ func TestPackageBundleReconciler_ReconcileIgnored(t *testing.T) {
 
 	_, actualError := sut.Reconcile(ctx, request)
 
-	if actualError != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, actualError)
-	}
+	assert.Nil(t, actualError)
 }
 
 func TestPackageBundleReconciler_ReconcileDelete(t *testing.T) {
@@ -125,7 +120,5 @@ func TestPackageBundleReconciler_ReconcileDelete(t *testing.T) {
 
 	_, actualError := sut.Reconcile(ctx, request)
 
-	if actualError != nil {
-		t.Errorf("expected <%v> actual <%v>", nil, actualError)
-	}
+	assert.Nil(t, actualError)
 }
