@@ -31,8 +31,8 @@ A cluster specific namespace will need to be created for package custom resource
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: Package
 metadata:
-  name: my-hello
-  namespace: eksa-packages-billy
+  name: prod-hello
+  namespace: eksa-packages-prod
 spec:
   packageName: hello-eks-anywhere
 ```
