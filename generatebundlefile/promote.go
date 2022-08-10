@@ -109,13 +109,17 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, copyImages bo
 	if err != nil {
 		return fmt.Errorf("Error getting pwd %s", err)
 	}
-	if copyImages {
-		name, version, sha, err = c.getNameAndVersionPublic(repository, c.stsClient.AccountID)
+
+	// If we are not moving artifacts to the Private ECR Packages artifact account, get information from public ECR instead.
+	// The first scenario runs for flags --private-profile.
+	// The 2nd scenario runs for flags --promote and --public-profile.
+	if c.ecrClientRelease != nil {
+		name, version, sha, err = c.getNameAndVersion(repository, c.stsClient.AccountID)
 		if err != nil {
 			return fmt.Errorf("Error getting name and version from helmchart %s", err)
 		}
 	} else {
-		name, version, sha, err = c.getNameAndVersion(repository, c.stsClient.AccountID)
+		name, version, sha, err = c.getNameAndVersionPublic(repository, c.stsClient.AccountID)
 		if err != nil {
 			return fmt.Errorf("Error getting name and version from helmchart %s", err)
 		}
@@ -170,6 +174,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, copyImages bo
 	}
 	// Loop through each image, and the helm chart itself and check for existance in ECR Public, skip if we find the SHA already exists in destination.
 	// If we don't find the SHA in public, we lookup the tag from Private Dev account, and move to Private Artifact account.
+	// This runs for flags --private-profile and --promote.
 	if copyImages {
 		for _, images := range helmRequiresImages.Spec.Images {
 			checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)
@@ -199,24 +204,28 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, copyImages bo
 		}
 	}
 
+	// If we have the profile for the artifact account present, we skip moving helm charts since they go to the public ECR only.
 	// This will move the Helm chart from Private ECR to Public ECR if it doesn't exist. This goes to either dev or prod depending on the flags passed in.
-	for _, images := range helmRequires.Spec.Images {
-		//Check if the Helm chart is going to Prod, or dev account.
-		destinationRegistry := c.ecrPublicClient.SourceRegistry
-		if c.ecrPublicClientRelease != nil {
-			destinationRegistry = c.ecrPublicClientRelease.SourceRegistry
-		}
-		checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)
-		if checkSha && checkTag {
-			BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("docker://%s/%s:%s @ %s", destinationRegistry, images.Repository, images.Tag, images.Digest))
-			continue
-		} else {
-			source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, images.Repository, images.Tag)
-			destination := fmt.Sprintf("docker://%s/%s:%s", destinationRegistry, images.Repository, images.Tag)
-			BundleLog.Info("Copying Helm Digest, and Tag to destination location......", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag, images.Digest))
-			err = copyImage(BundleLog, authFile, source, destination)
-			if err != nil {
-				return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
+	// This runs for flags --public-profile and --promote.
+	if c.ecrClientRelease == nil {
+		for _, images := range helmRequires.Spec.Images {
+			//Check if the Helm chart is going to Prod, or dev account.
+			destinationRegistry := c.ecrPublicClient.SourceRegistry
+			if c.ecrPublicClientRelease != nil {
+				destinationRegistry = c.ecrPublicClientRelease.SourceRegistry
+			}
+			checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)
+			if checkSha && checkTag {
+				BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("docker://%s/%s:%s @ %s", destinationRegistry, images.Repository, images.Tag, images.Digest))
+				continue
+			} else {
+				source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, images.Repository, images.Tag)
+				destination := fmt.Sprintf("docker://%s/%s:%s", destinationRegistry, images.Repository, images.Tag)
+				BundleLog.Info("Copying Helm Digest, and Tag to destination location......", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag, images.Digest))
+				err = copyImage(BundleLog, authFile, source, destination)
+				if err != nil {
+					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
+				}
 			}
 		}
 	}

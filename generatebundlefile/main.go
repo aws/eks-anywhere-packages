@@ -249,7 +249,7 @@ func main() {
 				os.Exit(1)
 			}
 			for _, charts := range addOnBundleSpec.Packages {
-				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, true)
+				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, false)
 				if err != nil {
 					BundleLog.Error(err, "promoting helm chart",
 						"name", charts.Source.Repository)
@@ -297,7 +297,7 @@ func main() {
 				os.Exit(1)
 			}
 			for _, charts := range addOnBundleSpec.Packages {
-				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, false)
+				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, true)
 				if err != nil {
 					BundleLog.Error(err, "promoting helm chart",
 						"name", charts.Source.Repository)
