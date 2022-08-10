@@ -111,14 +111,16 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, copyImages bo
 	}
 
 	// If we are not moving artifacts to the Private ECR Packages artifact account, get information from public ECR instead.
-	// The first scenario runs for flags --private-profile.
-	// The 2nd scenario runs for flags --promote and --public-profile.
-	if c.ecrClientRelease != nil {
+	// The first scenario runs for flags --private-profile and --promote.
+	// The 2nd scenario runs for flags and --public-profile.
+	if c.ecrClientRelease != nil || c.ecrClient != nil {
 		name, version, sha, err = c.getNameAndVersion(repository, c.stsClient.AccountID)
 		if err != nil {
 			return fmt.Errorf("Error getting name and version from helmchart %s", err)
 		}
-	} else {
+	}
+
+	if c.ecrPublicClientRelease != nil {
 		name, version, sha, err = c.getNameAndVersionPublic(repository, c.stsClient.AccountID)
 		if err != nil {
 			return fmt.Errorf("Error getting name and version from helmchart %s", err)
