@@ -156,7 +156,7 @@ func TestKubeVersionMatches(t *testing.T) {
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
 		assert.True(t, result)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("Kubernetes major version doesn't match", func(t *testing.T) {
@@ -166,7 +166,7 @@ func TestKubeVersionMatches(t *testing.T) {
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
 		assert.False(t, result)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("Kubernetes minor version doesn't match", func(t *testing.T) {
@@ -176,7 +176,7 @@ func TestKubeVersionMatches(t *testing.T) {
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
 		assert.False(t, result)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("bogus major", func(t *testing.T) {
@@ -431,7 +431,7 @@ func TestGetPackageFromBundle(t *testing.T) {
 
 		result, err := bundle.GetPackageFromBundle("hello-eks-anywhere")
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, bundle.Spec.Packages[0].Name, result.Name)
 	})
 
@@ -482,7 +482,7 @@ func TestGetJsonSchemFromBundlePackage(t *testing.T) {
 		packageBundle := bundle.Spec.Packages[0]
 		schema, err := packageBundle.GetJsonSchema()
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, expected, string(schema))
 	})
 

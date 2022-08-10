@@ -94,7 +94,7 @@ func TestValidateSignature(t *testing.T) {
 
 		// An empty object serializes to "{}" in yaml.
 		assert.Equal(t, sha256.Sum256([]byte("{}\n")), digest, "This tests validates the behavior of an affectively empty document signature made empty via excludes")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		valid, _, _, err := ValidateSignature(bundle, EksaDomain)
 		assert.False(t, valid, "Signature should be invalid as it's signing actual content")
 		assert.Nil(t, err, "No error should occur when validating this signature")

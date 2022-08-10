@@ -14,7 +14,7 @@ func TestAuthFilename(t *testing.T) {
 		helmAuth := NewHelmSecret()
 		val, err := helmAuth.AuthFilename()
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, testfile, val)
 	})
 
@@ -23,7 +23,7 @@ func TestAuthFilename(t *testing.T) {
 		helmAuth := NewHelmSecret()
 		val, err := helmAuth.AuthFilename()
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, "", val)
 	})
 }

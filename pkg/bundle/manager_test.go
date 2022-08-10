@@ -176,7 +176,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateActive, pbc.Status.State)
 	})
 
@@ -203,7 +203,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateDisconnected, pbc.Status.State)
 	})
 
@@ -217,7 +217,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateDisconnected, pbc.Status.State)
 	})
 
@@ -246,7 +246,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateUpgradeAvailable, pbc.Status.State)
 	})
 
@@ -291,7 +291,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateUpgradeAvailable, pbc.Status.State)
 	})
 
@@ -306,7 +306,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateActive, pbc.Status.State)
 	})
 
@@ -335,7 +335,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateActive, pbc.Status.State)
 	})
 
@@ -367,7 +367,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateEnum(""), pbc.Status.State)
 		assert.Equal(t, testNextBundleName, pbc.Spec.ActiveBundle)
 	})
@@ -400,7 +400,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateActive, pbc.Status.State)
 		assert.Equal(t, testBundleName, pbc.Spec.ActiveBundle)
 	})

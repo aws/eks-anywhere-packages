@@ -97,7 +97,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		assert.Equal(t, bundle.Name, testBundleName)
 		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
 		assert.Equal(t, "public.ecr.aws/l0g8r8j6", bundle.Spec.Packages[0].Source.Registry)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("no active bundle", func(t *testing.T) {
@@ -151,7 +151,7 @@ func TestBundleClient_GetActiveBundleNamespacedName(t *testing.T) {
 
 		assert.Equal(t, api.PackageNamespace, namespacedNames.Namespace)
 		assert.Equal(t, "", namespacedNames.Name)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("error path", func(t *testing.T) {
@@ -180,7 +180,7 @@ func TestBundleClient_GetBundleList(t *testing.T) {
 
 		err := bundleClient.GetBundleList(ctx, actualList)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("error scenario", func(t *testing.T) {
@@ -208,7 +208,7 @@ func TestBundleClient_CreateBundle(t *testing.T) {
 
 		err := bundleClient.CreateBundle(ctx, actualBundle)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("error scenario", func(t *testing.T) {
