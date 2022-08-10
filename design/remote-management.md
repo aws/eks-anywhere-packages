@@ -19,7 +19,7 @@ spec:
     registry: public.ecr.aws/eks-anywhere
     repository: eks-anywhere-packages-bundles
 ```
-Currently, the PBC is in the eksa-packages namespace and must be named "eksa-packages-bundle-controller". This will have to be changed to support any name in that namespace.
+Currently, the PBC is in the eksa-packages namespace and must be named "eksa-packages-bundle-controller". This will have to be changed to support any cluster name in that namespace.
 
 # PackageBundle (bundle) Custom Resource
 We currently set the bundle state to show the user which bundle is active. Since we will have several clusters sharing the same set of bundles, we should remove this state and have the user look at the PBC to determine the active bundle. We may keep bundle state for invalid bundle names for instance.
