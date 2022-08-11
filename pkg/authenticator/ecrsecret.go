@@ -5,13 +5,13 @@ import (
 	b64 "encoding/base64"
 	"fmt"
 	"os"
-	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/csset"
 )
 
 const (
@@ -27,11 +27,9 @@ type ecrSecret struct {
 var _ Authenticator = (*ecrSecret)(nil)
 
 func NewECRSecret(config rest.Interface) (*ecrSecret, error) {
-	clientset := kubernetes.New(config)
-	nsReleaseMap := make(map[string]string)
 	return &ecrSecret{
-		clientset:    clientset,
-		nsReleaseMap: nsReleaseMap,
+		clientset:    kubernetes.New(config),
+		nsReleaseMap: make(map[string]string),
 	}, nil
 }
 
@@ -52,23 +50,10 @@ func (s *ecrSecret) AddToConfigMap(ctx context.Context, name string, namespace s
 	if err != nil {
 		return err
 	}
-	var values []string
-	if data, ok := cm.Data[namespace]; ok {
-		values = strings.Split(data, ",")
-	}
-	values = append(values, name)
-	result := make([]string, 0, len(values))
-	check := map[string]bool{}
-	for _, val := range values {
-		_, exists := check[val]
-		if !exists {
-			check[val] = true
-			result = append(result, val)
-		}
-	}
 
-	update := strings.Join(result, ",")
-	cm.Data[namespace] = update
+	css := csset.NewCSSet(cm.Data[namespace])
+	css.Add(name)
+	cm.Data[namespace] = css.String()
 
 	_, err = s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
 		Update(ctx, cm, metav1.UpdateOptions{})
@@ -88,30 +73,11 @@ func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name string, namespace
 		return err
 	}
 
-	var values []string
-	if data, ok := cm.Data[namespace]; ok {
-		values = strings.Split(data, ",")
-	}
-	result := make([]string, 0, len(values))
-	check := map[string]bool{}
-	for _, val := range values {
-		_, exists := check[val]
-		if !exists {
-			// Ignore namespace if set to remove
-			if val == name {
-				continue
-			}
-			check[val] = true
-			result = append(result, val)
-		}
-	}
-
-	update := strings.Join(result, ",")
-
-	if update == "" {
+	css := csset.NewCSSet(cm.Data[namespace])
+	css.Del(name)
+	cm.Data[namespace] = css.String()
+	if cm.Data[namespace] == "" {
 		delete(cm.Data, namespace)
-	} else {
-		cm.Data[namespace] = update
 	}
 
 	_, err = s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).

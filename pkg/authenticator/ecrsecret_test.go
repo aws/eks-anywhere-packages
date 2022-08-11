@@ -3,6 +3,7 @@ package authenticator
 import (
 	"context"
 	"encoding/base64"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -59,10 +60,12 @@ func TestUpdateConfigMap(t *testing.T) {
 		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
 		require.NoError(t, err)
 
-		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
 			Get(ctx, configMapName, metav1.GetOptions{})
-		assert.Equal(t, name, updatedCM.Data[namespace])
-		assert.Equal(t, "a", updatedCM.Data["otherns"])
+		if assert.NoError(t, err) {
+			assert.Equal(t, name, updatedCM.Data[namespace])
+			assert.Equal(t, "a", updatedCM.Data["otherns"])
+		}
 	})
 
 	t.Run("golden path for adding one namespace", func(t *testing.T) {
@@ -79,9 +82,12 @@ func TestUpdateConfigMap(t *testing.T) {
 		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
 		require.NoError(t, err)
 
-		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
 			Get(ctx, configMapName, metav1.GetOptions{})
-		assert.Equal(t, "a,"+name, updatedCM.Data[namespace])
+		if assert.NoError(t, err) {
+			assert.ObjectsAreEqual([]string{"a", name},
+				strings.Split(updatedCM.Data[namespace], ","))
+		}
 	})
 
 	t.Run("golden path for not repeating name", func(t *testing.T) {
@@ -162,12 +168,11 @@ func TestDelFromConfigMap(t *testing.T) {
 		ecrAuth := ecrSecret{clientset: mockClientset}
 
 		err := ecrAuth.DelFromConfigMap(ctx, name, namespace)
-
-		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		require.NoError(t, err)
+		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
 			Get(ctx, configMapName, metav1.GetOptions{})
-
+		require.NoError(t, err)
 		_, exists := updatedCM.Data["eksa-packages"]
-		assert.Nil(t, err)
 		assert.False(t, exists)
 	})
 }
