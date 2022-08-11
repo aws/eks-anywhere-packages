@@ -68,11 +68,8 @@ func (s *ecrSecret) AddToConfigMap(ctx context.Context, name string, namespace s
 	}
 
 	update := strings.Join(result, ",")
-	if update == "" {
-		delete(cm.Data, namespace)
-	} else {
-		cm.Data[namespace] = update
-	}
+	cm.Data[namespace] = update
+
 	_, err = s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
 		Update(ctx, cm, metav1.UpdateOptions{})
 	if err != nil {
