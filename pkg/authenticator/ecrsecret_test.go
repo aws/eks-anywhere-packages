@@ -40,7 +40,7 @@ func TestAuthFilename(t *testing.T) {
 	})
 }
 
-func TestUpdateConfigMap(t *testing.T) {
+func TestAddToConfigMap(t *testing.T) {
 	ctx := context.TODO()
 	name := "test-name"
 	namespace := "eksa-packages"
