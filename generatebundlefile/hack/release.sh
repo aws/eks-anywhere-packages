@@ -45,17 +45,22 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
     --private-profile ${PROFILE}
 
+## Logout of the Artifact Account
+docker logout public.ecr.aws
+
 # Release Helm Chart, and bundle to Production account
-cat << EOF > configfile
+cat << EOF > prodconfigfile
 [profile prod]
 role_arn=$PROD_ARTIFACT_DEPLOYMENT_ROLE
 region=us-east-1
 credential_source=EcsContainer
 EOF
 
+export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/prodconfigfile
+export AWS_PROFILE=prod
 PROFILE=prod
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
-ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
+ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries --profile ${AWS_PROFILE} --query 'registries[*].registryUri' --output text)
 REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
 
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
