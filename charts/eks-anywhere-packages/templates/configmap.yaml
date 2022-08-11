@@ -36,3 +36,4 @@ metadata:
   {{- end }}
 data:
   {{ .Values.namespace }}: {{ include "eks-anywhere-packages.fullname" . }}
+  emissary-system: emissary-ingress

@@ -66,7 +66,7 @@ func UpdateTokens(secretname string, username string, token string, registries s
 		}
 	}
 
-	return err, failedList
+	return nil, failedList
 }
 
 func getClientSet() (*kubernetes.Clientset, error) {
