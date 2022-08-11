@@ -30,7 +30,7 @@ EOF
 # Release Package Images to Packages Artifact account
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/configfile
-PROFILE=packages
+export PROFILE=packages
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
 ORAS_BIN=${BASE_DIRECTORY}/bin/oras
@@ -54,9 +54,9 @@ credential_source=EcsContainer
 EOF
 
 export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/prodconfigfile
-PROFILE=prod
+export PROFILE=prod
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
-ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries --profile ${AWS_PROFILE} --query 'registries[*].registryUri' --output text)
+ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
 REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
 
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
