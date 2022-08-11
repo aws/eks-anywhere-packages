@@ -43,8 +43,8 @@ func (mc *ManagerContext) getRegistry(values map[string]interface{}) string {
 			return val.(string)
 		}
 	}
-	if mc.PBC.Spec.PrivateRegistry != "" {
-		return mc.PBC.Spec.PrivateRegistry
+	if mc.PBC.Spec.LocalRegistry != "" {
+		return mc.PBC.Spec.LocalRegistry
 	}
 	if mc.Source.Registry != "" {
 		return mc.Source.Registry

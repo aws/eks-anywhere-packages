@@ -65,9 +65,9 @@ type PackageBundleControllerSpec struct {
 	// +optional
 	ActiveBundle string `json:"activeBundle"`
 
-	// PrivateRegistry is the registry being used for all images, charts and bundles
+	// LocalRegistry is the registry being used for all images, charts and bundles
 	// +optional
-	PrivateRegistry string `json:"privateRegistry"`
+	LocalRegistry string `json:"privateRegistry"`
 
 	// DefaultRegistry for pulling helm charts and the bundle
 	// +optional

@@ -66,7 +66,7 @@ spec:
                 format: int32
                 type: integer
               privateRegistry:
-                description: PrivateRegistry is the registry being used for all images,
+                description: LocalRegistry is the registry being used for all images,
                   charts and bundles
                 type: string
               upgradeCheckInterval:
