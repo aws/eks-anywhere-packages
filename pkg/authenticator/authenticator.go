@@ -1,5 +1,7 @@
 package authenticator
 
+import "context"
+
 // DockerAuth Structure for the authentication file
 type DockerAuth struct {
 	Auths map[string]DockerAuthRegistry `json:"auths,omitempty"`
@@ -15,5 +17,14 @@ type DockerAuthRegistry struct {
 // For this first implementation, kubernetes secrets will be used to pass in a token
 type Authenticator interface {
 	// AuthFilename Gets Authentication File Path for OCI Registry
-	AuthFilename() (string, error)
+	AuthFilename() string
+
+	// AddToConfigMap Adds Namespace to config map
+	AddToConfigMap(ctx context.Context, name string, namespace string) error
+
+	// DelFromConfigMap Removes Namespace from config map
+	DelFromConfigMap(ctx context.Context, name string, namespace string) error
+
+	// GetSecretValues Retrieves ImagePullSecrets data to pass to helm chart
+	GetSecretValues(ctx context.Context, namespace string) (map[string]interface{}, error)
 }

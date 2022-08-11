@@ -22,8 +22,10 @@ import (
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -32,6 +34,7 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
+	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"github.com/aws/eks-anywhere-packages/pkg/driver"
 	"github.com/aws/eks-anywhere-packages/pkg/packages"
@@ -70,10 +73,6 @@ func NewPackageReconciler(client client.Client, scheme *runtime.Scheme,
 
 func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	log := ctrl.Log.WithName(packageName)
-	helmDriver, err := driver.NewHelm(log)
-	if err != nil {
-		return fmt.Errorf("creating helm driver: %w", err)
-	}
 	manager := packages.NewManager()
 	cfg := mgr.GetConfig()
 	discovery, err := discovery.NewDiscoveryClientForConfig(cfg)
@@ -84,6 +83,15 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	if err != nil {
 		return fmt.Errorf("getting server version: %w", err)
 	}
+	secretAuth, err := createSecretAuth(cfg)
+	if err != nil {
+		return err
+	}
+	helmDriver, err := driver.NewHelm(log, secretAuth)
+	if err != nil {
+		return fmt.Errorf("creating helm driver: %w", err)
+	}
+
 	puller := artifacts.NewRegistryPuller()
 	registryClient := bundle.NewRegistryClient(puller)
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
@@ -103,6 +111,21 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 		Watches(&source.Kind{Type: &api.PackageBundle{}},
 			handler.EnqueueRequestsFromMapFunc(reconciler.mapBundleChangesToPackageUpdate)).
 		Complete(reconciler)
+}
+
+func createSecretAuth(cfg *rest.Config) (auth.Authenticator, error) {
+	scheme := runtime.NewScheme()
+	cfg.GroupVersion = &api.GroupVersion
+	cfg.NegotiatedSerializer = serializer.NewCodecFactory(scheme)
+	restclient, err := rest.RESTClientFor(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("creating rest client from config %s", err)
+	}
+	secretAuth, err := auth.NewECRSecret(restclient)
+	if err != nil {
+		return nil, fmt.Errorf("creating ECR secret %s", err)
+	}
+	return secretAuth, nil
 }
 
 func (r *PackageReconciler) mapBundleChangesToPackageUpdate(_ client.Object) (req []reconcile.Request) {

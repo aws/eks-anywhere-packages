@@ -22,26 +22,25 @@ import (
 
 // helmDriver implements PackageDriver to install packages from Helm charts.
 type helmDriver struct {
-	cfg      *action.Configuration
-	log      logr.Logger
-	settings *cli.EnvSettings
+	cfg        *action.Configuration
+	secretAuth auth.Authenticator
+	log        logr.Logger
+	settings   *cli.EnvSettings
 }
 
 var _ PackageDriver = (*helmDriver)(nil)
 
-func NewHelm(log logr.Logger) (*helmDriver, error) {
+func NewHelm(log logr.Logger, secretAuth auth.Authenticator) (*helmDriver, error) {
 	settings := cli.New()
 
-	// TODO Catch error here if not provided docker config or continue without an authfile if possible
-	secretAuth := auth.NewHelmSecret()
-	authfile, _ := secretAuth.AuthFilename()
-	if authfile != "" {
-		registry.ClientOptCredentialsFile(authfile)
-	}
-	client, err := registry.NewClient()
+	authfile := secretAuth.AuthFilename()
+	// Blank authfile here is actually fine as helm registry will use default in that case
+	client, err := registry.NewClient(registry.ClientOptCredentialsFile(authfile))
+
 	if err != nil {
 		return nil, fmt.Errorf("creating registry client while initializing helm driver: %w", err)
 	}
+
 	cfg := &action.Configuration{RegistryClient: client}
 	err = cfg.Init(settings.RESTClientGetter(), settings.Namespace(),
 		os.Getenv("HELM_DRIVER"), helmLog(log))
@@ -50,9 +49,10 @@ func NewHelm(log logr.Logger) (*helmDriver, error) {
 	}
 
 	return &helmDriver{
-		cfg:      cfg,
-		log:      log,
-		settings: settings,
+		cfg:        cfg,
+		secretAuth: secretAuth,
+		log:        log,
+		settings:   settings,
 	}, nil
 }
 
@@ -69,13 +69,40 @@ func (d *helmDriver) Install(ctx context.Context,
 	if err != nil {
 		return fmt.Errorf("loading helm chart %s: %w", name, err)
 	}
+	// If no target namespace provided read chart values to find namespace
+	if namespace == "" {
+		if chartNS, ok := helmChart.Values["defaultNamespace"]; ok {
+			namespace = chartNS.(string)
+		} else {
+			// Fall back case of assuming its default
+			namespace = "default"
+		}
+	}
+
+	// Update values with imagePullSecrets
+	// If no secret values we should still continue as it could be case of public registry or local registry
+	secretvals, err := d.secretAuth.GetSecretValues(ctx, namespace)
+	if err != nil {
+		secretvals = nil
+		// Continue as its possible that a private registry is being used here and thus no data necessary
+	}
+	for key, val := range secretvals {
+		values[key] = val
+	}
 
 	// Check if there exists a matching helm release.
 	get := action.NewGet(d.cfg)
 	_, err = get.Run(name)
 	if err != nil {
 		if errors.Is(err, driver.ErrReleaseNotFound) {
-			return d.createRelease(ctx, install, helmChart, values)
+			err = d.createRelease(ctx, install, helmChart, values)
+			if err != nil {
+				return err
+			}
+			if err := d.secretAuth.AddToConfigMap(ctx, name, namespace); err != nil {
+				d.log.Info("failed to Update ConfigMap with installed namespace")
+			}
+			return nil
 		}
 		return fmt.Errorf("getting helm release %s: %w", name, err)
 	}
@@ -83,6 +110,12 @@ func (d *helmDriver) Install(ctx context.Context,
 	err = d.upgradeRelease(ctx, name, helmChart, values)
 	if err != nil {
 		return fmt.Errorf("upgrading helm chart %s: %w", name, err)
+	}
+
+	// Update installed-namespaces on successful install
+	err = d.secretAuth.AddToConfigMap(ctx, name, namespace)
+	if err != nil {
+		d.log.Info("failed to Update ConfigMap with installed namespace")
 	}
 
 	return nil

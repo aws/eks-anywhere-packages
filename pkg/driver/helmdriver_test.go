@@ -10,6 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"helm.sh/helm/v3/pkg/kube"
 	"helm.sh/helm/v3/pkg/release"
+	fakerest "k8s.io/client-go/rest/fake"
+
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
 )
 
 func TestHelmChartURLIsPrefixed(t *testing.T) {
@@ -43,7 +47,7 @@ func TestHelmChartURLIsPrefixed(t *testing.T) {
 }
 
 func TestNewHelm(t *testing.T) {
-	helm, err := NewHelm(logr.Discard())
+	helm, err := createNewHelm(t)
 	assert.NoError(t, err)
 	assert.NotNil(t, helm.log)
 }
@@ -54,7 +58,7 @@ func TestIsConfigChanged(t *testing.T) {
 
 		ctx := context.Background()
 		values := map[string]interface{}{}
-		helm, err := NewHelm(logr.Discard())
+		helm, err := createNewHelm(t)
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(fmt.Errorf("blah"))
 
@@ -72,7 +76,7 @@ func TestIsConfigChanged(t *testing.T) {
 		newValues := shallowCopy(t, origValues)
 		newValues["foo"] = foo + 1
 		rel := &release.Release{Config: newValues}
-		helm, err := NewHelm(logr.Discard())
+		helm, err := createNewHelm(t)
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
 		helm.cfg.Releases.Driver = newMockReleasesDriver(rel, nil)
@@ -90,7 +94,7 @@ func TestIsConfigChanged(t *testing.T) {
 		origValues := map[string]interface{}{"foo": 1, "bar": true}
 		sameValues := shallowCopy(t, origValues)
 		rel := &release.Release{Config: sameValues}
-		helm, err := NewHelm(logr.Discard())
+		helm, err := createNewHelm(t)
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
 		helm.cfg.Releases.Driver = newMockReleasesDriver(rel, nil)
@@ -105,6 +109,15 @@ func TestIsConfigChanged(t *testing.T) {
 //
 // Helpers
 //
+func createNewHelm(t *testing.T) (*helmDriver, error) {
+	fakeRestClient := fakerest.RESTClient{
+		GroupVersion: api.GroupVersion,
+	}
+	secretAuth, err := auth.NewECRSecret(&fakeRestClient)
+	require.NoError(t, err)
+	helm, err := NewHelm(logr.Discard(), secretAuth)
+	return helm, err
+}
 
 type mockKube struct {
 	kube.Interface
