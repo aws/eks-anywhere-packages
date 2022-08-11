@@ -135,7 +135,7 @@ func createECRImageDetails(images ImageDetailsECR) (ImageDetailsBothECR, error) 
 		return ImageDetailsBothECR{}, fmt.Errorf("Error marshalling image details from ECR lookup.")
 	}
 	if reflect.DeepEqual(images.PrivateImageDetails, ecrtypes.ImageDetail{}) {
-		if images.PublicImageDetails.ImageDigest != nil && images.PublicImageDetails.ImagePushedAt != nil && len(images.PublicImageDetails.ImageTags) > 0 && images.PublicImageDetails.RegistryId != nil && images.PublicImageDetails.RepositoryName != nil {
+		if images.PublicImageDetails.ImageDigest != nil && images.PublicImageDetails.ImagePushedAt != nil && images.PublicImageDetails.RegistryId != nil && images.PublicImageDetails.RepositoryName != nil {
 			copier.Copy(&t, &images.PublicImageDetails)
 			return *t, nil
 		}
