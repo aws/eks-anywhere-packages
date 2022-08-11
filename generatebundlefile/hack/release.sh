@@ -45,9 +45,6 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
     --private-profile ${PROFILE}
 
-## Logout of the Artifact Account
-docker logout public.ecr.aws
-
 # Release Helm Chart, and bundle to Production account
 cat << EOF > prodconfigfile
 [profile prod]
@@ -57,7 +54,6 @@ credential_source=EcsContainer
 EOF
 
 export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/prodconfigfile
-export AWS_PROFILE=prod
 PROFILE=prod
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
 ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries --profile ${AWS_PROFILE} --query 'registries[*].registryUri' --output text)
@@ -69,7 +65,6 @@ aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 h
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
     --public-profile ${PROFILE}
-
 
 if [ ! -x "${ORAS_BIN}" ]; then
     make oras-install
@@ -91,6 +86,10 @@ function push () {
     "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
     "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
 }
+
+docker logout public.ecr.aws
+export AWS_PROFILE=prod
+aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
 for version in 1-21 1-22; do
     generate ${version}
