@@ -29,8 +29,8 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: PackageBundleController is the Schema for the packagebundlecontrollers
-          API
+        description: PackageBundleController is the Schema for the packagebundlecontroller
+          API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -46,30 +46,31 @@ spec:
             type: object
           spec:
             description: PackageBundleControllerSpec defines the desired state of
-              PackageBundleController
+              PackageBundleController.
             properties:
               activeBundle:
                 description: ActiveBundle is name of the bundle from which packages
                   should be sourced.
                 type: string
+              bundleRepository:
+                default: eks-anywhere-package-bundles
+                description: Repository portion of an OCI address to the bundle
+                type: string
+              defaultImageRegistry:
+                default: 783794618700.dkr.ecr.us-west-2.amazonaws.com
+                description: DefaultImageRegistry for pulling images
+                type: string
+              defaultRegistry:
+                description: DefaultRegistry for pulling helm charts and the bundle
+                type: string
               logLevel:
                 description: LogLevel controls the verbosity of logging in the controller.
                 format: int32
                 type: integer
-              source:
-                description: Source of the bundle.
-                properties:
-                  registry:
-                    description: Registry is the OCR address hosting the bundle.
-                    type: string
-                  repository:
-                    description: Repository is the location of the bundle within the
-                      OCR registry.
-                    type: string
-                required:
-                - registry
-                - repository
-                type: object
+              privateRegistry:
+                description: PrivateRegistry is the registry being used for all images,
+                  charts and bundles
+                type: string
               upgradeCheckInterval:
                 default: 1d
                 description: "UpgradeCheckInterval is the time between upgrade checks.
@@ -77,22 +78,21 @@ spec:
                 type: string
               upgradeCheckShortInterval:
                 default: 1h
-                description: "UpgradeCheckShortInterval if there is a problem this
-                  is the time between upgrade checks. \n The format is that of time's
-                  ParseDuration."
+                description: "UpgradeCheckShortInterval time between upgrade checks
+                  if there is a problem. \n The format is that of time's ParseDuration."
                 type: string
             required:
-            - source
+            - bundleRepository
             type: object
           status:
             description: PackageBundleControllerStatus defines the observed state
-              of PackageBundleController
+              of PackageBundleController.
             properties:
               detail:
-                description: Detail of the state
+                description: Detail of the state.
                 type: string
               state:
-                description: State of the bundle controller
+                description: State of the bundle controller.
                 enum:
                 - ignored
                 - active

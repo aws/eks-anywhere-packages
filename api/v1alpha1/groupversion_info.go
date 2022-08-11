@@ -13,8 +13,8 @@
 // limitations under the License.
 
 // Package v1alpha1 contains API Schema definitions for the packages v1alpha1 API group
-//+kubebuilder:object:generate=true
-//+groupName=packages.eks.amazonaws.com
+// +kubebuilder:object:generate=true
+// +groupName=packages.eks.amazonaws.com
 package v1alpha1
 
 import (

@@ -3,8 +3,14 @@ package main
 import (
 	"fmt"
 	"os/exec"
+	"reflect"
 	"strings"
+	"time"
 
+	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
+	"github.com/go-logr/logr"
+	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
@@ -75,4 +81,115 @@ func splitECRName(s string) (string, string, error) {
 		return fmt.Sprintf("%s/%s", chartNameList[1], chartNameList[2]), chartNameList[2], nil
 	}
 	return "", "", fmt.Errorf("Error: %s", "Failed parsing chartName, check the input URI is a valid ECR URI")
+}
+
+// imageTagFilter is used when filtering a list of images for a specific tag or tag substring
+func ImageTagFilter(details []ImageDetailsBothECR, version string) []ImageDetailsBothECR {
+	var filteredDetails []ImageDetailsBothECR
+	for _, detail := range details {
+		for _, tag := range detail.ImageTags {
+			if strings.Contains(tag, version) {
+				filteredDetails = append(filteredDetails, detail)
+			}
+		}
+	}
+	return filteredDetails
+}
+
+type ImageDetailsECR struct {
+	PrivateImageDetails ecrtypes.ImageDetail
+	PublicImageDetails  ecrpublictypes.ImageDetail
+}
+
+// ImageDetailsBothECR is used so we can share some functions between private and public ECR bundle creation.
+type ImageDetailsBothECR struct {
+	// The sha256 digest of the image manifest.
+	ImageDigest *string `copier:"ImageDigest"`
+
+	// The media type of the image manifest.
+	ImageManifestMediaType *string `copier:"ImageManifestMediaType"`
+
+	// The date and time, expressed in standard JavaScript date format, at which the
+	// current image was pushed to the repository.
+	ImagePushedAt *time.Time `copier:"ImagePushedAt"`
+
+	// The list of tags associated with this image.
+	ImageTags []string `copier:"ImageTags"`
+
+	// The Amazon Web Services account ID associated with the registry to which this
+	// image belongs.
+	RegistryId *string `copier:"RegistryId"`
+
+	// The name of the repository to which this image belongs.
+	RepositoryName *string `copier:"RepositoryName"`
+}
+
+func createECRImageDetails(images ImageDetailsECR) (ImageDetailsBothECR, error) {
+	t := &ImageDetailsBothECR{}
+	//Check for empty structs, if non empty copy to new common struct for ECR imagedetails.
+	if reflect.DeepEqual(images.PublicImageDetails, ecrpublictypes.ImageDetail{}) {
+		if images.PrivateImageDetails.ImageDigest != nil && images.PrivateImageDetails.ImagePushedAt != nil && images.PrivateImageDetails.RegistryId != nil && images.PrivateImageDetails.RepositoryName != nil {
+			copier.Copy(&t, &images.PrivateImageDetails)
+			return *t, nil
+		}
+		return ImageDetailsBothECR{}, fmt.Errorf("Error marshalling image details from ECR lookup.")
+	}
+	if reflect.DeepEqual(images.PrivateImageDetails, ecrtypes.ImageDetail{}) {
+		if images.PublicImageDetails.ImageDigest != nil && images.PublicImageDetails.ImagePushedAt != nil && len(images.PublicImageDetails.ImageTags) > 0 && images.PublicImageDetails.RegistryId != nil && images.PublicImageDetails.RepositoryName != nil {
+			copier.Copy(&t, &images.PublicImageDetails)
+			return *t, nil
+		}
+		return ImageDetailsBothECR{}, fmt.Errorf("Error marshalling image details from ECR lookup.")
+	}
+	return ImageDetailsBothECR{}, fmt.Errorf("Error no data passed to createImageDetails")
+}
+
+// getLastestHelmTagandSha Iterates list of ECR Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
+func getLastestHelmTagandSha(details []ImageDetailsBothECR) (string, string, error) {
+	var latest ImageDetailsBothECR
+	latest.ImagePushedAt = &time.Time{}
+	for _, detail := range details {
+		if len(details) < 1 || detail.ImagePushedAt == nil || detail.ImageDigest == nil || detail.ImageTags == nil || len(detail.ImageTags) == 0 || *detail.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" {
+			continue
+		}
+		if detail.ImagePushedAt != nil && latest.ImagePushedAt.Before(*detail.ImagePushedAt) {
+			latest = detail
+		}
+	}
+	// Check if latest is equal to empty struct, and return error if that's the case.
+	if reflect.DeepEqual(latest, ImageDetailsBothECR{}) {
+		return "", "", fmt.Errorf("error no images found")
+	}
+	return latest.ImageTags[0], *latest.ImageDigest, nil
+}
+
+// getLastestImageSha Iterates list of ECR Public Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
+func getLastestImageSha(details []ImageDetailsBothECR) (*api.SourceVersion, error) {
+	var latest ImageDetailsBothECR
+	latest.ImagePushedAt = &time.Time{}
+	for _, detail := range details {
+		if len(details) < 1 || detail.ImagePushedAt == nil || detail.ImageDigest == nil || detail.ImageTags == nil || len(detail.ImageTags) == 0 || *detail.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" {
+			continue
+		}
+		if detail.ImagePushedAt != nil && latest.ImagePushedAt.Before(*detail.ImagePushedAt) {
+			latest = detail
+		}
+	}
+	// Check if latest is equal to empty struct, and return error if that's the case.
+	if reflect.DeepEqual(latest, ecrpublictypes.ImageDetail{}) {
+		return nil, fmt.Errorf("error no images found")
+	}
+	return &api.SourceVersion{Name: latest.ImageTags[0], Digest: *latest.ImageDigest}, nil
+}
+
+// copyImage will copy an OCI artifact from one registry to another registry.
+func copyImage(log logr.Logger, authFile, source, destination string) error {
+	log.Info("Running skopeo copy...", source, destination)
+	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
+	stdout, err := ExecCommand(cmd)
+	fmt.Printf("%s\n", stdout)
+	if err != nil {
+		return err
+	}
+	return nil
 }

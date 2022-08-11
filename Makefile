@@ -65,7 +65,7 @@ vet: ## Run go vet against code.
 
 gosec: ## Run gosec against code.
 	$(GO) install github.com/securego/gosec/v2/cmd/gosec@latest
-	gosec --exclude-dir generatebundlefile  ./...
+	gosec --exclude-dir generatebundlefile --exclude-dir ecrtokenrefresher  ./...
 
 SIGNED_ARTIFACTS = pkg/signature/testdata/packagebundle_valid.yaml.signed pkg/signature/testdata/pod_valid.yaml.signed api/testdata/bundle_one.yaml.signed api/testdata/bundle_two.yaml.signed api/testdata/package_webhook_bundle.yaml.signed
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
@@ -76,7 +76,7 @@ GOTESTS ?= ./...
 # go help testflags to see all options.
 GOTESTFLAGS ?= ""
 test: manifests generate vet mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ## Run tests.
-	source <(setup-envtest use -i -p env 1.23.x)
+	source <($(GOBIN)/setup-envtest use -i -p env 1.23.x)
 	$(GO) test $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks | grep -v fake | grep -v testutil` -coverprofile cover.out
 
 $(GOBIN)/setup-envtest: ## Install setup-envtest
@@ -104,6 +104,7 @@ docker-build: test ## Build docker image with the package-manager.
 docker-push: ## Push docker image with the package-manager.
 	docker push ${IMG}
 
+helm/build: helm-build
 helm-build: kustomize ## Build helm chart into tar file
 	hack/helm.sh
 

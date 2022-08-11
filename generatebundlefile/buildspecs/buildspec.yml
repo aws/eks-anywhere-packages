@@ -9,4 +9,3 @@ phases:
     commands:
     - cd generatebundlefile
     - ./hack/promote.sh
-    - ./hack/generate_bundle.sh

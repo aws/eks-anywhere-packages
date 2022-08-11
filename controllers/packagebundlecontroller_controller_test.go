@@ -32,9 +32,6 @@ func givenPackageBundleController() api.PackageBundleController {
 		},
 		Spec: api.PackageBundleControllerSpec{
 			ActiveBundle: testBundleName,
-			Source: api.PackageBundleControllerSource{
-				Registry: "public.ecr.aws/j0a1m4z9",
-			},
 		},
 		Status: api.PackageBundleControllerStatus{
 			State: api.BundleControllerStateActive,
@@ -82,9 +79,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
-		if err != nil {
-			t.Errorf("expected no error, got %s", err)
-		}
+		assert.NoError(t, err)
 		assert.True(t, result.Requeue)
 	})
 
@@ -103,19 +98,17 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
-		if err != nil {
-			t.Errorf("expected no error, got %s", err)
-		}
+		assert.NoError(t, err)
 		assert.True(t, result.Requeue)
 	})
 
-	t.Run("marks status ignored for bogus package bundle controller name", func(t *testing.T) {
+	t.Run("marks status ignored for bogus package bundle controller namespace", func(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
 		pbc := givenPackageBundleController()
-		pbc.Name = "bogus"
+		pbc.Namespace = "bogus"
 		ignoredController := types.NamespacedName{
 			Namespace: api.PackageNamespace,
 			Name:      "bogus",
@@ -127,10 +120,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, pbc *api.PackageBundleController,
 				opts *client.UpdateOptions) error {
-				if pbc.Status.State != api.BundleControllerStateIgnored {
-					t.Errorf("expected state to be set to Ignored, got %q",
-						pbc.Status.State)
-				}
+				assert.Equal(t, pbc.Status.State, api.BundleControllerStateIgnored)
 				return nil
 			})
 
@@ -143,13 +133,13 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		assert.False(t, result.Requeue)
 	})
 
-	t.Run("error marking status ignored for bogus package bundle controller name", func(t *testing.T) {
+	t.Run("error marking status ignored for bogus package bundle controller namespace", func(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
 		pbc := givenPackageBundleController()
-		pbc.Name = "bogus"
+		pbc.Namespace = "bogus"
 		ignoredController := types.NamespacedName{
 			Namespace: api.PackageNamespace,
 			Name:      "bogus",
@@ -176,7 +166,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
 		pbc := givenPackageBundleController()
 		pbc.Status.State = api.BundleControllerStateIgnored
-		pbc.Name = "bogus"
+		pbc.Namespace = "bogus"
 		ignoredController := types.NamespacedName{
 			Namespace: api.PackageNamespace,
 			Name:      "bogus",

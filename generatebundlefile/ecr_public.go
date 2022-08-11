@@ -3,16 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"os/exec"
-	"reflect"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
-	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
@@ -63,7 +59,7 @@ func (c *ecrPublicClient) DescribePublic(describeInput *ecrpublic.DescribeImages
 	return images, nil
 }
 
-// GetShaForInputs returns a list of an images version/sha for given inputs to lookup
+// GetShaForPublicInputs returns a list of an images version/sha for given inputs to lookup
 func (c *ecrPublicClient) GetShaForPublicInputs(project Project) ([]api.SourceVersion, error) {
 	sourceVersion := []api.SourceVersion{}
 	for _, tag := range project.Versions {
@@ -96,7 +92,12 @@ func (c *ecrPublicClient) GetShaForPublicInputs(project Project) ([]api.SourceVe
 			if err != nil {
 				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
 			}
-			sha, err := getLastestImageSha(ImageDetails)
+			var images []ImageDetailsBothECR
+			for _, image := range ImageDetails {
+				details, _ := createECRImageDetails(ImageDetailsECR{PublicImageDetails: image})
+				images = append(images, details)
+			}
+			sha, err := getLastestImageSha(images)
 			if err != nil {
 				return nil, err
 			}
@@ -113,7 +114,13 @@ func (c *ecrPublicClient) GetShaForPublicInputs(project Project) ([]api.SourceVe
 			if err != nil {
 				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
 			}
-			filteredImageDetails := imageTagFilter(ImageDetails, splitVersion[0])
+
+			var images []ImageDetailsBothECR
+			for _, image := range ImageDetails {
+				details, _ := createECRImageDetails(ImageDetailsECR{PublicImageDetails: image})
+				images = append(images, details)
+			}
+			filteredImageDetails := ImageTagFilter(images, splitVersion[0])
 			sha, err := getLastestImageSha(filteredImageDetails)
 			if err != nil {
 				return nil, err
@@ -124,63 +131,6 @@ func (c *ecrPublicClient) GetShaForPublicInputs(project Project) ([]api.SourceVe
 	}
 	sourceVersion = removeDuplicates(sourceVersion)
 	return sourceVersion, nil
-}
-
-// getLastestImageSha Iterates list of ECR Public Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
-func getLastestImageSha(details []ecrpublictypes.ImageDetail) (*api.SourceVersion, error) {
-	if len(details) == 0 {
-		return nil, fmt.Errorf("no details provided")
-	}
-	var latest ecrpublictypes.ImageDetail
-	latest.ImagePushedAt = &time.Time{}
-	for _, detail := range details {
-		if len(details) < 1 || detail.ImagePushedAt == nil || detail.ImageDigest == nil || detail.ImageTags == nil || len(detail.ImageTags) == 0 || *detail.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" {
-			continue
-		}
-		if detail.ImagePushedAt != nil && latest.ImagePushedAt.Before(*detail.ImagePushedAt) {
-			latest = detail
-		}
-	}
-	// Check if latest is equal to empty struct, and return error if that's the case.
-	if reflect.DeepEqual(latest, ecrpublictypes.ImageDetail{}) {
-		return nil, fmt.Errorf("error no images found")
-	}
-	return &api.SourceVersion{Name: latest.ImageTags[0], Digest: *latest.ImageDigest}, nil
-}
-
-// getLastestHelmTagandShaPublic Iterates list of ECR Public Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
-func getLastestHelmTagandShaPublic(details []ecrpublictypes.ImageDetail) (string, string, error) {
-	if len(details) == 0 {
-		return "", "", fmt.Errorf("no details provided")
-	}
-	var latest ecrpublictypes.ImageDetail
-	latest.ImagePushedAt = &time.Time{}
-	for _, detail := range details {
-		if len(details) < 1 || detail.ImagePushedAt == nil || detail.ImageDigest == nil || detail.ImageTags == nil || len(detail.ImageTags) == 0 || *detail.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" {
-			continue
-		}
-		if detail.ImagePushedAt != nil && latest.ImagePushedAt.Before(*detail.ImagePushedAt) {
-			latest = detail
-		}
-	}
-	// Check if latest is equal to empty struct, and return error if that's the case.
-	if reflect.DeepEqual(latest, ecrpublictypes.ImageDetail{}) {
-		return "", "", fmt.Errorf("error no images found")
-	}
-	return latest.ImageTags[0], *latest.ImageDigest, nil
-}
-
-// imageTagFilter is used when filtering a list of images for a specific tag or tag substring
-func imageTagFilter(details []ecrpublictypes.ImageDetail, version string) []ecrpublictypes.ImageDetail {
-	var filteredDetails []ecrpublictypes.ImageDetail
-	for _, detail := range details {
-		for _, tag := range detail.ImageTags {
-			if strings.Contains(tag, version) {
-				filteredDetails = append(filteredDetails, detail)
-			}
-		}
-	}
-	return filteredDetails
 }
 
 // shaExistsInRepositoryPublic checks if a given OCI artifact exists in a destination repo using the sha sum.
@@ -256,18 +206,6 @@ func (c *ecrPublicClient) GetPublicAuthToken() (string, error) {
 	return authToken, nil
 }
 
-// copyImagePrivPubSameAcct will copy an OCI artifact from ECR us-west-2 to ECR Public within the same account.
-func copyImage(log logr.Logger, authFile, source, destination string) error {
-	log.Info("Running skopeo copy...", source, destination)
-	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
-	stdout, err := ExecCommand(cmd)
-	fmt.Printf("%s\n", stdout)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // getNameAndVersionPublic looks up the latest pushed helm chart's tag from a given repo name Full name in Public ECR OCI format.
 func (c *SDKClients) getNameAndVersionPublic(repoName, registryURI string) (string, string, string, error) {
 	var version string
@@ -281,7 +219,15 @@ func (c *SDKClients) getNameAndVersionPublic(repoName, registryURI string) (stri
 		if err != nil {
 			return "", "", "", err
 		}
-		version, sha, err = getLastestHelmTagandShaPublic(ImageDetails)
+		var images []ImageDetailsBothECR
+		for _, image := range ImageDetails {
+			details, err := createECRImageDetails(ImageDetailsECR{PublicImageDetails: image})
+			if err != nil {
+				return "", "", "", err
+			}
+			images = append(images, details)
+		}
+		version, sha, err = getLastestHelmTagandSha(images)
 		if err != nil {
 			return "", "", "", err
 		}

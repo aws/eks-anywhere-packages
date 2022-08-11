@@ -129,8 +129,8 @@ func GetDigest(manifest Manifest, domain Domain) (digest [32]byte, yml []byte, e
 	return digest, yml, err
 }
 
-//See ./testdata/sign_file.sh for a shell script implementation.
-//This here differs in that it normalizes quoting while the shell script doesnt (yet).
+// See ./testdata/sign_file.sh for a shell script implementation.
+// This here differs in that it normalizes quoting while the shell script doesnt (yet).
 func ValidateSignature(manifest Manifest, domain Domain) (valid bool, digest [32]byte, yml []byte, err error) {
 	metaSig, _, err := GetMetadataInformation(manifest, domain)
 	if err != nil {

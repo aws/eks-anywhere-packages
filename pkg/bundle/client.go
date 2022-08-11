@@ -11,15 +11,15 @@ import (
 )
 
 type Client interface {
-	// IsActive returns true if the bundle is the active bundle
-	IsActive(ctx context.Context, packageBundle *api.PackageBundle) (bool, error)
-
 	// GetActiveBundle retrieves the currently active bundle.
 	GetActiveBundle(ctx context.Context) (activeBundle *api.PackageBundle, err error)
 
 	// GetActiveBundleNamespacedName retrieves the namespace and name of the
 	// currently active bundle.
 	GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error)
+
+	// GetPackageBundleController retrieves clusters package bundle controller
+	GetPackageBundleController(ctx context.Context) (controller *api.PackageBundleController, err error)
 
 	// GetBundleList get list of bundles worthy of consideration
 	GetBundleList(ctx context.Context, bundles *api.PackageBundleList) error
@@ -46,42 +46,18 @@ func NewPackageBundleClient(client client.Client) *bundleClient {
 
 var _ Client = (*bundleClient)(nil)
 
-func (bc *bundleClient) getPackageBundleController(ctx context.Context) (*api.PackageBundleController, error) {
-	pbc := api.PackageBundleController{}
-	key := types.NamespacedName{
-		Namespace: api.PackageNamespace,
-		Name:      api.PackageBundleControllerName,
-	}
-	err := bc.Get(ctx, key, &pbc)
-	if err != nil {
-		return nil, fmt.Errorf("getting PackageBundleController: %v", err)
-	}
-	return &pbc, nil
-}
-
-// IsActive returns true of the bundle is the active bundle
-func (bc *bundleClient) IsActive(ctx context.Context, packageBundle *api.PackageBundle) (bool, error) {
-
-	pbc, err := bc.getPackageBundleController(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	return packageBundle.Namespace == api.PackageNamespace && packageBundle.Name == pbc.Spec.ActiveBundle, nil
-}
-
 // GetActiveBundle retrieves the bundle from which package are installed.
 //
 // It retrieves the name of the active bundle from the PackageBundleController,
 // then uses the K8s API to retrieve and return the active bundle.
 func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.PackageBundle, err error) {
-	pbc, err := bc.getPackageBundleController(ctx)
+	pbc, err := bc.GetPackageBundleController(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	if pbc.Spec.ActiveBundle == "" {
-		return nil, fmt.Errorf("There is no activeBundle set in PackageBundleController")
+		return nil, fmt.Errorf("no activeBundle set in PackageBundleController")
 	}
 
 	nn := types.NamespacedName{
@@ -94,23 +70,26 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.
 		return nil, err
 	}
 
-	for i, bundlePackage := range activeBundle.Spec.Packages {
-		if len(bundlePackage.Source.Registry) < 1 {
-			if len(pbc.Spec.Source.Registry) < 1 {
-				activeBundle.Spec.Packages[i].Source.Registry = api.DefaultPackageRegistry
-			} else {
-				activeBundle.Spec.Packages[i].Source.Registry = pbc.Spec.Source.Registry
-			}
-		}
-	}
-
 	return activeBundle, nil
+}
+
+func (bc *bundleClient) GetPackageBundleController(ctx context.Context) (*api.PackageBundleController, error) {
+	pbc := api.PackageBundleController{}
+	key := types.NamespacedName{
+		Namespace: api.PackageNamespace,
+		Name:      api.PackageBundleControllerName,
+	}
+	err := bc.Get(ctx, key, &pbc)
+	if err != nil {
+		return nil, fmt.Errorf("getting PackageBundleController: %v", err)
+	}
+	return &pbc, nil
 }
 
 // GetActiveBundleNamespacedName retrieves the namespace and name of the
 // currently active bundle from the PackageBundleController.
 func (bc *bundleClient) GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error) {
-	pbc, err := bc.getPackageBundleController(ctx)
+	pbc, err := bc.GetPackageBundleController(ctx)
 	if err != nil {
 		return types.NamespacedName{}, err
 	}

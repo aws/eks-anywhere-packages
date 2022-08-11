@@ -2,7 +2,7 @@
 
 ## How it works
 
-This binary takes in an input file with different fields for curated packages we are supporting, and generates their corresponding Bundle CRD files.
+This binary takes in an input file with different fields for curated packages we are supporting, and generates their corresponding Bundle CRD files. In addition it has the ability to promote all images, and helm chart between container registries.
 
 Example Input file format
 
@@ -14,71 +14,28 @@ There are 3 types of helm version tags we can input
 
 This will output 2 crd objects for the projects. One named after item in the project list.
 
-## How to run
+## Bundle Creation
 
-To build and run
+To run you need an AWS KMS key that is
+- Asymmetric
+- ECC_NIST_P256
+- Key Policy enabled for CLI user to have `kms:Sign` configured. 
+
+To build
 
 ```bash
-#For Mac
+#To Build
 make build
 
-./generatebundlefile --input data/sample_input.yaml # To use a singular input file
-./generatebundlefile # default input is all yaml files in STDIN, output is output/
+# To Run
+./generatebundlefile --input data/sample_input.yaml --key alias/signingPackagesKey
 ```
 
-To run for all .yaml files in stdin (except output/)
-```bash
-make run
+This will output all the corresponding CRD's into `output/bundle.yaml` 
+
+## Promote
+To Run Promote you need the name of ECR Private Repository you want to run it on. This has to contain a helm chart built by build-tooling.
+
 ```
-
-To Run for a single file
-```bash
-go run . --input "data/input_120.yaml"
-```
-
-This will output all the corresponding CRD's in the `output` folder
-
-## How to get images to run locally
-
-First you must pull any corresponding images from the main ECR gallery repo's and push them into a new ECR gallery repo within your account. There is a simple bash script:
-
-`hack/pullpush.sh` that shows how you would accomplish this on a single image.
-
-## How to generate a sample bundle in correct format
-
-```bash
-go run . --generate-sample true
-```
-
-You will see the sample file at `output/1.21-bundle-crd.yaml`
-
-## How to sign a file
-
-We can use the input of a valid bundle file with the `--signature` command to annotate it with it's signature. This will fail if there is already another signature on the file.
-
-```bash
-go run . --input output/bundle-1.20.yaml --signature "signature-123"
-```
-
-```yaml
-apiVersion: packages.eks.amazonaws.com/v1alpha1
-kind: PackageBundle
-metadata:
-  creationTimestamp: null
-  name: "v1-20-1001"
-  namespace: eksa-packages
-...
-``` 
-Becomes...
-
-```yaml
-apiVersion: packages.eks.amazonaws.com/v1alpha1
-kind: PackageBundle
-metadata:
-  creationTimestamp: null
-  name: "v1-20-1001"
-  namespace: eksa-packages
-  annotations:
-    eksa.aws.com/signature: signature-123
-...
+go run . --promote hello-eks-anywhere
 ```

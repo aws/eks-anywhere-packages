@@ -122,16 +122,12 @@ func (d *helmDriver) Install(ctx context.Context,
 }
 
 func (d *helmDriver) getChart(install *action.Install, source api.PackageOCISource) (*chart.Chart, error) {
-	url := getChartURL(source)
+	url := source.GetChartUri()
 	chartPath, err := install.LocateChart(url, d.settings)
 	if err != nil {
 		return nil, fmt.Errorf("locating helm chart %s tag %s: %w", url, source.Digest, err)
 	}
 	return loader.Load(chartPath)
-}
-
-func getChartURL(source api.PackageOCISource) string {
-	return "oci://" + source.AsRepoURI()
 }
 
 func (d *helmDriver) createRelease(ctx context.Context,

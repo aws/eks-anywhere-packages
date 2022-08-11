@@ -19,18 +19,19 @@ import (
 )
 
 const (
-	DefaultPackageRegistry = "public.ecr.aws/eks-anywhere"
+	defaultRegistry      = "public.ecr.aws/eks-anywhere"
+	defaultImageRegistry = "783794618700.dkr.ecr.us-west-2.amazonaws.com"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="ActiveBundle",type=string,JSONPath=`.spec.activeBundle`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="Detail",type=string,JSONPath=`.status.detail`
-// PackageBundleController is the Schema for the packagebundlecontrollers API
+// PackageBundleController is the Schema for the packagebundlecontroller API.
 type PackageBundleController struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -40,7 +41,7 @@ type PackageBundleController struct {
 }
 
 // PackageBundleControllerSpec defines the desired state of
-// PackageBundleController
+// PackageBundleController.
 type PackageBundleControllerSpec struct {
 	// LogLevel controls the verbosity of logging in the controller.
 	// +optional
@@ -54,7 +55,7 @@ type PackageBundleControllerSpec struct {
 	UpgradeCheckInterval metav1.Duration `json:"upgradeCheckInterval,omitempty"`
 
 	// +kubebuilder:default:="1h"
-	// UpgradeCheckShortInterval if there is a problem this is the time between upgrade checks.
+	// UpgradeCheckShortInterval time between upgrade checks if there is a problem.
 	//
 	// The format is that of time's ParseDuration.
 	// +optional
@@ -64,28 +65,23 @@ type PackageBundleControllerSpec struct {
 	// +optional
 	ActiveBundle string `json:"activeBundle"`
 
+	// PrivateRegistry is the registry being used for all images, charts and bundles
+	// +optional
+	PrivateRegistry string `json:"privateRegistry"`
+
+	// DefaultRegistry for pulling helm charts and the bundle
+	// +optional
+	DefaultRegistry string `json:"defaultRegistry"`
+
+	// +kubebuilder:default:="783794618700.dkr.ecr.us-west-2.amazonaws.com"
+	// DefaultImageRegistry for pulling images
+	// +optional
+	DefaultImageRegistry string `json:"defaultImageRegistry"`
+
+	// +kubebuilder:default:="eks-anywhere-package-bundles"
 	// +kubebuilder:validation:Required
-	// Source of the bundle.
-	Source PackageBundleControllerSource `json:"source"`
-}
-
-type PackageBundleControllerSource struct {
-	// +kubebuilder:validation:Required
-	// Registry is the OCR address hosting the bundle.
-	Registry string `json:"registry"`
-
-	// +kubebuilder:validation:Required
-	// Repository is the location of the bundle within the OCR registry.
-	Repository string `json:"repository"`
-}
-
-func (s *PackageBundleControllerSource) BaseRef() (baseRef string) {
-	baseRef = s.Registry
-	if s.Repository != "" {
-		baseRef += "/" + s.Repository
-	}
-
-	return baseRef
+	// Repository portion of an OCI address to the bundle
+	BundleRepository string `json:"bundleRepository"`
 }
 
 // +kubebuilder:validation:Enum=ignored;active;disconnected
@@ -99,17 +95,17 @@ const (
 )
 
 // PackageBundleControllerStatus defines the observed state of
-// PackageBundleController
+// PackageBundleController.
 type PackageBundleControllerStatus struct {
-	// State of the bundle controller
+	// State of the bundle controller.
 	State BundleControllerStateEnum `json:"state,omitempty"`
 
-	// Detail of the state
+	// Detail of the state.
 	Detail string `json:"detail,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-// PackageBundleControllerList contains a list of PackageBundleController
+// +kubebuilder:object:root=true
+// PackageBundleControllerList contains a list of PackageBundleController.
 type PackageBundleControllerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

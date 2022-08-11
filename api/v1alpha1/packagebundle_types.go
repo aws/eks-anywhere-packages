@@ -21,10 +21,10 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
-// PackageBundle is the Schema for the packagebundles API
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
+// PackageBundle is the Schema for the packagebundle API.
 type PackageBundle struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -33,7 +33,7 @@ type PackageBundle struct {
 	Status PackageBundleStatus `json:"status,omitempty"`
 }
 
-// PackageBundleSpec defines the desired state of PackageBundle
+// PackageBundleSpec defines the desired state of PackageBundle.
 type PackageBundleSpec struct {
 	// +kubebuilder:validation:Required
 	// Packages supported by this bundle.
@@ -43,7 +43,7 @@ type PackageBundleSpec struct {
 // BundlePackage specifies a package within a bundle.
 type BundlePackage struct {
 	// +kubebuilder:validation:Required
-	// Name of the package
+	// Name of the package.
 	Name string `json:"name,omitempty"`
 
 	// +kubebuilder:validation:Required
@@ -76,20 +76,17 @@ type SourceVersion struct {
 	// Digest is a checksum value identifying the version of the package and its contents.
 	Digest string `json:"digest"`
 
-	// Images is a list of images used by this version of the package
+	// Images is a list of images used by this version of the package.
 	Images []VersionImages `json:"images,omitempty"`
 
-	// Configurations is a list of configurations used by this version of the package. The configurations are used for configuration validation and to generate sample configurations for users.
-	Configurations []VersionConfiguration `json:"configurations,omitempty"`
-
-	// Schema is a base64 encoded, gzipped json schema used to validate package configurations
+	// Schema is a base64 encoded, gzipped json schema used to validate package configurations.
 	Schema string `json:"schema,omitempty"`
 }
 
 // VersionImages is an image used by a version of a package.
 type VersionImages struct {
 	// +kubebuilder:validation:Required
-	// Repository is source in the registry for the image
+	// Repository within the Registry where the package is found.
 	Repository string `json:"repository"`
 
 	// +kubebuilder:validation:Required
@@ -97,39 +94,24 @@ type VersionImages struct {
 	Digest string `json:"digest"`
 }
 
-// VersionConfiguration is a configuration used by a version of a package.
-type VersionConfiguration struct {
-	// +kubebuilder:validation:Required
-	// Name is the name of the configuration
-	Name string `json:"name"`
-
-	// Required configuration parameter the user must specify
-	Required bool `json:"required"`
-
-	// Default is the name of the configuration
-	Default string `json:"default"`
-}
-
-// PackageBundleStatus defines the observed state of PackageBundle
+// PackageBundleStatus defines the observed state of PackageBundle.
 type PackageBundleStatus struct {
 	Spec  PackageBundleSpec      `json:"spec,omitempty"`
 	State PackageBundleStateEnum `json:"state"`
 }
 
-//+kubebuilder:validation:Enum={"inactive","active","active (upgrade available)","ignored","ignored version","invalid version"}
+// +kubebuilder:validation:Enum={"available","ignored","invalid"}
+// PackageBundleStateEnum defines the observed state of PackageBundle.
 type PackageBundleStateEnum string
 
 const (
-	PackageBundleStateInactive         PackageBundleStateEnum = "inactive"
-	PackageBundleStateActive           PackageBundleStateEnum = "active"
-	PackageBundleStateUpgradeAvailable PackageBundleStateEnum = "active (upgrade available)"
-	PackageBundleStateIgnored          PackageBundleStateEnum = "ignored"
-	PackageBundleStateIgnoredVersion   PackageBundleStateEnum = "ignored version"
-	PackageBundleStateInvalidVersion   PackageBundleStateEnum = "invalid version"
+	PackageBundleStateAvailable PackageBundleStateEnum = "available"
+	PackageBundleStateIgnored   PackageBundleStateEnum = "ignored"
+	PackageBundleStateInvalid   PackageBundleStateEnum = "invalid"
 )
 
 //+kubebuilder:object:root=true
-// PackageBundleList contains a list of PackageBundle
+// PackageBundleList contains a list of PackageBundle.
 type PackageBundleList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

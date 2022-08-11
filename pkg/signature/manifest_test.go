@@ -3,11 +3,14 @@ package signature_test
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/aws/eks-anywhere-packages/pkg/file"
 	"github.com/aws/eks-anywhere-packages/pkg/signature"
 	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
@@ -36,7 +39,7 @@ func encodedSelectors(selectors []string) (encoded string) {
 
 func TestValidateSignature(t *testing.T) {
 	t.Run("valid signature on valid manifest", func(t *testing.T) {
-		bundle, _, err := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, err := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		if err != nil {
 			t.Fatal("Unable to get bundle", err)
 		}
@@ -47,7 +50,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("invalid signature on valid manifest", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		annotations[EksaDomain.Name+"/"+SignatureAnnotation] = "XEQCIForAHp6tPUhkfqLfAzbmq0v7p/hgJEqrB5ScWNB4rOOAiBlNtJUzTWNKGxpTepnm8co0YzoNX2HjXRTvaBYQy54Tg=="
 		valid, _, _, err := ValidateSignature(bundle, EksaDomain)
@@ -57,7 +60,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("request for different domain, valid eksa signature, missing requested signature", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		valid, _, _, err := ValidateSignature(bundle, Domain{Name: "eksx.amazon.com", Pubkey: "notakey"})
 
 		assert.False(t, valid, "Signature should be invalid for the provided domain")
@@ -65,7 +68,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("request for different domain, missing eksa signature, requested signature invalid", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		domain := Domain{Name: "fakedomain.com", Pubkey: EksaDomain.Pubkey}
 		annotations[domain.Name+"/signature"] = annotations[EksaDomain.Name+"/signature"]
@@ -82,7 +85,7 @@ func TestValidateSignature(t *testing.T) {
 		assert.EqualError(t, err, "Missing signature")
 	})
 	t.Run("Valid document with all fields excluded must fail signature validation", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		excludes := []string{".apiVersion", ".kind", ".metadata", ".spec"}
 		annotations[EksaDomain.Name+"/excludes"] = encodedSelectors(excludes)
@@ -91,13 +94,13 @@ func TestValidateSignature(t *testing.T) {
 
 		// An empty object serializes to "{}" in yaml.
 		assert.Equal(t, sha256.Sum256([]byte("{}\n")), digest, "This tests validates the behavior of an affectively empty document signature made empty via excludes")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		valid, _, _, err := ValidateSignature(bundle, EksaDomain)
 		assert.False(t, valid, "Signature should be invalid as it's signing actual content")
 		assert.Nil(t, err, "No error should occur when validating this signature")
 	})
 	t.Run("Removing the signature causes validation to fail", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		delete(annotations, EksaDomain.Name+"/signature")
 
@@ -107,7 +110,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("Invalid signature format causes validation to fail with an helpful message", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		annotations[EksaDomain.Name+"/signature"] = annotations[EksaDomain.Name+"/signature"] + "="
 
@@ -117,7 +120,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("An otherwise valid signature invalid for the provided excludes fails verification", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		excludes := []string{".spec.packages[].source.repository", ".spec.packages[].source.registry", ".spec.packages[].source.name"}
 		annotations[EksaDomain.Name+"/excludes"] = encodedSelectors(excludes)
@@ -128,7 +131,7 @@ func TestValidateSignature(t *testing.T) {
 	})
 
 	t.Run("Any modification to excludes, even no-op renders the signature invalid", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		excludes := []string{".spec.packages[].source.repository", ".spec.packages[].source.registry", ".potato"}
 		annotations[EksaDomain.Name+"/excludes"] = encodedSelectors(excludes)
@@ -148,7 +151,7 @@ func TestValidateSignature(t *testing.T) {
 
 func TestMetadata(t *testing.T) {
 	t.Run("Basic metadata on valid manifest", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		sig, excludes, _ := GetMetadataInformation(bundle, EksaDomain)
 
 		assert.ElementsMatchf(t, excludes, []string{".spec.packages[].source.registry", ".spec.packages[].source.repository"}, "Excludes doesn't match the expected value")
@@ -157,7 +160,7 @@ func TestMetadata(t *testing.T) {
 	})
 
 	t.Run("Invalid excludes fails", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		annotations[EksaDomain.Name+"/"+ExcludesAnnotation] = encodedSelectors([]string{"invalid"})
 		_, excludes, err := GetMetadataInformation(bundle, EksaDomain)
@@ -174,7 +177,7 @@ func TestMetadata(t *testing.T) {
 	})
 
 	t.Run("jq imports fail validation", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		annotations[EksaDomain.Name+"/"+ExcludesAnnotation] = encodedSelectors([]string{"import \"test\""})
 		_, excludes, err := GetMetadataInformation(bundle, EksaDomain)
@@ -186,13 +189,15 @@ func TestMetadata(t *testing.T) {
 
 func TestDigest(t *testing.T) {
 	t.Run("Basic digest on valid manifest", func(t *testing.T) {
-		bundle, expectedDigest, err := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, err := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		assert.NoError(t, err)
+		expectedDigest, err := os.ReadFile(filepath.Clean("testdata/packagebundle_valid.yaml") + ".digest")
 		assert.NoError(t, err)
 		digest, _, err := GetDigest(bundle, EksaDomain)
 		if err != nil {
 			t.Error(err)
 		}
-		assert.Equal(t, expectedDigest, base64.StdEncoding.EncodeToString(digest[:]), "Digest doesn't match")
+		assert.Equal(t, string(expectedDigest), base64.StdEncoding.EncodeToString(digest[:]), "Digest doesn't match")
 	})
 
 	t.Run("Basic digest on valid manifest with no excludes", func(t *testing.T) {
@@ -208,7 +213,7 @@ func TestDigest(t *testing.T) {
 	})
 
 	t.Run("Getting digest on manifest with invalid metadata fails", func(t *testing.T) {
-		bundle, _, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
+		bundle, _ := file.GivenPackageBundle("testdata/packagebundle_valid.yaml")
 		annotations := bundle.GetAnnotations()
 		annotations[EksaDomain.Name+"/"+ExcludesAnnotation] = "X"
 		digest, _, err := GetDigest(bundle, EksaDomain)

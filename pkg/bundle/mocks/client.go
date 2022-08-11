@@ -95,19 +95,19 @@ func (mr *MockClientMockRecorder) GetBundleList(ctx, bundles interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBundleList", reflect.TypeOf((*MockClient)(nil).GetBundleList), ctx, bundles)
 }
 
-// IsActive mocks base method.
-func (m *MockClient) IsActive(ctx context.Context, packageBundle *v1alpha1.PackageBundle) (bool, error) {
+// GetPackageBundleController mocks base method.
+func (m *MockClient) GetPackageBundleController(ctx context.Context) (*v1alpha1.PackageBundleController, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsActive", ctx, packageBundle)
-	ret0, _ := ret[0].(bool)
+	ret := m.ctrl.Call(m, "GetPackageBundleController", ctx)
+	ret0, _ := ret[0].(*v1alpha1.PackageBundleController)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// IsActive indicates an expected call of IsActive.
-func (mr *MockClientMockRecorder) IsActive(ctx, packageBundle interface{}) *gomock.Call {
+// GetPackageBundleController indicates an expected call of GetPackageBundleController.
+func (mr *MockClientMockRecorder) GetPackageBundleController(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsActive", reflect.TypeOf((*MockClient)(nil).IsActive), ctx, packageBundle)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackageBundleController", reflect.TypeOf((*MockClient)(nil).GetPackageBundleController), ctx)
 }
 
 // Save mocks base method.

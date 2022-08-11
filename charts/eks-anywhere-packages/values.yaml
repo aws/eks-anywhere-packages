@@ -14,6 +14,8 @@ additionalLabels: {}
 additionalAnnotations: {}
 # -- sourceRegistry for all container images in chart.
 sourceRegistry: public.ecr.aws/eks-anywhere
+# -- clusterName managed by a particular PBC
+clusterName: eksa-packages-bundle-controller
 # -- Image pull policy for Docker images.
 imagePullPolicy: IfNotPresent
 serviceAccount:
@@ -86,3 +88,13 @@ controller:
     limits:
       cpu: 500m
       memory: 300Mi
+# Additional Variables to configure cronjob
+cronjob:
+  name: ecr-refresher
+  # -- ECR refresher repository name.
+  repository: "ecr-token-refresher"
+  # -- ECR refresher tag, or SHA256 checksum.
+  tag: "{{ecr-token-refresher}}"
+#  Additional Variables for Config Map for namespace
+nsconfigmap:
+  name: ns-secret-map

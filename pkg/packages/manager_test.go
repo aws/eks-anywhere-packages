@@ -53,6 +53,11 @@ func givenManagerContext(driver *mocks.MockPackageDriver) *ManagerContext {
 			Repository: "hello-eks-anywhere",
 			Digest:     "sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
 		},
+		PBC: api.PackageBundleController{
+			Spec: api.PackageBundleControllerSpec{
+				PrivateRegistry: "privateRegistry",
+			},
+		},
 		RequeueAfter: time.Duration(100),
 		Log:          logr.Discard(),
 	}
@@ -72,20 +77,48 @@ func TestManagerContext_SetUninstalling(t *testing.T) {
 
 	sut.SetUninstalling(expectedName)
 
-	if sut.Package.Name != expectedName {
-		t.Errorf("expected <%s> actual <%s>", expectedName, sut.Package.Name)
-	}
-	if sut.Package.Status.State != expectedState {
-		t.Errorf("expected <%s> actual <%s>", expectedState, sut.Package.Status.State)
-	}
+	assert.Equal(t, expectedName, sut.Package.Name)
+	assert.Equal(t, expectedState, sut.Package.Status.State)
+}
+
+func TestManagerContext_getRegistry(t *testing.T) {
+	t.Run("registry from values", func(t *testing.T) {
+		sut := givenManagerContext(givenMockDriver(t))
+		values := make(map[string]interface{})
+		values["sourceRegistry"] = "valuesRegistry"
+
+		assert.Equal(t, "valuesRegistry", sut.getRegistry(values))
+	})
+
+	t.Run("registry from privateRegistry", func(t *testing.T) {
+		sut := givenManagerContext(givenMockDriver(t))
+		values := make(map[string]interface{})
+
+		assert.Equal(t, "privateRegistry", sut.getRegistry(values))
+	})
+
+	t.Run("registry from bundle package", func(t *testing.T) {
+		sut := givenManagerContext(givenMockDriver(t))
+		values := make(map[string]interface{})
+		sut.PBC.Spec.PrivateRegistry = ""
+
+		assert.Equal(t, "public.ecr.aws/j0a1m4z9/", sut.getRegistry(values))
+	})
+
+	t.Run("registry from default gated registry", func(t *testing.T) {
+		sut := givenManagerContext(givenMockDriver(t))
+		values := make(map[string]interface{})
+		sut.PBC.Spec.PrivateRegistry = ""
+		sut.Source.Registry = ""
+
+		assert.Equal(t, "783794618700.dkr.ecr.us-west-2.amazonaws.com", sut.getRegistry(values))
+	})
 }
 
 func TestNewManager(t *testing.T) {
 	expectedManager := NewManager()
 	actualManager := NewManager()
-	if expectedManager != actualManager {
-		t.Errorf("expected <%s> actual <%s>", expectedManager, actualManager)
-	}
+	assert.Equal(t, expectedManager, actualManager)
 }
 
 func TestManagerLifecycle(t *testing.T) {

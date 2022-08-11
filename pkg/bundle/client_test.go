@@ -15,8 +15,7 @@ import (
 )
 
 const (
-	testBundleRegistry   = "public.ecr.aws/j0a1m4z9"
-	testBundleRepository = "eks-anywhere-package-bundles"
+	testBundleRegistry = "public.ecr.aws/j0a1m4z9"
 )
 
 func givenMockClient(t *testing.T) *ctrlmocks.MockClient {
@@ -55,11 +54,10 @@ func givenPackageBundleController() *api.PackageBundleController {
 			Namespace: api.PackageNamespace,
 		},
 		Spec: api.PackageBundleControllerSpec{
-			ActiveBundle: testBundleName,
-			Source: api.PackageBundleControllerSource{
-				Registry:   testBundleRegistry,
-				Repository: testBundleRepository,
-			},
+			ActiveBundle:         testBundleName,
+			DefaultRegistry:      "public.ecr.aws/j0a1m4z9",
+			DefaultImageRegistry: "783794618700.dkr.ecr.us-west-2.amazonaws.com",
+			BundleRepository:     "eks-anywhere-package-bundles",
 		},
 		Status: api.PackageBundleControllerStatus{
 			State: api.BundleControllerStateActive,
@@ -77,75 +75,6 @@ func TestNewPackageBundleClient(t *testing.T) {
 		bundleClient := NewPackageBundleClient(mockClient)
 
 		assert.NotNil(t, bundleClient)
-	})
-}
-
-func TestBundleClient_IsActive(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	pbc := givenPackageBundleController()
-
-	t.Run("golden path returning true", func(t *testing.T) {
-		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
-		bundle := GivenBundle(api.PackageBundleStateInactive)
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
-
-		active, err := bundleClient.IsActive(ctx, bundle)
-
-		assert.True(t, active)
-		assert.Nil(t, err)
-	})
-
-	t.Run("error on failed get", func(t *testing.T) {
-		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
-		bundle := GivenBundle(api.PackageBundleStateInactive)
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).Return(fmt.Errorf("failed get"))
-
-		_, err := bundleClient.IsActive(ctx, bundle)
-
-		assert.NotNil(t, err)
-	})
-
-	t.Run("fails on wrong namespace", func(t *testing.T) {
-		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
-		bundle := &api.PackageBundle{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: "Wrong-Name",
-			},
-			Status: api.PackageBundleStatus{
-				State: api.PackageBundleStateActive,
-			},
-		}
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
-
-		active, err := bundleClient.IsActive(ctx, bundle)
-
-		assert.False(t, active)
-		assert.Nil(t, err)
-	})
-
-	t.Run("fails on wrong name", func(t *testing.T) {
-		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
-		bundle := &api.PackageBundle{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "non-empty",
-				Namespace: api.PackageNamespace,
-			},
-			Status: api.PackageBundleStatus{
-				State: api.PackageBundleStateActive,
-			},
-		}
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
-
-		active, err := bundleClient.IsActive(ctx, bundle)
-
-		assert.False(t, active)
-		assert.Nil(t, err)
 	})
 }
 
@@ -168,42 +97,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		assert.Equal(t, bundle.Name, testBundleName)
 		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
 		assert.Equal(t, "public.ecr.aws/l0g8r8j6", bundle.Spec.Packages[0].Source.Registry)
-		assert.Nil(t, err)
-	})
-
-	t.Run("no registry", func(t *testing.T) {
-		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
-		testBundle := givenBundle()
-		testBundle.Spec.Packages[0].Source.Registry = ""
-
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(testBundle)).SetArg(2, *testBundle)
-
-		bundle, err := bundleClient.GetActiveBundle(ctx)
-
-		assert.Equal(t, bundle.Name, testBundleName)
-		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
-		assert.Equal(t, "public.ecr.aws/j0a1m4z9", bundle.Spec.Packages[0].Source.Registry)
-		assert.Nil(t, err)
-	})
-
-	t.Run("no registry anywhere", func(t *testing.T) {
-		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
-		testBundle := givenBundle()
-		testBundle.Spec.Packages[0].Source.Registry = ""
-		pbc.Spec.Source.Registry = ""
-
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(testBundle)).SetArg(2, *testBundle)
-
-		bundle, err := bundleClient.GetActiveBundle(ctx)
-
-		assert.Equal(t, bundle.Name, testBundleName)
-		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
-		assert.Equal(t, "public.ecr.aws/eks-anywhere", bundle.Spec.Packages[0].Source.Registry)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("no active bundle", func(t *testing.T) {
@@ -216,7 +110,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		bundle, err := bundleClient.GetActiveBundle(ctx)
 
 		assert.Nil(t, bundle)
-		assert.EqualError(t, err, "There is no activeBundle set in PackageBundleController")
+		assert.EqualError(t, err, "no activeBundle set in PackageBundleController")
 	})
 
 	t.Run("error path", func(t *testing.T) {
@@ -257,7 +151,7 @@ func TestBundleClient_GetActiveBundleNamespacedName(t *testing.T) {
 
 		assert.Equal(t, api.PackageNamespace, namespacedNames.Namespace)
 		assert.Equal(t, "", namespacedNames.Name)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("error path", func(t *testing.T) {
@@ -286,7 +180,7 @@ func TestBundleClient_GetBundleList(t *testing.T) {
 
 		err := bundleClient.GetBundleList(ctx, actualList)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("error scenario", func(t *testing.T) {
@@ -314,7 +208,7 @@ func TestBundleClient_CreateBundle(t *testing.T) {
 
 		err := bundleClient.CreateBundle(ctx, actualBundle)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("error scenario", func(t *testing.T) {

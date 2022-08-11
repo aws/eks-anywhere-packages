@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"reflect"
+	"regexp"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/pkg/errors"
+
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 const (
@@ -68,26 +69,77 @@ func (c *ecrClient) Describe(describeInput *ecr.DescribeImagesInput) ([]ecrtypes
 	return images, nil
 }
 
-// getLastestHelmTagandSha Iterates list of ECR Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
-func getLastestHelmTagandSha(details []ecrtypes.ImageDetail) (string, string, error) {
-	if len(details) == 0 {
-		return "", "", fmt.Errorf("no details provided")
-	}
-	var latest ecrtypes.ImageDetail
-	latest.ImagePushedAt = &time.Time{}
-	for _, detail := range details {
-		if len(details) < 1 || detail.ImagePushedAt == nil || detail.ImageDigest == nil || detail.ImageTags == nil || len(detail.ImageTags) == 0 || *detail.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" {
+// GetShaForInputs returns a list of an images version/sha for given inputs to lookup
+func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error) {
+	sourceVersion := []api.SourceVersion{}
+	for _, tag := range project.Versions {
+		if !strings.Contains(tag.Name, "latest") {
+			var imagelookup []ecrtypes.ImageIdentifier
+			imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageTag: &tag.Name})
+			ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
+				RepositoryName: aws.String(project.Repository),
+				ImageIds:       imagelookup,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
+			}
+			for _, images := range ImageDetails {
+				if *images.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" || len(images.ImageTags) == 0 {
+					continue
+				}
+				if len(images.ImageTags) == 1 {
+					v := &api.SourceVersion{Name: tag.Name, Digest: *images.ImageDigest}
+					sourceVersion = append(sourceVersion, *v)
+					continue
+				}
+			}
+		}
+		//
+		if tag.Name == "latest" {
+			ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
+				RepositoryName: aws.String(project.Repository),
+			})
+			if err != nil {
+				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
+			}
+			var images []ImageDetailsBothECR
+			for _, image := range ImageDetails {
+				details, _ := createECRImageDetails(ImageDetailsECR{PrivateImageDetails: image})
+				images = append(images, details)
+			}
+			sha, err := getLastestImageSha(images)
+			if err != nil {
+				return nil, err
+			}
+			sourceVersion = append(sourceVersion, *sha)
 			continue
 		}
-		if detail.ImagePushedAt != nil && latest.ImagePushedAt.Before(*detail.ImagePushedAt) {
-			latest = detail
+		//
+		if strings.Contains(tag.Name, "-latest") {
+			regex := regexp.MustCompile(`-latest`)
+			splitVersion := regex.Split(tag.Name, -1) //extract out the version without the latest
+			ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
+				RepositoryName: aws.String(project.Repository),
+			})
+			if err != nil {
+				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
+			}
+			var images []ImageDetailsBothECR
+			for _, image := range ImageDetails {
+				details, _ := createECRImageDetails(ImageDetailsECR{PrivateImageDetails: image})
+				images = append(images, details)
+			}
+			filteredImageDetails := ImageTagFilter(images, splitVersion[0])
+			sha, err := getLastestImageSha(filteredImageDetails)
+			if err != nil {
+				return nil, err
+			}
+			sourceVersion = append(sourceVersion, *sha)
+			continue
 		}
 	}
-	// Check if latest is equal to empty struct, and return error if that's the case.
-	if reflect.DeepEqual(latest, ecrtypes.ImageDetail{}) {
-		return "", "", fmt.Errorf("error no images found")
-	}
-	return latest.ImageTags[0], *latest.ImageDigest, nil
+	sourceVersion = removeDuplicates(sourceVersion)
+	return sourceVersion, nil
 }
 
 // tagFromSha Looks up the Tag of an ECR artifact from a sha
@@ -166,10 +218,15 @@ func (c *SDKClients) getNameAndVersion(s, accountID string) (string, string, str
 		if err != nil {
 			return "", "", "", err
 		}
-		version, sha, err = getLastestHelmTagandSha(ImageDetails)
-		if err != nil {
-			return "", "", "", err
+		var images []ImageDetailsBothECR
+		for _, image := range ImageDetails {
+			details, err := createECRImageDetails(ImageDetailsECR{PrivateImageDetails: image})
+			if err != nil {
+				return "", "", "", err
+			}
+			images = append(images, details)
 		}
+		version, sha, err = getLastestHelmTagandSha(images)
 		ecrname := fmt.Sprintf("%s.dkr.ecr.us-west-2.amazonaws.com/%s", accountID, name)
 		return ecrname, version, sha, err
 	}

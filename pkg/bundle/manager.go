@@ -42,77 +42,33 @@ func NewBundleManager(log logr.Logger, info version.Info, registryClient Registr
 var _ Manager = (*bundleManager)(nil)
 
 func (m bundleManager) ProcessBundle(ctx context.Context, newBundle *api.PackageBundle) (bool, error) {
-
-	active, err := m.bundleClient.IsActive(ctx, newBundle)
-	if err != nil {
-		return false, fmt.Errorf("getting active bundle: %s", err)
-	}
-
 	if newBundle.Namespace != api.PackageNamespace {
 		if newBundle.Status.State != api.PackageBundleStateIgnored {
 			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateIgnored
-			return true, nil
-		}
-		return false, nil
-	}
-
-	kubeVersion := FormatKubeServerVersion(m.info)
-	matches, err := newBundle.KubeVersionMatches(kubeVersion)
-	if !matches {
-		if err != nil {
-			if newBundle.Status.State != api.PackageBundleStateInvalidVersion {
-				newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
-				newBundle.Status.State = api.PackageBundleStateInvalidVersion
-				return true, nil
-			}
-		} else if newBundle.Status.State != api.PackageBundleStateIgnoredVersion {
-			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
-			newBundle.Status.State = api.PackageBundleStateIgnoredVersion
-			return true, nil
-		}
-		return false, nil
-	}
-
-	if !active {
-		if newBundle.Status.State == api.PackageBundleStateActive {
-			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
-			newBundle.Status.State = api.PackageBundleStateInactive
 			m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
 			return true, nil
 		}
 		return false, nil
 	}
 
-	updateAvailable := false
-	knownBundles := &api.PackageBundleList{}
-	err = m.bundleClient.GetBundleList(ctx, knownBundles)
-	if err != nil {
-		return false, fmt.Errorf("getting bundle list: %s", err)
-	}
-	allBundles := knownBundles.Items
-	if len(allBundles) > 0 {
-		m.SortBundlesDescending(allBundles)
-		if allBundles[0].Name != newBundle.Name {
-			updateAvailable = true
+	if !newBundle.IsValidVersion() {
+		if newBundle.Status.State != api.PackageBundleStateInvalid {
+			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
+			newBundle.Status.State = api.PackageBundleStateInvalid
+			m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
+			return true, nil
 		}
+		return false, nil
 	}
 
-	change := false
-	if updateAvailable {
-		if newBundle.Status.State != api.PackageBundleStateUpgradeAvailable {
-			newBundle.Status.State = api.PackageBundleStateUpgradeAvailable
-			m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
-			change = true
-		}
-	} else if newBundle.Status.State != api.PackageBundleStateActive {
-		newBundle.Status.State = api.PackageBundleStateActive
+	if newBundle.Status.State != api.PackageBundleStateAvailable {
+		newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
+		newBundle.Status.State = api.PackageBundleStateAvailable
 		m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
-		change = true
+		return true, nil
 	}
-
-	newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
-	return change, nil
+	return false, nil
 }
 
 // SortBundlesDescending will sort a slice of bundles in descending order so
@@ -126,7 +82,7 @@ func (m bundleManager) SortBundlesDescending(bundles []api.PackageBundle) {
 
 func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.PackageBundleController) error {
 	kubeVersion := FormatKubeServerVersion(m.info)
-	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.Spec.Source.BaseRef(), kubeVersion)
+	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleUri(), kubeVersion)
 	if err != nil {
 		m.log.Error(err, "Unable to get latest bundle")
 		if pbc.Status.State == api.BundleControllerStateActive {
