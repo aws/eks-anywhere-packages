@@ -27,9 +27,9 @@ function awsAuth () {
         local region=us-west-2
     fi
 
-    if [[ ! -v PROFILE  ]]; then
-        aws $ecr --region $region get-login-password | docker login --username AWS --password-stdin ${REPO}
-    else
-        aws $ecr --region $region get-login-password --profile ${PROFILE:-default} | docker login --username AWS --password-stdin ${REPO}
+    local -a flags=()
+    if [ -n "$PROFILE" ]; then
+	flags+=("--profile=${PROFILE}")
     fi
+    aws $ecr --region $region get-login-password "${flags[@]}"
 }
