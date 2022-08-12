@@ -61,10 +61,17 @@ func (config *PackageBundle) getMajorMinorBuild() (major string, minor string, b
 	s = append(s, "", "", "")
 	s[0] = strings.TrimPrefix(s[0], "v")
 	_, err = strconv.Atoi(s[0])
-	if err == nil {
+	if err != nil {
+		return major, minor, build, fmt.Errorf("invalid major number <%s>", config.Name)
+	} else {
 		_, err = strconv.Atoi(s[1])
-		if err == nil {
+		if err != nil {
+			return major, minor, build, fmt.Errorf("invalid minor number <%s>", config.Name)
+		} else {
 			_, err = strconv.Atoi(s[2])
+			if err != nil {
+				return major, minor, build, fmt.Errorf("invalid build number <%s>", config.Name)
+			}
 		}
 	}
 	return s[0], s[1], s[2], err
@@ -89,6 +96,9 @@ func getMajorMinorFromString(kubeVersion string) (major int, minor int) {
 // ignore the patch numbers.
 func (config *PackageBundle) KubeVersionMatches(targetKubeVersion *version.Info) (matches bool, err error) {
 	currKubeMajor, currKubeMinor, _, err := config.getMajorMinorBuild()
+	if err != nil {
+		return false, err
+	}
 	return currKubeMajor == targetKubeVersion.Major && currKubeMinor == targetKubeVersion.Minor, nil
 }
 
