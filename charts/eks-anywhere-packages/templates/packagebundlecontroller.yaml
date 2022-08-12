@@ -5,7 +5,5 @@ metadata:
   namespace: eksa-packages
 spec:
   bundleRepository: eks-anywhere-packages-bundles
-  defaultImageRegistry: {{.Values.sourceRegistry}}
-  defaultRegistry: {{.Values.sourceRegistry}}
   upgradeCheckInterval: 24h
   upgradeCheckShortInterval: 1h
