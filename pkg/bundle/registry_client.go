@@ -41,8 +41,9 @@ var _ RegistryClient = (*registryClient)(nil)
 // returned, which is not acceptable.
 func (rc *registryClient) LatestBundle(ctx context.Context, baseRef string, kubeVersion string) (*api.PackageBundle, error) {
 	tag := "latest"
+	kubeVersion = strings.TrimPrefix(kubeVersion, "v")
 	kubeVersionSplit := strings.Split(kubeVersion, ".")
-	if len(kubeVersionSplit) < 1 {
+	if len(kubeVersionSplit) < 2 {
 		return nil, fmt.Errorf("kubeversion should be in <major>.<minor> format")
 	}
 	major, minor := kubeVersionSplit[0], kubeVersionSplit[1]

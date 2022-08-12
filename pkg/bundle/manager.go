@@ -82,6 +82,7 @@ func (m bundleManager) SortBundlesDescending(bundles []api.PackageBundle) {
 
 func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.PackageBundleController) error {
 	kubeVersion := FormatKubeServerVersion(m.info)
+	m.log.Info("ASDFASDFASDF", "kubeVersion", kubeVersion)
 	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleUri(), kubeVersion)
 	if err != nil {
 		m.log.Error(err, "Unable to get latest bundle")
@@ -172,7 +173,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 // FormatKubeServerVersion builds a string representation of the kubernetes
 // server version.
 func FormatKubeServerVersion(info version.Info) string {
-	version := fmt.Sprintf("v%s-%s", info.Major, info.Minor)
+	version := fmt.Sprintf("v%s.%s", info.Major, info.Minor)
 	// The minor version can have a trailing + character that we don't want.
 	return strings.ReplaceAll(version, "+", "")
 }
