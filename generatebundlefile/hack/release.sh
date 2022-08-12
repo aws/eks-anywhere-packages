@@ -82,9 +82,10 @@ function generate () {
 function push () {
     local version=$1
     cd "${BASE_DIRECTORY}/generatebundlefile/output"
-    awsAuth "ecr-public"
-    "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-    "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
+    awsAuth "ecr-public" | "$ORAS_BIN" push --password-stdin \
+        "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+    awsAuth "ecr-public" | "$ORAS_BIN" push --password-stdin \
+        "${REPO}:v${version}-latest" bundle.yaml
 }
 
 docker logout public.ecr.aws
