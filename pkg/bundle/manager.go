@@ -3,9 +3,10 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"sort"
+
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/version"
-	"sort"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )

@@ -6,10 +6,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"k8s.io/apimachinery/pkg/version"
 	"path"
 	"strconv"
 	"strings"
+
+	"k8s.io/apimachinery/pkg/version"
 )
 
 const (
