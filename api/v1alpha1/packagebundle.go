@@ -60,6 +60,13 @@ func (config *PackageBundle) getMajorMinorBuild() (major string, minor string, b
 	s := strings.Split(config.Name, "-")
 	s = append(s, "", "", "")
 	s[0] = strings.TrimPrefix(s[0], "v")
+	_, err = strconv.Atoi(s[0])
+	if err == nil {
+		_, err = strconv.Atoi(s[1])
+		if err == nil {
+			_, err = strconv.Atoi(s[2])
+		}
+	}
 	return s[0], s[1], s[2], err
 }
 

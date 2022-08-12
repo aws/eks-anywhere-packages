@@ -19,7 +19,7 @@ import (
 const testPreviousBundleName = "v1-21-1002"
 const testBundleName = "v1-21-1003"
 const testNextBundleName = "v1-21-1004"
-const testKubernetesVersion = "v1-21"
+const testKubernetesVersion = "v1.21"
 
 func GivenBundle(state api.PackageBundleStateEnum) *api.PackageBundle {
 	return &api.PackageBundle{
