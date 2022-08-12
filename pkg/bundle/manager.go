@@ -3,11 +3,9 @@ package bundle
 import (
 	"context"
 	"fmt"
-	"sort"
-	"strings"
-
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/version"
+	"sort"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
@@ -81,8 +79,7 @@ func (m bundleManager) SortBundlesDescending(bundles []api.PackageBundle) {
 }
 
 func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.PackageBundleController) error {
-	kubeVersion := FormatKubeServerVersion(m.info)
-	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleUri(), kubeVersion)
+	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleUri(), m.info.String())
 	if err != nil {
 		m.log.Error(err, "Unable to get latest bundle")
 		if pbc.Status.State == api.BundleControllerStateActive {
@@ -167,12 +164,4 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 	}
 
 	return nil
-}
-
-// FormatKubeServerVersion builds a string representation of the kubernetes
-// server version.
-func FormatKubeServerVersion(info version.Info) string {
-	version := fmt.Sprintf("v%s.%s", info.Major, info.Minor)
-	// The minor version can have a trailing + character that we don't want.
-	return strings.ReplaceAll(version, "+", "")
 }

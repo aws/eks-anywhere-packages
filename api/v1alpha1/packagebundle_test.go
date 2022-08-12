@@ -151,7 +151,7 @@ func TestKubeVersionMatches(t *testing.T) {
 		Name: "v1-21-1001"}}
 
 	t.Run("Kubernetes version matches", func(t *testing.T) {
-		var targetVersion = &version.Info{Major: "1", Minor: "21", GitVersion: "1"}
+		var targetVersion = &version.Info{Major: "1", Minor: "21"}
 
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
@@ -160,7 +160,7 @@ func TestKubeVersionMatches(t *testing.T) {
 	})
 
 	t.Run("Kubernetes major version doesn't match", func(t *testing.T) {
-		var targetVersion = &version.Info{Major: "2", Minor: "21", GitVersion: "1"}
+		var targetVersion = &version.Info{Major: "2", Minor: "21"}
 
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
@@ -169,7 +169,7 @@ func TestKubeVersionMatches(t *testing.T) {
 	})
 
 	t.Run("Kubernetes minor version doesn't match", func(t *testing.T) {
-		var targetVersion = &version.Info{Major: "1", Minor: "22", GitVersion: "1"}
+		var targetVersion = &version.Info{Major: "1", Minor: "22"}
 
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
@@ -202,7 +202,7 @@ func TestKubeVersionMatches(t *testing.T) {
 	t.Run("bogus build", func(t *testing.T) {
 		bundle := PackageBundle{ObjectMeta: metav1.ObjectMeta{
 			Name: "v1-21-x"}}
-		var targetVersion = &version.Info{Major: "1", Minor: "22"}
+		var targetVersion = &version.Info{Major: "1", Minor: "21"}
 
 		result, err := bundle.KubeVersionMatches(targetVersion)
 

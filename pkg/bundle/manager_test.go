@@ -51,7 +51,7 @@ func mockGetBundleList(_ context.Context, bundles *api.PackageBundleList) error 
 func givenBundleManager(t *testing.T) (version.Info, *bundleMocks.MockRegistryClient, *bundleMocks.MockClient, *bundleManager) {
 	rc := bundleMocks.NewMockRegistryClient(gomock.NewController(t))
 	bc := bundleMocks.NewMockClient(gomock.NewController(t))
-	info := version.Info{Major: "1", Minor: "21+"}
+	info := version.Info{GitVersion: testKubernetesVersion}
 	bm := NewBundleManager(logr.Discard(), info, rc, bc)
 	return info, rc, bc, bm
 }
