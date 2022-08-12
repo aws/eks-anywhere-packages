@@ -87,11 +87,13 @@ function push () {
     "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
 }
 
-docker logout public.ecr.aws
+for version in 1-21 1-22; do
+    generate ${version}
+done
+
 export AWS_PROFILE=prod
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
 for version in 1-21 1-22; do
-    generate ${version}
     push ${version}
 done
