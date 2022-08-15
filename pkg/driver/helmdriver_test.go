@@ -106,9 +106,7 @@ func TestIsConfigChanged(t *testing.T) {
 	})
 }
 
-//
 // Helpers
-//
 func createNewHelm(t *testing.T) (*helmDriver, error) {
 	fakeRestClient := fakerest.RESTClient{
 		GroupVersion: api.GroupVersion,

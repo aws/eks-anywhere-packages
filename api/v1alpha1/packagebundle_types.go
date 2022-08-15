@@ -110,7 +110,7 @@ const (
 	PackageBundleStateInvalid   PackageBundleStateEnum = "invalid"
 )
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 // PackageBundleList contains a list of PackageBundle.
 type PackageBundleList struct {
 	metav1.TypeMeta `json:",inline"`
