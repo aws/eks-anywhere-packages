@@ -28,7 +28,7 @@ function awsAuth () {
     fi
 
     local -a flags=()
-    if [ -n "$PROFILE" ]; then
+    if [ -n "${PROFILE:-}" ]; then
 	flags+=("--profile=${PROFILE}")
     fi
     aws $ecr --region $region get-login-password "${flags[@]}"
