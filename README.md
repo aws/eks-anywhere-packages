@@ -8,9 +8,7 @@
 **Build status:** ![Build status](https://codebuild.us-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiRmp0cVVpck53WjVxYUVibGxFdSsxM05sby9zenRkN1YwRTVLTjhBUUFORXpGQkVkR2Y3aThhdDhEN3pHZzRpRHl0K2xRcFd0U2VIcWpUaW9kb1hOV3FFPSIsIml2UGFyYW1ldGVyU3BlYyI6InNKTm5MNWZPNVA3T0tOV0EiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main)
 
 ---
-***Preview and Pricing Disclaimer***
-
-The EKS Anywhere package controller and the EKS Anywhere Curated Packages (referred to as “features”) are provided as “preview features” subject to the [AWS Service Terms](https://aws.amazon.com/service-terms/), (including Section 2 (Betas and Previews)) of the same. During the EKS Anywhere Curated Packages Public Preview, the AWS Service Terms are extended to provide customers access to these features free of charge. These features will be subject to a service charge and fee structure at ”General Availability“ of the features.
+The Amazon EKS Anywhere Curated Packages are only available to customers with the Amazon EKS Anywhere Enterprise Subscription. To request a free trial, talk to your Amazon representative or connect with one [here](https://aws.amazon.com/contact-us/sales-support-eks/).
 
 ---
 
