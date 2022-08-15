@@ -35,19 +35,19 @@ make build
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin
 
 function generate () {
-    local version=$1
-    local kms_key=signingPackagesKey
+    local version=${1?:no version specified}
 
     cd "${BASE_DIRECTORY}/generatebundlefile"
     ./bin/generatebundlefile --input "./data/input_${version/-}.yaml" \
-                 --key alias/${kms_key}
+			     --key alias/signingPackagesKey
 }
 
 function push () {
-    local version=$1
+    local version=${1?:no version specified}
     cd "${BASE_DIRECTORY}/generatebundlefile/output"
-    awsAuth "ecr-public" | "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-    awsAuth "ecr-public" | "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
+    awsAuth "$REPO" | "$ORAS_BIN" login "$REPO" --username AWS --password-stdin
+    "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+    "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
 }
 
 for version in 1-21 1-22; do

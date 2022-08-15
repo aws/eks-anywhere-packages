@@ -18,18 +18,16 @@
 # functions, source this file, e.g.:
 #    . <path-to-this-file>/common.sh
 
-# awsAuth logins into the registry
+# awsAuth echoes an AWS ECR password
 function awsAuth () {
-    local  ecr=$1
-    if [[ $ecr = "ecr-public" ]]; then
-        local region=us-east-1
-    else
-        local region=us-west-2
+    local repo=${1?:no repo specified}
+    local awsCmd="ecr"
+    local region="--region=us-west-2"
+
+    if [[ $repo =~ "public.ecr.aws" ]]; then
+        awsCmd="ecr-public"
+        region="--region=us-east-1"
     fi
 
-    local -a flags=()
-    if [ -n "${PROFILE:-}" ]; then
-	flags+=("--profile=${PROFILE}")
-    fi
-    aws $ecr --region $region get-login-password "${flags[@]}"
+    aws "$awsCmd" "$region" "--profile=${PROFILE:-}" get-login-password
 }
