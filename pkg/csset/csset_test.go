@@ -1,6 +1,7 @@
 package csset
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,7 +30,9 @@ func TestCSSetTwo(t *testing.T) {
 	set := NewCSSet("")
 	set.Add("one")
 	set.Add("two")
-	assert.Equal(t, "one,two", set.String())
+	exp := [2]string{"one", "two"}
+	res := strings.Split(set.String(), ",")
+	assert.ElementsMatch(t, exp, res)
 }
 
 func TestCSSetDel(t *testing.T) {
