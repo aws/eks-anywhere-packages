@@ -39,7 +39,7 @@ func (r *PackageBundle) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-//+kubebuilder:webhook:path=/validate-packages-eks-amazonaws-com-v1alpha1-packagebundle,mutating=false,failurePolicy=fail,sideEffects=None,groups=packages.eks.amazonaws.com,resources=packagebundles,verbs=create;update,versions=v1alpha1,name=vpackagebundle.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/validate-packages-eks-amazonaws-com-v1alpha1-packagebundle,mutating=false,failurePolicy=fail,sideEffects=None,groups=packages.eks.amazonaws.com,resources=packagebundles,verbs=create;update,versions=v1alpha1,name=vpackagebundle.kb.io,admissionReviewVersions=v1
 var _ webhook.Validator = &PackageBundle{}
 
 func (r *PackageBundle) ValidateCreate() error {
