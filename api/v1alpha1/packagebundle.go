@@ -9,6 +9,8 @@ import (
 	"path"
 	"strconv"
 	"strings"
+
+	"k8s.io/apimachinery/pkg/version"
 )
 
 const (
@@ -28,11 +30,11 @@ func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource P
 	for _, pkg := range config.Spec.Packages {
 		if strings.EqualFold(pkg.Name, pkgName) {
 			source := pkg.Source
-			for _, version := range source.Versions {
-				//We do not sort before getting `latest` because there will be only a single version per release in normal cases. For edge cases which may require multiple
-				//versions, the order in the file will be ordered according to what we want `latest` to point to
-				if version.Name == pkgVersion || version.Digest == pkgVersion || pkgVersion == Latest {
-					retSource = PackageOCISource{Registry: source.Registry, Repository: source.Repository, Digest: version.Digest, Version: version.Name}
+			for _, packageVersion := range source.Versions {
+				// We do not sort before getting `latest` because there will be only a single packageVersion per release in normal cases. For edge cases which may require multiple
+				// versions, the order in the file will be ordered according to what we want `latest` to point to
+				if packageVersion.Name == pkgVersion || packageVersion.Digest == pkgVersion || pkgVersion == Latest {
+					retSource = PackageOCISource{Registry: source.Registry, Repository: source.Repository, Digest: packageVersion.Digest, Version: packageVersion.Name}
 					return retSource, nil
 				}
 			}
@@ -63,15 +65,15 @@ func (config *PackageBundle) getMajorMinorBuild() (major int, minor int, build i
 	minor = 0
 	major, err = strconv.Atoi(s[0])
 	if err != nil {
-		return major, minor, build, fmt.Errorf("inavlid major number <%s>", config.Name)
+		return major, minor, build, fmt.Errorf("invalid major number <%s>", config.Name)
 	} else {
 		minor, err = strconv.Atoi(s[1])
 		if err != nil {
-			return major, minor, build, fmt.Errorf("inavlid minor number <%s>", config.Name)
+			return major, minor, build, fmt.Errorf("invalid minor number <%s>", config.Name)
 		} else {
 			build, err = strconv.Atoi(s[2])
 			if err != nil {
-				return major, minor, build, fmt.Errorf("inavlid build number <%s>", config.Name)
+				return major, minor, build, fmt.Errorf("invalid build number <%s>", config.Name)
 			}
 		}
 	}
@@ -95,15 +97,12 @@ func getMajorMinorFromString(kubeVersion string) (major int, minor int) {
 //
 // Note the method only compares the major and minor versions of Kubernetes, and
 // ignore the patch numbers.
-func (config *PackageBundle) KubeVersionMatches(targetKubeVersion string) (matches bool, err error) {
-	var currKubeMajor int
-	var currKubeMinor int
-	currKubeMajor, currKubeMinor, _, err = config.getMajorMinorBuild()
-	targetKubeMajor, targetKubeMinor := getMajorMinorFromString(targetKubeVersion)
+func (config *PackageBundle) KubeVersionMatches(targetKubeVersion *version.Info) (matches bool, err error) {
+	currKubeMajor, currKubeMinor, _, err := config.getMajorMinorBuild()
 	if err != nil {
 		return false, err
 	}
-	return currKubeMajor == targetKubeMajor && currKubeMinor == targetKubeMinor, nil
+	return fmt.Sprint(currKubeMajor) == targetKubeVersion.Major && fmt.Sprint(currKubeMinor) == targetKubeVersion.Minor, nil
 }
 
 func (config *PackageBundle) GetPackageFromBundle(packageName string) (*BundlePackage, error) {
@@ -135,18 +134,18 @@ func (s BundlePackageSource) PackageMatches(other BundlePackageSource) bool {
 	}
 
 	myVersions := make(map[string]struct{})
-	for _, version := range s.Versions {
-		myVersions[version.Key()] = struct{}{}
+	for _, packageVersion := range s.Versions {
+		myVersions[packageVersion.Key()] = struct{}{}
 	}
-	for _, version := range other.Versions {
-		if _, ok := myVersions[version.Key()]; !ok {
+	for _, packageVersion := range other.Versions {
+		if _, ok := myVersions[packageVersion.Key()]; !ok {
 			return false
 		}
 	}
 
 	otherVersions := make(map[string]struct{})
-	for _, version := range other.Versions {
-		otherVersions[version.Key()] = struct{}{}
+	for _, packageVersion := range other.Versions {
+		otherVersions[packageVersion.Key()] = struct{}{}
 	}
 	for key := range myVersions {
 		if _, ok := otherVersions[key]; !ok {
