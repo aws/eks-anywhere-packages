@@ -59,6 +59,7 @@ spec:
                 description: DefaultImageRegistry for pulling images
                 type: string
               defaultRegistry:
+                default: public.ecr.aws/eks-anywhere
                 description: DefaultRegistry for pulling helm charts and the bundle
                 type: string
               logLevel:

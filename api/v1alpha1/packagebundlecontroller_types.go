@@ -69,6 +69,7 @@ type PackageBundleControllerSpec struct {
 	// +optional
 	PrivateRegistry string `json:"privateRegistry"`
 
+	// +kubebuilder:default:="public.ecr.aws/eks-anywhere"
 	// DefaultRegistry for pulling helm charts and the bundle
 	// +optional
 	DefaultRegistry string `json:"defaultRegistry"`
