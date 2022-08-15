@@ -21,8 +21,9 @@ import (
 
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/internalversion/scheme"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
@@ -114,9 +115,11 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 }
 
 func createSecretAuth(cfg *rest.Config) (auth.Authenticator, error) {
-	scheme := runtime.NewScheme()
-	cfg.GroupVersion = &api.GroupVersion
-	cfg.NegotiatedSerializer = serializer.NewCodecFactory(scheme)
+	gv := schema.GroupVersion{Group: "", Version: "v1"}
+	cfg.GroupVersion = &gv
+	cfg.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
+	cfg.UserAgent = rest.DefaultKubernetesUserAgent()
+	cfg.APIPath = "/api"
 	restclient, err := rest.RESTClientFor(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("creating rest client from config %s", err)
