@@ -118,12 +118,13 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 }
 
 func createSecretAuth(cfg *rest.Config) (auth.Authenticator, error) {
+	config := cfg
 	gv := schema.GroupVersion{Group: groupName, Version: groupVer}
-	cfg.GroupVersion = &gv
-	cfg.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
-	cfg.UserAgent = rest.DefaultKubernetesUserAgent()
-	cfg.APIPath = apiPath
-	restclient, err := rest.RESTClientFor(cfg)
+	config.GroupVersion = &gv
+	config.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
+	config.UserAgent = rest.DefaultKubernetesUserAgent()
+	config.APIPath = apiPath
+	restclient, err := rest.RESTClientFor(config)
 	if err != nil {
 		return nil, fmt.Errorf("creating rest client from config %s", err)
 	}
