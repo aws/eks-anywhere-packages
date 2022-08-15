@@ -82,8 +82,6 @@ spec:
                 description: "UpgradeCheckShortInterval time between upgrade checks
                   if there is a problem. \n The format is that of time's ParseDuration."
                 type: string
-            required:
-            - bundleRepository
             type: object
           status:
             description: PackageBundleControllerStatus defines the observed state
