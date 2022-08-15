@@ -80,8 +80,8 @@ type PackageBundleControllerSpec struct {
 	DefaultImageRegistry string `json:"defaultImageRegistry"`
 
 	// +kubebuilder:default:="eks-anywhere-package-bundles"
-	// +kubebuilder:validation:Required
 	// Repository portion of an OCI address to the bundle
+	// +optional
 	BundleRepository string `json:"bundleRepository"`
 }
 
