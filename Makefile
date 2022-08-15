@@ -84,21 +84,6 @@ $(GOBIN)/setup-envtest: ## Install setup-envtest
 	# https://github.com/kubernetes-sigs/kubebuilder/issues/2480 
 	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
-TMP_CONFIG_CRD_DIR=config/crd/tmp
-TMP_HELM_CRD_DIR=charts/eks-anywhere-packages/crds/tmp
-crd-match-check: controller-gen # Check all CRD files are properly updated
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=$(TMP_CONFIG_CRD_DIR)/bases
-	diff -qr $(TMP_CONFIG_CRD_DIR)/bases config/crd/bases || (echo "CRD configs do not match with API docs. Run make manifests." && exit 1)
-
-	cp config/crd/kustomization.yaml config/crd/kustomizeconfig.yaml $(TMP_CONFIG_CRD_DIR)/
-	cp -r config/crd/patches $(TMP_CONFIG_CRD_DIR)/patches
-	mkdir -p $(TMP_HELM_CRD_DIR) && touch $(TMP_HELM_CRD_DIR)/crd.yaml
-	./bin/kustomize build $(TMP_CONFIG_CRD_DIR) > $(TMP_HELM_CRD_DIR)/crd.yaml
-	diff -q $(TMP_HELM_CRD_DIR)/crd.yaml charts/eks-anywhere-packages/crds/crd.yaml || (echo 'Helm CRD files do not match with API docs. Run make helm/build.' && exit 1)
-	
-	rm -rf $(TMP_CONFIG_CRD_DIR)
-	rm -rf $(TMP_HELM_CRD_DIR)
-
 clean: ## Clean up resources created by make targets
 	rm -rf ./bin/*
 	rm -rf cover.out
@@ -212,7 +197,8 @@ controllers/mocks/manager.go: go.mod
 		$(MOCKGEN) -destination=controllers/mocks/manager.go -package=mocks "sigs.k8s.io/controller-runtime/pkg/manager" Manager
 
 .PHONY: presubmit
-presubmit: vet generate manifests build test # lint is run via github action
+presubmit: vet generate manifests build helm/build test # lint is run via github action
+	git --no-pager diff --name-only --exit-code ':!Makefile'
 
 %.yaml.signed: %.yaml
 	pkg/signature/testdata/sign_file.sh $?
