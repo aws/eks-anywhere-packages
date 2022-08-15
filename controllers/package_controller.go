@@ -44,6 +44,9 @@ import (
 const (
 	packageName = "Package"
 	retryLong   = time.Second * time.Duration(60)
+	groupName   = ""
+	groupVer    = "v1"
+	apiPath     = "/api"
 )
 
 // PackageReconciler reconciles a Package object
@@ -115,11 +118,11 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 }
 
 func createSecretAuth(cfg *rest.Config) (auth.Authenticator, error) {
-	gv := schema.GroupVersion{Group: "", Version: "v1"}
+	gv := schema.GroupVersion{Group: groupName, Version: groupVer}
 	cfg.GroupVersion = &gv
 	cfg.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
 	cfg.UserAgent = rest.DefaultKubernetesUserAgent()
-	cfg.APIPath = "/api"
+	cfg.APIPath = apiPath
 	restclient, err := rest.RESTClientFor(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("creating rest client from config %s", err)
