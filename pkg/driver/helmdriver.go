@@ -102,6 +102,9 @@ func (d *helmDriver) Install(ctx context.Context,
 			if err := d.secretAuth.AddToConfigMap(ctx, name, namespace); err != nil {
 				d.log.Info("failed to Update ConfigMap with installed namespace")
 			}
+			if err := d.secretAuth.AddSecretToAllNamespace(ctx); err != nil {
+				d.log.Info("Failed to Update Secret in all namespaces")
+			}
 			return nil
 		}
 		return fmt.Errorf("getting helm release %s: %w", name, err)
@@ -116,6 +119,9 @@ func (d *helmDriver) Install(ctx context.Context,
 	err = d.secretAuth.AddToConfigMap(ctx, name, namespace)
 	if err != nil {
 		d.log.Info("failed to Update ConfigMap with installed namespace")
+	}
+	if err := d.secretAuth.AddSecretToAllNamespace(ctx); err != nil {
+		d.log.Info("Failed to Update Secret in all namespaces")
 	}
 
 	return nil
@@ -163,16 +169,19 @@ func (d *helmDriver) upgradeRelease(ctx context.Context, name string,
 	return nil
 }
 
-func (d *helmDriver) Uninstall(_ context.Context, name string) (err error) {
+func (d *helmDriver) Uninstall(ctx context.Context, name string) (err error) {
 	uninstall := action.NewUninstall(d.cfg)
-	_, err = uninstall.Run(name)
+	rel, err := uninstall.Run(name)
 	if err != nil {
 		if errors.Is(err, driver.ErrReleaseNotFound) {
 			return nil
 		}
 		return fmt.Errorf("uninstalling helm chart %s: %w", name, err)
 	}
-
+	err = d.secretAuth.DelFromConfigMap(ctx, name, rel.Release.Namespace)
+	if err != nil {
+		d.log.Info("failed to remove namespace from configmap")
+	}
 	return nil
 }
 

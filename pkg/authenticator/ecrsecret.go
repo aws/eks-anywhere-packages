@@ -2,10 +2,10 @@ package authenticator
 
 import (
 	"context"
-	b64 "encoding/base64"
 	"fmt"
 	"os"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -66,6 +66,57 @@ func (s *ecrSecret) AddToConfigMap(ctx context.Context, name string, namespace s
 	return nil
 }
 
+func (s *ecrSecret) AddSecretToAllNamespace(ctx context.Context) error {
+	secret, err := s.clientset.CoreV1().Secrets(api.PackageNamespace).Get(ctx, ecrTokenName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	issue := false
+	for _, namespace := range s.nsReleaseMap {
+		// Create secret
+		// Check there is valid token data in the secret
+		secretData, exist := secret.Data[".dockerconfigjson"]
+		if !exist {
+			return fmt.Errorf("No dockerconfigjson data in secret %s", ecrTokenName)
+		}
+
+		newSecret, err := s.clientset.CoreV1().Secrets(namespace).Get(ctx, ecrTokenName, metav1.GetOptions{})
+		if err != nil {
+			newSecret = createSecret(ecrTokenName, namespace)
+			newSecret.Data[corev1.DockerConfigJsonKey] = secretData
+			_, err = s.clientset.CoreV1().Secrets(namespace).Create(context.TODO(), newSecret, metav1.CreateOptions{})
+			if err != nil {
+				issue = true
+			}
+		} else {
+			newSecret.Data[corev1.DockerConfigJsonKey] = secretData
+			_, err = s.clientset.CoreV1().Secrets(namespace).Update(context.TODO(), newSecret, metav1.UpdateOptions{})
+			if err != nil {
+				issue = true
+			}
+		}
+	}
+
+	if issue {
+		return fmt.Errorf("failed to update namespaces")
+	}
+
+	return nil
+}
+
+func createSecret(name string, namespace string) *corev1.Secret {
+	object := metav1.ObjectMeta{
+		Name:      name,
+		Namespace: namespace,
+	}
+	secret := corev1.Secret{
+		ObjectMeta: object,
+		Type:       corev1.SecretTypeDockerConfigJson,
+		Data:       map[string][]byte{},
+	}
+	return &secret
+}
+
 func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name string, namespace string) error {
 	cm, err := s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
 		Get(ctx, configMapName, metav1.GetOptions{})
@@ -97,7 +148,7 @@ func (s *ecrSecret) GetSecretValues(ctx context.Context, namespace string) (map[
 		return nil, err
 	}
 	// Check there is valid token data in the secret
-	secretData, exist := secret.Data[".dockerconfigjson"]
+	_, exist := secret.Data[".dockerconfigjson"]
 	if !exist {
 		return nil, fmt.Errorf("No dockerconfigjson data in secret %s", ecrTokenName)
 	}
@@ -107,12 +158,6 @@ func (s *ecrSecret) GetSecretValues(ctx context.Context, namespace string) (map[
 	imagePullSecret[0] = make(map[string]string)
 	imagePullSecret[0]["name"] = ecrTokenName
 	values["imagePullSecrets"] = imagePullSecret
-
-	// if namespace doesn't already have the secret we will fill out the secret.ymal
-	if _, exist := s.nsReleaseMap[namespace]; !exist {
-		values["pullSecretName"] = ecrTokenName
-		values["pullSecretData"] = b64.StdEncoding.EncodeToString(secretData)
-	}
 
 	return values, nil
 }
