@@ -12,7 +12,7 @@ import (
 const (
 	TestBundleName       = "v1-21-1003"
 	TestBundleRegistry   = "public.ecr.aws/j0a1m4z9"
-	TestBundleRepository = "eks-anywhere-package-bundles"
+	TestBundleRepository = "eks-anywhere-packages-bundles"
 )
 
 func TestPackageBundleController_IsValid(t *testing.T) {
@@ -40,7 +40,7 @@ func GivenPackageBundleController() *api.PackageBundleController {
 			ActiveBundle:         TestBundleName,
 			DefaultRegistry:      "public.ecr.aws/j0a1m4z9",
 			DefaultImageRegistry: "783794618700.dkr.ecr.us-west-2.amazonaws.com",
-			BundleRepository:     "eks-anywhere-package-bundles",
+			BundleRepository:     "eks-anywhere-packages-bundles",
 		},
 		Status: api.PackageBundleControllerStatus{
 			State: api.BundleControllerStateActive,
@@ -50,5 +50,5 @@ func GivenPackageBundleController() *api.PackageBundleController {
 
 func TestPackageBundleController_GetBundleUri(t *testing.T) {
 	sut := GivenPackageBundleController()
-	assert.Equal(t, "public.ecr.aws/j0a1m4z9/eks-anywhere-package-bundles", sut.GetBundleUri())
+	assert.Equal(t, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles", sut.GetBundleUri())
 }

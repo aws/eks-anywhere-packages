@@ -57,7 +57,7 @@ func givenPackageBundleController() *api.PackageBundleController {
 			ActiveBundle:         testBundleName,
 			DefaultRegistry:      "public.ecr.aws/j0a1m4z9",
 			DefaultImageRegistry: "783794618700.dkr.ecr.us-west-2.amazonaws.com",
-			BundleRepository:     "eks-anywhere-package-bundles",
+			BundleRepository:     "eks-anywhere-packages-bundles",
 		},
 		Status: api.PackageBundleControllerStatus{
 			State: api.BundleControllerStateActive,
