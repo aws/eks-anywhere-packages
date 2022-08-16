@@ -2,7 +2,6 @@ package authenticator
 
 import (
 	"context"
-	"encoding/base64"
 	"strings"
 	"testing"
 
@@ -202,8 +201,6 @@ func TestGetSecretValues(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.NotNil(t, values["imagePullSecrets"])
-		assert.Equal(t, ecrTokenName, values["pullSecretName"])
-		assert.Equal(t, base64.StdEncoding.EncodeToString(testdata), values["pullSecretData"])
 	})
 
 	t.Run("golden path for Retrieving ECR Secret when namespace already exists", func(t *testing.T) {

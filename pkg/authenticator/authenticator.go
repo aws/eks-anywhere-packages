@@ -27,4 +27,7 @@ type Authenticator interface {
 
 	// GetSecretValues Retrieves ImagePullSecrets data to pass to helm chart
 	GetSecretValues(ctx context.Context, namespace string) (map[string]interface{}, error)
+
+	// AddSecretToAllNamespace Add Secrets to all namespaces
+	AddSecretToAllNamespace(ctx context.Context) error
 }
