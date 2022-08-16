@@ -53,7 +53,7 @@ spec:
                   should be sourced.
                 type: string
               bundleRepository:
-                default: eks-anywhere-package-bundles
+                default: eks-anywhere-packages-bundles
                 description: Repository portion of an OCI address to the bundle
                 type: string
               defaultImageRegistry:
