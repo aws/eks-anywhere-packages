@@ -22,11 +22,15 @@ const (
 	envWebTokenFile    = "AWS_WEB_IDENTITY_TOKEN_FILE" //#nosec G101
 	sessionName        = "GetECRTOKENSession"
 	sessionTimeSeconds = 1000
+	defaultAccountID   = "783794618700"
 )
 
 func GetECRCredentials() (*ECRAuth, error) {
+	var ecrRegs []*string
+	id := defaultAccountID
+	ecrRegs = append(ecrRegs, &id)
 	svc := ecr.New(session.Must(session.NewSession()))
-	token, err := svc.GetAuthorizationToken(&ecr.GetAuthorizationTokenInput{})
+	token, err := svc.GetAuthorizationToken(&ecr.GetAuthorizationTokenInput{RegistryIds: ecrRegs})
 	if err != nil {
 		return nil, err
 	}
