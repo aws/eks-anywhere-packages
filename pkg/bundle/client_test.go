@@ -89,6 +89,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		bundleClient := NewPackageBundleClient(mockClient)
 		testBundle := givenBundle()
 
+		mockClient.EXPECT().List(ctx, gomock.Any())
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(testBundle)).SetArg(2, *testBundle)
 
@@ -105,6 +106,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
 		pbc.Spec.ActiveBundle = ""
+		mockClient.EXPECT().List(ctx, gomock.Any())
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
 
 		bundle, err := bundleClient.GetActiveBundle(ctx)
@@ -116,6 +118,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 	t.Run("error path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().List(ctx, gomock.Any())
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
 
 		_, err := bundleClient.GetActiveBundle(ctx)
@@ -126,7 +129,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 	t.Run("other error path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-
+		mockClient.EXPECT().List(ctx, gomock.Any())
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
 
@@ -145,6 +148,7 @@ func TestBundleClient_GetActiveBundleNamespacedName(t *testing.T) {
 	t.Run("golden path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().List(ctx, gomock.Any())
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc))
 
 		namespacedNames, err := bundleClient.GetActiveBundleNamespacedName(ctx)
@@ -157,6 +161,7 @@ func TestBundleClient_GetActiveBundleNamespacedName(t *testing.T) {
 	t.Run("error path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().List(ctx, gomock.Any())
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
 
 		namespacedNames, err := bundleClient.GetActiveBundleNamespacedName(ctx)

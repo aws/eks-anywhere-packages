@@ -3,6 +3,8 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -74,12 +76,30 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.
 }
 
 func (bc *bundleClient) GetPackageBundleController(ctx context.Context) (*api.PackageBundleController, error) {
+	// Get the cluster name
+	u := &unstructured.UnstructuredList{}
+	u.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "controlplane.cluster.x-k8s.io",
+		Kind:    "KubeadmControlPlane",
+		Version: "v1beta1",
+	})
+	err := bc.List(ctx, u)
+	if err != nil {
+		return nil, fmt.Errorf("listing KubeadmControlPlane: %v", err)
+	}
+
+	kac := u.Items
+	name := api.PackageBundleControllerName
+	if len(kac) > 0 {
+		name = kac[0].GetName()
+	}
+
 	pbc := api.PackageBundleController{}
 	key := types.NamespacedName{
 		Namespace: api.PackageNamespace,
-		Name:      api.PackageBundleControllerName,
+		Name:      name,
 	}
-	err := bc.Get(ctx, key, &pbc)
+	err = bc.Get(ctx, key, &pbc)
 	if err != nil {
 		return nil, fmt.Errorf("getting PackageBundleController: %v", err)
 	}
