@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -19,85 +20,112 @@ import (
 var BundleLog = ctrl.Log.WithName("BundleGenerator")
 
 func main() {
-	o := NewOptions()
-	o.SetupLogger()
+	opts := NewOptions()
+	opts.SetupLogger()
 
+	if opts.generateSample {
+		outputFilename := filepath.Join(opts.outputFolder, "bundle.yaml")
+		f, err := os.OpenFile(outputFilename, os.O_WRONLY|os.O_CREATE, 0644)
+		if err != nil {
+			BundleLog.Error(err, fmt.Sprintf("opening output file %q", outputFilename))
+			os.Exit(1)
+		}
+		defer f.Close()
+
+		err = cmdGenerateSample(f)
+		if err != nil {
+			BundleLog.Error(err, "generating sample bundle")
+			os.Exit(1)
+		}
+
+		fmt.Printf("sample bundle file written to %q\n", outputFilename)
+		return
+	}
+
+	if opts.promote != "" {
+		err := cmdPromote(opts.promote)
+		if err != nil {
+			BundleLog.Error(err, "promoting curated package")
+			os.Exit(1)
+		}
+		return
+	}
+
+	err := cmdGenerate(opts)
+	if err != nil {
+		BundleLog.Error(err, "generating bundle")
+		os.Exit(1)
+	}
+}
+
+// cmdGenerateSample writes a sample bundle file to the given output folder.
+func cmdGenerateSample(w io.Writer) error {
+	sample := NewBundleGenerate("generatesample")
+	_, yml, err := sig.GetDigest(sample, sig.EksaDomain)
+	if err != nil {
+		return fmt.Errorf("generating bundle digest: %w", err)
+	}
+
+	_, err = w.Write(yml)
+	if err != nil {
+		return fmt.Errorf("writing sample bundle data: %w", err)
+	}
+
+	return nil
+}
+
+func cmdPromote(packageName string) error {
+	BundleLog.Info("Starting Promote from private ECR to Public ECR....")
+	clients, err := GetSDKClients()
+	if err != nil {
+		return fmt.Errorf("getting SDK clients: %w", err)
+	}
+	clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
+	if err != nil {
+		return fmt.Errorf("getting registry URI: %w", err)
+	}
+	dockerStruct := &DockerAuth{
+		Auths: map[string]DockerAuthRegistry{
+			fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): {clients.ecrClient.AuthConfig},
+			"public.ecr.aws": {clients.ecrPublicClient.AuthConfig},
+		},
+	}
+	dockerAuth, err := NewAuthFile(dockerStruct)
+	if err != nil {
+		return fmt.Errorf("creating auth file: %w", err)
+	}
+	if dockerAuth.Authfile == "" {
+		return fmt.Errorf("no authfile generated")
+	}
+	err = clients.PromoteHelmChart(packageName, dockerAuth.Authfile, false)
+	if err != nil {
+		return fmt.Errorf("promoting Helm chart: %w", err)
+	}
+	err = dockerAuth.Remove()
+	if err != nil {
+		return fmt.Errorf("cleaning up docker auth file: %w", err)
+	}
+	BundleLog.Info("Promote Finished, exiting gracefully")
+
+	return nil
+}
+
+func cmdGenerate(opts *Options) error {
 	// grab local path to caller, and make new caller
 	pwd, err := os.Getwd()
 	if err != nil {
 		BundleLog.Error(err, "Unable to get current working directory")
 		os.Exit(1)
 	}
-	outputDir := filepath.Join(pwd, o.outputFolder)
-	outputPath, err := NewWriter(outputDir)
-	if err != nil {
-		BundleLog.Error(err, "Unable to create new Writer")
-		os.Exit(1)
-	}
-
-	// If using --generatesample flag we skip the yaml input portion
-	if o.generateSample {
-		sample := NewBundleGenerate("generatesample")
-
-		_, yml, err := sig.GetDigest(sample, sig.EksaDomain)
-		if err != nil {
-			BundleLog.Error(err, "Unable to convert Bundle to yaml via sig.GetDigest()")
-			os.Exit(1)
-		}
-		if _, err := outputPath.Write("bundle.yaml", yml, PersistentFile); err != nil {
-			BundleLog.Error(err, "Unable to write Bundle to yaml from generateSample")
-			os.Exit(1)
-		}
-		return
-	}
-
-	if o.promote != "" {
-		BundleLog.Info("Starting Promote from private ECR to Public ECR....")
-		clients, err := GetSDKClients()
-		if err != nil {
-			BundleLog.Error(err, "getting SDK clients")
-			os.Exit(1)
-		}
-		clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
-		if err != nil {
-			BundleLog.Error(err, "getting registry URI")
-			os.Exit(1)
-		}
-		dockerStruct := &DockerAuth{
-			Auths: map[string]DockerAuthRegistry{
-				fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): {clients.ecrClient.AuthConfig},
-				"public.ecr.aws": {clients.ecrPublicClient.AuthConfig},
-			},
-		}
-		dockerAuth, err := NewAuthFile(dockerStruct)
-		if err != nil || dockerAuth.Authfile == "" {
-			BundleLog.Error(err, "Unable create AuthFile")
-			os.Exit(1)
-		}
-		err = clients.PromoteHelmChart(o.promote, dockerAuth.Authfile, false)
-		if err != nil {
-			BundleLog.Error(err, "Unable to promote Helm Chart")
-			os.Exit(1)
-		}
-		err = dockerAuth.Remove()
-		if err != nil {
-			BundleLog.Error(err, "Unable to remove docker auth file")
-			os.Exit(1)
-		}
-
-		BundleLog.Info("Promote Finished, exiting gracefully")
-		return
-	}
 
 	// validate that an input flag is either given, or the system can find yaml files to use.
-	files, err := o.ValidateInput()
+	files, err := opts.ValidateInput()
 	if err != nil {
-		BundleLog.Error(err, "Unable to validate input flag, or find local yaml files for input")
-		os.Exit(1)
+		return err
 	}
 
 	// Validate Input config, and turn into Input struct
-	BundleLog.Info("Using input file to create bundle crds.", "Input file", o.inputFile)
+	BundleLog.Info("Using input file to create bundle crds.", "Input file", opts.inputFile)
 	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
 	if err != nil {
 		BundleLog.Error(err, "loading default AWS config: %w", err)
@@ -213,7 +241,7 @@ func main() {
 
 		// We will make a compound check for public and private profile after the launch once we want to stop
 		// push packages to private ECR.
-		if o.publicProfile != "" {
+		if opts.publicProfile != "" {
 			BundleLog.Info("Starting release public ECR process....")
 			clients, err := GetSDKClients()
 			if err != nil {
@@ -221,7 +249,7 @@ func main() {
 				os.Exit(1)
 			}
 
-			clients, err = clients.GetProfileSDKConnection("ecrpublic", o.publicProfile)
+			clients, err = clients.GetProfileSDKConnection("ecrpublic", opts.publicProfile)
 			if err != nil {
 				BundleLog.Error(err, "Unable create SDK Client connections")
 				os.Exit(1)
@@ -262,12 +290,12 @@ func main() {
 				os.Exit(1)
 			}
 
-			return
+			return nil
 		}
 
 		// See above comment about compound check when we want to cutover
 		// if o.publicProfile != "" && if o.privateProfile != "" {}
-		if o.privateProfile != "" {
+		if opts.privateProfile != "" {
 			BundleLog.Info("Starting release to private ECR process....")
 			clients, err := GetSDKClients()
 			if err != nil {
@@ -275,12 +303,12 @@ func main() {
 				os.Exit(1)
 			}
 
-			clients, err = clients.GetProfileSDKConnection("ecr", o.privateProfile)
+			clients, err = clients.GetProfileSDKConnection("ecr", opts.privateProfile)
 			if err != nil {
 				BundleLog.Error(err, "getting SDK connection")
 				os.Exit(1)
 			}
-			clients, err = clients.GetProfileSDKConnection("sts", o.privateProfile)
+			clients, err = clients.GetProfileSDKConnection("sts", opts.privateProfile)
 			if err != nil {
 				BundleLog.Error(err, "getting profile SDK connection")
 				os.Exit(1)
@@ -311,10 +339,10 @@ func main() {
 				os.Exit(1)
 			}
 
-			return
+			return nil
 		}
 
-		signature, err := GetBundleSignature(context.Background(), bundle, o.key)
+		signature, err := GetBundleSignature(context.Background(), bundle, opts.key)
 		if err != nil {
 			BundleLog.Error(err, "Unable to sign bundle with kms key")
 			os.Exit(1)
@@ -337,10 +365,24 @@ func main() {
 		anno[FullSignatureAnnotation] = signature
 		anno[FullExcludesAnnotation] = Excludes
 		yml, err = yaml.Marshal(manifest)
+		if err != nil {
+			BundleLog.Error(err, "marshaling bundle YAML: %w", err)
+			os.Exit(1)
+		}
+
+		outputDir := filepath.Join(pwd, opts.outputFolder)
+		outputPath, err := NewWriter(outputDir)
+		if err != nil {
+			BundleLog.Error(err, "Unable to create new Writer")
+			os.Exit(1)
+		}
+
 		if _, err := outputPath.Write("bundle.yaml", yml, PersistentFile); err != nil {
 			BundleLog.Error(err, "Unable to write Bundle to yaml")
 			os.Exit(1)
 		}
-		BundleLog.Info("Finished writing output crd files.", "Output path", fmt.Sprintf("%s%s", o.outputFolder, "/"))
+		BundleLog.Info("Finished writing output crd files.", "Output path", fmt.Sprintf("%s%s", opts.outputFolder, "/"))
 	}
+
+	return nil
 }
