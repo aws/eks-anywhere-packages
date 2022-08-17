@@ -72,7 +72,7 @@ func (s *ecrSecret) AddSecretToAllNamespace(ctx context.Context) error {
 		return err
 	}
 	issue := false
-	for _, namespace := range s.nsReleaseMap {
+	for namespace := range s.nsReleaseMap {
 		// Create secret
 		// Check there is valid token data in the secret
 		secretData, exist := secret.Data[".dockerconfigjson"]
