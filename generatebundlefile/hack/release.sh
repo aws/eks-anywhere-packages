@@ -80,21 +80,20 @@ function generate () {
 }
 
 function push () {
-    local version=$1
+    local version=${1?:no version specified}
     cd "${BASE_DIRECTORY}/generatebundlefile/output"
-    awsAuth "ecr-public" | "$ORAS_BIN" push --password-stdin \
-        "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-    awsAuth "ecr-public" | "$ORAS_BIN" push --password-stdin \
-        "${REPO}:v${version}-latest" bundle.yaml
+    awsAuth "$REPO" | "$ORAS_BIN" login "$REPO" --username AWS --password-stdin
+    "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+    "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
 }
 
-for version in 1-21 1-22; do
+for version in 1-20 1-21 1-22 1-23; do
     generate ${version}
 done
 
 export AWS_PROFILE=prod
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
-for version in 1-21 1-22; do
+for version in 1-20 1-21 1-22 1-23; do
     push ${version}
 done
