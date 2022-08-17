@@ -28,6 +28,7 @@ const (
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:shortName=pbc,path=packagebundlecontrollers
 // +kubebuilder:printcolumn:name="ActiveBundle",type=string,JSONPath=`.spec.activeBundle`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="Detail",type=string,JSONPath=`.status.detail`
