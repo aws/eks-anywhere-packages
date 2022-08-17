@@ -22,6 +22,7 @@ func checkErrAndLog(err error, logger *log.Logger) {
 
 func main() {
 	infoLogger := log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	warningLogger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
 	errorLogger := log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 	infoLogger.Println("Running at " + time.Now().UTC().String())
 
@@ -45,7 +46,7 @@ func main() {
 
 	err, failedList := k8s.UpdateTokens(secretname, credentials.Username, credentials.Token, credentials.Registry)
 	if len(failedList) > 0 {
-		errorLogger.Printf("Failed to update the following namespaces", failedList)
+		warningLogger.Printf("Failed to update the following namespaces", failedList)
 	}
 	checkErrAndLog(err, errorLogger)
 
