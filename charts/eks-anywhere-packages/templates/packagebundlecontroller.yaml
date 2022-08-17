@@ -4,6 +4,5 @@ metadata:
   name: {{.Values.clusterName}}
   namespace: eksa-packages
 spec:
-  bundleRepository: eks-anywhere-packages-bundles
   upgradeCheckInterval: 24h
   upgradeCheckShortInterval: 5m
