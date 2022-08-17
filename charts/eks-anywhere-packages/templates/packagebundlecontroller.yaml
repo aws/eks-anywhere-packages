@@ -6,4 +6,4 @@ metadata:
 spec:
   bundleRepository: eks-anywhere-packages-bundles
   upgradeCheckInterval: 24h
-  upgradeCheckShortInterval: 1h
+  upgradeCheckShortInterval: 5m
