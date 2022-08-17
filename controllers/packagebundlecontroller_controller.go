@@ -17,6 +17,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -125,6 +126,9 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 	err = r.bundleManager.ProcessBundleController(ctx, pbc)
 	if err != nil {
 		r.Log.Error(err, "processing bundle controller")
+		if strings.Contains("Internal error occurred: failed calling webhook", err.Error()) {
+			result.RequeueAfter = time.Second * 2
+		}
 		return result, nil
 	}
 
