@@ -201,5 +201,13 @@ func (d *helmDriver) IsConfigChanged(ctx context.Context, name string,
 		return false, fmt.Errorf("installation not found %q: %w", name, err)
 	}
 
+	// Check imagePullSecret not defined in config
+	if _, exist := values["imagePullSecrets"]; !exist {
+		// Check if imagePullSecrets was added by driver
+		if val, ok := rel.Config["imagePullSecrets"]; ok {
+			values["imagePullSecrets"] = val
+		}
+	}
+
 	return !reflect.DeepEqual(values, rel.Config), nil
 }

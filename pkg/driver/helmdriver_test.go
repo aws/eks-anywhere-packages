@@ -104,6 +104,46 @@ func TestIsConfigChanged(t *testing.T) {
 			assert.False(t, changed)
 		}
 	})
+
+	t.Run("golden path returning false with imagePullSecret added", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		const foo = 1
+		origValues := map[string]interface{}{"foo": foo, "bar": true}
+		newValues := shallowCopy(t, origValues)
+		newValues["imagePullSecrets"] = "test"
+		rel := &release.Release{Config: newValues}
+		helm, err := createNewHelm(t)
+		require.NoError(t, err)
+		helm.cfg.KubeClient = newMockKube(nil)
+		helm.cfg.Releases.Driver = newMockReleasesDriver(rel, nil)
+
+		changed, err := helm.IsConfigChanged(ctx, "name-does-not-matter", origValues)
+		if assert.NoError(t, err) {
+			assert.False(t, changed)
+		}
+	})
+
+	t.Run("golden path returning true with imagePullSecret via config", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		const foo = 1
+		origValues := map[string]interface{}{"foo": foo, "bar": true}
+		newValues := shallowCopy(t, origValues)
+		origValues["imagePullSecrets"] = "test"
+		rel := &release.Release{Config: newValues}
+		helm, err := createNewHelm(t)
+		require.NoError(t, err)
+		helm.cfg.KubeClient = newMockKube(nil)
+		helm.cfg.Releases.Driver = newMockReleasesDriver(rel, nil)
+
+		changed, err := helm.IsConfigChanged(ctx, "name-does-not-matter", origValues)
+		if assert.NoError(t, err) {
+			assert.True(t, changed)
+		}
+	})
 }
 
 // Helpers
