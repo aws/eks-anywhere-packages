@@ -1,9 +1,11 @@
+{{ if .Capabilities.APIVersions.Has "packagecontrollers.packages.eks.amazonaws.com/v1alpha1/{{.Values.clusterName}}" -}}
+{{- else -}}
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: PackageBundleController
 metadata:
   name: {{.Values.clusterName}}
   namespace: eksa-packages
 spec:
-  bundleRepository: eks-anywhere-packages-bundles
   upgradeCheckInterval: 24h
   upgradeCheckShortInterval: 5m
+{{- end -}}
