@@ -11,6 +11,8 @@ spec:
     kind: PackageBundleController
     listKind: PackageBundleControllerList
     plural: packagebundlecontrollers
+    shortNames:
+    - pbc
     singular: packagebundlecontroller
   scope: Namespaced
   versions:
