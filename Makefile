@@ -113,6 +113,7 @@ helm-build: kustomize ## Build helm chart into tar file
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
 	kubectl get namespace eksa-packages || kubectl create namespace eksa-packages
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+	kubectl create secret -n eksa-packages generic aws-secret --from-literal=REGION=$(EKSA_AWS_REGION) --from-literal=ID=$(EKSA_AWS_ACCESS_KEY_ID) --from-literal=SECRET=$(EKSA_AWS_SECRET_ACCESS_KEY)
 
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config.
 	kubectl delete packages -n eksa-packages $(kubectl get packages -n eksa-packages --no-headers -o custom-columns=":metadata.name") && sleep 5 || true
