@@ -114,7 +114,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 	if !latestBundleIsKnown {
 		err = m.bundleClient.CreateBundle(ctx, latestBundle)
 		if err != nil {
-			return fmt.Errorf("creating new package bundle: %s", err)
+			return err
 		}
 	}
 

@@ -276,7 +276,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "creating new package bundle: oops")
+		assert.EqualError(t, err, "oops")
 	})
 
 	t.Run("upgradeAvailable to upgradeAvailable", func(t *testing.T) {

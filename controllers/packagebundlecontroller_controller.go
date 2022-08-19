@@ -32,8 +32,9 @@ import (
 )
 
 const (
-	DefaultUpgradeCheckInterval = time.Hour * 24
-	packageBundleControllerName = "PackageBundleController"
+	DefaultUpgradeCheckInterval          = time.Hour * 24
+	packageBundleControllerName          = "PackageBundleController"
+	webhookInitializationRequeueInterval = 10 * time.Second
 )
 
 // PackageBundleControllerReconciler reconciles a PackageBundleController object
@@ -42,6 +43,9 @@ type PackageBundleControllerReconciler struct {
 	Scheme        *runtime.Scheme
 	bundleManager bundle.Manager
 	Log           logr.Logger
+	// webhookInitialized allows for faster requeues when the webhook isn't
+	// yet online.
+	webhookInitialized bool
 }
 
 func NewPackageBundleControllerReconciler(client client.Client,
@@ -107,7 +111,9 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		r.Log.Info("Bundle controller deleted (ignoring)", "bundle controller", req.NamespacedName)
 		return withoutRequeue(result), nil
 	}
-	result.RequeueAfter = pbc.Spec.UpgradeCheckInterval.Duration
+	if pbc.Spec.UpgradeCheckInterval.Duration > 0 {
+		result.RequeueAfter = pbc.Spec.UpgradeCheckInterval.Duration
+	}
 
 	if pbc.IsIgnored() {
 		if pbc.Status.State != api.BundleControllerStateIgnored {
@@ -122,17 +128,23 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		return withoutRequeue(result), nil
 	}
 
-	result.RequeueAfter = pbc.Spec.UpgradeCheckShortInterval.Duration
 	err = r.bundleManager.ProcessBundleController(ctx, pbc)
 	if err != nil {
+		if strings.Contains(err.Error(), "connect: connection refused") &&
+			!r.webhookInitialized {
+			r.Log.Info("delaying reconciliation until webhook is initialized")
+			result.RequeueAfter = webhookInitializationRequeueInterval
+			return result, nil
+		}
 		r.Log.Error(err, "processing bundle controller")
-		if strings.Contains("Internal error occurred: failed calling webhook", err.Error()) {
-			result.RequeueAfter = time.Second * 2
+		if pbc.Spec.UpgradeCheckShortInterval.Duration > 0 {
+			result.RequeueAfter = pbc.Spec.UpgradeCheckShortInterval.Duration
 		}
 		return result, nil
 	}
 
-	result.RequeueAfter = pbc.Spec.UpgradeCheckInterval.Duration
+	r.webhookInitialized = true
+
 	r.Log.V(6).Info("Reconciled:", "PackageBundleController", req.NamespacedName)
 	return result, nil
 }
