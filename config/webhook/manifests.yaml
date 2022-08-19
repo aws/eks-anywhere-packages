@@ -56,13 +56,13 @@ webhooks:
   failurePolicy: Fail
   name: vpackage.kb.io
   rules:
-    - apiGroups:
-        - packages.eks.amazonaws.com
-      apiVersions:
-        - v1alpha1
-      operations:
-        - CREATE
-        - UPDATE
-      resources:
-        - packages
+  - apiGroups:
+    - packages.eks.amazonaws.com
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - packages
   sideEffects: None
