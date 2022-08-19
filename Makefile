@@ -197,7 +197,7 @@ controllers/mocks/manager.go: go.mod
 		$(MOCKGEN) -destination=controllers/mocks/manager.go -package=mocks "sigs.k8s.io/controller-runtime/pkg/manager" Manager
 
 .PHONY: presubmit
-presubmit: vet generate manifests build helm/build test # lint is run via github action
+presubmit: vet generate manifests build helm/package test # lint is run via github action
 	git --no-pager diff --name-only --exit-code ':!Makefile'
 
 %.yaml.signed: %.yaml
