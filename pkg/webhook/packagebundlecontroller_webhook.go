@@ -92,15 +92,15 @@ func (v *activeBundleValidator) handleInner(_ context.Context, pbc *v1alpha1.Pac
 	}
 
 	if !found {
-		msg := fmt.Sprintf("package bundle not theBundle with name: %q", pbc.Spec.ActiveBundle)
+		msg := fmt.Sprintf("activeBundle <%q> not present on cluster", pbc.Spec.ActiveBundle)
 		resp := &admission.Response{
 			AdmissionResponse: admissionv1.AdmissionResponse{
 				Allowed: false,
 				Result: &metav1.Status{
 					Status:  metav1.StatusFailure,
-					Code:    http.StatusNotFound,
+					Code:    http.StatusBadRequest,
 					Message: msg,
-					Reason:  metav1.StatusReasonNotFound,
+					Reason:  metav1.StatusReasonInvalid,
 				},
 			},
 		}

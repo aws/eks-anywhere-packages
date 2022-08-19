@@ -159,7 +159,7 @@ func TestHandleInner(t *testing.T) {
 		if assert.NoError(t, err) {
 			assert.False(t, resp.AdmissionResponse.Allowed)
 			assert.Equal(t, metav1.StatusFailure, resp.AdmissionResponse.Result.Status)
-			assert.Equal(t, metav1.StatusReasonNotFound, resp.AdmissionResponse.Result.Reason)
+			assert.Equal(t, metav1.StatusReasonInvalid, resp.AdmissionResponse.Result.Reason)
 		}
 	})
 }
