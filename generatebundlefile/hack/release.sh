@@ -76,12 +76,13 @@ function generate () {
 
     cd "${BASE_DIRECTORY}/generatebundlefile"
     ./bin/generatebundlefile --input "./data/input_${version/-}_prod.yaml" \
-                 --key alias/${kms_key}
+                 --key alias/${kms_key} \
+                 --output "output-${version}"
 }
 
 function push () {
     local version=${1?:no version specified}
-    cd "${BASE_DIRECTORY}/generatebundlefile/output"
+    cd "${BASE_DIRECTORY}/generatebundlefile/output-${version}"
     awsAuth "$REPO" | "$ORAS_BIN" login "$REPO" --username AWS --password-stdin
     "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
     "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
