@@ -34,6 +34,5 @@ sed \
         -e "s,{{eks-anywhere-packages}},${EKS_ANYWHERE_PACKAGES_TAG}," \
         eks-anywhere-packages/values.yaml >${OUTDIR}/eks-anywhere-packages/values.yaml
 cd $OUTDIR
-helm-docs
 RESULT=$(helm package eks-anywhere-packages| sed -e 's/Successfully packaged chart and saved it to: //g')
 echo "helm install eks-anywhere-packages ${RESULT}"

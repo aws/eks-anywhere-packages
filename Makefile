@@ -107,6 +107,11 @@ docker-push: ## Push docker image with the package-manager.
 helm/build: helm-build
 helm-build: kustomize ## Build helm chart into tar file
 	hack/helm.sh
+	helm-docs
+
+helm/package: helm-package
+helm-package: kustomize ## Build helm chart into tar file
+	hack/helm.sh
 
 ##@ Deployment
 
