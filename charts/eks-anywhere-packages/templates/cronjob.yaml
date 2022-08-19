@@ -1,3 +1,4 @@
+{{- if eq (.Capabilities.KubeVersion.Major|int) 1 }}
 {{- if ge (.Capabilities.KubeVersion.Minor|int) 21 }}
 apiVersion: batch/v1
 {{- else }}
@@ -42,3 +43,4 @@ spec:
                       name: aws-secret
                       key: REGION
                       optional: true
+{{- end }}
