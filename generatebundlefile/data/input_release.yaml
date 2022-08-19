@@ -1,4 +1,4 @@
-# This info is hardcoded and comes from https://github.com/aws/eks-anywhere-build-tooling
+# This file is only used to determine which Helm charts to move from Dev to Prod during a release.
 name: "v1-21-1001"
 kubernetesVersion: "1.21"
 packages:
