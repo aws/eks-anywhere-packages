@@ -14,6 +14,26 @@ webhooks:
     service:
       name: {{ .Release.Name }}-eks-anywhere-packages-webhook-service
       namespace: {{ .Values.namespace }}
+      path: /validate-packages-eks-amazonaws-com-v1alpha1-packagebundlecontroller
+  failurePolicy: Fail
+  name: vpackagebundlecontroller.kb.io
+  rules:
+  - apiGroups:
+    - packages.eks.amazonaws.com
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - packagebundlecontrollers
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: {{ .Release.Name }}-eks-anywhere-packages-webhook-service
+      namespace: {{ .Values.namespace }}
       path: /validate-packages-eks-amazonaws-com-v1alpha1-packagebundle
   failurePolicy: Fail
   name: vpackagebundle.kb.io
@@ -27,4 +47,24 @@ webhooks:
     - UPDATE
     resources:
     - packagebundles
+  sideEffects: None
+- admissionReviewVersions:
+    - v1
+  clientConfig:
+    service:
+      name: {{ .Release.Name }}-eks-anywhere-packages-webhook-service
+      namespace: {{ .Values.namespace }}
+      path: /validate-packages-eks-amazonaws-com-v1alpha1-package
+  failurePolicy: Fail
+  name: vpackage.kb.io
+  rules:
+  - apiGroups:
+    - packages.eks.amazonaws.com
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - packages
   sideEffects: None

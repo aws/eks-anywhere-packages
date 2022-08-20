@@ -28,6 +28,7 @@ const (
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:webhook:path=/validate-packages-eks-amazonaws-com-v1alpha1-packagebundlecontroller,mutating=false,failurePolicy=fail,sideEffects=None,groups=packages.eks.amazonaws.com,resources=packagebundlecontrollers,verbs=create;update,versions=v1alpha1,name=vpackagebundlecontroller.kb.io,admissionReviewVersions=v1
 // +kubebuilder:resource:shortName=pbc,path=packagebundlecontrollers
 // +kubebuilder:printcolumn:name="ActiveBundle",type=string,JSONPath=`.spec.activeBundle`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
