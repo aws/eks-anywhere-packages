@@ -1,32 +1,32 @@
-# This info is hardcoded and comes from https://github.com/aws/eks-anywhere-build-tooling
-name: "v1-20-1001"
-kubernetesVersion: "1.20"
+# This file is only used to determine which Helm charts to move from Dev to Prod during a release.
+name: "v1-21-1001"
+kubernetesVersion: "1.21"
 packages:
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
         repository: hello-eks-anywhere
-        registry: public.ecr.aws/eks-anywhere
+        registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 0.1.1-bc7dc6bb874632972cd92a2bca429a846f7aa785
   - org: harbor
     projects:
       - name: harbor
         repository: harbor/harbor-helm
-        registry: public.ecr.aws/eks-anywhere
+        registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 2.5.1-0d4e0476a740b48a232041597ded2031595d9409
   - org: metallb 
     projects:
       - name: metallb 
         repository: metallb/metallb
-        registry: public.ecr.aws/eks-anywhere
+        registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 0.12.1-0d4e0476a740b48a232041597ded2031595d9409
   - org: emissary 
     projects:
       - name: emissary 
         repository: emissary-ingress/emissary
-        registry: public.ecr.aws/eks-anywhere
+        registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 3.0.0-0d4e0476a740b48a232041597ded2031595d9409

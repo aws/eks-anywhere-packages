@@ -63,7 +63,7 @@ aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 h
 
 # Move Helm charts within the bundle to another account
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_121.yaml \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_release.yaml \
     --public-profile ${PROFILE}
 
 if [ ! -x "${ORAS_BIN}" ]; then
