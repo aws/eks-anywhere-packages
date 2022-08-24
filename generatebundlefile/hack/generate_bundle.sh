@@ -45,9 +45,13 @@ function generate () {
 function push () {
     local version=${1?:no version specified}
     cd "${BASE_DIRECTORY}/generatebundlefile/output"
-    awsAuth "$REPO" | "$ORAS_BIN" login "$REPO" --username AWS --password-stdin
-    "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-    "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
+
+    local -a suffixes=($CODEBUILD_BUILD_NUMBER "latest")
+    local tag=""
+    for suffix in "${suffixes[@]}"; do
+	tag="v$version-$suffix"
+	awsAuth "$REPO" | "$ORAS_BIN" push "$REPO:$tag" bundle.yaml
+    done
 }
 
 for version in 1-20 1-21 1-22 1-23; do
