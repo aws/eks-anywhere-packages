@@ -19,7 +19,7 @@ else
 GOBIN=$(shell $(GO) env GOBIN)
 endif
 
-all: presubmit
+all: vet generate manifests build helm/package test # lint is run via github action
 
 ##@ General
 
