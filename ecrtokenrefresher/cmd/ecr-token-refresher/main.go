@@ -16,7 +16,8 @@ const (
 
 func checkErrAndLog(err error, logger *log.Logger) {
 	if err != nil {
-		logger.Fatalln(err)
+		logger.Println(err)
+		os.Exit(0)
 	}
 }
 
@@ -28,7 +29,8 @@ func main() {
 
 	secretname := os.Getenv(envVarAwsSecret)
 	if secretname == "" {
-		errorLogger.Fatalf("Environment variable %s is required", envVarAwsSecret)
+		errorLogger.Printf("Environment variable %s is required", envVarAwsSecret)
+		os.Exit(0)
 	}
 
 	// Check if IRSA is setup
