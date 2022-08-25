@@ -23,9 +23,17 @@ const (
 	sessionName        = "GetECRTOKENSession"
 	sessionTimeSeconds = 1000
 	defaultAccountID   = "783794618700"
+	envRegionName      = "AWS_REGION"
+	regionDefault      = "us-west-2"
 )
 
 func GetECRCredentials() (*ECRAuth, error) {
+	// Default AWS Region to us-west-2
+	err := os.Setenv(envRegionName, regionDefault)
+	if err != nil {
+		return nil, err
+	}
+
 	var ecrRegs []*string
 	id := defaultAccountID
 	ecrRegs = append(ecrRegs, &id)
