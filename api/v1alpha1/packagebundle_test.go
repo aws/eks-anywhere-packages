@@ -352,9 +352,7 @@ func TestIsNewer(t *testing.T) {
 
 		current := givenBundle("v1-21-10002")
 		candidate := givenBundle("v1-21-10003")
-		if newer := current.LessThan(&candidate); !newer {
-			t.Errorf("expected %v to be newer than %v", current.Name, candidate.Name)
-		}
+		assert.True(t, current.LessThan(&candidate))
 	})
 
 	t.Run("greater than", func(t *testing.T) {
@@ -362,9 +360,7 @@ func TestIsNewer(t *testing.T) {
 
 		current := givenBundle("v1-21-10002")
 		candidate := givenBundle("v1-21-10001")
-		if newer := current.LessThan(&candidate); newer {
-			t.Errorf("expected %v to not be newer than %v", current.Name, candidate.Name)
-		}
+		assert.False(t, current.LessThan(&candidate))
 	})
 
 	t.Run("equal returns false", func(t *testing.T) {
@@ -372,9 +368,7 @@ func TestIsNewer(t *testing.T) {
 
 		current := givenBundle("v1-21-10002")
 		candidate := givenBundle("v1-21-10002")
-		if newer := current.LessThan(&candidate); newer {
-			t.Errorf("expected %v to not be newer than %v", current.Name, candidate.Name)
-		}
+		assert.False(t, current.LessThan(&candidate))
 	})
 
 	t.Run("newer kube major version", func(t *testing.T) {
@@ -382,9 +376,7 @@ func TestIsNewer(t *testing.T) {
 
 		current := givenBundle("v1-21-10002")
 		candidate := givenBundle("v2-21-10002")
-		if newer := current.LessThan(&candidate); !newer {
-			t.Errorf("expected %v to be newer than %v", current.Name, candidate.Name)
-		}
+		assert.True(t, current.LessThan(&candidate))
 	})
 
 	t.Run("newer kube minor version", func(t *testing.T) {
@@ -392,9 +384,7 @@ func TestIsNewer(t *testing.T) {
 
 		current := givenBundle("v1-21-10002")
 		candidate := givenBundle("v1-22-10002")
-		if newer := current.LessThan(&candidate); !newer {
-			t.Errorf("expected %v to be newer than %v", current.Name, candidate.Name)
-		}
+		assert.True(t, current.LessThan(&candidate))
 	})
 }
 

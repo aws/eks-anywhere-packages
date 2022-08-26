@@ -127,9 +127,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: ignoredController})
-		if err != nil {
-			t.Fatalf("expected no error, got %s", err)
-		}
+		assert.NoError(t, err)
 		assert.False(t, result.Requeue)
 	})
 
@@ -153,9 +151,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: ignoredController})
-		if err != nil {
-			t.Fatalf("expected no error, got %s", err)
-		}
+		assert.NoError(t, err)
 		assert.False(t, result.Requeue)
 	})
 
@@ -177,9 +173,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: ignoredController})
-		if err != nil {
-			t.Fatalf("expected no error, got %s", err)
-		}
+		assert.NoError(t, err)
 		assert.False(t, result.Requeue)
 	})
 
@@ -200,9 +194,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
-		if err != nil {
-			t.Fatalf("expected no error, got %s", err)
-		}
+		assert.NoError(t, err)
 		assert.False(t, result.Requeue)
 	})
 
@@ -217,9 +209,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
-		if err == nil {
-			t.Fatalf("expected error, got %s", err)
-		}
+		assert.EqualError(t, err, "retrieving package bundle controller: oops")
 		assert.True(t, result.Requeue)
 	})
 }
