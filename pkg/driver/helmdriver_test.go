@@ -19,30 +19,22 @@ import (
 func TestHelmChartURLIsPrefixed(t *testing.T) {
 	t.Run("https yes", func(t *testing.T) {
 		t.Parallel()
-		if !helmChartURLIsPrefixed("https://foo") {
-			t.Errorf("Expected true got false")
-		}
+		assert.True(t, helmChartURLIsPrefixed("https://foo"))
 	})
 
 	t.Run("http yes", func(t *testing.T) {
 		t.Parallel()
-		if !helmChartURLIsPrefixed("http://foo") {
-			t.Errorf("Expected true got false")
-		}
+		assert.True(t, helmChartURLIsPrefixed("http://foo"))
 	})
 
 	t.Run("oci yes", func(t *testing.T) {
 		t.Parallel()
-		if !helmChartURLIsPrefixed("oci://foo") {
-			t.Errorf("Expected true got false")
-		}
+		assert.True(t, helmChartURLIsPrefixed("oci://foo"))
 	})
 
 	t.Run("boo no", func(t *testing.T) {
 		t.Parallel()
-		if helmChartURLIsPrefixed("boo://foo") {
-			t.Errorf("Expected false got true")
-		}
+		assert.False(t, helmChartURLIsPrefixed("boo://foo"))
 	})
 }
 
