@@ -16,7 +16,6 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	ctrlmocks "github.com/aws/eks-anywhere-packages/controllers/mocks"
-	bundlefake "github.com/aws/eks-anywhere-packages/pkg/bundle/fake"
 	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
 	drivermocks "github.com/aws/eks-anywhere-packages/pkg/driver/mocks"
 	"github.com/aws/eks-anywhere-packages/pkg/packages"
@@ -37,7 +36,6 @@ func TestReconcile(t *testing.T) {
 			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
 			DoAndReturn(fn)
 
-		tf.bundleManager.FakeActiveBundle = tf.mockBundle()
 		tf.packageManager.EXPECT().
 			Process(gomock.Any()).
 			Return(true)
@@ -73,8 +71,6 @@ func TestReconcile(t *testing.T) {
 		tf.ctrlClient.EXPECT().
 			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
 			DoAndReturn(fn)
-
-		tf.bundleManager.FakeActiveBundle = tf.mockBundle()
 
 		tf.packageManager.EXPECT().
 			Process(gomock.Any()).
@@ -268,7 +264,6 @@ func TestReconcile(t *testing.T) {
 		expected := time.Duration(0)
 		assert.Equal(t, expected, got.RequeueAfter)
 
-		tf.bundleManager.FakeActiveBundle = newBundle
 		tf.packageManager.EXPECT().
 			Process(gomock.Any()).
 			Return(false).Do(func(mctx *packages.ManagerContext) {
@@ -301,7 +296,7 @@ type testFixtures struct {
 	ctrlClient     *ctrlmocks.MockClient
 	packageDriver  *drivermocks.MockPackageDriver
 	packageManager *packageMocks.MockManager
-	bundleManager  *bundlefake.FakeBundleManager
+	bundleManager  *bundleMocks.MockManager
 	bundleClient   *bundleMocks.MockClient
 }
 
@@ -315,7 +310,7 @@ func newTestFixtures(t *testing.T) (*testFixtures, context.Context) {
 		ctrlClient:       ctrlmocks.NewMockClient(gomockController),
 		packageDriver:    drivermocks.NewMockPackageDriver(gomockController),
 		packageManager:   packageMocks.NewMockManager(gomockController),
-		bundleManager:    bundlefake.NewBundleManager(),
+		bundleManager:    bundleMocks.NewMockManager(gomockController),
 		bundleClient:     bundleMocks.NewMockClient(gomockController),
 	}, context.Background()
 }

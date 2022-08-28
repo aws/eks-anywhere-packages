@@ -11,7 +11,6 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
-	bundlefake "github.com/aws/eks-anywhere-packages/pkg/bundle/fake"
 	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
 	"github.com/aws/eks-anywhere-packages/pkg/file"
 )
@@ -29,7 +28,7 @@ func TestPackageBundleReconciler_mapBundleReconcileRequests(t *testing.T) {
 			bundles.Items = []api.PackageBundle{bundleOne, bundleTwo}
 			return nil
 		})
-	bm := bundlefake.NewBundleManager()
+	bm := bundleMocks.NewMockManager(gomock.NewController(t))
 	sut := NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, nil, logr.Discard())
 
 	requests := sut.mapBundleReconcileRequests(&api.PackageBundleController{})
