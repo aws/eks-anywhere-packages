@@ -121,12 +121,16 @@ func TestProcessBundle(t *testing.T) {
 
 func TestSortBundleNewestFirst(t *testing.T) {
 	t.Parallel()
+	bundleOne, err := file.GivenPackageBundle("../../api/testdata/bundle_one.yaml")
+	assert.NoError(t, err)
+	bundleTwo, err := file.GivenPackageBundle("../../api/testdata/bundle_two.yaml")
+	assert.NoError(t, err)
 
 	t.Run("it sorts newest version first", func(t *testing.T) {
 		_, _, _, bm := givenBundleManager(t)
 		allBundles := []api.PackageBundle{
-			*file.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_one.yaml"),
-			*file.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
+			*bundleOne,
+			*bundleTwo,
 		}
 
 		bm.SortBundlesDescending(allBundles)
@@ -147,8 +151,8 @@ func TestSortBundleNewestFirst(t *testing.T) {
 					State: api.PackageBundleStateAvailable,
 				},
 			},
-			*file.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_one.yaml"),
-			*file.MustPackageBundleFromFilename(t, "../../api/testdata/bundle_two.yaml"),
+			*bundleOne,
+			*bundleTwo,
 		}
 
 		bm.SortBundlesDescending(allBundles)

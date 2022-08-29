@@ -10,7 +10,6 @@ require (
 	github.com/onsi/gomega v1.17.0
 	github.com/stretchr/testify v1.7.0
 	github.com/xeipuuv/gojsonschema v1.2.0
-	gotest.tools v2.2.0+incompatible
 	helm.sh/helm/v3 v3.8.1
 	k8s.io/api v0.23.4
 	k8s.io/apimachinery v0.23.4
