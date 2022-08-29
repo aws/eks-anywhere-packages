@@ -3,6 +3,7 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -13,7 +14,6 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
-	"github.com/aws/eks-anywhere-packages/pkg/file"
 )
 
 const testPreviousBundleName = "v1-21-1002"
@@ -121,9 +121,9 @@ func TestProcessBundle(t *testing.T) {
 
 func TestSortBundleNewestFirst(t *testing.T) {
 	t.Parallel()
-	bundleOne, err := file.GivenPackageBundle("../../api/testdata/bundle_one.yaml")
+	bundleOne, err := testutil.GivenPackageBundle("../../api/testdata/bundle_one.yaml")
 	assert.NoError(t, err)
-	bundleTwo, err := file.GivenPackageBundle("../../api/testdata/bundle_two.yaml")
+	bundleTwo, err := testutil.GivenPackageBundle("../../api/testdata/bundle_two.yaml")
 	assert.NoError(t, err)
 
 	t.Run("it sorts newest version first", func(t *testing.T) {
