@@ -167,7 +167,7 @@ endef
 
 ## Generate mocks
 .PHONY: mocks
-mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/client.go pkg/bundle/mocks/manager.go pkg/bundle/mocks/registry_client.go pkg/packages/mocks/manager.go
+mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/client.go pkg/bundle/mocks/manager.go pkg/bundle/mocks/registry_client.go pkg/packages/mocks/manager.go pkg/artifacts/mocks/puller.go
 
 pkg/bundle/mocks/client.go: pkg/bundle/client.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
@@ -187,6 +187,10 @@ pkg/packages/mocks/manager.go: pkg/packages/manager.go
 pkg/driver/mocks/packagedriver.go: pkg/driver/packagedriver.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
 		$(MOCKGEN) -source pkg/driver/packagedriver.go -destination=pkg/driver/mocks/packagedriver.go -package=mocks PackageDriver
+
+pkg/artifacts/mocks/puller.go: pkg/artifacts/puller.go
+	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
+		$(MOCKGEN) -source pkg/artifacts/puller.go -destination=pkg/artifacts/mocks/puller.go -package=mocks Client
 
 controllers/mocks/client.go: go.mod
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \

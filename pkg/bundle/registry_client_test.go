@@ -3,12 +3,13 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	"github.com/aws/eks-anywhere-packages/pkg/testutil"
+	"github.com/aws/eks-anywhere-packages/pkg/artifacts/mocks"
 )
 
 func TestDownloadBundle(t *testing.T) {
@@ -20,9 +21,10 @@ func TestDownloadBundle(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		puller := testutil.NewMockPuller()
-		puller.WithFileData(t, "../../api/testdata/bundle_one.yaml")
-
+		puller := mocks.NewMockPuller(gomock.NewController(t))
+		contents, err := os.ReadFile("../../api/testdata/bundle_one.yaml")
+		assert.NoError(t, err)
+		puller.EXPECT().Pull(ctx, "example.com/org:v1-21-latest").Return(contents, nil)
 		ecr := NewRegistryClient(puller)
 
 		kubeVersion := "v1-21"
@@ -44,8 +46,8 @@ func TestDownloadBundle(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		puller := testutil.NewMockPuller()
-		puller.WithError(fmt.Errorf("test error"))
+		puller := mocks.NewMockPuller(gomock.NewController(t))
+		puller.EXPECT().Pull(ctx, "example.com/org:v1-21-latest").Return(nil, fmt.Errorf("test error"))
 
 		ecr := NewRegistryClient(puller)
 
@@ -61,8 +63,8 @@ func TestDownloadBundle(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		puller := testutil.NewMockPuller()
-		puller.WithData([]byte(""))
+		puller := mocks.NewMockPuller(gomock.NewController(t))
+		puller.EXPECT().Pull(ctx, "example.com/org:v1-21-latest").Return([]byte(""), nil)
 
 		ecr := NewRegistryClient(puller)
 
@@ -78,9 +80,8 @@ func TestDownloadBundle(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		// stub oras.Pull
-		puller := testutil.NewMockPuller()
-		puller.WithData([]byte("invalid yaml"))
+		puller := mocks.NewMockPuller(gomock.NewController(t))
+		puller.EXPECT().Pull(ctx, "example.com/org:v1-21-latest").Return([]byte("invalid yaml"), nil)
 
 		ecr := NewRegistryClient(puller)
 
@@ -98,15 +99,24 @@ func TestBundleManager_LatestBundle(t *testing.T) {
 
 	ctx := context.Background()
 
-	t.Run("latest bundle", func(t *testing.T) {
-		puller := testutil.NewMockPuller()
-		bundle := GivenBundle(api.PackageBundleStateAvailable)
-
-		bundle.Namespace = "billy"
+	t.Run("latest bundle bogus version", func(t *testing.T) {
+		puller := mocks.NewMockPuller(gomock.NewController(t))
 		bm := NewRegistryClient(puller)
 
-		_, err := bm.LatestBundle(ctx, "test", "v1.21")
+		result, err := bm.LatestBundle(ctx, "test", "v121")
 
-		assert.EqualError(t, err, "pulling package bundle: no mock data provided")
+		assert.EqualError(t, err, "kubeversion should be in <major>.<minor> format")
+		assert.Nil(t, result)
+	})
+
+	t.Run("latest bundle error", func(t *testing.T) {
+		puller := mocks.NewMockPuller(gomock.NewController(t))
+		puller.EXPECT().Pull(ctx, "test:v1-21-latest").Return(nil, fmt.Errorf("oops"))
+		bm := NewRegistryClient(puller)
+
+		result, err := bm.LatestBundle(ctx, "test", "v1.21")
+
+		assert.EqualError(t, err, "pulling package bundle: oops")
+		assert.Nil(t, result)
 	})
 }
