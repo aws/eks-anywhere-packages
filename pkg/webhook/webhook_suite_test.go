@@ -18,7 +18,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 	"net"
 	"os"
 	"path/filepath"
@@ -39,6 +38,7 @@ import (
 
 	. "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/signature"
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
