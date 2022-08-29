@@ -64,18 +64,3 @@ func TestFileReaderParseGood(t *testing.T) {
 
 	assert.Nil(t, actual)
 }
-
-// Ensure that the api.FileReader can correctly unmarshal the API types we've defined.
-func TestFileReaderOnApiDatatypes(t *testing.T) {
-	_, err := GivenBundleController("../../api/testdata/packagebundlecontroller.yaml")
-	assert.NoError(t, err)
-
-	_, err = GivenPackageBundle("../../api/testdata/bundle_two.yaml")
-	assert.NoError(t, err)
-
-	_, err = GivenPackageBundle("../../api/testdata/bundle_one.yaml")
-	assert.NoError(t, err)
-
-	_, err = GivenPackage("../../api/testdata/test.yaml")
-	assert.NoError(t, err)
-}

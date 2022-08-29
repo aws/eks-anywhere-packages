@@ -1,11 +1,12 @@
-package file
+package testutil
 
 import (
 	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/file"
 )
 
-func givenFile(file string, config KindAccessor) error {
-	reader := NewFileReader(file)
+func givenFile(filename string, config file.KindAccessor) error {
+	reader := file.NewFileReader(filename)
 	err := reader.Initialize(config)
 	if err != nil {
 		return err
@@ -21,7 +22,7 @@ func GivenPackage(fileName string) (*v1alpha1.Package, error) {
 
 func GivenPackageBundle(filename string) (*v1alpha1.PackageBundle, error) {
 	config := &v1alpha1.PackageBundle{}
-	reader := NewFileReader(filename + ".signed")
+	reader := file.NewFileReader(filename + ".signed")
 	initError := reader.Initialize(config)
 	if initError != nil {
 		return nil, initError
