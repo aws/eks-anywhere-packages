@@ -9,7 +9,7 @@ The steps to create a new release of EKS-A Package Controller
     * Run `make release` and update the CHECKSUMS file
     * Update the release in the README
     * Create a pull request and get it merged
-1. Update the BUNDLE_NUMBER in https://github.com/aws/eks-anywhere/tree/release-0.11/release/triggers/bundle-release
+1. Update the BUNDLE_NUMBER in https://github.com/aws/eks-anywhere/tree/release-<RELEASE-NUMBER>/release/triggers/bundle-release
     * Development
     * Production
 
