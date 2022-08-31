@@ -66,24 +66,9 @@ func splitECRName(s string) (string, string, error) {
 	chartNameList := strings.Split(s, "/")
 	// Scenarios for ECR Public which contain and extra "/"
 	if strings.Contains(chartNameList[0], "public.ecr.aws") {
-		if len(chartNameList) == 3 {
-			return chartNameList[2], chartNameList[2], nil
-		}
-		// Scenario's where we use Public ECR it's adding an extra /
-		if len(chartNameList) == 4 {
-			return fmt.Sprintf("%s/%s", chartNameList[2], chartNameList[3]), chartNameList[3], nil
-		}
-		if len(chartNameList) > 4 {
-			return strings.Join(chartNameList[2:], "/"), chartNameList[len(chartNameList)-1], nil
-		}
+		return strings.Join(chartNameList[2:], "/"), chartNameList[len(chartNameList)-1], nil
 	}
-	if len(chartNameList) == 2 {
-		return chartNameList[1], chartNameList[1], nil
-	}
-	if len(chartNameList) == 3 {
-		return fmt.Sprintf("%s/%s", chartNameList[1], chartNameList[2]), chartNameList[2], nil
-	}
-	if len(chartNameList) > 3 {
+	if len(chartNameList) > 1 {
 		return strings.Join(chartNameList[1:], "/"), chartNameList[len(chartNameList)-1], nil
 	}
 	return "", "", fmt.Errorf("Error: %s", "Failed parsing chartName, check the input URI is a valid ECR URI")
