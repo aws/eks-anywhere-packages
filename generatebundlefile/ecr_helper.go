@@ -73,12 +73,18 @@ func splitECRName(s string) (string, string, error) {
 		if len(chartNameList) == 4 {
 			return fmt.Sprintf("%s/%s", chartNameList[2], chartNameList[3]), chartNameList[3], nil
 		}
+		if len(chartNameList) > 4 {
+			return strings.Join(chartNameList[2:], "/"), chartNameList[4], nil
+		}
 	}
 	if len(chartNameList) == 2 {
 		return chartNameList[1], chartNameList[1], nil
 	}
 	if len(chartNameList) == 3 {
 		return fmt.Sprintf("%s/%s", chartNameList[1], chartNameList[2]), chartNameList[2], nil
+	}
+	if len(chartNameList) > 3 {
+		return strings.Join(chartNameList[1:], "/"), chartNameList[3], nil
 	}
 	return "", "", fmt.Errorf("Error: %s", "Failed parsing chartName, check the input URI is a valid ECR URI")
 }
