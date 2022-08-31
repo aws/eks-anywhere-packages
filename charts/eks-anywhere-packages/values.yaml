@@ -71,6 +71,9 @@ controller:
   tag: "{{eks-anywhere-packages}}"
   # -- Whether to turn on Webhooks for the controller image
   enableWebhooks: "true"
+  HTTP_PROXY: ""
+  HTTPS_PROXY: ""
+  NO_PROXY: ""
   # -- Additional environment variables for the controller pod.
   # - name: EKSA_PUBLIC_KEY
   #   value: ""
