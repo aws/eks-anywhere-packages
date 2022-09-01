@@ -96,6 +96,7 @@ spec:
                 - ignored
                 - active
                 - disconnected
+                - upgrade available
                 type: string
             type: object
         type: object
