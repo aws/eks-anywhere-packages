@@ -87,7 +87,7 @@ type PackageBundleControllerSpec struct {
 	BundleRepository string `json:"bundleRepository"`
 }
 
-// +kubebuilder:validation:Enum=ignored;active;disconnected
+// +kubebuilder:validation:Enum=ignored;active;disconnected;upgrade available
 type BundleControllerStateEnum string
 
 const (
