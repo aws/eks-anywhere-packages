@@ -42,3 +42,9 @@ spec:
                       name: aws-secret
                       key: REGION
                       optional: true
+                - name: HTTP_PROXY
+                  value: {{ .Values.proxy.HTTP_PROXY | quote}}
+                - name: HTTPS_PROXY
+                  value: {{ .Values.proxy.HTTPS_PROXY | quote}}
+                - name: NO_PROXY
+                  value: {{ .Values.proxy.NO_PROXY | quote}}

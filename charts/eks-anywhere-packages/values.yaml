@@ -18,6 +18,10 @@ sourceRegistry: public.ecr.aws/eks-anywhere
 clusterName: eksa-packages-bundle-controller
 # -- Image pull policy for Docker images.
 imagePullPolicy: IfNotPresent
+proxy:
+  HTTP_PROXY: ""
+  HTTPS_PROXY: ""
+  NO_PROXY: ""
 serviceAccount:
   # -- The name of the ServiceAccount to use.
   name: "eks-anywhere-packages-serviceaccount"
