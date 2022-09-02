@@ -8,7 +8,7 @@ packages:
         repository: hello-eks-anywhere
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 0.1.1-083e68edbbc62ca0228a5669e89e4d3da99ff73b	
+            - name: 0.1.1-083e68edbbc62ca0228a5669e89e4d3da99ff73b
   - org: harbor
     projects:
       - name: harbor
