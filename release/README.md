@@ -3,7 +3,7 @@
 The steps to create a new release of EKS-A Package Controller
 
 1. Tag the repository for example `git tag v0.2.2`
-1. Push the tag `git push :v0.2.2`
+1. Push the tag `git push upstream :v0.2.2`
 1. Update the build tooling:
     * Update the GIT_TAG https://github.com/aws/eks-anywhere-build-tooling/blob/main/projects/aws/eks-anywhere-packages/GIT_TAG
     * Run `make release` and update the CHECKSUMS file
