@@ -16,6 +16,7 @@ func givenFile(filename string, config file.KindAccessor) error {
 
 func GivenPackage(fileName string) (*v1alpha1.Package, error) {
 	config := &v1alpha1.Package{}
+
 	err := givenFile(fileName, config)
 	return config, err
 }

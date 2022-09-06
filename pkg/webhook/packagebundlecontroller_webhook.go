@@ -51,7 +51,6 @@ func InitActiveBundleValidator(mgr ctrl.Manager) error {
 }
 
 func (v *activeBundleValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
-
 	pbc := &v1alpha1.PackageBundleController{}
 	err := v.decoder.Decode(req, pbc)
 	if err != nil {
