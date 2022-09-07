@@ -71,7 +71,7 @@ func NewPackageReconciler(client client.Client, scheme *runtime.Scheme,
 		Manager:       manager,
 		bundleManager: bundleManager,
 		bundleClient:  bundleClient,
-		Log:           log.WithName(packageName),
+		Log:           log,
 	}
 }
 
