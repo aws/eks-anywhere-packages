@@ -54,7 +54,7 @@ func NewPackageBundleReconciler(client client.Client, scheme *runtime.Scheme,
 	return &(PackageBundleReconciler{
 		Client:         client,
 		Scheme:         scheme,
-		Log:            log.WithName(packageBundleName),
+		Log:            log,
 		bundleClient:   bundleClient,
 		registryClient: registryClient,
 		bundleManager:  bundleManager,
