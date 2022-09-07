@@ -45,11 +45,27 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-.PHONY: fmt
-fmt: ## Run gofmt against code.
+$(GOBIN)/gci:
 	$(GO) install github.com/daixiang0/gci@v0.6.3
-	find . -name '*go' | grep -v mock | xargs gofmt -s -w
-	find . -name '*go' | grep -v mock | xargs gci write --skip-generated -s standard,default -s 'prefix(github.com/aws/eks-anywhere-packages)'
+
+SRC_FILES = $(shell git ls-files --exclude-standard | grep '\.go$' | grep -v '/mocks/\|zz_generated\.')
+
+.PHONY: fmt
+fmt: run-gofmt run-gci
+
+.PHONY: ls-go-files
+ls-go-files:
+	@
+
+LS_FILES_CMD = git ls-files --exclude-standard | grep '\.go$$' | grep -v '/mocks/\|zz_generated\.'
+
+.PHONY: run-gofmt
+run-gofmt: ## Run gofmt against code.
+	$(LS_FILES_CMD) | xargs gofmt -s -w
+
+.PHONY: run-gci
+run-gci: $(GOBIN)/gci ## Run gci against code.
+	$(LS_FILES_CMD) | xargs gci write --skip-generated -s standard,default -s "prefix($(shell go list -m))"
 
 .PHONY: lint
 lint: bin/golangci-lint ## Run golangci-lint
@@ -84,7 +100,7 @@ test: manifests generate vet mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ##
 $(GOBIN)/setup-envtest: ## Install setup-envtest
 	# While it's preferable not to use @latest here, we have no choice at the moment. Details at 
 	# https://github.com/kubernetes-sigs/kubebuilder/issues/2480 
-	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+	$(GO) install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 clean: ## Clean up resources created by make targets
 	rm -rf ./bin/*
