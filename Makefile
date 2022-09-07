@@ -135,7 +135,7 @@ install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config.
 	kubectl delete packages -n eksa-packages $(kubectl get packages -n eksa-packages --no-headers -o custom-columns=":metadata.name") && sleep 5 || true
 	helm delete eks-anywhere-packages || true
-	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+	$(KUSTOMIZE) build config/crd | kubectl delete -f - || true
 	kubectl delete namespace eksa-packages || true
 
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
