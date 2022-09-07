@@ -59,7 +59,7 @@ run-gofmt: ## Run gofmt against code.
 
 .PHONY: run-gci
 run-gci: $(GOBIN)/gci ## Run gci against code.
-	$(LS_FILES_CMD) | xargs gci write --skip-generated -s standard,default -s "prefix($(shell go list -m))"
+	$(LS_FILES_CMD) | xargs $(GOBIN)/gci write --skip-generated -s standard,default -s "prefix($(shell go list -m))"
 
 .PHONY: lint
 lint: bin/golangci-lint ## Run golangci-lint
