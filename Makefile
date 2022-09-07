@@ -53,10 +53,6 @@ SRC_FILES = $(shell git ls-files --exclude-standard | grep '\.go$' | grep -v '/m
 .PHONY: fmt
 fmt: run-gofmt run-gci
 
-.PHONY: ls-go-files
-ls-go-files:
-	@
-
 LS_FILES_CMD = git ls-files --exclude-standard | grep '\.go$$' | grep -v '/mocks/\|zz_generated\.'
 
 .PHONY: run-gofmt
