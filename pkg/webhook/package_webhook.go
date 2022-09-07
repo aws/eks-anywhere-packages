@@ -129,7 +129,7 @@ func validatePackage(p *v1alpha1.Package, jsonSchema []byte) (*gojsonschema.Resu
 
 	packageConfigString := string(packageConfigBytes)
 	if p.Spec.Config == "" {
-		packageConfigString = fmt.Sprintf("{}")
+		packageConfigString = "{}"
 	}
 
 	configToValidate := gojsonschema.NewStringLoader(packageConfigString)
