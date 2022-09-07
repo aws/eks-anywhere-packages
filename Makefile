@@ -48,8 +48,6 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 $(GOBIN)/gci:
 	$(GO) install github.com/daixiang0/gci@v0.6.3
 
-SRC_FILES = $(shell git ls-files --exclude-standard | grep '\.go$' | grep -v '/mocks/\|zz_generated\.')
-
 .PHONY: fmt
 fmt: run-gofmt run-gci
 
