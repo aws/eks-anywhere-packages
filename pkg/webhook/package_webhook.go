@@ -57,11 +57,6 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 			fmt.Errorf("decoding request: %w", err))
 	}
 
-	// Temporary fix since testing is currently broken
-	if p.Spec.Config == "" {
-		return admission.Allowed("Package contains empty configurations")
-	}
-
 	activeBundle, err := v.BundleClient.GetActiveBundle(ctx)
 
 	if err != nil {
@@ -127,11 +122,17 @@ func validatePackage(p *v1alpha1.Package, jsonSchema []byte) (*gojsonschema.Resu
 		return nil, fmt.Errorf("error compiling schema %v", err)
 	}
 
-	packageConfig, err := yaml.YAMLToJSON([]byte(p.Spec.Config))
+	packageConfigBytes, err := yaml.YAMLToJSON([]byte(p.Spec.Config))
 	if err != nil {
 		return nil, fmt.Errorf("error converting package configurations to yaml %v", err)
 	}
-	configToValidate := gojsonschema.NewStringLoader(string(packageConfig))
+
+	packageConfigString := string(packageConfigBytes)
+	if p.Spec.Config == "" {
+		packageConfigString = "{}"
+	}
+
+	configToValidate := gojsonschema.NewStringLoader(packageConfigString)
 
 	return schema.Validate(configToValidate)
 }
