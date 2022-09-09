@@ -20,6 +20,10 @@ import (
 	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
 )
 
+const (
+	varHelmUpgradeMaxHistory = 2
+)
+
 // helmDriver implements PackageDriver to install packages from Helm charts.
 type helmDriver struct {
 	cfg        *action.Configuration
@@ -161,6 +165,8 @@ func (d *helmDriver) upgradeRelease(ctx context.Context, name string,
 	// upgrade unless changes in the values are detected. For POC, run helm
 	// every time and rely on its idempotency.
 	upgrade := action.NewUpgrade(d.cfg)
+	// Limit history saved as secret for resource limit
+	upgrade.MaxHistory = varHelmUpgradeMaxHistory
 	_, err = upgrade.RunWithContext(ctx, name, helmChart, values)
 	if err != nil {
 		return fmt.Errorf("upgrading helm release %s: %w", name, err)
