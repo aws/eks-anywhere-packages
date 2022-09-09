@@ -87,11 +87,11 @@ controller:
   # -- Resources for the controller pod.
   resources:
     requests:
-      cpu: 100m
-      memory: 50Mi
+      cpu: 150m
+      memory: 75Mi
     limits:
-      cpu: 500m
-      memory: 300Mi
+      cpu: 750m
+      memory: 450Mi
 # Additional Variables to configure cronjob
 cronjob:
   name: ecr-refresher
