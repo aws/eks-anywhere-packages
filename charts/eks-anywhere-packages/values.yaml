@@ -87,8 +87,8 @@ controller:
   # -- Resources for the controller pod.
   resources:
     requests:
-      cpu: 150m
-      memory: 75Mi
+      cpu: 100m
+      memory: 50Mi
     limits:
       cpu: 750m
       memory: 450Mi
