@@ -103,7 +103,7 @@ func (c *SDKClients) GetProfileSDKConnection(service, profile string) (*SDKClien
 }
 
 // PromoteHelmChart will take a given repository, and authFile and handle helm and image promotion for the mentioned chart.
-func (c *SDKClients) PromoteHelmChart(repository, authFile string, copyImages bool) error {
+func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImages bool) error {
 	var name, version, sha string
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -114,14 +114,14 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile string, copyImages bo
 	// The first scenario runs for flags --private-profile and --promote.
 	// The 2nd scenario runs for flags and --public-profile.
 	if c.ecrClientRelease != nil || c.ecrClient != nil {
-		name, version, sha, err = c.getNameAndVersion(repository, c.stsClient.AccountID)
+		name, version, sha, err = c.getNameAndVersion(repository, tag, c.stsClient.AccountID)
 		if err != nil {
 			return fmt.Errorf("Error getting name and version from helmchart %s", err)
 		}
 	}
 
 	if c.ecrPublicClientRelease != nil {
-		name, version, sha, err = c.getNameAndVersionPublic(repository, c.stsClient.AccountID)
+		name, version, sha, err = c.getNameAndVersionPublic(repository, tag, c.stsClient.AccountID)
 		if err != nil {
 			return fmt.Errorf("Error getting name and version from helmchart %s", err)
 		}

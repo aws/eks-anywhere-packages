@@ -97,7 +97,7 @@ func cmdPromote(packageName string) error {
 	if dockerAuth.Authfile == "" {
 		return fmt.Errorf("no authfile generated")
 	}
-	err = clients.PromoteHelmChart(packageName, dockerAuth.Authfile, false)
+	err = clients.PromoteHelmChart(packageName, dockerAuth.Authfile, "latest", false)
 	if err != nil {
 		return fmt.Errorf("promoting Helm chart: %w", err)
 	}
@@ -234,9 +234,6 @@ func cmdGenerate(opts *Options) error {
 			BundleLog.Error(err, "unable to remove docker auth file")
 			os.Exit(1)
 		}
-
-		// Write list of bundle structs into Bundle CRD files
-		BundleLog.Info("In Progress: Writing bundle to output")
 		bundle := AddMetadata(addOnBundleSpec, name)
 
 		// We will make a compound check for public and private profile after the launch once we want to stop
@@ -277,11 +274,13 @@ func cmdGenerate(opts *Options) error {
 				os.Exit(1)
 			}
 			for _, charts := range addOnBundleSpec.Packages {
-				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, false)
-				if err != nil {
-					BundleLog.Error(err, "promoting helm chart",
-						"name", charts.Source.Repository)
-					os.Exit(1)
+				for _, versions := range charts.Source.Versions {
+					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, false)
+					if err != nil {
+						BundleLog.Error(err, "promoting helm chart",
+							"name", charts.Source.Repository)
+						os.Exit(1)
+					}
 				}
 			}
 			err = dockerAuth.Remove()
@@ -325,20 +324,20 @@ func cmdGenerate(opts *Options) error {
 				os.Exit(1)
 			}
 			for _, charts := range addOnBundleSpec.Packages {
-				err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, true)
-				if err != nil {
-					BundleLog.Error(err, "promoting helm chart",
-						"name", charts.Source.Repository)
-					os.Exit(1)
+				for _, versions := range charts.Source.Versions {
+					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, true)
+					if err != nil {
+						BundleLog.Error(err, "promoting helm chart",
+							"name", charts.Source.Repository)
+						os.Exit(1)
+					}
 				}
-
 			}
 			err = dockerAuth.Remove()
 			if err != nil {
 				BundleLog.Error(err, "removing docker auth file")
 				os.Exit(1)
 			}
-
 			return nil
 		}
 
@@ -370,6 +369,7 @@ func cmdGenerate(opts *Options) error {
 			os.Exit(1)
 		}
 
+		BundleLog.Info("In Progress: Writing bundle to output")
 		outputDir := filepath.Join(pwd, opts.outputFolder)
 		outputPath, err := NewWriter(outputDir)
 		if err != nil {

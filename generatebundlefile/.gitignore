@@ -7,4 +7,4 @@ output-*/
 bin/
 hack/pullpush.sh
 hello-eks-anywhere/
-
+data/tests

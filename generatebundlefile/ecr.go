@@ -180,7 +180,7 @@ func (c *ecrClient) GetAuthToken() (string, error) {
 	return authToken, nil
 }
 
-//NewAuthFile writes a new Docker Authfile from the DockerAuth struct which a user to be used by Skopeo or Helm.
+// NewAuthFile writes a new Docker Authfile from the DockerAuth struct which a user to be used by Skopeo or Helm.
 func NewAuthFile(dockerstruct *DockerAuth) (DockerAuthFile, error) {
 	jsonbytes, err := json.Marshal(*dockerstruct)
 	auth := DockerAuthFile{}
@@ -206,14 +206,33 @@ func (d DockerAuthFile) Remove() error {
 }
 
 // getNameAndVersionPrivate looks up the latest pushed helm chart's tag from a given repo name from ECR.
-func (c *SDKClients) getNameAndVersion(s, accountID string) (string, string, string, error) {
+func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string, string, string, error) {
 	var version string
 	var sha string
-	splitname := strings.Split(s, ":") // TODO add a regex filter
+	splitname := strings.Split(repoName, ":") // TODO add a regex filter
 	name := splitname[0]
-	if len(splitname) == 1 {
+	ecrname := fmt.Sprintf("%s.dkr.ecr.us-west-2.amazonaws.com/%s", accountID, name)
+	if len(splitname) > 0 {
+		// If for promotion, we use a named tag instead of latest we do a lookup for that tag.
+		if !strings.Contains(tag, "latest") {
+			var imagelookup []ecrtypes.ImageIdentifier
+			imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageTag: &tag})
+			ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
+				RepositoryName: aws.String(repoName),
+				ImageIds:       imagelookup,
+			})
+			if err != nil {
+				return "", "", "", fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR. %s", err)
+			}
+			for _, images := range ImageDetails {
+				if len(images.ImageTags) == 1 {
+					return ecrname, tag, *images.ImageDigest, nil
+				}
+			}
+		}
+		// If for promotion we use latest tag we do a time based lookup to find the latest.
 		ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
-			RepositoryName: aws.String(s),
+			RepositoryName: aws.String(repoName),
 		})
 		if err != nil {
 			return "", "", "", err
@@ -227,11 +246,9 @@ func (c *SDKClients) getNameAndVersion(s, accountID string) (string, string, str
 			images = append(images, details)
 		}
 		version, sha, err = getLastestHelmTagandSha(images)
-		ecrname := fmt.Sprintf("%s.dkr.ecr.us-west-2.amazonaws.com/%s", accountID, name)
 		return ecrname, version, sha, err
 	}
-	version = splitname[1]
-	return name, version, sha, nil
+	return "", "", "", fmt.Errorf("Empty input given for repository to function.")
 }
 
 // shaExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
