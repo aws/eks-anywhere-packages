@@ -29,4 +29,4 @@ packages:
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 3.0.0-0d4e0476a740b48a232041597ded2031595d9409
+            - name: 3.0.0-79f09faaa2f14bd2fcc7e7ed146b243504237e83	
