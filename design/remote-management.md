@@ -64,4 +64,4 @@ Several changes are required in the CLI:
 * during the package controller installation command create the PackageBundleController custom resource
 * pass cluster name to imperative installation
 * add new command to list PackageBundleControllers
-
+* do `kubectl delete ns eksa-packages-$clusterName and `kubectl delete pbc $clusterName` when performing a cluster delete
