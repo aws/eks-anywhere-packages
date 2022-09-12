@@ -37,6 +37,7 @@ spec:
   packageName: hello-eks-anywhere
 ```
 
+When a workload cluster is deleted, the namespace associated should be deleted.
 # Helm Driver
 The helm driver will need to be told where to install the package and it will need to set the kubeconfig for the target cluster. In the NewHelm function, we would have to set the `settings.KubeConfig` value to the location of the kubeconfig file. The easiest way to get the kubeconfig file would be to get it on the fly from the secret. CAPI creates a secret for each cluster with the administrative credentials and we can read this file and create a temporary file for the helm install command. There probably is some optimization here.
 
