@@ -85,6 +85,18 @@ func (bc *bundleClient) GetPackageBundleController(ctx context.Context) (*api.Pa
 	})
 	err := bc.List(ctx, u)
 	if err != nil {
+		// if an error occurs, it is highly likely this is a workload cluster.
+		// for a workload cluster, fetch the pbcs in the cluster
+		// since there will only be a single pbc currently, we use the first pbc found
+		pbcList := &api.PackageBundleControllerList{}
+		err = bc.List(ctx, pbcList)
+		if err != nil {
+			return nil, fmt.Errorf("listing Packagecontrollers: %v", err)
+		}
+		items := pbcList.Items
+		if len(items) > 0 {
+			return &items[0], nil
+		}
 		return nil, fmt.Errorf("listing KubeadmControlPlane: %v", err)
 	}
 
