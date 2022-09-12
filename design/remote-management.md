@@ -32,7 +32,7 @@ apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: Package
 metadata:
   name: prod-hello
-  namespace: eksa-packages-prod
+  namespace: eksa-packages-billy
 spec:
   packageName: hello-eks-anywhere
 ```
