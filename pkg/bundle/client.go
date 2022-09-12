@@ -97,6 +97,7 @@ func (bc *bundleClient) GetPackageBundleController(ctx context.Context) (*api.Pa
 		if len(items) > 0 {
 			return &items[0], nil
 		}
+		return nil, fmt.Errorf("listing KubeadmControlPlane: %v", err)
 	}
 
 	kac := u.Items
