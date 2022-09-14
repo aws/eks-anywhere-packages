@@ -12,6 +12,9 @@ import (
 // Its first implementation will be Helm, but the interface is used to enhance
 // and simplify testing as well as abstract the details of Helm.
 type PackageDriver interface {
+	// Initialize the package driver
+	Initialize(ctx context.Context, clusterName string) error
+
 	// Install or upgrade an package.
 	Install(ctx context.Context, name string, namespace string, source api.PackageOCISource, values map[string]interface{}) error
 

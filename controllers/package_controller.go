@@ -91,7 +91,8 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	if err != nil {
 		return err
 	}
-	helmDriver, err := driver.NewHelm(log, secretAuth)
+	kubeconfigClient := auth.NewKubeconfigClient(mgr.GetClient())
+	helmDriver, err := driver.NewHelm(log, secretAuth, kubeconfigClient)
 	if err != nil {
 		return fmt.Errorf("creating helm driver: %w", err)
 	}
@@ -162,10 +163,6 @@ func (r *PackageReconciler) mapBundleChangesToPackageUpdate(_ client.Object) (re
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	if req.Namespace != api.PackageNamespace {
-		r.Log.V(6).Info("Ignoring:", "NamespacedName", req.NamespacedName)
-		return ctrl.Result{Requeue: false}, nil
-	}
 	r.Log.V(6).Info("Reconcile:", "NamespacedName", req.NamespacedName)
 
 	// Get the CRD object from the k8s API.
@@ -181,7 +178,7 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			return ctrl.Result{}, err
 		}
 
-		managerContext.SetUninstalling(req.Name)
+		managerContext.SetUninstalling(req.Namespace, req.Name)
 	} else {
 		pbc, err := r.bundleClient.GetPackageBundleController(ctx)
 		if err != nil {
@@ -223,7 +220,7 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	updateNeeded := r.Manager.Process(managerContext)
 	if updateNeeded {
-		r.Log.V(6).Info("Updating status....")
+		r.Log.V(6).Info("Updating status", "namespace", managerContext.Package.Namespace, "name", managerContext.Package.Name, "state", managerContext.Package.Status.State)
 		if err = r.Status().Update(ctx, &managerContext.Package); err != nil {
 			return ctrl.Result{RequeueAfter: managerContext.RequeueAfter}, err
 		}

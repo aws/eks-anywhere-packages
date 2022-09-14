@@ -17,6 +17,7 @@ import (
 
 const packageName = "packageName"
 const packageInstance = "packageInstance"
+const clusterName = "clusterName"
 const originalConfiguration = `
 make: willys
 models:
@@ -59,7 +60,7 @@ func givenPackage() api.Package {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      packageInstance,
-			Namespace: "eksa-packages",
+			Namespace: "eksa-packages-" + clusterName,
 		},
 		Spec: api.PackageSpec{
 			PackageName: packageName,
@@ -103,7 +104,7 @@ func TestManagerContext_SetUninstalling(t *testing.T) {
 	expectedName := "billy"
 	expectedState := api.StateUninstalling
 
-	sut.SetUninstalling(expectedName)
+	sut.SetUninstalling(api.PackageNamespace+"-"+clusterName, expectedName)
 
 	assert.Equal(t, expectedName, sut.Package.Name)
 	assert.Equal(t, expectedState, sut.Package.Status.State)
@@ -173,15 +174,26 @@ func TestManagerLifecycle(t *testing.T) {
 	t.Run("installing installs", func(t *testing.T) {
 		mc, mockDriver := givenMocks(t)
 		mc.Package.Status.State = api.StateInstalling
+		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
 		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.ObjectMeta.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any()).Return(nil)
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 60*time.Second, "")
 	})
 
+	t.Run("installing initialize fails", func(t *testing.T) {
+		mc, mockDriver := givenMocks(t)
+		mc.Package.Status.State = api.StateInstalling
+		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(fmt.Errorf("boom"))
+		result := sut.Process(mc)
+		assert.True(t, result)
+		thenManagerContext(t, mc, api.StateInstalling, expectedSource, 60*time.Second, "boom")
+	})
+
 	t.Run("installing install fails", func(t *testing.T) {
 		mc, mockDriver := givenMocks(t)
 		mc.Package.Status.State = api.StateInstalling
+		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
 		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.ObjectMeta.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any()).Return(fmt.Errorf("boom"))
 		result := sut.Process(mc)
 		assert.True(t, result)
@@ -204,6 +216,7 @@ func TestManagerLifecycle(t *testing.T) {
 		mc.Package.Status.Source = expectedSource
 		mc.Source = expectedSource
 		mc.Package.Spec.Config = newConfiguration
+		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
 		mockDriver.EXPECT().IsConfigChanged(mc.Ctx, mc.Package.Name, gomock.Any()).Return(true, nil)
 		result := sut.Process(mc)
 		assert.True(t, result)
@@ -216,10 +229,23 @@ func TestManagerLifecycle(t *testing.T) {
 		mc.Package.Status.Source = expectedSource
 		mc.Source = expectedSource
 		mc.Package.Spec.Config = originalConfiguration
+		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
 		mockDriver.EXPECT().IsConfigChanged(mc.Ctx, mc.Package.Name, gomock.Any()).Return(false, nil)
 		result := sut.Process(mc)
 		assert.False(t, result)
 		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 180*time.Second, "")
+	})
+
+	t.Run("installed initialize error", func(t *testing.T) {
+		mc, mockDriver := givenMocks(t)
+		mc.Package.Status.State = api.StateInstalled
+		mc.Package.Status.Source = expectedSource
+		mc.Source = expectedSource
+		mc.Package.Spec.Config = newConfiguration
+		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(fmt.Errorf("boom"))
+		result := sut.Process(mc)
+		assert.True(t, result)
+		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 60*time.Second, "boom")
 	})
 
 	t.Run("installed IsConfigChanged error", func(t *testing.T) {
@@ -228,6 +254,7 @@ func TestManagerLifecycle(t *testing.T) {
 		mc.Package.Status.Source = expectedSource
 		mc.Source = expectedSource
 		mc.Package.Spec.Config = newConfiguration
+		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
 		mockDriver.EXPECT().IsConfigChanged(mc.Ctx, mc.Package.Name, gomock.Any()).Return(true, fmt.Errorf("boom"))
 		result := sut.Process(mc)
 		assert.True(t, result)
@@ -239,7 +266,7 @@ func TestManagerLifecycle(t *testing.T) {
 		mc.Package.Status.State = api.StateInstalled
 		mc.Package.Status.Source = expectedSource
 		mc.Source = expectedSource
-		mc.Package.Spec.Config = "bogus configuration ---- whatevs"
+		mc.Package.Spec.Config = "bogus configuration ---- what ever"
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 30*time.Second, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type map[string]interface {}")
@@ -247,17 +274,28 @@ func TestManagerLifecycle(t *testing.T) {
 
 	t.Run("Uninstalling works", func(t *testing.T) {
 		mc, mockDriver := givenMocks(t)
-		mc.SetUninstalling(packageInstance)
-		mockDriver.EXPECT().Uninstall(mc.Ctx, packageInstance).Return(nil)
+		mc.SetUninstalling(api.PackageNamespace+"-"+clusterName, clusterName)
+		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
+		mockDriver.EXPECT().Uninstall(mc.Ctx, clusterName).Return(nil)
 		result := sut.Process(mc)
 		assert.False(t, result)
 		thenManagerContext(t, mc, api.StateUninstalling, expectedEmptySource, time.Duration(0), "")
 	})
 
+	t.Run("Uninstalling initialize fails", func(t *testing.T) {
+		mc, mockDriver := givenMocks(t)
+		mc.SetUninstalling(api.PackageNamespace+"-"+clusterName, clusterName)
+		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(fmt.Errorf("init crunch"))
+		result := sut.Process(mc)
+		assert.False(t, result)
+		thenManagerContext(t, mc, api.StateUninstalling, expectedEmptySource, 60*time.Second, "init crunch")
+	})
+
 	t.Run("Uninstalling fails", func(t *testing.T) {
 		mc, mockDriver := givenMocks(t)
-		mc.SetUninstalling(packageInstance)
-		mockDriver.EXPECT().Uninstall(mc.Ctx, packageInstance).Return(fmt.Errorf("crunch"))
+		mc.SetUninstalling(api.PackageNamespace+"-"+clusterName, clusterName)
+		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
+		mockDriver.EXPECT().Uninstall(mc.Ctx, clusterName).Return(fmt.Errorf("crunch"))
 		result := sut.Process(mc)
 		assert.False(t, result)
 		thenManagerContext(t, mc, api.StateUninstalling, expectedEmptySource, 60*time.Second, "crunch")
@@ -285,7 +323,7 @@ func TestManagerLifecycle(t *testing.T) {
 		mc.Package.Namespace = "default"
 		result := sut.Process(mc)
 		assert.True(t, result)
-		thenManagerContext(t, mc, api.StateUnknown, expectedSource, time.Duration(0), "Packages must be in namespace: eksa-packages")
+		thenManagerContext(t, mc, api.StateUnknown, expectedEmptySource, time.Duration(0), "Packages namespaces must start with: eksa-packages")
 	})
 
 	t.Run("Package in wrong namespace should be ignored again", func(t *testing.T) {
@@ -294,6 +332,6 @@ func TestManagerLifecycle(t *testing.T) {
 		mc.Package.Namespace = "default"
 		result := sut.Process(mc)
 		assert.False(t, result)
-		thenManagerContext(t, mc, api.StateUnknown, expectedEmptySource, time.Duration(0), "")
+		thenManagerContext(t, mc, api.StateUnknown, expectedEmptySource, time.Duration(0), "Packages namespaces must start with: eksa-packages")
 	})
 }

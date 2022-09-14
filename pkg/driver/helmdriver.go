@@ -26,44 +26,49 @@ const (
 
 // helmDriver implements PackageDriver to install packages from Helm charts.
 type helmDriver struct {
-	cfg        *action.Configuration
-	secretAuth auth.Authenticator
-	log        logr.Logger
-	settings   *cli.EnvSettings
+	cfg              *action.Configuration
+	secretAuth       auth.Authenticator
+	kubeconfigClient auth.KubeconfigClient
+	log              logr.Logger
+	settings         *cli.EnvSettings
 }
 
 var _ PackageDriver = (*helmDriver)(nil)
 
-func NewHelm(log logr.Logger, secretAuth auth.Authenticator) (*helmDriver, error) {
-	settings := cli.New()
-
-	authfile := secretAuth.AuthFilename()
-	// Blank authfile here is actually fine as helm registry will use default in that case
-	client, err := registry.NewClient(registry.ClientOptCredentialsFile(authfile))
-
-	if err != nil {
-		return nil, fmt.Errorf("creating registry client while initializing helm driver: %w", err)
-	}
-
-	cfg := &action.Configuration{RegistryClient: client}
-	err = cfg.Init(settings.RESTClientGetter(), settings.Namespace(),
-		os.Getenv("HELM_DRIVER"), helmLog(log))
-	if err != nil {
-		return nil, fmt.Errorf("initializing helm driver: %w", err)
-	}
-
+func NewHelm(log logr.Logger, secretAuth auth.Authenticator, kubeconfigClient auth.KubeconfigClient) (*helmDriver, error) {
 	return &helmDriver{
-		cfg:        cfg,
-		secretAuth: secretAuth,
-		log:        log,
-		settings:   settings,
+		secretAuth:       secretAuth,
+		kubeconfigClient: kubeconfigClient,
+		log:              log,
 	}, nil
+}
+
+func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err error) {
+	authorizationFileName := d.secretAuth.AuthFilename()
+	client, err := registry.NewClient(registry.ClientOptCredentialsFile(authorizationFileName))
+	if err != nil {
+		return fmt.Errorf("creating registry client for helm driver: %w", err)
+	}
+
+	kubeconfigPath, err := d.kubeconfigClient.GetKubeconfig(ctx, clusterName)
+	if err != nil {
+		return fmt.Errorf("getting kubeconfig for helm driver: %w", err)
+	}
+
+	d.settings = cli.New()
+	d.cfg = &action.Configuration{RegistryClient: client}
+	d.settings.KubeConfig = kubeconfigPath
+	err = d.cfg.Init(d.settings.RESTClientGetter(), d.settings.Namespace(), os.Getenv("HELM_DRIVER"), helmLog(d.log))
+	if err != nil {
+		return fmt.Errorf("initializing helm driver: %w", err)
+	}
+
+	return nil
 }
 
 func (d *helmDriver) Install(ctx context.Context,
 	name string, namespace string, source api.PackageOCISource, values map[string]interface{}) error {
 	var err error
-
 	install := action.NewInstall(d.cfg)
 	install.Version = source.Version
 	install.ReleaseName = name
@@ -198,9 +203,7 @@ func helmLog(log logr.Logger) action.DebugLog {
 	}
 }
 
-func (d *helmDriver) IsConfigChanged(ctx context.Context, name string,
-	values map[string]interface{}) (bool, error) {
-
+func (d *helmDriver) IsConfigChanged(_ context.Context, name string, values map[string]interface{}) (bool, error) {
 	get := action.NewGet(d.cfg)
 	rel, err := get.Run(name)
 	if err != nil {

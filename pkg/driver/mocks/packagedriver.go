@@ -35,6 +35,20 @@ func (m *MockPackageDriver) EXPECT() *MockPackageDriverMockRecorder {
 	return m.recorder
 }
 
+// Initialize mocks base method.
+func (m *MockPackageDriver) Initialize(ctx context.Context, clusterName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Initialize", ctx, clusterName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Initialize indicates an expected call of Initialize.
+func (mr *MockPackageDriverMockRecorder) Initialize(ctx, clusterName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Initialize", reflect.TypeOf((*MockPackageDriver)(nil).Initialize), ctx, clusterName)
+}
+
 // Install mocks base method.
 func (m *MockPackageDriver) Install(ctx context.Context, name, namespace string, source v1alpha1.PackageOCISource, values map[string]interface{}) error {
 	m.ctrl.T.Helper()

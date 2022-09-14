@@ -2,6 +2,7 @@ package packages
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,6 +20,7 @@ const (
 	retryLong      = time.Duration(60) * time.Second
 	retryVeryLong  = time.Duration(180) * time.Second
 	sourceRegistry = "sourceRegistry"
+	prefix         = api.PackageNamespace + "-"
 )
 
 type ManagerContext struct {
@@ -32,9 +34,17 @@ type ManagerContext struct {
 	Log           logr.Logger
 }
 
-func (mc *ManagerContext) SetUninstalling(name string) {
+func (mc *ManagerContext) SetUninstalling(namespace string, name string) {
+	mc.Package.Namespace = namespace
 	mc.Package.Name = name
 	mc.Package.Status.State = api.StateUninstalling
+}
+
+func (mc *ManagerContext) getClusterName() string {
+	if strings.HasPrefix(mc.Package.Namespace, prefix) {
+		return strings.TrimPrefix(mc.Package.Namespace, prefix)
+	}
+	return ""
 }
 
 func (mc *ManagerContext) getRegistry(values map[string]interface{}) string {
@@ -55,12 +65,6 @@ func (mc *ManagerContext) getRegistry(values map[string]interface{}) string {
 func processInitializing(mc *ManagerContext) bool {
 	mc.Log.Info("New installation", "name", mc.Package.Name)
 	mc.Package.Status.Source = mc.Source
-	if mc.Package.Namespace != api.PackageNamespace {
-		mc.Package.Status.State = api.StateUnknown
-		mc.Package.Status.Detail = "Packages must be in namespace: " + api.PackageNamespace
-		mc.RequeueAfter = retryNever
-		return true
-	}
 	mc.Package.Status.State = api.StateInstalling
 	mc.RequeueAfter = retryNow
 	return true
@@ -80,6 +84,11 @@ func processInstalling(mc *ManagerContext) bool {
 	if mc.Source.Registry == "" {
 		mc.Source.Registry = mc.PBC.GetDefaultRegistry()
 	}
+	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.getClusterName()); err != nil {
+		mc.Package.Status.Detail = err.Error()
+		mc.Log.Error(err, "Initialization failed")
+		return true
+	}
 	if err := mc.PackageDriver.Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, mc.Source, values); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Install failed")
@@ -98,33 +107,37 @@ func processInstalled(mc *ManagerContext) bool {
 		mc.Package.Status.State = api.StateUpdating
 		mc.RequeueAfter = retryShort
 		return true
-	} else {
-		var err error
-		newValues := make(map[string]interface{})
+	}
+	var err error
+	newValues := make(map[string]interface{})
 
-		err = yaml.Unmarshal([]byte(mc.Package.Spec.Config), &newValues)
-		if err != nil {
-			mc.Log.Error(err, "unmarshaling current package configuration")
-			mc.Package.Status.Detail = err.Error()
-			mc.RequeueAfter = retryShort
-			return true
-		}
+	err = yaml.Unmarshal([]byte(mc.Package.Spec.Config), &newValues)
+	if err != nil {
+		mc.Log.Error(err, "unmarshaling current package configuration")
+		mc.Package.Status.Detail = err.Error()
+		mc.RequeueAfter = retryShort
+		return true
+	}
 
-		newValues[sourceRegistry] = mc.getRegistry(newValues)
-		needs, err := mc.PackageDriver.IsConfigChanged(mc.Ctx, mc.Package.Name,
-			newValues)
-		if err != nil {
-			mc.Log.Error(err, "checking necessity of reconfiguration")
-			mc.Package.Status.Detail = err.Error()
-			mc.RequeueAfter = retryLong
-			return true
-		}
-		if needs {
-			mc.Log.Info("configuration change detected, upgrading")
-			mc.Package.Status.State = api.StateUpdating
-			mc.RequeueAfter = retryShort
-			return true
-		}
+	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.getClusterName()); err != nil {
+		mc.Package.Status.Detail = err.Error()
+		mc.Log.Error(err, "Initialization failed")
+		return true
+	}
+
+	newValues[sourceRegistry] = mc.getRegistry(newValues)
+	needs, err := mc.PackageDriver.IsConfigChanged(mc.Ctx, mc.Package.Name, newValues)
+	if err != nil {
+		mc.Log.Error(err, "checking necessity of reconfiguration")
+		mc.Package.Status.Detail = err.Error()
+		mc.RequeueAfter = retryLong
+		return true
+	}
+	if needs {
+		mc.Log.Info("configuration change detected, upgrading")
+		mc.Package.Status.State = api.StateUpdating
+		mc.RequeueAfter = retryShort
+		return true
 	}
 	mc.RequeueAfter = retryVeryLong
 
@@ -132,6 +145,11 @@ func processInstalled(mc *ManagerContext) bool {
 }
 
 func processUninstalling(mc *ManagerContext) bool {
+	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.getClusterName()); err != nil {
+		mc.Package.Status.Detail = err.Error()
+		mc.Log.Error(err, "Initialization failed")
+		return false
+	}
 	if err := mc.PackageDriver.Uninstall(mc.Ctx, mc.Package.Name); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Uninstall failed")
@@ -197,10 +215,21 @@ func (m manager) getState(stateName api.StateEnum) func(*ManagerContext) bool {
 
 func (m manager) Process(mc *ManagerContext) bool {
 	mc.RequeueAfter = retryLong
+	if !strings.HasPrefix(mc.Package.Namespace, prefix) {
+		if mc.Package.Namespace != api.PackageNamespace {
+			mc.Package.Status.Detail = "Packages namespaces must start with: " + api.PackageNamespace
+			mc.RequeueAfter = retryNever
+			if mc.Package.Status.State == api.StateUnknown {
+				return false
+			}
+			mc.Package.Status.State = api.StateUnknown
+			return true
+		}
+	}
 	stateFunc := m.getState(mc.Package.Status.State)
 	result := stateFunc(mc)
 	if result {
-		mc.Log.Info("Updating", "name", mc.Package.Name, "state", mc.Package.Status.State, "chart", mc.Package.Status.Source)
+		mc.Log.Info("Updating", "namespace", mc.Package.Namespace, "name", mc.Package.Name, "state", mc.Package.Status.State, "chart", mc.Package.Status.Source)
 	}
 	return result
 }
