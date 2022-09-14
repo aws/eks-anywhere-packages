@@ -15,7 +15,42 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/driver/mocks"
 )
 
+const packageName = "packageName"
+const packageInstance = "packageInstance"
+const originalConfiguration = `
+make: willys
+models:
+  mb: "41"
+  cj2a:
+    year: "45"
+`
+const newConfiguration = `
+make: willys
+models:
+  mc: "49"
+  cj3a:
+    year: "49"
+`
+
 type PackageOCISource = api.PackageOCISource
+
+var expectedEmptySource = PackageOCISource{
+	Registry:   "",
+	Repository: "",
+	Digest:     "",
+}
+
+var expectedSource = PackageOCISource{
+	Registry:   "public.ecr.aws/j0a1m4z9/",
+	Repository: "hello-eks-anywhere",
+	Digest:     "sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
+}
+
+var expectedUpdate = PackageOCISource{
+	Registry:   "public.ecr.aws/j0a1m4z9/",
+	Repository: "hello-eks-anywhere",
+	Digest:     "sha256:deadbeefc7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
+}
 
 func givenPackage() api.Package {
 	return api.Package{
@@ -23,16 +58,12 @@ func givenPackage() api.Package {
 			Kind: "Package",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "bobby",
+			Name:      packageInstance,
 			Namespace: "eksa-packages",
 		},
-		Spec: api.PackageSpec{Config: `
-make: willys
-models:
-  mb: "41"
-  cj2a:
-    year: "45"
-`,
+		Spec: api.PackageSpec{
+			PackageName: packageName,
+			Config:      originalConfiguration,
 		},
 	}
 }
@@ -42,17 +73,14 @@ func givenMockDriver(t *testing.T) *mocks.MockPackageDriver {
 	return mocks.NewMockPackageDriver(gomockController)
 }
 
-func givenManagerContext(driver *mocks.MockPackageDriver) *ManagerContext {
+func givenMocks(t *testing.T) (*ManagerContext, *mocks.MockPackageDriver) {
 	pkg := givenPackage()
+	mockDriver := givenMockDriver(t)
 	return &ManagerContext{
 		Ctx:           context.Background(),
 		Package:       pkg,
-		PackageDriver: driver,
-		Source: PackageOCISource{
-			Registry:   "public.ecr.aws/j0a1m4z9/",
-			Repository: "hello-eks-anywhere",
-			Digest:     "sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
-		},
+		PackageDriver: mockDriver,
+		Source:        expectedSource,
 		PBC: api.PackageBundleController{
 			Spec: api.PackageBundleControllerSpec{
 				PrivateRegistry: "privateRegistry",
@@ -60,7 +88,7 @@ func givenManagerContext(driver *mocks.MockPackageDriver) *ManagerContext {
 		},
 		RequeueAfter: time.Duration(100),
 		Log:          logr.Discard(),
-	}
+	}, mockDriver
 }
 
 func thenManagerContext(t *testing.T, mc *ManagerContext, expectedState api.StateEnum, expectedSource PackageOCISource, expectedRequeue time.Duration, expectedDetail string) {
@@ -71,7 +99,7 @@ func thenManagerContext(t *testing.T, mc *ManagerContext, expectedState api.Stat
 }
 
 func TestManagerContext_SetUninstalling(t *testing.T) {
-	sut := givenManagerContext(givenMockDriver(t))
+	sut, _ := givenMocks(t)
 	expectedName := "billy"
 	expectedState := api.StateUninstalling
 
@@ -83,7 +111,7 @@ func TestManagerContext_SetUninstalling(t *testing.T) {
 
 func TestManagerContext_getRegistry(t *testing.T) {
 	t.Run("registry from values", func(t *testing.T) {
-		sut := givenManagerContext(givenMockDriver(t))
+		sut, _ := givenMocks(t)
 		values := make(map[string]interface{})
 		values["sourceRegistry"] = "valuesRegistry"
 
@@ -91,14 +119,14 @@ func TestManagerContext_getRegistry(t *testing.T) {
 	})
 
 	t.Run("registry from privateRegistry", func(t *testing.T) {
-		sut := givenManagerContext(givenMockDriver(t))
+		sut, _ := givenMocks(t)
 		values := make(map[string]interface{})
 
 		assert.Equal(t, "privateRegistry", sut.getRegistry(values))
 	})
 
 	t.Run("registry from bundle package", func(t *testing.T) {
-		sut := givenManagerContext(givenMockDriver(t))
+		sut, _ := givenMocks(t)
 		values := make(map[string]interface{})
 		sut.PBC.Spec.PrivateRegistry = ""
 
@@ -106,7 +134,7 @@ func TestManagerContext_getRegistry(t *testing.T) {
 	})
 
 	t.Run("registry from default gated registry", func(t *testing.T) {
-		sut := givenManagerContext(givenMockDriver(t))
+		sut, _ := givenMocks(t)
 		values := make(map[string]interface{})
 		sut.PBC.Spec.PrivateRegistry = ""
 		sut.Source.Registry = ""
@@ -122,125 +150,150 @@ func TestNewManager(t *testing.T) {
 }
 
 func TestManagerLifecycle(t *testing.T) {
-	driver := givenMockDriver(t)
-	mc := givenManagerContext(driver)
 	sut := NewManager()
-	expectedSource := PackageOCISource{
-		Registry:   "public.ecr.aws/j0a1m4z9/",
-		Repository: "hello-eks-anywhere",
-		Digest:     "sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
-	}
-	expectedUpdate := PackageOCISource{
-		Registry:   "public.ecr.aws/j0a1m4z9/",
-		Repository: "hello-eks-anywhere",
-		Digest:     "sha256:deadbeefc7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
-	}
 
-	t.Run("Package set for install should trigger `Installing` state for the correct package", func(t *testing.T) {
-		assert.Equal(t, api.StateEnum(""), mc.Package.Status.State)
+	t.Run("New package added with no state initializing", func(t *testing.T) {
+		mc, _ := givenMocks(t)
+		mc.Package.Status.State = ""
 		expectedRequeue := time.Duration(1)
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalling, expectedSource, expectedRequeue, "")
 	})
 
-	t.Run("Packages in the `installing` state should proceed with installation", func(t *testing.T) {
-		expectedRequeue := time.Duration(60 * time.Second)
-		driver.EXPECT().Install(mc.Ctx, mc.Package.ObjectMeta.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any())
+	t.Run("New package added with state initializing", func(t *testing.T) {
+		mc, _ := givenMocks(t)
+		mc.Package.Status.State = api.StateInitializing
+		expectedRequeue := time.Duration(1)
 		result := sut.Process(mc)
 		assert.True(t, result)
-		thenManagerContext(t, mc, api.StateInstalled, expectedSource, expectedRequeue, "")
+		thenManagerContext(t, mc, api.StateInstalling, expectedSource, expectedRequeue, "")
 	})
 
-	t.Run("Successfully installed packages are re-checked every 180s", func(t *testing.T) {
-		expectedRequeue := time.Duration(180 * time.Second)
-		driver.EXPECT().IsConfigChanged(mc.Ctx, gomock.Any(), gomock.Any())
+	t.Run("installing installs", func(t *testing.T) {
+		mc, mockDriver := givenMocks(t)
+		mc.Package.Status.State = api.StateInstalling
+		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.ObjectMeta.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any()).Return(nil)
 		result := sut.Process(mc)
-		assert.False(t, result)
-		thenManagerContext(t, mc, api.StateInstalled, expectedSource, expectedRequeue, "")
+		assert.True(t, result)
+		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 60*time.Second, "")
 	})
 
-	t.Run("Updating the Source triggers an packages upgrade", func(t *testing.T) {
-		expectedRequeue := time.Duration(30 * time.Second)
+	t.Run("installing install fails", func(t *testing.T) {
+		mc, mockDriver := givenMocks(t)
+		mc.Package.Status.State = api.StateInstalling
+		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.ObjectMeta.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any()).Return(fmt.Errorf("boom"))
+		result := sut.Process(mc)
+		assert.True(t, result)
+		thenManagerContext(t, mc, api.StateInstalling, expectedSource, 60*time.Second, "boom")
+	})
+
+	t.Run("installed upgrade triggered", func(t *testing.T) {
+		mc, _ := givenMocks(t)
+		mc.Package.Status.State = api.StateInstalled
+		mc.Package.Status.Source = expectedSource
 		mc.Source = expectedUpdate
 		result := sut.Process(mc)
 		assert.True(t, result)
-		thenManagerContext(t, mc, api.StateUpdating, expectedUpdate, expectedRequeue, "")
+		thenManagerContext(t, mc, api.StateUpdating, expectedUpdate, 30*time.Second, "")
 	})
 
-	t.Run("Updating the Config triggers an upgrade", func(t *testing.T) {
-		driver.EXPECT().
-			IsConfigChanged(mc.Ctx, mc.Package.Name, gomock.Any()).
-			Return(true, nil)
+	t.Run("installed configuration update", func(t *testing.T) {
+		mc, mockDriver := givenMocks(t)
 		mc.Package.Status.State = api.StateInstalled
-		mc.Package.Spec.Config = `
-make: willys
-models:
-  mc: "49"
-  cj3a:
-    year: "49"
-`
-
+		mc.Package.Status.Source = expectedSource
+		mc.Source = expectedSource
+		mc.Package.Spec.Config = newConfiguration
+		mockDriver.EXPECT().IsConfigChanged(mc.Ctx, mc.Package.Name, gomock.Any()).Return(true, nil)
 		result := sut.Process(mc)
 		assert.True(t, result)
-		thenManagerContext(t, mc, api.StateUpdating, mc.Source, retryShort, "")
+		thenManagerContext(t, mc, api.StateUpdating, expectedSource, 30*time.Second, "")
 	})
 
-	t.Run("ProcessBundle crashes, error is reported", func(t *testing.T) {
-		expectedRequeue := time.Duration(60 * time.Second)
-		driver.EXPECT().Install(mc.Ctx, mc.Package.ObjectMeta.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any()).Return(fmt.Errorf("boom"))
-		result := sut.Process(mc)
-		assert.True(t, result)
-		thenManagerContext(t, mc, api.StateUpdating, expectedUpdate, expectedRequeue, "boom")
-	})
-
-	t.Run("ProcessBundle successful", func(t *testing.T) {
-		expectedRequeue := time.Duration(60 * time.Second)
-		driver.EXPECT().Install(mc.Ctx, mc.Package.ObjectMeta.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any())
-		result := sut.Process(mc)
-		assert.True(t, result)
-		thenManagerContext(t, mc, api.StateInstalled, expectedUpdate, expectedRequeue, "")
-	})
-
-	t.Run("Uninstalling crashes, error is reported", func(t *testing.T) {
-		expectedRequeue := time.Duration(60 * time.Second)
-		mc.SetUninstalling("bobby")
-		driver.EXPECT().Uninstall(mc.Ctx, "bobby").Return(fmt.Errorf("crunch"))
+	t.Run("installed no configuration change", func(t *testing.T) {
+		mc, mockDriver := givenMocks(t)
+		mc.Package.Status.State = api.StateInstalled
+		mc.Package.Status.Source = expectedSource
+		mc.Source = expectedSource
+		mc.Package.Spec.Config = originalConfiguration
+		mockDriver.EXPECT().IsConfigChanged(mc.Ctx, mc.Package.Name, gomock.Any()).Return(false, nil)
 		result := sut.Process(mc)
 		assert.False(t, result)
-		thenManagerContext(t, mc, api.StateUninstalling, expectedUpdate, expectedRequeue, "crunch")
+		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 180*time.Second, "")
 	})
 
-	t.Run("Uninstalling works, no error is reported", func(t *testing.T) {
-		expectedRequeue := time.Duration(0)
-		driver.EXPECT().Uninstall(mc.Ctx, "bobby")
+	t.Run("installed IsConfigChanged error", func(t *testing.T) {
+		mc, mockDriver := givenMocks(t)
+		mc.Package.Status.State = api.StateInstalled
+		mc.Package.Status.Source = expectedSource
+		mc.Source = expectedSource
+		mc.Package.Spec.Config = newConfiguration
+		mockDriver.EXPECT().IsConfigChanged(mc.Ctx, mc.Package.Name, gomock.Any()).Return(true, fmt.Errorf("boom"))
+		result := sut.Process(mc)
+		assert.True(t, result)
+		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 60*time.Second, "boom")
+	})
+
+	t.Run("installed configuration parse error", func(t *testing.T) {
+		mc, _ := givenMocks(t)
+		mc.Package.Status.State = api.StateInstalled
+		mc.Package.Status.Source = expectedSource
+		mc.Source = expectedSource
+		mc.Package.Spec.Config = "bogus configuration ---- whatevs"
+		result := sut.Process(mc)
+		assert.True(t, result)
+		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 30*time.Second, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type map[string]interface {}")
+	})
+
+	t.Run("Uninstalling works", func(t *testing.T) {
+		mc, mockDriver := givenMocks(t)
+		mc.SetUninstalling(packageInstance)
+		mockDriver.EXPECT().Uninstall(mc.Ctx, packageInstance).Return(nil)
 		result := sut.Process(mc)
 		assert.False(t, result)
-		thenManagerContext(t, mc, api.StateUninstalling, expectedUpdate, expectedRequeue, "")
+		thenManagerContext(t, mc, api.StateUninstalling, expectedEmptySource, time.Duration(0), "")
 	})
 
-	t.Run("Unknown state is reported", func(t *testing.T) {
-		expectedRequeue := time.Duration(0)
+	t.Run("Uninstalling fails", func(t *testing.T) {
+		mc, mockDriver := givenMocks(t)
+		mc.SetUninstalling(packageInstance)
+		mockDriver.EXPECT().Uninstall(mc.Ctx, packageInstance).Return(fmt.Errorf("crunch"))
+		result := sut.Process(mc)
+		assert.False(t, result)
+		thenManagerContext(t, mc, api.StateUninstalling, expectedEmptySource, 60*time.Second, "crunch")
+	})
+
+	t.Run("Bogus state is reported", func(t *testing.T) {
+		mc, _ := givenMocks(t)
 		mc.Package.Status.State = "bogus"
 		result := sut.Process(mc)
 		assert.True(t, result)
-		thenManagerContext(t, mc, "bogus", expectedUpdate, expectedRequeue, "Unknown state: bogus")
+		thenManagerContext(t, mc, "bogus", expectedEmptySource, time.Duration(0), "Unknown state: bogus")
 	})
 
-	mc = givenManagerContext(driver)
-	mc.Package.Namespace = "default"
+	t.Run("Unknown state is ignored", func(t *testing.T) {
+		mc, _ := givenMocks(t)
+		mc.Package.Status.State = api.StateUnknown
+		result := sut.Process(mc)
+		assert.False(t, result)
+		thenManagerContext(t, mc, api.StateUnknown, expectedEmptySource, time.Duration(0), "")
+	})
+
 	t.Run("Package in wrong namespace should be ignored", func(t *testing.T) {
-		assert.Equal(t, api.StateEnum(""), mc.Package.Status.State)
-		expectedRequeue := time.Duration(0)
+		mc, _ := givenMocks(t)
+		mc.Package.Status.State = ""
+		mc.Package.Namespace = "default"
 		result := sut.Process(mc)
 		assert.True(t, result)
-		thenManagerContext(t, mc, api.StateUnknown, expectedSource, expectedRequeue, "Packages must be in namespace: eksa-packages")
+		thenManagerContext(t, mc, api.StateUnknown, expectedSource, time.Duration(0), "Packages must be in namespace: eksa-packages")
 	})
 
 	t.Run("Package in wrong namespace should be ignored again", func(t *testing.T) {
-		expectedRequeue := time.Duration(0)
+		mc, _ := givenMocks(t)
+		mc.Package.Status.State = api.StateUnknown
+		mc.Package.Namespace = "default"
 		result := sut.Process(mc)
 		assert.False(t, result)
-		thenManagerContext(t, mc, api.StateUnknown, expectedSource, expectedRequeue, "Packages must be in namespace: eksa-packages")
+		thenManagerContext(t, mc, api.StateUnknown, expectedEmptySource, time.Duration(0), "")
 	})
 }
