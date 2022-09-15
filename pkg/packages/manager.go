@@ -2,6 +2,7 @@ package packages
 
 import (
 	"context"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -21,6 +22,8 @@ const (
 	retryVeryLong  = time.Duration(180) * time.Second
 	sourceRegistry = "sourceRegistry"
 	prefix         = api.PackageNamespace + "-"
+	oldPbcName     = "bundle-controller"
+	CLUSTER_NAME   = "CLUSTER_NAME"
 )
 
 type ManagerContext struct {
@@ -42,7 +45,16 @@ func (mc *ManagerContext) SetUninstalling(namespace string, name string) {
 
 func (mc *ManagerContext) getClusterName() string {
 	if strings.HasPrefix(mc.Package.Namespace, prefix) {
-		return strings.TrimPrefix(mc.Package.Namespace, prefix)
+		clusterName := strings.TrimPrefix(mc.Package.Namespace, prefix)
+		// Backward compatibility
+		if clusterName == oldPbcName {
+			return ""
+		}
+		// Avoid using kubeconfig for ourselves
+		if os.Getenv(CLUSTER_NAME) == clusterName {
+			return ""
+		}
+		return clusterName
 	}
 	return ""
 }
