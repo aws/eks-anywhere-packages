@@ -207,12 +207,29 @@ func (c *ecrPublicClient) GetPublicAuthToken() (string, error) {
 }
 
 // getNameAndVersionPublic looks up the latest pushed helm chart's tag from a given repo name Full name in Public ECR OCI format.
-func (c *SDKClients) getNameAndVersionPublic(repoName, registryURI string) (string, string, string, error) {
+func (c *SDKClients) getNameAndVersionPublic(repoName, tag, registryURI string) (string, string, string, error) {
 	var version string
 	var sha string
 	splitname := strings.Split(repoName, ":") // TODO add a regex filter
 	name := splitname[0]
-	if len(splitname) == 1 {
+	ecrname := fmt.Sprintf("%s/%s", c.ecrPublicClient.SourceRegistry, name)
+	if len(splitname) > 0 {
+		if !strings.Contains(tag, "latest") {
+			var imagelookup []ecrpublictypes.ImageIdentifier
+			imagelookup = append(imagelookup, ecrpublictypes.ImageIdentifier{ImageTag: &tag})
+			ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
+				RepositoryName: aws.String(repoName),
+				ImageIds:       imagelookup,
+			})
+			if err != nil {
+				return "", "", "", fmt.Errorf("error: Unable to complete DescribeImagesRequest to public ECR. %s", err)
+			}
+			for _, images := range ImageDetails {
+				if len(images.ImageTags) == 1 {
+					return ecrname, tag, *images.ImageDigest, nil
+				}
+			}
+		}
 		ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
 			RepositoryName: aws.String(repoName),
 		})
@@ -234,6 +251,5 @@ func (c *SDKClients) getNameAndVersionPublic(repoName, registryURI string) (stri
 		ecrname := fmt.Sprintf("%s/%s", c.ecrPublicClient.SourceRegistry, name)
 		return ecrname, version, sha, err
 	}
-	version = splitname[1]
-	return name, version, sha, nil
+	return "", "", "", fmt.Errorf("Empty input given for repository to function.")
 }
