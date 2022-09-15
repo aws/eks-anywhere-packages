@@ -63,6 +63,8 @@ spec:
               value: {{ .Values.proxy.HTTPS_PROXY | quote}}
             - name: NO_PROXY
               value: {{ .Values.proxy.NO_PROXY | quote}}
+            - name: CLUSTER_NAME
+              value: {{ .Values.clusterName | quote}}
           ports:
             - name: webhook-server
               containerPort: 9443
