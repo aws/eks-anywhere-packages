@@ -9,6 +9,13 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 0.1.1-083e68edbbc62ca0228a5669e89e4d3da99ff73b
+  - org: aws-observability
+    projects:
+      - name: adot
+        repository: adot/charts/aws-otel-collector
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: 0.20.0-b080e6ed612e034aac686247043a15ec08668ece
   - org: harbor
     projects:
       - name: harbor
