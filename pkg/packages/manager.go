@@ -15,15 +15,15 @@ import (
 )
 
 const (
-	retryNever     = time.Duration(0)
-	retryNow       = time.Duration(1)
-	retryShort     = time.Duration(30) * time.Second
-	retryLong      = time.Duration(60) * time.Second
-	retryVeryLong  = time.Duration(180) * time.Second
-	sourceRegistry = "sourceRegistry"
-	prefix         = api.PackageNamespace + "-"
-	oldPbcName     = "bundle-controller"
-	CLUSTER_NAME   = "CLUSTER_NAME"
+	retryNever      = time.Duration(0)
+	retryNow        = time.Duration(1)
+	retryShort      = time.Duration(30) * time.Second
+	retryLong       = time.Duration(60) * time.Second
+	retryVeryLong   = time.Duration(180) * time.Second
+	sourceRegistry  = "sourceRegistry"
+	namespacePrefix = api.PackageNamespace + "-"
+	oldPbcName      = "bundle-controller"
+	CLUSTER_NAME    = "CLUSTER_NAME"
 )
 
 type ManagerContext struct {
@@ -44,8 +44,8 @@ func (mc *ManagerContext) SetUninstalling(namespace string, name string) {
 }
 
 func (mc *ManagerContext) getClusterName() string {
-	if strings.HasPrefix(mc.Package.Namespace, prefix) {
-		clusterName := strings.TrimPrefix(mc.Package.Namespace, prefix)
+	if strings.HasPrefix(mc.Package.Namespace, namespacePrefix) {
+		clusterName := strings.TrimPrefix(mc.Package.Namespace, namespacePrefix)
 		// Backward compatibility
 		if clusterName == oldPbcName {
 			return ""
@@ -227,7 +227,7 @@ func (m manager) getState(stateName api.StateEnum) func(*ManagerContext) bool {
 
 func (m manager) Process(mc *ManagerContext) bool {
 	mc.RequeueAfter = retryLong
-	if !strings.HasPrefix(mc.Package.Namespace, prefix) {
+	if !strings.HasPrefix(mc.Package.Namespace, namespacePrefix) {
 		if mc.Package.Namespace != api.PackageNamespace {
 			mc.Package.Status.Detail = "Packages namespaces must start with: " + api.PackageNamespace
 			mc.RequeueAfter = retryNever
