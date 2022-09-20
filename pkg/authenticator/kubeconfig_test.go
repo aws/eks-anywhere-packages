@@ -35,6 +35,7 @@ func TestManagerContext_getRegistry(t *testing.T) {
 		fileName, err := sut.GetKubeconfig(ctx, "billy")
 		assert.NoError(t, err)
 		assert.Equal(t, "billy-kubeconfig", fileName)
-		os.Remove(fileName)
+		err = os.Remove(fileName)
+		assert.NoError(t, err)
 	})
 }
