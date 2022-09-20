@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const eksAnywhereNamespace = "eksa-system"
+const eksaSystemNamespace = "eksa-system"
 
 type KubeconfigClient interface {
 	// GetKubeconfig for a cluster
@@ -35,7 +35,7 @@ func (kc *kubeconfigClient) GetKubeconfig(ctx context.Context, clusterName strin
 
 	secretName := clusterName + "-kubeconfig"
 	nn := types.NamespacedName{
-		Namespace: eksAnywhereNamespace,
+		Namespace: eksaSystemNamespace,
 		Name:      secretName,
 	}
 	var kubeconfigSecret corev1.Secret
