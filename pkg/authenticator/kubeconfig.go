@@ -29,6 +29,7 @@ var _ KubeconfigClient = (*kubeconfigClient)(nil)
 
 func (kc *kubeconfigClient) GetKubeconfig(ctx context.Context, clusterName string) (fileName string, err error) {
 	if clusterName == "" {
+		// Empty string will cause helm to use the current cluster
 		return "", nil
 	}
 
@@ -39,7 +40,7 @@ func (kc *kubeconfigClient) GetKubeconfig(ctx context.Context, clusterName strin
 	}
 	var kubeconfigSecret corev1.Secret
 	if err = kc.Client.Get(ctx, nn, &kubeconfigSecret); err != nil {
-		return "", fmt.Errorf("getting kubeconfig secret: %v", err)
+		return "", fmt.Errorf("getting kubeconfig for cluster %q: %w", clusterName, err)
 	}
 
 	err = os.WriteFile(secretName, kubeconfigSecret.Data["value"], 0600)
