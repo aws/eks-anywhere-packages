@@ -43,6 +43,11 @@ func (kc *kubeconfigClient) GetKubeconfig(ctx context.Context, clusterName strin
 		return "", fmt.Errorf("getting kubeconfig for cluster %q: %w", clusterName, err)
 	}
 
+	if _, err := os.Stat(secretName); err == nil {
+		_ = os.Chown(secretName, os.Geteuid(), os.Getegid())
+		_ = os.Chmod(secretName, 0600)
+
+	}
 	err = os.WriteFile(secretName, kubeconfigSecret.Data["value"], 0600)
 	if err != nil {
 		return "", fmt.Errorf("opening temporary file: %v", err)
