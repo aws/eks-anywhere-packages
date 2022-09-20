@@ -8,6 +8,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"helm.sh/helm/v3/pkg/kube"
 	"helm.sh/helm/v3/pkg/release"
 	fakerest "k8s.io/client-go/rest/fake"
@@ -46,8 +47,8 @@ func TestHelmDriverInitialize(t *testing.T) {
 	t.Run("golden path", func(t *testing.T) {
 		t.Parallel()
 		helm, err := givenHelmDriver(t)
+		require.NoError(t, err)
 		mockKubeconfigClient.EXPECT().GetKubeconfig(ctx, "billy")
-		assert.NoError(t, err)
 
 		err = helm.Initialize(ctx, "billy")
 
@@ -61,7 +62,7 @@ func TestIsConfigChanged(t *testing.T) {
 
 		values := map[string]interface{}{}
 		helm, err := givenInitializedHelmDriver(t)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(fmt.Errorf("blah"))
 
 		_, err = helm.IsConfigChanged(ctx, "name-does-not-exist", values)
@@ -78,7 +79,7 @@ func TestIsConfigChanged(t *testing.T) {
 		newValues["foo"] = foo + 1
 		rel := &release.Release{Config: newValues}
 		helm, err := givenInitializedHelmDriver(t)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
 		helm.cfg.Releases.Driver = newMockReleasesDriver(rel, nil)
 
@@ -94,7 +95,7 @@ func TestIsConfigChanged(t *testing.T) {
 		sameValues := shallowCopy(t, origValues)
 		rel := &release.Release{Config: sameValues}
 		helm, err := givenInitializedHelmDriver(t)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
 		helm.cfg.Releases.Driver = newMockReleasesDriver(rel, nil)
 
@@ -130,7 +131,7 @@ func TestIsConfigChanged(t *testing.T) {
 		origValues["imagePullSecrets"] = "test"
 		rel := &release.Release{Config: newValues}
 		helm, err := givenInitializedHelmDriver(t)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
 		helm.cfg.Releases.Driver = newMockReleasesDriver(rel, nil)
 
