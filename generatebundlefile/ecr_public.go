@@ -215,14 +215,13 @@ func (c *SDKClients) getNameAndVersionPublic(repoName, tag, registryURI string) 
 	ecrname := fmt.Sprintf("%s/%s", c.ecrPublicClient.SourceRegistry, name)
 	if len(splitname) > 0 {
 		if !strings.Contains(tag, "latest") {
-			var imagelookup []ecrpublictypes.ImageIdentifier
-			imagelookup = append(imagelookup, ecrpublictypes.ImageIdentifier{ImageTag: &tag})
+			imageIDs := []ecrpublictypes.ImageIdentifier{ecrpublictypes.ImageIdentifier{ImageTag: &tag}}
 			ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
 				RepositoryName: aws.String(repoName),
-				ImageIds:       imagelookup,
+				ImageIds:       imageIDs,
 			})
 			if err != nil {
-				return "", "", "", fmt.Errorf("error: Unable to complete DescribeImagesRequest to public ECR. %s", err)
+				return "", "", "", fmt.Errorf("DescribeImagesRequest to public ECR failed: %w", err)
 			}
 			for _, images := range ImageDetails {
 				if len(images.ImageTags) == 1 {
@@ -251,5 +250,5 @@ func (c *SDKClients) getNameAndVersionPublic(repoName, tag, registryURI string) 
 		ecrname := fmt.Sprintf("%s/%s", c.ecrPublicClient.SourceRegistry, name)
 		return ecrname, version, sha, err
 	}
-	return "", "", "", fmt.Errorf("Empty input given for repository to function.")
+	return "", "", "", fmt.Errorf("invalid repository: %q", repoName)
 }

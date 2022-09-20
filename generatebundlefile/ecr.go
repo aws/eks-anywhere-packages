@@ -215,14 +215,13 @@ func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string,
 	if len(splitname) > 0 {
 		// If for promotion, we use a named tag instead of latest we do a lookup for that tag.
 		if !strings.Contains(tag, "latest") {
-			var imagelookup []ecrtypes.ImageIdentifier
-			imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageTag: &tag})
+			imageIDs := []ecrtypes.ImageIdentifier{ecrtypes.ImageIdentifier{ImageTag: &tag}}
 			ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
 				RepositoryName: aws.String(repoName),
-				ImageIds:       imagelookup,
+				ImageIds:       imageIDs,
 			})
 			if err != nil {
-				return "", "", "", fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR. %s", err)
+				return "", "", "", fmt.Errorf("DescribeImagesRequest to public ECR failed: %w", err)
 			}
 			for _, images := range ImageDetails {
 				if len(images.ImageTags) == 1 {
@@ -248,7 +247,7 @@ func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string,
 		version, sha, err = getLastestHelmTagandSha(images)
 		return ecrname, version, sha, err
 	}
-	return "", "", "", fmt.Errorf("Empty input given for repository to function.")
+	return "", "", "", fmt.Errorf("invalid repository: %q", repoName)
 }
 
 // shaExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
