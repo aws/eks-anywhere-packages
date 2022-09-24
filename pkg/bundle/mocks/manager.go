@@ -63,15 +63,3 @@ func (mr *MockManagerMockRecorder) ProcessBundleController(ctx, pbc interface{})
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessBundleController", reflect.TypeOf((*MockManager)(nil).ProcessBundleController), ctx, pbc)
 }
-
-// SortBundlesDescending mocks base method.
-func (m *MockManager) SortBundlesDescending(bundles []v1alpha1.PackageBundle) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SortBundlesDescending", bundles)
-}
-
-// SortBundlesDescending indicates an expected call of SortBundlesDescending.
-func (mr *MockManagerMockRecorder) SortBundlesDescending(bundles interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SortBundlesDescending", reflect.TypeOf((*MockManager)(nil).SortBundlesDescending), bundles)
-}

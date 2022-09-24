@@ -172,20 +172,42 @@ func TestBundleClient_GetActiveBundleNamespacedName(t *testing.T) {
 	})
 }
 
+func doAndReturnBundleList(_ context.Context, bundles *api.PackageBundleList, _ *client.ListOptions) error {
+	bundles.Items = []api.PackageBundle{
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "v1-16-1003",
+			},
+		},
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "v1-21-1002",
+			},
+		},
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "v1-21-1001",
+			},
+		},
+	}
+	return nil
+}
+
 func TestBundleClient_GetBundleList(t *testing.T) {
 	t.Parallel()
-
 	ctx := context.Background()
 
 	t.Run("golden path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-		actualList := &api.PackageBundleList{}
-		mockClient.EXPECT().List(ctx, actualList, &client.ListOptions{Namespace: api.PackageNamespace}).Return(nil)
+		mockClient.EXPECT().List(ctx, gomock.Any(), &client.ListOptions{Namespace: api.PackageNamespace}).DoAndReturn(doAndReturnBundleList)
 
-		err := bundleClient.GetBundleList(ctx, actualList)
+		bundleItems, err := bundleClient.GetBundleList(ctx)
 
 		assert.NoError(t, err)
+		assert.Equal(t, "v1-21-1002", bundleItems[0].Name)
+		assert.Equal(t, "v1-21-1001", bundleItems[1].Name)
+		assert.Equal(t, "v1-16-1003", bundleItems[2].Name)
 	})
 
 	t.Run("error scenario", func(t *testing.T) {
@@ -194,8 +216,9 @@ func TestBundleClient_GetBundleList(t *testing.T) {
 		actualList := &api.PackageBundleList{}
 		mockClient.EXPECT().List(ctx, actualList, &client.ListOptions{Namespace: api.PackageNamespace}).Return(fmt.Errorf("oops"))
 
-		err := bundleClient.GetBundleList(ctx, actualList)
+		bundleItems, err := bundleClient.GetBundleList(ctx)
 
+		assert.Nil(t, bundleItems)
 		assert.EqualError(t, err, "listing package bundles: oops")
 	})
 }
