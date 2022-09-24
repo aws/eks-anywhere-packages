@@ -91,8 +91,8 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	if err != nil {
 		return err
 	}
-	kubeconfigClient := auth.NewKubeconfigClient(mgr.GetClient())
-	helmDriver, err := driver.NewHelm(log, secretAuth, kubeconfigClient)
+	tcc := auth.NewTargetClusterClient(mgr.GetConfig(), mgr.GetClient())
+	helmDriver, err := driver.NewHelm(log, secretAuth, tcc)
 	if err != nil {
 		return fmt.Errorf("creating helm driver: %w", err)
 	}

@@ -18,7 +18,7 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/authenticator/mocks"
 )
 
-var mockKubeconfigClient *mocks.MockKubeconfigClient
+var mockTargetClusterClient *mocks.MockTargetClusterClient
 var ctx context.Context = context.Background()
 
 func TestHelmChartURLIsPrefixed(t *testing.T) {
@@ -48,7 +48,7 @@ func TestHelmDriverInitialize(t *testing.T) {
 		t.Parallel()
 		helm, err := givenHelmDriver(t)
 		require.NoError(t, err)
-		mockKubeconfigClient.EXPECT().GetKubeconfig(ctx, "billy")
+		mockTargetClusterClient.EXPECT().GetKubeconfigFile(ctx, "billy")
 
 		err = helm.Initialize(ctx, "billy")
 
@@ -150,14 +150,14 @@ func givenHelmDriver(t *testing.T) (*helmDriver, error) {
 		return nil, err
 	}
 
-	mockKubeconfigClient = mocks.NewMockKubeconfigClient(gomock.NewController(t))
-	return NewHelm(logr.Discard(), secretAuth, mockKubeconfigClient)
+	mockTargetClusterClient = mocks.NewMockTargetClusterClient(gomock.NewController(t))
+	return NewHelm(logr.Discard(), secretAuth, mockTargetClusterClient)
 }
 
 func givenInitializedHelmDriver(t *testing.T) (*helmDriver, error) {
 	helm, err := givenHelmDriver(t)
 	if err == nil {
-		mockKubeconfigClient.EXPECT().GetKubeconfig(ctx, "billy")
+		mockTargetClusterClient.EXPECT().GetKubeconfigFile(ctx, "billy")
 		err = helm.Initialize(ctx, "billy")
 	}
 	return helm, err
