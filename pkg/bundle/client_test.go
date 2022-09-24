@@ -206,7 +206,7 @@ func TestBundleClient_GetBundleList(t *testing.T) {
 		bundleClient := NewPackageBundleClient(mockClient)
 		mockClient.EXPECT().List(ctx, gomock.Any(), &client.ListOptions{Namespace: api.PackageNamespace}).DoAndReturn(doAndReturnBundleList)
 
-		bundleItems, err := bundleClient.GetBundleList(ctx)
+		bundleItems, err := bundleClient.GetBundleList(ctx, "")
 
 		assert.NoError(t, err)
 		assert.Equal(t, "v1-21-1002", bundleItems[0].Name)
@@ -220,7 +220,7 @@ func TestBundleClient_GetBundleList(t *testing.T) {
 		actualList := &api.PackageBundleList{}
 		mockClient.EXPECT().List(ctx, actualList, &client.ListOptions{Namespace: api.PackageNamespace}).Return(fmt.Errorf("oops"))
 
-		bundleItems, err := bundleClient.GetBundleList(ctx)
+		bundleItems, err := bundleClient.GetBundleList(ctx, "")
 
 		assert.Nil(t, bundleItems)
 		assert.EqualError(t, err, "listing package bundles: oops")

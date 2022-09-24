@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	version "k8s.io/apimachinery/pkg/version"
 )
 
 // MockTargetClusterClient is a mock of TargetClusterClient interface.
@@ -62,4 +63,19 @@ func (m *MockTargetClusterClient) GetKubeconfigString(ctx context.Context, clust
 func (mr *MockTargetClusterClientMockRecorder) GetKubeconfigString(ctx, clusterName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKubeconfigString", reflect.TypeOf((*MockTargetClusterClient)(nil).GetKubeconfigString), ctx, clusterName)
+}
+
+// GetServerVersion mocks base method.
+func (m *MockTargetClusterClient) GetServerVersion(ctx context.Context, clusterName string) (*version.Info, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetServerVersion", ctx, clusterName)
+	ret0, _ := ret[0].(*version.Info)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetServerVersion indicates an expected call of GetServerVersion.
+func (mr *MockTargetClusterClientMockRecorder) GetServerVersion(ctx, clusterName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServerVersion", reflect.TypeOf((*MockTargetClusterClient)(nil).GetServerVersion), ctx, clusterName)
 }

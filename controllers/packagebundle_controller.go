@@ -21,7 +21,6 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/discovery"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,6 +32,7 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
+	"github.com/aws/eks-anywhere-packages/pkg/authenticator"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 )
 
@@ -62,20 +62,12 @@ func NewPackageBundleReconciler(client client.Client, scheme *runtime.Scheme,
 }
 
 func RegisterPackageBundleReconciler(mgr ctrl.Manager) error {
-	cfg := mgr.GetConfig()
-	discovery, err := discovery.NewDiscoveryClientForConfig(cfg)
-	if err != nil {
-		return fmt.Errorf("creating discovery client: %s", err)
-	}
 	log := ctrl.Log.WithName(packageBundleName)
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
-	info, err := discovery.ServerVersion()
-	if err != nil {
-		return fmt.Errorf("getting server version: %w", err)
-	}
+	tcc := authenticator.NewTargetClusterClient(mgr.GetConfig(), mgr.GetClient())
 	puller := artifacts.NewRegistryPuller()
 	registryClient := bundle.NewRegistryClient(puller)
-	bundleManager := bundle.NewBundleManager(log, *info, registryClient, bundleClient)
+	bundleManager := bundle.NewBundleManager(log, registryClient, bundleClient, tcc)
 	r := NewPackageBundleReconciler(mgr.GetClient(), mgr.GetScheme(), bundleClient, bundleManager, registryClient, log)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.PackageBundle{}).
