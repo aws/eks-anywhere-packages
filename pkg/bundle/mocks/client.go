@@ -10,7 +10,6 @@ import (
 
 	v1alpha1 "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	gomock "github.com/golang/mock/gomock"
-	types "k8s.io/apimachinery/pkg/types"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -66,33 +65,18 @@ func (mr *MockClientMockRecorder) CreateClusterNamespace(ctx, clusterName interf
 }
 
 // GetActiveBundle mocks base method.
-func (m *MockClient) GetActiveBundle(ctx context.Context) (*v1alpha1.PackageBundle, error) {
+func (m *MockClient) GetActiveBundle(ctx context.Context, clusterName string) (*v1alpha1.PackageBundle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetActiveBundle", ctx)
+	ret := m.ctrl.Call(m, "GetActiveBundle", ctx, clusterName)
 	ret0, _ := ret[0].(*v1alpha1.PackageBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetActiveBundle indicates an expected call of GetActiveBundle.
-func (mr *MockClientMockRecorder) GetActiveBundle(ctx interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetActiveBundle(ctx, clusterName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveBundle", reflect.TypeOf((*MockClient)(nil).GetActiveBundle), ctx)
-}
-
-// GetActiveBundleNamespacedName mocks base method.
-func (m *MockClient) GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetActiveBundleNamespacedName", ctx)
-	ret0, _ := ret[0].(types.NamespacedName)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetActiveBundleNamespacedName indicates an expected call of GetActiveBundleNamespacedName.
-func (mr *MockClientMockRecorder) GetActiveBundleNamespacedName(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveBundleNamespacedName", reflect.TypeOf((*MockClient)(nil).GetActiveBundleNamespacedName), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveBundle", reflect.TypeOf((*MockClient)(nil).GetActiveBundle), ctx, clusterName)
 }
 
 // GetBundleList mocks base method.
@@ -111,18 +95,18 @@ func (mr *MockClientMockRecorder) GetBundleList(ctx, serverVersion interface{}) 
 }
 
 // GetPackageBundleController mocks base method.
-func (m *MockClient) GetPackageBundleController(ctx context.Context) (*v1alpha1.PackageBundleController, error) {
+func (m *MockClient) GetPackageBundleController(ctx context.Context, clusterName string) (*v1alpha1.PackageBundleController, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPackageBundleController", ctx)
+	ret := m.ctrl.Call(m, "GetPackageBundleController", ctx, clusterName)
 	ret0, _ := ret[0].(*v1alpha1.PackageBundleController)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetPackageBundleController indicates an expected call of GetPackageBundleController.
-func (mr *MockClientMockRecorder) GetPackageBundleController(ctx interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetPackageBundleController(ctx, clusterName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackageBundleController", reflect.TypeOf((*MockClient)(nil).GetPackageBundleController), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackageBundleController", reflect.TypeOf((*MockClient)(nil).GetPackageBundleController), ctx, clusterName)
 }
 
 // Save mocks base method.

@@ -2,8 +2,6 @@ package packages
 
 import (
 	"context"
-	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -15,15 +13,12 @@ import (
 )
 
 const (
-	retryNever      = time.Duration(0)
-	retryNow        = time.Duration(1)
-	retryShort      = time.Duration(30) * time.Second
-	retryLong       = time.Duration(60) * time.Second
-	retryVeryLong   = time.Duration(180) * time.Second
-	sourceRegistry  = "sourceRegistry"
-	namespacePrefix = api.PackageNamespace + "-"
-	oldPbcName      = "bundle-controller"
-	CLUSTER_NAME    = "CLUSTER_NAME"
+	retryNever     = time.Duration(0)
+	retryNow       = time.Duration(1)
+	retryShort     = time.Duration(30) * time.Second
+	retryLong      = time.Duration(60) * time.Second
+	retryVeryLong  = time.Duration(180) * time.Second
+	sourceRegistry = "sourceRegistry"
 )
 
 type ManagerContext struct {
@@ -41,22 +36,6 @@ func (mc *ManagerContext) SetUninstalling(namespace string, name string) {
 	mc.Package.Namespace = namespace
 	mc.Package.Name = name
 	mc.Package.Status.State = api.StateUninstalling
-}
-
-func (mc *ManagerContext) getClusterName() string {
-	if strings.HasPrefix(mc.Package.Namespace, namespacePrefix) {
-		clusterName := strings.TrimPrefix(mc.Package.Namespace, namespacePrefix)
-		// Backward compatibility
-		if clusterName == oldPbcName {
-			return ""
-		}
-		// Avoid using kubeconfig for ourselves
-		if os.Getenv(CLUSTER_NAME) == clusterName {
-			return ""
-		}
-		return clusterName
-	}
-	return ""
 }
 
 func (mc *ManagerContext) getRegistry(values map[string]interface{}) string {
@@ -96,7 +75,7 @@ func processInstalling(mc *ManagerContext) bool {
 	if mc.Source.Registry == "" {
 		mc.Source.Registry = mc.PBC.GetDefaultRegistry()
 	}
-	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.getClusterName()); err != nil {
+	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.Package.GetClusterName()); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Initialization failed")
 		return true
@@ -131,7 +110,7 @@ func processInstalled(mc *ManagerContext) bool {
 		return true
 	}
 
-	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.getClusterName()); err != nil {
+	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.Package.GetClusterName()); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Initialization failed")
 		return true
@@ -157,7 +136,7 @@ func processInstalled(mc *ManagerContext) bool {
 }
 
 func processUninstalling(mc *ManagerContext) bool {
-	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.getClusterName()); err != nil {
+	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.Package.GetClusterName()); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Initialization failed")
 		return false
@@ -227,16 +206,14 @@ func (m manager) getState(stateName api.StateEnum) func(*ManagerContext) bool {
 
 func (m manager) Process(mc *ManagerContext) bool {
 	mc.RequeueAfter = retryLong
-	if !strings.HasPrefix(mc.Package.Namespace, namespacePrefix) {
-		if mc.Package.Namespace != api.PackageNamespace {
-			mc.Package.Status.Detail = "Packages namespaces must start with: " + api.PackageNamespace
-			mc.RequeueAfter = retryNever
-			if mc.Package.Status.State == api.StateUnknown {
-				return false
-			}
-			mc.Package.Status.State = api.StateUnknown
-			return true
+	if !mc.Package.IsValidNamespace() {
+		mc.Package.Status.Detail = "Packages namespaces must start with: " + api.PackageNamespace
+		mc.RequeueAfter = retryNever
+		if mc.Package.Status.State == api.StateUnknown {
+			return false
 		}
+		mc.Package.Status.State = api.StateUnknown
+		return true
 	}
 	stateFunc := m.getState(mc.Package.Status.State)
 	result := stateFunc(mc)
