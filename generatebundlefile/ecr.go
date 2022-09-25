@@ -215,7 +215,7 @@ func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string,
 	if len(splitname) > 0 {
 		// If for promotion, we use a named tag instead of latest we do a lookup for that tag.
 		if !strings.Contains(tag, "latest") {
-			imageIDs := []ecrtypes.ImageIdentifier{ecrtypes.ImageIdentifier{ImageTag: &tag}}
+			imageIDs := []ecrtypes.ImageIdentifier{{ImageTag: &tag}}
 			ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
 				RepositoryName: aws.String(repoName),
 				ImageIds:       imageIDs,
