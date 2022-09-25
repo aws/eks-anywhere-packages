@@ -82,17 +82,18 @@ func (mr *MockClientMockRecorder) GetActiveBundleNamespacedName(ctx interface{})
 }
 
 // GetBundleList mocks base method.
-func (m *MockClient) GetBundleList(ctx context.Context, bundles *v1alpha1.PackageBundleList) error {
+func (m *MockClient) GetBundleList(ctx context.Context) ([]v1alpha1.PackageBundle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBundleList", ctx, bundles)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "GetBundleList", ctx)
+	ret0, _ := ret[0].([]v1alpha1.PackageBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetBundleList indicates an expected call of GetBundleList.
-func (mr *MockClientMockRecorder) GetBundleList(ctx, bundles interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetBundleList(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBundleList", reflect.TypeOf((*MockClient)(nil).GetBundleList), ctx, bundles)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBundleList", reflect.TypeOf((*MockClient)(nil).GetBundleList), ctx)
 }
 
 // GetPackageBundleController mocks base method.

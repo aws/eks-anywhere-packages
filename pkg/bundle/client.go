@@ -3,6 +3,7 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -24,7 +25,7 @@ type Client interface {
 	GetPackageBundleController(ctx context.Context) (controller *api.PackageBundleController, err error)
 
 	// GetBundleList get list of bundles worthy of consideration
-	GetBundleList(ctx context.Context, bundles *api.PackageBundleList) error
+	GetBundleList(ctx context.Context) (bundles []api.PackageBundle, err error)
 
 	// CreateBundle add a new bundle custom resource
 	CreateBundle(ctx context.Context, bundle *api.PackageBundle) error
@@ -134,12 +135,18 @@ func (bc *bundleClient) GetActiveBundleNamespacedName(ctx context.Context) (type
 	return nn, nil
 }
 
-func (bc *bundleClient) GetBundleList(ctx context.Context, bundles *api.PackageBundleList) error {
-	err := bc.Client.List(ctx, bundles, &client.ListOptions{Namespace: api.PackageNamespace})
+func (bc *bundleClient) GetBundleList(ctx context.Context) (bundles []api.PackageBundle, err error) {
+	var allBundles = &api.PackageBundleList{}
+	err = bc.Client.List(ctx, allBundles, &client.ListOptions{Namespace: api.PackageNamespace})
 	if err != nil {
-		return fmt.Errorf("listing package bundles: %s", err)
+		return nil, fmt.Errorf("listing package bundles: %s", err)
 	}
-	return nil
+	sortedBundles := allBundles.Items
+	sortFn := func(i, j int) bool {
+		return sortedBundles[j].LessThan(&sortedBundles[i])
+	}
+	sort.Slice(sortedBundles, sortFn)
+	return sortedBundles, nil
 }
 
 func (bc *bundleClient) CreateBundle(ctx context.Context, bundle *api.PackageBundle) error {
