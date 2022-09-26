@@ -104,6 +104,11 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 
 	switch pbc.Status.State {
 	case api.BundleControllerStateActive:
+		err = m.bundleClient.CreateClusterNamespace(ctx, pbc.Name)
+		if err != nil {
+			return fmt.Errorf("creating namespace for %s: %s", pbc.Name, err)
+		}
+
 		if latestBundleIsCurrentBundle {
 			break
 		}

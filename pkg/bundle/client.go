@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 
+	v1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -29,6 +31,9 @@ type Client interface {
 
 	// CreateBundle add a new bundle custom resource
 	CreateBundle(ctx context.Context, bundle *api.PackageBundle) error
+
+	// CreateClusterNamespace based on cluster name
+	CreateClusterNamespace(ctx context.Context, clusterName string) error
 
 	// SaveStatus saves a resource status
 	SaveStatus(ctx context.Context, object client.Object) error
@@ -147,6 +152,28 @@ func (bc *bundleClient) GetBundleList(ctx context.Context) (bundles []api.Packag
 	}
 	sort.Slice(sortedBundles, sortFn)
 	return sortedBundles, nil
+}
+
+func (bc *bundleClient) CreateClusterNamespace(ctx context.Context, clusterName string) error {
+	name := api.PackageNamespace + "-" + clusterName
+	key := types.NamespacedName{
+		Name: name,
+	}
+	ns := &v1.Namespace{}
+	err := bc.Get(ctx, key, ns)
+	if err == nil {
+		return nil
+	}
+	if !apierrors.IsNotFound(err) {
+		return err
+	}
+
+	ns.Name = name
+	err = bc.Client.Create(ctx, ns)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (bc *bundleClient) CreateBundle(ctx context.Context, bundle *api.PackageBundle) error {

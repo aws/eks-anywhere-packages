@@ -127,6 +127,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
+		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
@@ -196,12 +197,28 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
+		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateUpgradeAvailable, pbc.Status.State)
+	})
+
+	t.Run("active to ns error", func(t *testing.T) {
+		_, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
+		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
+		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(fmt.Errorf("boom"))
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.EqualError(t, err, "creating namespace for eksa-packages-bundle-controller: boom")
 	})
 
 	t.Run("active to upgradeAvailable error", func(t *testing.T) {
@@ -212,6 +229,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
+		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
 
 		err := bm.ProcessBundleController(ctx, pbc)
