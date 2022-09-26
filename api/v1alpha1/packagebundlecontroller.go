@@ -36,3 +36,7 @@ func (config *PackageBundleController) GetDefaultImageRegistry() string {
 func (config *PackageBundleController) GetBundleUri() (uri string) {
 	return path.Join(config.GetDefaultRegistry(), config.Spec.BundleRepository)
 }
+
+func (config *PackageBundleController) GetActiveBundleUri() (uri string) {
+	return config.GetBundleUri() + ":" + config.Spec.ActiveBundle
+}

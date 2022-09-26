@@ -9,11 +9,7 @@ import (
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
-const (
-	TestBundleName       = "v1-21-1003"
-	TestBundleRegistry   = "public.ecr.aws/j0a1m4z9"
-	TestBundleRepository = "eks-anywhere-packages-bundles"
-)
+const TestBundleName = "v1-21-1003"
 
 func TestPackageBundleController_IsValid(t *testing.T) {
 	givenBundleController := func(name string, namespace string) *api.PackageBundleController {
@@ -51,4 +47,9 @@ func GivenPackageBundleController() *api.PackageBundleController {
 func TestPackageBundleController_GetBundleUri(t *testing.T) {
 	sut := GivenPackageBundleController()
 	assert.Equal(t, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles", sut.GetBundleUri())
+}
+
+func TestPackageBundleController_GetActiveBundleUri(t *testing.T) {
+	sut := GivenPackageBundleController()
+	assert.Equal(t, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles:v1-21-1003", sut.GetActiveBundleUri())
 }

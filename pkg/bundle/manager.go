@@ -126,6 +126,28 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 			return fmt.Errorf("creating namespace for %s: %s", pbc.Name, err)
 		}
 
+		activeBundle, err := m.bundleClient.GetBundle(ctx, pbc.Spec.ActiveBundle)
+		if err != nil {
+			m.log.Error(err, "Unable to get active bundle", "bundle", pbc.Spec.ActiveBundle)
+			return nil
+		}
+
+		if activeBundle == nil {
+			activeBundle, err = m.registryClient.DownloadBundle(ctx, pbc.GetActiveBundleUri())
+			if err != nil {
+				m.log.Error(err, "Active bundle download failed", "bundle", pbc.Spec.ActiveBundle)
+				return nil
+			}
+			m.log.Info("Bundle downloaded", "bundle", pbc.Spec.ActiveBundle)
+
+			err = m.bundleClient.CreateBundle(ctx, activeBundle)
+			if err != nil {
+				m.log.Error(err, "Recreate active bundle failed", "bundle", pbc.Spec.ActiveBundle)
+				return nil
+			}
+			m.log.Info("Bundle created", "bundle", pbc.Spec.ActiveBundle)
+		}
+
 		if latestBundleIsCurrentBundle {
 			break
 		}

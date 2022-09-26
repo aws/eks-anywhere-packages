@@ -160,6 +160,66 @@ func doAndReturnBundleList(_ context.Context, bundles *api.PackageBundleList, _ 
 	return nil
 }
 
+func TestBundleClient_GetBundle(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	namedBundle := &api.PackageBundle{}
+	namedBundle.Name = "v1-21-1003"
+	key := types.NamespacedName{
+		Name:      "v1-21-1003",
+		Namespace: "eksa-packages",
+	}
+
+	t.Run("already exists", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(namedBundle)).Return(nil)
+
+		actualBundle, err := bundleClient.GetBundle(ctx, "v1-21-1003")
+
+		assert.NotNil(t, actualBundle)
+		assert.NoError(t, err)
+	})
+
+	t.Run("no active bundle", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+
+		actualBundle, err := bundleClient.GetBundle(ctx, "")
+
+		assert.NotNil(t, actualBundle)
+		assert.NoError(t, err)
+	})
+
+	t.Run("already exists error", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(namedBundle)).Return(fmt.Errorf("boom"))
+
+		actualBundle, err := bundleClient.GetBundle(ctx, "v1-21-1003")
+
+		assert.Nil(t, actualBundle)
+		assert.EqualError(t, err, "boom")
+	})
+
+	t.Run("Does not exist", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		groupResource := schema.GroupResource{
+			Group:    key.Name,
+			Resource: "Namespace",
+		}
+		notFoundError := errors.NewNotFound(groupResource, key.Name)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(namedBundle)).Return(notFoundError)
+
+		actualBundle, err := bundleClient.GetBundle(ctx, "v1-21-1003")
+
+		assert.Nil(t, actualBundle)
+		assert.NoError(t, err)
+	})
+}
+
 func TestBundleClient_GetBundleList(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()

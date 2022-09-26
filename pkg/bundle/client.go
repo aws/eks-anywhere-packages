@@ -24,6 +24,9 @@ type Client interface {
 	// GetBundleList get list of bundles worthy of consideration
 	GetBundleList(ctx context.Context, serverVersion string) (bundles []api.PackageBundle, err error)
 
+	// GetBundle retrieves the named bundle.
+	GetBundle(ctx context.Context, name string) (namedBundle *api.PackageBundle, err error)
+
 	// CreateBundle add a new bundle custom resource
 	CreateBundle(ctx context.Context, bundle *api.PackageBundle) error
 
@@ -87,6 +90,27 @@ func (bc *bundleClient) GetPackageBundleController(ctx context.Context, clusterN
 		return nil, fmt.Errorf("getting PackageBundleController: %v", err)
 	}
 	return &pbc, nil
+}
+
+func (bc *bundleClient) GetBundle(ctx context.Context, name string) (namedBundle *api.PackageBundle, err error) {
+	namedBundle = &api.PackageBundle{}
+	if name == "" {
+		return namedBundle, nil
+	}
+
+	nn := types.NamespacedName{
+		Namespace: api.PackageNamespace,
+		Name:      name,
+	}
+	err = bc.Get(ctx, nn, namedBundle)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return namedBundle, nil
 }
 
 func (bc *bundleClient) GetBundleList(ctx context.Context, serverVersion string) (bundles []api.PackageBundle, err error) {
