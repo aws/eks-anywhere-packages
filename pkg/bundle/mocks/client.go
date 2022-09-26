@@ -51,6 +51,20 @@ func (mr *MockClientMockRecorder) CreateBundle(ctx, bundle interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBundle", reflect.TypeOf((*MockClient)(nil).CreateBundle), ctx, bundle)
 }
 
+// CreateClusterNamespace mocks base method.
+func (m *MockClient) CreateClusterNamespace(ctx context.Context, clusterName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateClusterNamespace", ctx, clusterName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateClusterNamespace indicates an expected call of CreateClusterNamespace.
+func (mr *MockClientMockRecorder) CreateClusterNamespace(ctx, clusterName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateClusterNamespace", reflect.TypeOf((*MockClient)(nil).CreateClusterNamespace), ctx, clusterName)
+}
+
 // GetActiveBundle mocks base method.
 func (m *MockClient) GetActiveBundle(ctx context.Context) (*v1alpha1.PackageBundle, error) {
 	m.ctrl.T.Helper()

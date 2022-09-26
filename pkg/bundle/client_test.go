@@ -7,7 +7,11 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
@@ -248,5 +252,68 @@ func TestBundleClient_CreateBundle(t *testing.T) {
 		err := bundleClient.CreateBundle(ctx, actualBundle)
 
 		assert.EqualError(t, err, "creating new package bundle: oops")
+	})
+}
+
+func TestBundleClient_CreateClusterNamespace(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	ns := &v1.Namespace{}
+	ns.Name = "eksa-packages-bobby"
+	key := types.NamespacedName{
+		Name: "eksa-packages-bobby",
+	}
+
+	t.Run("already exists", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(ns)).Return(nil)
+
+		err := bundleClient.CreateClusterNamespace(ctx, "bobby")
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("get error", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(ns)).Return(fmt.Errorf("boom"))
+
+		err := bundleClient.CreateClusterNamespace(ctx, "bobby")
+
+		assert.EqualError(t, err, "boom")
+	})
+
+	t.Run("create namespace", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		groupResource := schema.GroupResource{
+			Group:    key.Name,
+			Resource: "Namespace",
+		}
+		notFoundError := errors.NewNotFound(groupResource, key.Name)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(ns)).Return(notFoundError)
+		mockClient.EXPECT().Create(ctx, ns).Return(nil)
+
+		err := bundleClient.CreateClusterNamespace(ctx, "bobby")
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("create namespace error", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		groupResource := schema.GroupResource{
+			Group:    key.Name,
+			Resource: "Namespace",
+		}
+		notFoundError := errors.NewNotFound(groupResource, key.Name)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(ns)).Return(notFoundError)
+		mockClient.EXPECT().Create(ctx, ns).Return(fmt.Errorf("boom"))
+
+		err := bundleClient.CreateClusterNamespace(ctx, "bobby")
+
+		assert.EqualError(t, err, "boom")
 	})
 }
