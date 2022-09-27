@@ -26,20 +26,20 @@ const (
 
 // helmDriver implements PackageDriver to install packages from Helm charts.
 type helmDriver struct {
-	cfg              *action.Configuration
-	secretAuth       auth.Authenticator
-	kubeconfigClient auth.KubeconfigClient
-	log              logr.Logger
-	settings         *cli.EnvSettings
+	cfg        *action.Configuration
+	secretAuth auth.Authenticator
+	tcc        auth.TargetClusterClient
+	log        logr.Logger
+	settings   *cli.EnvSettings
 }
 
 var _ PackageDriver = (*helmDriver)(nil)
 
-func NewHelm(log logr.Logger, secretAuth auth.Authenticator, kubeconfigClient auth.KubeconfigClient) (*helmDriver, error) {
+func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) (*helmDriver, error) {
 	return &helmDriver{
-		secretAuth:       secretAuth,
-		kubeconfigClient: kubeconfigClient,
-		log:              log,
+		secretAuth: secretAuth,
+		tcc:        tcc,
+		log:        log,
 	}, nil
 }
 
@@ -50,7 +50,7 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 		return fmt.Errorf("creating registry client for helm driver: %w", err)
 	}
 
-	kubeconfigPath, err := d.kubeconfigClient.GetKubeconfig(ctx, clusterName)
+	kubeconfigPath, err := d.tcc.GetKubeconfigFile(ctx, clusterName)
 	if err != nil {
 		return fmt.Errorf("getting kubeconfig for helm driver: %w", err)
 	}
