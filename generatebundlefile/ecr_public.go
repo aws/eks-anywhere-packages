@@ -215,7 +215,7 @@ func (c *SDKClients) getNameAndVersionPublic(repoName, tag, registryURI string) 
 	ecrname := fmt.Sprintf("%s/%s", c.ecrPublicClient.SourceRegistry, name)
 	if len(splitname) > 0 {
 		if !strings.Contains(tag, "latest") {
-			imageIDs := []ecrpublictypes.ImageIdentifier{ecrpublictypes.ImageIdentifier{ImageTag: &tag}}
+			imageIDs := []ecrpublictypes.ImageIdentifier{{ImageTag: &tag}}
 			ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
 				RepositoryName: aws.String(repoName),
 				ImageIds:       imageIDs,

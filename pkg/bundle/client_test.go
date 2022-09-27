@@ -7,7 +7,11 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
@@ -172,20 +176,42 @@ func TestBundleClient_GetActiveBundleNamespacedName(t *testing.T) {
 	})
 }
 
+func doAndReturnBundleList(_ context.Context, bundles *api.PackageBundleList, _ *client.ListOptions) error {
+	bundles.Items = []api.PackageBundle{
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "v1-16-1003",
+			},
+		},
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "v1-21-1002",
+			},
+		},
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "v1-21-1001",
+			},
+		},
+	}
+	return nil
+}
+
 func TestBundleClient_GetBundleList(t *testing.T) {
 	t.Parallel()
-
 	ctx := context.Background()
 
 	t.Run("golden path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-		actualList := &api.PackageBundleList{}
-		mockClient.EXPECT().List(ctx, actualList, &client.ListOptions{Namespace: api.PackageNamespace}).Return(nil)
+		mockClient.EXPECT().List(ctx, gomock.Any(), &client.ListOptions{Namespace: api.PackageNamespace}).DoAndReturn(doAndReturnBundleList)
 
-		err := bundleClient.GetBundleList(ctx, actualList)
+		bundleItems, err := bundleClient.GetBundleList(ctx)
 
 		assert.NoError(t, err)
+		assert.Equal(t, "v1-21-1002", bundleItems[0].Name)
+		assert.Equal(t, "v1-21-1001", bundleItems[1].Name)
+		assert.Equal(t, "v1-16-1003", bundleItems[2].Name)
 	})
 
 	t.Run("error scenario", func(t *testing.T) {
@@ -194,8 +220,9 @@ func TestBundleClient_GetBundleList(t *testing.T) {
 		actualList := &api.PackageBundleList{}
 		mockClient.EXPECT().List(ctx, actualList, &client.ListOptions{Namespace: api.PackageNamespace}).Return(fmt.Errorf("oops"))
 
-		err := bundleClient.GetBundleList(ctx, actualList)
+		bundleItems, err := bundleClient.GetBundleList(ctx)
 
+		assert.Nil(t, bundleItems)
 		assert.EqualError(t, err, "listing package bundles: oops")
 	})
 }
@@ -225,5 +252,68 @@ func TestBundleClient_CreateBundle(t *testing.T) {
 		err := bundleClient.CreateBundle(ctx, actualBundle)
 
 		assert.EqualError(t, err, "creating new package bundle: oops")
+	})
+}
+
+func TestBundleClient_CreateClusterNamespace(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	ns := &v1.Namespace{}
+	ns.Name = "eksa-packages-bobby"
+	key := types.NamespacedName{
+		Name: "eksa-packages-bobby",
+	}
+
+	t.Run("already exists", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(ns)).Return(nil)
+
+		err := bundleClient.CreateClusterNamespace(ctx, "bobby")
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("get error", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(ns)).Return(fmt.Errorf("boom"))
+
+		err := bundleClient.CreateClusterNamespace(ctx, "bobby")
+
+		assert.EqualError(t, err, "boom")
+	})
+
+	t.Run("create namespace", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		groupResource := schema.GroupResource{
+			Group:    key.Name,
+			Resource: "Namespace",
+		}
+		notFoundError := errors.NewNotFound(groupResource, key.Name)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(ns)).Return(notFoundError)
+		mockClient.EXPECT().Create(ctx, ns).Return(nil)
+
+		err := bundleClient.CreateClusterNamespace(ctx, "bobby")
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("create namespace error", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		groupResource := schema.GroupResource{
+			Group:    key.Name,
+			Resource: "Namespace",
+		}
+		notFoundError := errors.NewNotFound(groupResource, key.Name)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(ns)).Return(notFoundError)
+		mockClient.EXPECT().Create(ctx, ns).Return(fmt.Errorf("boom"))
+
+		err := bundleClient.CreateClusterNamespace(ctx, "bobby")
+
+		assert.EqualError(t, err, "boom")
 	})
 }

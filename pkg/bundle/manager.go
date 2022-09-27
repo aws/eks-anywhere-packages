@@ -3,7 +3,6 @@ package bundle
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/version"
@@ -17,9 +16,6 @@ type Manager interface {
 
 	// ProcessBundleController process the bundle controller
 	ProcessBundleController(ctx context.Context, pbc *api.PackageBundleController) error
-
-	// SortBundlesDescending sort bundles latest first
-	SortBundlesDescending(bundles []api.PackageBundle)
 }
 
 type bundleManager struct {
@@ -70,15 +66,6 @@ func (m bundleManager) ProcessBundle(ctx context.Context, newBundle *api.Package
 	return false, nil
 }
 
-// SortBundlesDescending will sort a slice of bundles in descending order so
-// that the newest (greatest) bundle will be displayed first.
-func (m bundleManager) SortBundlesDescending(bundles []api.PackageBundle) {
-	sortFn := func(i, j int) bool {
-		return bundles[j].LessThan(&bundles[i])
-	}
-	sort.Slice(bundles, sortFn)
-}
-
 func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.PackageBundleController) error {
 	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleUri(), m.info.String())
 	if err != nil {
@@ -93,13 +80,10 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		return nil
 	}
 
-	knownBundles := &api.PackageBundleList{}
-	err = m.bundleClient.GetBundleList(ctx, knownBundles)
+	sortedBundles, err := m.bundleClient.GetBundleList(ctx)
 	if err != nil {
 		return fmt.Errorf("getting bundle list: %s", err)
 	}
-	sortedBundles := knownBundles.Items
-	m.SortBundlesDescending(sortedBundles)
 
 	latestBundleIsKnown := false
 	latestBundleIsCurrentBundle := true
@@ -120,6 +104,11 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 
 	switch pbc.Status.State {
 	case api.BundleControllerStateActive:
+		err = m.bundleClient.CreateClusterNamespace(ctx, pbc.Name)
+		if err != nil {
+			return fmt.Errorf("creating namespace for %s: %s", pbc.Name, err)
+		}
+
 		if latestBundleIsCurrentBundle {
 			break
 		}

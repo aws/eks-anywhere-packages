@@ -23,6 +23,13 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: latest
+  - org: kubernetes
+    projects:
+      - name: autoscaler
+        repository: autoscaler/charts/cluster-autoscaler
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
   - org: metallb 
     projects:
       - name: metallb 

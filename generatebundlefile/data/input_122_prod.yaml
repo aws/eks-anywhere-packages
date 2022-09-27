@@ -29,4 +29,4 @@ packages:
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 3.0.0-79f09faaa2f14bd2fcc7e7ed146b243504237e83	
+            - name: 3.0.0-c5b5d47b53ae5d769cc8349f4822ce2786ad198e
