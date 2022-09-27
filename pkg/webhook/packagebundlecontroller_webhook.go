@@ -81,6 +81,15 @@ func (v *activeBundleValidator) Handle(ctx context.Context, req admission.Reques
 func (v *activeBundleValidator) handleInner(_ context.Context, pbc *v1alpha1.PackageBundleController, bundles *v1alpha1.PackageBundleList) (
 	*admission.Response, error) {
 
+	if pbc.Spec.ActiveBundle == "" {
+		resp := &admission.Response{
+			AdmissionResponse: admissionv1.AdmissionResponse{
+				Allowed: true,
+			},
+		}
+		return resp, nil
+	}
+
 	var found bool
 	var theBundle v1alpha1.PackageBundle
 	for _, b := range bundles.Items {
@@ -92,15 +101,15 @@ func (v *activeBundleValidator) handleInner(_ context.Context, pbc *v1alpha1.Pac
 	}
 
 	if !found {
-		msg := fmt.Sprintf("activeBundle <%q> not present on cluster", pbc.Spec.ActiveBundle)
+		reason := fmt.Sprintf("activeBundle %q not present on cluster", pbc.Spec.ActiveBundle)
 		resp := &admission.Response{
 			AdmissionResponse: admissionv1.AdmissionResponse{
 				Allowed: false,
 				Result: &metav1.Status{
 					Status:  metav1.StatusFailure,
 					Code:    http.StatusBadRequest,
-					Message: msg,
-					Reason:  metav1.StatusReasonInvalid,
+					Message: reason,
+					Reason:  metav1.StatusReason(reason),
 				},
 			},
 		}
@@ -113,15 +122,15 @@ func (v *activeBundleValidator) handleInner(_ context.Context, pbc *v1alpha1.Pac
 	}
 
 	if !matches {
-		msg := fmt.Sprintf("kuberneetes version v%s-%s does not match %s", v.info.Major, v.info.Minor, pbc.Spec.ActiveBundle)
+		reason := fmt.Sprintf("kuberneetes version v%s-%s does not match %s", v.info.Major, v.info.Minor, pbc.Spec.ActiveBundle)
 		resp := &admission.Response{
 			AdmissionResponse: admissionv1.AdmissionResponse{
 				Allowed: false,
 				Result: &metav1.Status{
 					Status:  metav1.StatusFailure,
 					Code:    http.StatusBadRequest,
-					Message: msg,
-					Reason:  metav1.StatusReasonInvalid,
+					Message: reason,
+					Reason:  metav1.StatusReason(reason),
 				},
 			},
 		}
