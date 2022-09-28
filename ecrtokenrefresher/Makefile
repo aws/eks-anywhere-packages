@@ -2,7 +2,7 @@ SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
 REPO_ROOT=$(shell git rev-parse --show-toplevel)
-GOLANG_VERSION?="1.17"
+GOLANG_VERSION?="1.18"
 GO ?= $(shell source $(REPO_ROOT)/scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -25,7 +25,7 @@ clean: ## Clean output directory, and the built binary
 
 build: ## Build Binary
 	mkdir -p $(REPO_ROOT)/ecrtokenrefresher/bin
-	$(GO) mod tidy -compat=1.17
+	$(GO) mod tidy -compat=$(GOLANG_VERSION)
 	$(GO) build -o $(REPO_ROOT)/ecrtokenrefresher/bin/ecr-token-refresh $(REPO_ROOT)/ecrtokenrefresher/cmd/ecr-token-refresher/*.go
 
 build-linux:
