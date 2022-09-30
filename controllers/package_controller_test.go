@@ -28,8 +28,8 @@ func TestReconcile(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		tf, ctx := newTestFixtures(t)
 
-		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any()).Return(&pbc, nil)
-		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(tf.mockBundle(), nil)
+		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any(), "billy").Return(&pbc, nil)
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any(), "billy").Return(tf.mockBundle(), nil)
 
 		fn, pkg := tf.mockGetFnPkg()
 		tf.ctrlClient.EXPECT().
@@ -64,8 +64,8 @@ func TestReconcile(t *testing.T) {
 	t.Run("happy path no status update", func(t *testing.T) {
 		tf, ctx := newTestFixtures(t)
 
-		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any()).Return(&pbc, nil)
-		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(tf.mockBundle(), nil)
+		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any(), "billy").Return(&pbc, nil)
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any(), "billy").Return(tf.mockBundle(), nil)
 
 		fn, pkg := tf.mockGetFnPkg()
 		tf.ctrlClient.EXPECT().
@@ -110,9 +110,9 @@ func TestReconcile(t *testing.T) {
 	t.Run("handles errors getting the active bundle", func(t *testing.T) {
 		tf, ctx := newTestFixtures(t)
 
-		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any()).Return(&pbc, nil)
+		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any(), "billy").Return(&pbc, nil)
 		testErr := errors.New("active bundle test error")
-		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(nil, testErr)
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any(), "billy").Return(nil, testErr)
 		status := tf.mockStatusWriter()
 		status.EXPECT().Update(ctx, gomock.Any()).Return(nil)
 		tf.ctrlClient.EXPECT().Status().Return(status)
@@ -134,9 +134,9 @@ func TestReconcile(t *testing.T) {
 	t.Run("status error getting active bundle", func(t *testing.T) {
 		tf, ctx := newTestFixtures(t)
 
-		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any()).Return(&pbc, nil)
+		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any(), "billy").Return(&pbc, nil)
 		testErr := errors.New("active bundle test error")
-		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(nil, testErr)
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any(), "billy").Return(nil, testErr)
 		statusErr := errors.New("status update test error")
 		status := tf.mockStatusWriter()
 		status.EXPECT().Update(ctx, gomock.Any()).Return(statusErr)
@@ -163,8 +163,8 @@ func TestReconcile(t *testing.T) {
 		tf.ctrlClient.EXPECT().
 			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
 			DoAndReturn(fn)
-		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any()).Return(&pbc, nil)
-		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(tf.mockBundle(), nil)
+		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any(), "billy").Return(&pbc, nil)
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any(), "billy").Return(tf.mockBundle(), nil)
 
 		tf.packageManager.EXPECT().
 			Process(gomock.Any()).
@@ -200,10 +200,10 @@ func TestReconcile(t *testing.T) {
 			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
 			DoAndReturn(fn)
 
-		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any()).Return(&pbc, nil)
+		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any(), "billy").Return(&pbc, nil)
 		newBundle := tf.mockBundle()
 		newBundle.ObjectMeta.Name = "fake bundle"
-		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(newBundle, nil)
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any(), "billy").Return(newBundle, nil)
 
 		testErr := errors.New("status update test error")
 		status := tf.mockStatusWriter()
@@ -234,21 +234,18 @@ func TestReconcile(t *testing.T) {
 
 		fn, pkg := tf.mockGetFnPkg()
 		tf.ctrlClient.EXPECT().
-			Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pkg)).
+			Get(ctx, gomock.Any(), gomock.Any()).
 			DoAndReturn(fn).Times(2)
 		pkg.Spec.PackageVersion = ""
-
-		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any()).Return(&pbc, nil)
-		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(tf.mockBundle(), nil)
-
+		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any(), "billy").Return(&pbc, nil)
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any(), "billy").Return(tf.mockBundle(), nil)
 		newBundle := tf.mockBundle()
 		newBundle.Spec.Packages[0].Source.Versions = []api.SourceVersion{{
 			Name:   "0.2.0",
 			Digest: "sha256:deadbeef020",
 		}}
-		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any()).Return(&pbc, nil)
-		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any()).Return(newBundle, nil)
-
+		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any(), "billy").Return(&pbc, nil)
+		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any(), "billy").Return(newBundle, nil)
 		tf.packageManager.EXPECT().
 			Process(gomock.Any()).
 			Return(false).Do(func(mctx *packages.ManagerContext) {
@@ -315,23 +312,25 @@ func newTestFixtures(t *testing.T) (*testFixtures, context.Context) {
 	}, context.Background()
 }
 
-func (tf *testFixtures) mockSpec() api.PackageSpec {
-	return api.PackageSpec{
-		PackageName:    "hello-eks-anywhere",
-		PackageVersion: "0.1.1",
-		Config: `
+func (tf *testFixtures) mockPackage() *api.Package {
+	return &api.Package{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Package",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-package",
+			Namespace: "eksa-packages-billy",
+		},
+		Spec: api.PackageSpec{
+			PackageName:    "hello-eks-anywhere",
+			PackageVersion: "0.1.1",
+			Config: `
 config:
   foo: foo
 secret:
   bar: bar
 `,
-	}
-}
-
-func (tf *testFixtures) mockPackage() *api.Package {
-	return &api.Package{
-		TypeMeta: metav1.TypeMeta{Kind: "Package"},
-		Spec:     tf.mockSpec(),
+		},
 	}
 }
 

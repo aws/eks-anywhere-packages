@@ -57,7 +57,7 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 			fmt.Errorf("decoding request: %w", err))
 	}
 
-	activeBundle, err := v.BundleClient.GetActiveBundle(ctx)
+	activeBundle, err := v.BundleClient.GetActiveBundle(ctx, p.GetClusterName())
 
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting PackageBundle: %v", err))

@@ -8,8 +8,6 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -18,14 +16,10 @@ import (
 
 type Client interface {
 	// GetActiveBundle retrieves the currently active bundle.
-	GetActiveBundle(ctx context.Context) (activeBundle *api.PackageBundle, err error)
-
-	// GetActiveBundleNamespacedName retrieves the namespace and name of the
-	// currently active bundle.
-	GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error)
+	GetActiveBundle(ctx context.Context, clusterName string) (activeBundle *api.PackageBundle, err error)
 
 	// GetPackageBundleController retrieves clusters package bundle controller
-	GetPackageBundleController(ctx context.Context) (controller *api.PackageBundleController, err error)
+	GetPackageBundleController(ctx context.Context, clusterName string) (controller *api.PackageBundleController, err error)
 
 	// GetBundleList get list of bundles worthy of consideration
 	GetBundleList(ctx context.Context, serverVersion string) (bundles []api.PackageBundle, err error)
@@ -59,8 +53,8 @@ var _ Client = (*bundleClient)(nil)
 //
 // It retrieves the name of the active bundle from the PackageBundleController,
 // then uses the K8s API to retrieve and return the active bundle.
-func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.PackageBundle, err error) {
-	pbc, err := bc.GetPackageBundleController(ctx)
+func (bc *bundleClient) GetActiveBundle(ctx context.Context, clusterName string) (activeBundle *api.PackageBundle, err error) {
+	pbc, err := bc.GetPackageBundleController(ctx, clusterName)
 	if err != nil {
 		return nil, err
 	}
@@ -82,63 +76,17 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context) (activeBundle *api.
 	return activeBundle, nil
 }
 
-func (bc *bundleClient) GetPackageBundleController(ctx context.Context) (*api.PackageBundleController, error) {
-	// Get the cluster name
-	u := &unstructured.UnstructuredList{}
-	u.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   "controlplane.cluster.x-k8s.io",
-		Kind:    "KubeadmControlPlane",
-		Version: "v1beta1",
-	})
-	err := bc.List(ctx, u)
-	if err != nil {
-		// if an error occurs, it is highly likely this is a workload cluster.
-		// for a workload cluster, fetch the pbcs in the cluster
-		// since there will only be a single pbc currently, we use the first pbc found
-		pbcList := &api.PackageBundleControllerList{}
-		err = bc.List(ctx, pbcList)
-		if err != nil {
-			return nil, fmt.Errorf("listing Packagecontrollers: %v", err)
-		}
-		items := pbcList.Items
-		if len(items) > 0 {
-			return &items[0], nil
-		}
-		return nil, fmt.Errorf("listing KubeadmControlPlane: %v", err)
-	}
-
-	kac := u.Items
-	name := api.PackageBundleControllerName
-	if len(kac) > 0 {
-		name = kac[0].GetName()
-	}
-
+func (bc *bundleClient) GetPackageBundleController(ctx context.Context, clusterName string) (*api.PackageBundleController, error) {
 	pbc := api.PackageBundleController{}
 	key := types.NamespacedName{
 		Namespace: api.PackageNamespace,
-		Name:      name,
+		Name:      clusterName,
 	}
-	err = bc.Get(ctx, key, &pbc)
+	err := bc.Get(ctx, key, &pbc)
 	if err != nil {
 		return nil, fmt.Errorf("getting PackageBundleController: %v", err)
 	}
 	return &pbc, nil
-}
-
-// GetActiveBundleNamespacedName retrieves the namespace and name of the
-// currently active bundle from the PackageBundleController.
-func (bc *bundleClient) GetActiveBundleNamespacedName(ctx context.Context) (types.NamespacedName, error) {
-	pbc, err := bc.GetPackageBundleController(ctx)
-	if err != nil {
-		return types.NamespacedName{}, err
-	}
-
-	nn := types.NamespacedName{
-		Namespace: api.PackageNamespace,
-		Name:      pbc.Spec.ActiveBundle,
-	}
-
-	return nn, nil
 }
 
 func (bc *bundleClient) GetBundleList(ctx context.Context, serverVersion string) (bundles []api.PackageBundle, err error) {

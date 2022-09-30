@@ -109,14 +109,10 @@ func TestPackageBundleReconciler_ReconcileDelete(t *testing.T) {
 	notFoundError := errors.NewNotFound(groupResource, request.Name)
 	mockClient := mocks.NewMockClient(gomock.NewController(t))
 	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
-	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(notFoundError)
-	mockBundleClient.EXPECT().GetActiveBundleNamespacedName(ctx).Return(request.NamespacedName, nil)
-	myBundle := GivenBundle()
 	bm := bundleMocks.NewMockManager(gomock.NewController(t))
 	mockRegistryClient := bundleMocks.NewMockRegistryClient(gomock.NewController(t))
-	mockRegistryClient.EXPECT().DownloadBundle(ctx, request.Name).Return(myBundle, nil)
-	mockClient.EXPECT().Create(ctx, myBundle).Return(nil)
 	sut := controllers.NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, mockRegistryClient, logr.Discard())
+	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(notFoundError)
 
 	_, actualError := sut.Reconcile(ctx, request)
 

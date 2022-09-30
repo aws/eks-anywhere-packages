@@ -93,11 +93,10 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		bundleClient := NewPackageBundleClient(mockClient)
 		testBundle := givenBundle()
 
-		mockClient.EXPECT().List(ctx, gomock.Any())
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(testBundle)).SetArg(2, *testBundle)
 
-		bundle, err := bundleClient.GetActiveBundle(ctx)
+		bundle, err := bundleClient.GetActiveBundle(ctx, "billy")
 
 		assert.Equal(t, bundle.Name, testBundleName)
 		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
@@ -110,10 +109,9 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
 		pbc.Spec.ActiveBundle = ""
-		mockClient.EXPECT().List(ctx, gomock.Any())
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
 
-		bundle, err := bundleClient.GetActiveBundle(ctx)
+		bundle, err := bundleClient.GetActiveBundle(ctx, "billy")
 
 		assert.Nil(t, bundle)
 		assert.EqualError(t, err, "no activeBundle set in PackageBundleController")
@@ -122,10 +120,9 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 	t.Run("error path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-		mockClient.EXPECT().List(ctx, gomock.Any())
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
 
-		_, err := bundleClient.GetActiveBundle(ctx)
+		_, err := bundleClient.GetActiveBundle(ctx, "billy")
 
 		assert.EqualError(t, err, "getting PackageBundleController: oops")
 	})
@@ -133,46 +130,12 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 	t.Run("other error path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-		mockClient.EXPECT().List(ctx, gomock.Any())
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
 
-		_, err := bundleClient.GetActiveBundle(ctx)
+		_, err := bundleClient.GetActiveBundle(ctx, "billy")
 
 		assert.EqualError(t, err, "oops")
-	})
-}
-
-func TestBundleClient_GetActiveBundleNamespacedName(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	pbc := givenPackageBundleController()
-
-	t.Run("golden path", func(t *testing.T) {
-		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
-		mockClient.EXPECT().List(ctx, gomock.Any())
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc))
-
-		namespacedNames, err := bundleClient.GetActiveBundleNamespacedName(ctx)
-
-		assert.Equal(t, api.PackageNamespace, namespacedNames.Namespace)
-		assert.Equal(t, "", namespacedNames.Name)
-		assert.NoError(t, err)
-	})
-
-	t.Run("error path", func(t *testing.T) {
-		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
-		mockClient.EXPECT().List(ctx, gomock.Any())
-		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
-
-		namespacedNames, err := bundleClient.GetActiveBundleNamespacedName(ctx)
-
-		assert.Equal(t, "", namespacedNames.Namespace)
-		assert.Equal(t, "", namespacedNames.Name)
-		assert.EqualError(t, err, "getting PackageBundleController: oops")
 	})
 }
 
