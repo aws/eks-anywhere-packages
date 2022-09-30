@@ -29,7 +29,7 @@ packages:
         repository: autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 9.21.0-1.22
+            - name: latest
   - org: metallb 
     projects:
       - name: metallb 
