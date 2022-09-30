@@ -10,6 +10,7 @@ require (
 	github.com/onsi/gomega v1.19.0
 	github.com/stretchr/testify v1.7.2
 	github.com/xeipuuv/gojsonschema v1.2.0
+	go.uber.org/zap v1.19.1
 	helm.sh/helm/v3 v3.9.4
 	k8s.io/api v0.24.2
 	k8s.io/apimachinery v0.24.2
@@ -125,7 +126,6 @@ require (
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.19.1 // indirect
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
