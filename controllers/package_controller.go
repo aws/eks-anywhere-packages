@@ -25,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -79,19 +78,13 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	log := ctrl.Log.WithName(packageName)
 	manager := packages.NewManager()
 	cfg := mgr.GetConfig()
-	discovery, err := discovery.NewDiscoveryClientForConfig(cfg)
-	if err != nil {
-		return fmt.Errorf("creating discovery client: %s", err)
-	}
-	info, err := discovery.ServerVersion()
-	if err != nil {
-		return fmt.Errorf("getting server version: %w", err)
-	}
+
 	secretAuth, err := createSecretAuth(cfg)
 	if err != nil {
 		return err
 	}
-	tcc := auth.NewTargetClusterClient(mgr.GetConfig(), mgr.GetClient())
+
+	tcc := auth.NewTargetClusterClient(cfg, mgr.GetClient())
 	helmDriver, err := driver.NewHelm(log, secretAuth, tcc)
 	if err != nil {
 		return fmt.Errorf("creating helm driver: %w", err)
@@ -100,7 +93,7 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	puller := artifacts.NewRegistryPuller()
 	registryClient := bundle.NewRegistryClient(puller)
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
-	bundleManager := bundle.NewBundleManager(log, *info, registryClient, bundleClient)
+	bundleManager := bundle.NewBundleManager(log, registryClient, bundleClient, tcc)
 	reconciler := NewPackageReconciler(
 		mgr.GetClient(),
 		mgr.GetScheme(),

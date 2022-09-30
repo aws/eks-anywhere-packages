@@ -7,12 +7,15 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/version"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	CLUSTER_NAME        = "CLUSTER_NAME"
+	clusterNameEnvVar   = "CLUSTER_NAME"
 	eksaSystemNamespace = "eksa-system"
 )
 
@@ -22,6 +25,9 @@ type TargetClusterClient interface {
 
 	// GetKubeconfigString for a cluster
 	GetKubeconfigString(ctx context.Context, clusterName string) (config []byte, err error)
+
+	// GetServerVersion of the target api server
+	GetServerVersion(ctx context.Context, clusterName string) (info *version.Info, err error)
 }
 
 type targetClusterClient struct {
@@ -59,7 +65,7 @@ func (kc *targetClusterClient) GetKubeconfigFile(ctx context.Context, clusterNam
 
 func (kc *targetClusterClient) GetKubeconfigString(ctx context.Context, clusterName string) (kubeconfig []byte, err error) {
 	// Avoid using kubeconfig for ourselves
-	if clusterName == "" || os.Getenv(CLUSTER_NAME) == clusterName {
+	if clusterName == "" || os.Getenv(clusterNameEnvVar) == clusterName {
 		// Empty string will cause helm to use the current cluster
 		return []byte{}, nil
 	}
@@ -75,4 +81,35 @@ func (kc *targetClusterClient) GetKubeconfigString(ctx context.Context, clusterN
 	}
 
 	return kubeconfigSecret.Data["value"], nil
+}
+
+func (kc *targetClusterClient) GetServerVersion(ctx context.Context, clusterName string) (info *version.Info, err error) {
+	kubeconfig, err := kc.GetKubeconfigString(ctx, clusterName)
+	if err != nil {
+		return nil, err
+	}
+
+	config := kc.Config
+	if len(kubeconfig) > 0 {
+		clientConfig, err := clientcmd.NewClientConfigFromBytes(kubeconfig)
+		if err != nil {
+			return nil, fmt.Errorf("creating client config: %s", err)
+		}
+
+		config, err = clientConfig.ClientConfig()
+		if err != nil {
+			return nil, fmt.Errorf("creating rest config config: %s", err)
+		}
+	}
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("creating discoveryClient client: %s", err)
+	}
+
+	info, err = discoveryClient.ServerVersion()
+	if err != nil {
+		return nil, fmt.Errorf("getting server version: %w", err)
+	}
+	return info, nil
 }

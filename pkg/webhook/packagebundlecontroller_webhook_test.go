@@ -21,6 +21,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -32,14 +33,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/authenticator/mocks"
 )
 
 func TestHandleInner(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("validates successfully", func(t *testing.T) {
+		tcc := mocks.NewMockTargetClusterClient(gomock.NewController(t))
+		tcc.EXPECT().GetServerVersion(gomock.Any(), gomock.Any()).Return(&version.Info{Major: "1", Minor: "21"}, nil)
 		v := &activeBundleValidator{
-			info: &version.Info{Major: "1", Minor: "21"},
+			tcc: tcc,
 		}
 		pbc := &v1alpha1.PackageBundleController{
 			Spec: v1alpha1.PackageBundleControllerSpec{
@@ -66,8 +70,10 @@ func TestHandleInner(t *testing.T) {
 	})
 
 	t.Run("invalidates successfully", func(t *testing.T) {
+		tcc := mocks.NewMockTargetClusterClient(gomock.NewController(t))
+		tcc.EXPECT().GetServerVersion(gomock.Any(), gomock.Any()).Return(&version.Info{Major: "1", Minor: "20"}, nil)
 		v := &activeBundleValidator{
-			info: &version.Info{Major: "1", Minor: "20"},
+			tcc: tcc,
 		}
 		pbc := &v1alpha1.PackageBundleController{
 			Spec: v1alpha1.PackageBundleControllerSpec{
