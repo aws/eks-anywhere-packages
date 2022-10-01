@@ -48,7 +48,7 @@ func main() {
 
 	err, failedList := k8s.UpdateTokens(secretname, credentials.Username, credentials.Token, credentials.Registry)
 	if len(failedList) > 0 {
-		warningLogger.Printf("Failed to update the following namespaces: %s", failedList)
+		warningLogger.Printf("Failed the following: %s", failedList)
 	}
 	checkErrAndLog(err, errorLogger)
 
