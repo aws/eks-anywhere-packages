@@ -81,7 +81,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		return nil
 	}
 
-	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleUri(), info.String())
+	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleURI(), info.String())
 	if err != nil {
 		m.log.Error(err, "Unable to get latest bundle")
 		if pbc.Status.State == api.BundleControllerStateActive || pbc.Status.State == "" {
@@ -133,7 +133,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		}
 
 		if activeBundle == nil {
-			activeBundle, err = m.registryClient.DownloadBundle(ctx, pbc.GetActiveBundleUri())
+			activeBundle, err = m.registryClient.DownloadBundle(ctx, pbc.GetActiveBundleURI())
 			if err != nil {
 				m.log.Error(err, "Active bundle download failed", "bundle", pbc.Spec.ActiveBundle)
 				return nil
