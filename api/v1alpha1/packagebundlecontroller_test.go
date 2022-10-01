@@ -44,12 +44,12 @@ func GivenPackageBundleController() *api.PackageBundleController {
 	}
 }
 
-func TestPackageBundleController_GetBundleUri(t *testing.T) {
+func TestPackageBundleController_GetBundleURI(t *testing.T) {
 	sut := GivenPackageBundleController()
 	assert.Equal(t, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles", sut.GetBundleURI())
 }
 
-func TestPackageBundleController_GetActiveBundleUri(t *testing.T) {
+func TestPackageBundleController_GetActiveBundleURI(t *testing.T) {
 	sut := GivenPackageBundleController()
 	assert.Equal(t, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles:v1-21-1003", sut.GetActiveBundleURI())
 }

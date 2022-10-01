@@ -129,7 +129,6 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 	t.Run("active to active", func(t *testing.T) {
 		tcc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
-		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
@@ -146,7 +145,6 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 	t.Run("active missing active bundle", func(t *testing.T) {
 		tcc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
-		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
@@ -165,7 +163,6 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 	t.Run("active missing active bundle download error", func(t *testing.T) {
 		tcc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
-		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
@@ -183,7 +180,6 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 	t.Run("active missing active bundle create error", func(t *testing.T) {
 		tcc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
-		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
