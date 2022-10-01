@@ -93,15 +93,11 @@ func (bc *bundleClient) GetPackageBundleController(ctx context.Context, clusterN
 }
 
 func (bc *bundleClient) GetBundle(ctx context.Context, name string) (namedBundle *api.PackageBundle, err error) {
-	namedBundle = &api.PackageBundle{}
-	if name == "" {
-		return namedBundle, nil
-	}
-
 	nn := types.NamespacedName{
 		Namespace: api.PackageNamespace,
 		Name:      name,
 	}
+	namedBundle = &api.PackageBundle{}
 	err = bc.Get(ctx, nn, namedBundle)
 	if err != nil {
 		if apierrors.IsNotFound(err) {

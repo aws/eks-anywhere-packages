@@ -160,6 +160,11 @@ func doAndReturnBundleList(_ context.Context, bundles *api.PackageBundleList, _ 
 	return nil
 }
 
+func doAndReturnBundle(_ context.Context, nn types.NamespacedName, theBundle *api.PackageBundle) error {
+	theBundle.Name = nn.Name
+	return nil
+}
+
 func TestBundleClient_GetBundle(t *testing.T) {
 	t.Parallel()
 
@@ -174,19 +179,9 @@ func TestBundleClient_GetBundle(t *testing.T) {
 	t.Run("already exists", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(namedBundle)).Return(nil)
+		mockClient.EXPECT().Get(ctx, key, gomock.Any()).DoAndReturn(doAndReturnBundle)
 
 		actualBundle, err := bundleClient.GetBundle(ctx, "v1-21-1003")
-
-		assert.NotNil(t, actualBundle)
-		assert.NoError(t, err)
-	})
-
-	t.Run("no active bundle", func(t *testing.T) {
-		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
-
-		actualBundle, err := bundleClient.GetBundle(ctx, "")
 
 		assert.NotNil(t, actualBundle)
 		assert.NoError(t, err)
@@ -203,7 +198,7 @@ func TestBundleClient_GetBundle(t *testing.T) {
 		assert.EqualError(t, err, "boom")
 	})
 
-	t.Run("Does not exist", func(t *testing.T) {
+	t.Run("returns nil when bundle does not", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
 		groupResource := schema.GroupResource{

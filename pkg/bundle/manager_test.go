@@ -144,12 +144,13 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 	})
 
 	t.Run("active missing active bundle", func(t *testing.T) {
-		_, rc, bc, bm := givenBundleManager(t)
+		tcc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
 		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
 		latestBundle := givenBundle()
+		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
-		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
+		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().GetBundle(ctx, pbc.Spec.ActiveBundle).Return(nil, nil)
 		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles:v1-21-1003").Return(&allBundles[0], nil)
@@ -162,12 +163,13 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 	})
 
 	t.Run("active missing active bundle download error", func(t *testing.T) {
-		_, rc, bc, bm := givenBundleManager(t)
+		tcc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
 		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
 		latestBundle := givenBundle()
+		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
-		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
+		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().GetBundle(ctx, pbc.Spec.ActiveBundle).Return(nil, nil)
 		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles:v1-21-1003").Return(&allBundles[0], fmt.Errorf("boom"))
@@ -179,12 +181,13 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 	})
 
 	t.Run("active missing active bundle create error", func(t *testing.T) {
-		_, rc, bc, bm := givenBundleManager(t)
+		tcc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
 		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
 		latestBundle := givenBundle()
+		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
-		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
+		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().GetBundle(ctx, pbc.Spec.ActiveBundle).Return(nil, nil)
 		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles:v1-21-1003").Return(&allBundles[0], nil)
@@ -290,12 +293,13 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 	})
 
 	t.Run("active to upgradeAvailable active bundle error", func(t *testing.T) {
-		_, rc, bc, bm := givenBundleManager(t)
+		tcc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
+		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
-		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
+		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().GetBundle(ctx, pbc.Spec.ActiveBundle).Return(nil, fmt.Errorf("boom"))
