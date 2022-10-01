@@ -34,3 +34,6 @@ build-linux:
 
 run:
 	$(GO) run .
+
+test:
+	$(GO) test ./...
