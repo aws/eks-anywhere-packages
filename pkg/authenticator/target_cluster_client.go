@@ -41,12 +41,12 @@ func NewTargetClusterClient(config *rest.Config, client client.Client) *targetCl
 
 var _ TargetClusterClient = (*targetClusterClient)(nil)
 
-func (kc *targetClusterClient) getSecretName(clusterName string) string {
+func (tcc *targetClusterClient) getSecretName(clusterName string) string {
 	return clusterName + "-kubeconfig"
 }
 
-func (kc *targetClusterClient) GetKubeconfigFile(ctx context.Context, clusterName string) (fileName string, err error) {
-	kubeconfig, err := kc.GetKubeconfigString(ctx, clusterName)
+func (tcc *targetClusterClient) GetKubeconfigFile(ctx context.Context, clusterName string) (fileName string, err error) {
+	kubeconfig, err := tcc.GetKubeconfigString(ctx, clusterName)
 	if err != nil {
 		return "", err
 	}
@@ -54,7 +54,7 @@ func (kc *targetClusterClient) GetKubeconfigFile(ctx context.Context, clusterNam
 		return "", nil
 	}
 
-	secretName := kc.getSecretName(clusterName)
+	secretName := tcc.getSecretName(clusterName)
 	err = os.WriteFile(secretName, kubeconfig, 0600)
 	if err != nil {
 		return "", fmt.Errorf("opening temporary file: %v", err)
@@ -63,33 +63,33 @@ func (kc *targetClusterClient) GetKubeconfigFile(ctx context.Context, clusterNam
 	return secretName, nil
 }
 
-func (kc *targetClusterClient) GetKubeconfigString(ctx context.Context, clusterName string) (kubeconfig []byte, err error) {
+func (tcc *targetClusterClient) GetKubeconfigString(ctx context.Context, clusterName string) (kubeconfig []byte, err error) {
 	// Avoid using kubeconfig for ourselves
 	if clusterName == "" || os.Getenv(clusterNameEnvVar) == clusterName {
 		// Empty string will cause helm to use the current cluster
 		return []byte{}, nil
 	}
 
-	secretName := kc.getSecretName(clusterName)
+	secretName := tcc.getSecretName(clusterName)
 	nn := types.NamespacedName{
 		Namespace: eksaSystemNamespace,
 		Name:      secretName,
 	}
 	var kubeconfigSecret corev1.Secret
-	if err = kc.Client.Get(ctx, nn, &kubeconfigSecret); err != nil {
+	if err = tcc.Client.Get(ctx, nn, &kubeconfigSecret); err != nil {
 		return []byte{}, fmt.Errorf("getting kubeconfig for cluster %q: %w", clusterName, err)
 	}
 
 	return kubeconfigSecret.Data["value"], nil
 }
 
-func (kc *targetClusterClient) GetServerVersion(ctx context.Context, clusterName string) (info *version.Info, err error) {
-	kubeconfig, err := kc.GetKubeconfigString(ctx, clusterName)
+func (tcc *targetClusterClient) GetServerVersion(ctx context.Context, clusterName string) (info *version.Info, err error) {
+	kubeconfig, err := tcc.GetKubeconfigString(ctx, clusterName)
 	if err != nil {
 		return nil, err
 	}
 
-	config := kc.Config
+	config := tcc.Config
 	if len(kubeconfig) > 0 {
 		clientConfig, err := clientcmd.NewClientConfigFromBytes(kubeconfig)
 		if err != nil {
