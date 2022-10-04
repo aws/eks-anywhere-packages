@@ -1,3 +1,10 @@
+#
+# ADOT Package configuration
+# The AMP package configuration deploys an ADOT Collector with the metrics 
+# pipeline, which includes the prometheus receiver and prometheus remote write 
+# exporter sending metrics to Amazon Managed Service for Prometheus (AMG).
+# This configuration is adapted from https://github.com/aws-observability/aws-otel-community/blob/master/sample-configs/operator/collector-config-amp.yaml.
+#
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: Package
 metadata:
@@ -28,10 +35,7 @@ spec:
             sts_region: "us-west-2"
       
       receivers:
-        #
         # Scrape configuration for the Prometheus Receiver
-        # This is the same configuration used when Prometheus is installed using the community Helm chart
-        # 
         prometheus:
           config:
             global:

@@ -1,3 +1,8 @@
+#
+# ADOT Package configuration
+# The default package configuration deploys an ADOT Collector with the metrics 
+# pipeline, which includes otlp and prometheus receiver, and logging exporter.
+#
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: Package
 metadata:
