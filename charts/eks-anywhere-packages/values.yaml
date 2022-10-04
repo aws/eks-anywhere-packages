@@ -15,7 +15,7 @@ additionalAnnotations: {}
 # -- sourceRegistry for all container images in chart.
 sourceRegistry: public.ecr.aws/eks-anywhere
 # -- clusterName managed by a particular PBC
-clusterName: eksa-packages-bundle-controller
+clusterName: bundle-controller
 # -- Image pull policy for Docker images.
 imagePullPolicy: IfNotPresent
 proxy:

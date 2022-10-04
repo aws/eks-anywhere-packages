@@ -27,7 +27,7 @@ const testBundleName = "v1.21-1001"
 func givenPackageBundleController() api.PackageBundleController {
 	return api.PackageBundleController{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      api.PackageBundleControllerName,
+			Name:      "eksa-packages-cluster01",
 			Namespace: api.PackageNamespace,
 		},
 		Spec: api.PackageBundleControllerSpec{
@@ -49,7 +49,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 
 	controllerNN := types.NamespacedName{
 		Namespace: api.PackageNamespace,
-		Name:      api.PackageBundleControllerName,
+		Name:      "eksa-packages-cluster01",
 	}
 	req := ctrl.Request{
 		NamespacedName: controllerNN,

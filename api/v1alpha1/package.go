@@ -1,18 +1,15 @@
 package v1alpha1
 
 import (
-	"os"
 	"strings"
 
 	"sigs.k8s.io/yaml"
 )
 
 const (
-	PackageKind       = "Package"
-	PackageNamespace  = "eksa-packages"
-	namespacePrefix   = PackageNamespace + "-"
-	oldPbcName        = "bundle-controller"
-	clusterNameEnvVar = "CLUSTER_NAME"
+	PackageKind      = "Package"
+	PackageNamespace = "eksa-packages"
+	namespacePrefix  = PackageNamespace + "-"
 )
 
 func (config *Package) MetaKind() string {
@@ -33,10 +30,6 @@ func (config *Package) GetValues() (values map[string]interface{}, err error) {
 func (config *Package) GetClusterName() string {
 	if strings.HasPrefix(config.Namespace, namespacePrefix) {
 		clusterName := strings.TrimPrefix(config.Namespace, namespacePrefix)
-		// Backward compatibility
-		if clusterName == oldPbcName {
-			return os.Getenv(clusterNameEnvVar)
-		}
 		return clusterName
 	}
 	return ""
