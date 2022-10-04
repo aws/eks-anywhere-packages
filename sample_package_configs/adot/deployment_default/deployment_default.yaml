@@ -1,0 +1,10 @@
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: Package
+metadata:
+  name: my-adot
+  namespace: eksa-packages
+spec:
+  packageName: adot
+  targetNamespace: observability
+  config: |
+    mode: deployment
