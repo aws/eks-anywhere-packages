@@ -21,15 +21,15 @@ func TestPackageBundleController_IsValid(t *testing.T) {
 		}
 	}
 
-	assert.False(t, givenBundleController(api.PackageBundleControllerName, api.PackageNamespace).IsIgnored())
+	assert.False(t, givenBundleController("eksa-packaages-bundle-controller", api.PackageNamespace).IsIgnored())
 	assert.False(t, givenBundleController("billy", api.PackageNamespace).IsIgnored())
-	assert.True(t, givenBundleController(api.PackageBundleControllerName, "default").IsIgnored())
+	assert.True(t, givenBundleController("eksa-packages-bundle-controller", "default").IsIgnored())
 }
 
 func GivenPackageBundleController() *api.PackageBundleController {
 	return &api.PackageBundleController{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      api.PackageBundleControllerName,
+			Name:      "eksa-packages-bundle-controller",
 			Namespace: api.PackageNamespace,
 		},
 		Spec: api.PackageBundleControllerSpec{

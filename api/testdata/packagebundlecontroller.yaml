@@ -1,7 +1,7 @@
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: PackageBundleController
 metadata:
-  name: eksa-packages-bundle-controller
+  name: eksa-packages-cluster01
   namespace: eksa-packages
 spec:
   activeBundle: "v1-21-1001"

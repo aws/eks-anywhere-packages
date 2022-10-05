@@ -2,10 +2,7 @@ package v1alpha1
 
 import "path"
 
-const (
-	PackageBundleControllerKind = "PackageBundleController"
-	PackageBundleControllerName = "eksa-packages-bundle-controller"
-)
+const PackageBundleControllerKind = "PackageBundleController"
 
 func (config *PackageBundleController) MetaKind() string {
 	return config.TypeMeta.Kind

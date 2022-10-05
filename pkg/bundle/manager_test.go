@@ -250,7 +250,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to disconnected: oops")
+		assert.EqualError(t, err, "updating eksa-packages-cluster01 status to disconnected: oops")
 	})
 
 	t.Run("active to upgradeAvailable", func(t *testing.T) {
@@ -285,7 +285,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "creating namespace for eksa-packages-bundle-controller: boom")
+		assert.EqualError(t, err, "creating namespace for eksa-packages-cluster01: boom")
 	})
 
 	t.Run("active to upgradeAvailable active bundle error", func(t *testing.T) {
@@ -320,7 +320,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to upgrade available: oops")
+		assert.EqualError(t, err, "updating eksa-packages-cluster01 status to upgrade available: oops")
 	})
 
 	t.Run("active to upgradeAvailable create error", func(t *testing.T) {
@@ -383,7 +383,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to active: oops")
+		assert.EqualError(t, err, "updating eksa-packages-cluster01 status to active: oops")
 	})
 
 	t.Run("disconnected to active", func(t *testing.T) {
@@ -414,7 +414,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to active: oops")
+		assert.EqualError(t, err, "updating eksa-packages-cluster01 status to active: oops")
 	})
 
 	t.Run("nothing to active bundle set", func(t *testing.T) {
@@ -452,7 +452,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-bundle-controller activeBundle to v1-21-1004: oops")
+		assert.EqualError(t, err, "updating eksa-packages-cluster01 activeBundle to v1-21-1004: oops")
 	})
 
 	t.Run("nothing to active state", func(t *testing.T) {
@@ -486,6 +486,6 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-bundle-controller status to active: oops")
+		assert.EqualError(t, err, "updating eksa-packages-cluster01 status to active: oops")
 	})
 }

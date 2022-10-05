@@ -54,7 +54,7 @@ func givenBundle() *api.PackageBundle {
 func givenPackageBundleController() *api.PackageBundleController {
 	return &api.PackageBundleController{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      api.PackageBundleControllerName,
+			Name:      "eksa-packages-cluster01",
 			Namespace: api.PackageNamespace,
 		},
 		Spec: api.PackageBundleControllerSpec{
