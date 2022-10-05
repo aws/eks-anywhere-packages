@@ -135,6 +135,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
+		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
@@ -210,6 +211,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
+		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
 
 		err := bm.ProcessBundleController(ctx, pbc)
@@ -234,6 +236,23 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		assert.EqualError(t, err, "creating namespace for eksa-packages-bundle-controller: boom")
 	})
 
+	t.Run("active to cm error", func(t *testing.T) {
+		tcc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
+		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
+		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
+		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
+		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(fmt.Errorf("boom"))
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.EqualError(t, err, "creating configmap for eksa-packages-bundle-controller: boom")
+	})
+
 	t.Run("active to upgradeAvailable error", func(t *testing.T) {
 		tcc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
@@ -244,6 +263,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
+		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
 
 		err := bm.ProcessBundleController(ctx, pbc)

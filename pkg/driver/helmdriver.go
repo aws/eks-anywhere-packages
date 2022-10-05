@@ -44,6 +44,10 @@ func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClus
 }
 
 func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err error) {
+	err = d.secretAuth.Initialize(clusterName)
+	if err != nil {
+		d.log.Info("failed to change target cluster for secrets")
+	}
 	authorizationFileName := d.secretAuth.AuthFilename()
 	client, err := registry.NewClient(registry.ClientOptCredentialsFile(authorizationFileName))
 	if err != nil {
@@ -104,13 +108,22 @@ func (d *helmDriver) Install(ctx context.Context,
 	_, err = get.Run(name)
 	if err != nil {
 		if errors.Is(err, driver.ErrReleaseNotFound) {
-			err = d.createRelease(ctx, install, helmChart, values)
-			if err != nil {
-				return err
-			}
+			// Trigger configmap updates and namespace before trying to install charts
 			if err := d.secretAuth.AddToConfigMap(ctx, name, namespace); err != nil {
 				d.log.Info("failed to Update ConfigMap with installed namespace")
 			}
+			if err := d.secretAuth.AddSecretToAllNamespace(ctx); err != nil {
+				d.log.Info("Failed to Update Secret in all namespaces")
+			}
+			err = d.createRelease(ctx, install, helmChart, values)
+			if err != nil {
+				err1 := d.secretAuth.DelFromConfigMap(ctx, name, namespace)
+				if err1 != nil {
+					d.log.Info("failed to remove namespace from configmap")
+				}
+				return err
+			}
+			// Failsafe in event namespace is created via the charts
 			if err := d.secretAuth.AddSecretToAllNamespace(ctx); err != nil {
 				d.log.Info("Failed to Update Secret in all namespaces")
 			}
@@ -119,15 +132,18 @@ func (d *helmDriver) Install(ctx context.Context,
 		return fmt.Errorf("getting helm release %s: %w", name, err)
 	}
 
-	err = d.upgradeRelease(ctx, name, helmChart, values)
-	if err != nil {
-		return fmt.Errorf("upgrading helm chart %s: %w", name, err)
-	}
-
 	// Update installed-namespaces on successful install
 	err = d.secretAuth.AddToConfigMap(ctx, name, namespace)
 	if err != nil {
 		d.log.Info("failed to Update ConfigMap with installed namespace")
+	}
+	if err := d.secretAuth.AddSecretToAllNamespace(ctx); err != nil {
+		d.log.Info("Failed to Update Secret in all namespaces")
+	}
+
+	err = d.upgradeRelease(ctx, name, helmChart, values)
+	if err != nil {
+		return fmt.Errorf("upgrading helm chart %s: %w", name, err)
 	}
 	if err := d.secretAuth.AddSecretToAllNamespace(ctx); err != nil {
 		d.log.Info("Failed to Update Secret in all namespaces")

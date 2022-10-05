@@ -280,3 +280,77 @@ func TestBundleClient_CreateClusterNamespace(t *testing.T) {
 		assert.EqualError(t, err, "boom")
 	})
 }
+
+func TestBundleClient_CreateClusterConfigMap(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	name := "ns-secret-map"
+	namespace := "eksa-packages-bobby"
+	key := types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
+
+	cm := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+	cm.Data = make(map[string]string)
+	cm.Data[namespace] = "eksa-package-controller"
+	cm.Data["emissary-system"] = "eksa-package-placeholder"
+
+	t.Run("already exists", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(cm)).Return(nil)
+
+		err := bundleClient.CreateClusterConfigMap(ctx, "bobby")
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("get error", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(cm)).Return(fmt.Errorf("boom"))
+
+		err := bundleClient.CreateClusterConfigMap(ctx, "bobby")
+
+		assert.EqualError(t, err, "boom")
+	})
+
+	t.Run("create configmap", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		groupResource := schema.GroupResource{
+			Group:    key.Name,
+			Resource: "Namespace",
+		}
+		notFoundError := errors.NewNotFound(groupResource, key.Name)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(cm)).Return(notFoundError)
+		mockClient.EXPECT().Create(ctx, cm).Return(nil)
+
+		err := bundleClient.CreateClusterConfigMap(ctx, "bobby")
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("create configmap error", func(t *testing.T) {
+		mockClient := givenMockClient(t)
+		bundleClient := NewPackageBundleClient(mockClient)
+		groupResource := schema.GroupResource{
+			Group:    key.Name,
+			Resource: "Namespace",
+		}
+		notFoundError := errors.NewNotFound(groupResource, key.Name)
+		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(cm)).Return(notFoundError)
+		mockClient.EXPECT().Create(ctx, cm).Return(fmt.Errorf("boom"))
+
+		err := bundleClient.CreateClusterConfigMap(ctx, "bobby")
+
+		assert.EqualError(t, err, "boom")
+	})
+}
