@@ -105,6 +105,7 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if client.IgnoreNotFound(err) != nil {
 			return ctrl.Result{}, err
 		}
+		// ignore deletes
 		return ctrl.Result{}, nil
 	}
 

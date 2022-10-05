@@ -79,6 +79,21 @@ func (mr *MockClientMockRecorder) GetActiveBundle(ctx, clusterName interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveBundle", reflect.TypeOf((*MockClient)(nil).GetActiveBundle), ctx, clusterName)
 }
 
+// GetBundle mocks base method.
+func (m *MockClient) GetBundle(ctx context.Context, name string) (*v1alpha1.PackageBundle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBundle", ctx, name)
+	ret0, _ := ret[0].(*v1alpha1.PackageBundle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBundle indicates an expected call of GetBundle.
+func (mr *MockClientMockRecorder) GetBundle(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBundle", reflect.TypeOf((*MockClient)(nil).GetBundle), ctx, name)
+}
+
 // GetBundleList mocks base method.
 func (m *MockClient) GetBundleList(ctx context.Context, serverVersion string) ([]v1alpha1.PackageBundle, error) {
 	m.ctrl.T.Helper()

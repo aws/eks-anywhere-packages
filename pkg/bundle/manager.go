@@ -81,7 +81,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		return nil
 	}
 
-	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleUri(), info.String())
+	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleURI(), info.String())
 	if err != nil {
 		m.log.Error(err, "Unable to get latest bundle")
 		if pbc.Status.State == api.BundleControllerStateActive || pbc.Status.State == "" {
@@ -124,6 +124,31 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		err = m.bundleClient.CreateClusterNamespace(ctx, pbc.Name)
 		if err != nil {
 			return fmt.Errorf("creating namespace for %s: %s", pbc.Name, err)
+		}
+
+		if len(pbc.Spec.ActiveBundle) > 0 {
+			activeBundle, err := m.bundleClient.GetBundle(ctx, pbc.Spec.ActiveBundle)
+			if err != nil {
+				m.log.Error(err, "Unable to get active bundle", "bundle", pbc.Spec.ActiveBundle)
+				return nil
+			}
+
+			if activeBundle == nil {
+
+				activeBundle, err = m.registryClient.DownloadBundle(ctx, pbc.GetActiveBundleURI())
+				if err != nil {
+					m.log.Error(err, "Active bundle download failed", "bundle", pbc.Spec.ActiveBundle)
+					return nil
+				}
+				m.log.Info("Bundle downloaded", "bundle", pbc.Spec.ActiveBundle)
+
+				err = m.bundleClient.CreateBundle(ctx, activeBundle)
+				if err != nil {
+					m.log.Error(err, "Recreate active bundle failed", "bundle", pbc.Spec.ActiveBundle)
+					return nil
+				}
+				m.log.Info("Bundle created", "bundle", pbc.Spec.ActiveBundle)
+			}
 		}
 
 		if latestBundleIsCurrentBundle {

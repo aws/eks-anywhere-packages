@@ -33,6 +33,10 @@ func (config *PackageBundleController) GetDefaultImageRegistry() string {
 	return defaultImageRegistry
 }
 
-func (config *PackageBundleController) GetBundleUri() (uri string) {
+func (config *PackageBundleController) GetBundleURI() (uri string) {
 	return path.Join(config.GetDefaultRegistry(), config.Spec.BundleRepository)
+}
+
+func (config *PackageBundleController) GetActiveBundleURI() (uri string) {
+	return config.GetBundleURI() + ":" + config.Spec.ActiveBundle
 }
