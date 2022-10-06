@@ -8,7 +8,7 @@ packages:
         repository: hello-eks-anywhere
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.1.2
+            - name: 0.1.2-latest-helm
   - org: aws-observability
     projects:
       - name: adot
