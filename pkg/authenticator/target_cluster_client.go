@@ -25,7 +25,7 @@ const (
 
 type TargetClusterClient interface {
 	// Init the target cluster client
-	Init(ctx context.Context, clusterName string) error
+	Initialize(ctx context.Context, clusterName string) error
 
 	// GetServerVersion of the target api server
 	GetServerVersion(ctx context.Context, clusterName string) (info *version.Info, err error)
@@ -50,7 +50,7 @@ func NewTargetClusterClient(config *rest.Config, client client.Client) *targetCl
 	return &targetClusterClient{Config: config, Client: client}
 }
 
-func (tcc *targetClusterClient) Init(ctx context.Context, clusterName string) error {
+func (tcc *targetClusterClient) Initialize(ctx context.Context, clusterName string) error {
 	kubeconfig, err := tcc.getKubeconfig(ctx, clusterName)
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func (tcc *targetClusterClient) getKubeconfig(ctx context.Context, clusterName s
 }
 
 func (tcc *targetClusterClient) GetServerVersion(ctx context.Context, clusterName string) (info *version.Info, err error) {
-	err = tcc.Init(ctx, clusterName)
+	err = tcc.Initialize(ctx, clusterName)
 	if err != nil {
 		return nil, fmt.Errorf("initializing target client: %s", err)
 	}

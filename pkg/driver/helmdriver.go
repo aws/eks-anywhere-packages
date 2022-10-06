@@ -44,7 +44,7 @@ func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClus
 }
 
 func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err error) {
-	err = d.tcc.Init(ctx, clusterName)
+	err = d.tcc.Initialize(ctx, clusterName)
 	if err != nil {
 		return fmt.Errorf("initialiing target cluster %s client for helm driver: %w", clusterName, err)
 	}

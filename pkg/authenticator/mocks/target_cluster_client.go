@@ -55,9 +55,9 @@ func (mr *MockTargetClusterClientMockRecorder) GetServerVersion(ctx, clusterName
 }
 
 // Init mocks base method.
-func (m *MockTargetClusterClient) Init(ctx context.Context, clusterName string) error {
+func (m *MockTargetClusterClient) Initialize(ctx context.Context, clusterName string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Init", ctx, clusterName)
+	ret := m.ctrl.Call(m, "Initialize", ctx, clusterName)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -65,7 +65,7 @@ func (m *MockTargetClusterClient) Init(ctx context.Context, clusterName string) 
 // Init indicates an expected call of Init.
 func (mr *MockTargetClusterClientMockRecorder) Init(ctx, clusterName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockTargetClusterClient)(nil).Init), ctx, clusterName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Initialize", reflect.TypeOf((*MockTargetClusterClient)(nil).Initialize), ctx, clusterName)
 }
 
 // ToDiscoveryClient mocks base method.

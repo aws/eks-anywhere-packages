@@ -56,7 +56,7 @@ func TestTargetClusterClient_Init(t *testing.T) {
 		mockClient.EXPECT().Get(ctx, nn, gomock.Any()).DoAndReturn(setKubeConfigSecret(&kubeconfigSecret)).Return(nil)
 		t.Setenv("CLUSTER_NAME", "franky")
 
-		err := sut.Init(ctx, "billy")
+		err := sut.Initialize(ctx, "billy")
 		assert.NoError(t, err)
 	})
 
@@ -65,7 +65,7 @@ func TestTargetClusterClient_Init(t *testing.T) {
 		sut := NewTargetClusterClient(nil, mockClient)
 		t.Setenv("CLUSTER_NAME", "billy")
 
-		err := sut.Init(ctx, "billy")
+		err := sut.Initialize(ctx, "billy")
 		assert.NoError(t, err)
 	})
 
@@ -79,7 +79,7 @@ func TestTargetClusterClient_Init(t *testing.T) {
 		t.Setenv("CLUSTER_NAME", "franky")
 		mockClient.EXPECT().Get(ctx, nn, gomock.Any()).Return(fmt.Errorf("boom"))
 
-		err := sut.Init(ctx, "billy")
+		err := sut.Initialize(ctx, "billy")
 		assert.EqualError(t, err, "getting kubeconfig for cluster \"billy\": boom")
 	})
 
@@ -88,7 +88,7 @@ func TestTargetClusterClient_Init(t *testing.T) {
 		sut := NewTargetClusterClient(nil, mockClient)
 
 		// TODO do we need to support this case?
-		err := sut.Init(ctx, "")
+		err := sut.Initialize(ctx, "")
 		assert.NoError(t, err)
 	})
 }
