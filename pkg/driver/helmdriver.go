@@ -72,7 +72,6 @@ func (d *helmDriver) Install(ctx context.Context,
 	install.Version = source.Version
 	install.ReleaseName = name
 	install.Namespace = namespace
-	install.CreateNamespace = true
 
 	helmChart, err := d.getChart(install, source)
 	if err != nil {
