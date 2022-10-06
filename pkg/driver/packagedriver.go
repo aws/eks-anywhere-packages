@@ -13,7 +13,7 @@ import (
 // and simplify testing as well as abstract the details of Helm.
 type PackageDriver interface {
 	// Initialize the package driver
-	Initialize(ctx context.Context, clusterName string) error
+	Initialize(ctx context.Context, clusterName string, namespace string) error
 
 	// Install or upgrade an package.
 	Install(ctx context.Context, name string, namespace string, source api.PackageOCISource, values map[string]interface{}) error

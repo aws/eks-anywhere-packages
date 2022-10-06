@@ -9,7 +9,11 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	meta "k8s.io/apimachinery/pkg/api/meta"
 	version "k8s.io/apimachinery/pkg/version"
+	discovery "k8s.io/client-go/discovery"
+	rest "k8s.io/client-go/rest"
+	clientcmd "k8s.io/client-go/tools/clientcmd"
 )
 
 // MockTargetClusterClient is a mock of TargetClusterClient interface.
@@ -35,36 +39,6 @@ func (m *MockTargetClusterClient) EXPECT() *MockTargetClusterClientMockRecorder 
 	return m.recorder
 }
 
-// GetKubeconfigFile mocks base method.
-func (m *MockTargetClusterClient) GetKubeconfigFile(ctx context.Context, clusterName string) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKubeconfigFile", ctx, clusterName)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetKubeconfigFile indicates an expected call of GetKubeconfigFile.
-func (mr *MockTargetClusterClientMockRecorder) GetKubeconfigFile(ctx, clusterName interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKubeconfigFile", reflect.TypeOf((*MockTargetClusterClient)(nil).GetKubeconfigFile), ctx, clusterName)
-}
-
-// GetKubeconfigString mocks base method.
-func (m *MockTargetClusterClient) GetKubeconfigString(ctx context.Context, clusterName string) ([]byte, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKubeconfigString", ctx, clusterName)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetKubeconfigString indicates an expected call of GetKubeconfigString.
-func (mr *MockTargetClusterClientMockRecorder) GetKubeconfigString(ctx, clusterName interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKubeconfigString", reflect.TypeOf((*MockTargetClusterClient)(nil).GetKubeconfigString), ctx, clusterName)
-}
-
 // GetServerVersion mocks base method.
 func (m *MockTargetClusterClient) GetServerVersion(ctx context.Context, clusterName string) (*version.Info, error) {
 	m.ctrl.T.Helper()
@@ -78,4 +52,77 @@ func (m *MockTargetClusterClient) GetServerVersion(ctx context.Context, clusterN
 func (mr *MockTargetClusterClientMockRecorder) GetServerVersion(ctx, clusterName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServerVersion", reflect.TypeOf((*MockTargetClusterClient)(nil).GetServerVersion), ctx, clusterName)
+}
+
+// Init mocks base method.
+func (m *MockTargetClusterClient) Init(ctx context.Context, clusterName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Init", ctx, clusterName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Init indicates an expected call of Init.
+func (mr *MockTargetClusterClientMockRecorder) Init(ctx, clusterName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockTargetClusterClient)(nil).Init), ctx, clusterName)
+}
+
+// ToDiscoveryClient mocks base method.
+func (m *MockTargetClusterClient) ToDiscoveryClient() (discovery.CachedDiscoveryInterface, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ToDiscoveryClient")
+	ret0, _ := ret[0].(discovery.CachedDiscoveryInterface)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ToDiscoveryClient indicates an expected call of ToDiscoveryClient.
+func (mr *MockTargetClusterClientMockRecorder) ToDiscoveryClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToDiscoveryClient", reflect.TypeOf((*MockTargetClusterClient)(nil).ToDiscoveryClient))
+}
+
+// ToRESTConfig mocks base method.
+func (m *MockTargetClusterClient) ToRESTConfig() (*rest.Config, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ToRESTConfig")
+	ret0, _ := ret[0].(*rest.Config)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ToRESTConfig indicates an expected call of ToRESTConfig.
+func (mr *MockTargetClusterClientMockRecorder) ToRESTConfig() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToRESTConfig", reflect.TypeOf((*MockTargetClusterClient)(nil).ToRESTConfig))
+}
+
+// ToRESTMapper mocks base method.
+func (m *MockTargetClusterClient) ToRESTMapper() (meta.RESTMapper, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ToRESTMapper")
+	ret0, _ := ret[0].(meta.RESTMapper)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ToRESTMapper indicates an expected call of ToRESTMapper.
+func (mr *MockTargetClusterClientMockRecorder) ToRESTMapper() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToRESTMapper", reflect.TypeOf((*MockTargetClusterClient)(nil).ToRESTMapper))
+}
+
+// ToRawKubeConfigLoader mocks base method.
+func (m *MockTargetClusterClient) ToRawKubeConfigLoader() clientcmd.ClientConfig {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ToRawKubeConfigLoader")
+	ret0, _ := ret[0].(clientcmd.ClientConfig)
+	return ret0
+}
+
+// ToRawKubeConfigLoader indicates an expected call of ToRawKubeConfigLoader.
+func (mr *MockTargetClusterClientMockRecorder) ToRawKubeConfigLoader() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToRawKubeConfigLoader", reflect.TypeOf((*MockTargetClusterClient)(nil).ToRawKubeConfigLoader))
 }

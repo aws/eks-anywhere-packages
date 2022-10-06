@@ -36,7 +36,7 @@ func (m *MockPackageDriver) EXPECT() *MockPackageDriverMockRecorder {
 }
 
 // Initialize mocks base method.
-func (m *MockPackageDriver) Initialize(ctx context.Context, clusterName string) error {
+func (m *MockPackageDriver) Initialize(ctx context.Context, clusterName string, namespace string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Initialize", ctx, clusterName)
 	ret0, _ := ret[0].(error)

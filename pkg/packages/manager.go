@@ -75,7 +75,7 @@ func processInstalling(mc *ManagerContext) bool {
 	if mc.Source.Registry == "" {
 		mc.Source.Registry = mc.PBC.GetDefaultRegistry()
 	}
-	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.Package.GetClusterName()); err != nil {
+	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.Package.GetClusterName(), mc.Package.Spec.TargetNamespace); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Initialization failed")
 		return true
@@ -110,7 +110,7 @@ func processInstalled(mc *ManagerContext) bool {
 		return true
 	}
 
-	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.Package.GetClusterName()); err != nil {
+	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.Package.GetClusterName(), mc.Package.Spec.TargetNamespace); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Initialization failed")
 		return true
@@ -136,7 +136,7 @@ func processInstalled(mc *ManagerContext) bool {
 }
 
 func processUninstalling(mc *ManagerContext) bool {
-	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.Package.GetClusterName()); err != nil {
+	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.Package.GetClusterName(), mc.Package.Spec.TargetNamespace); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Initialization failed")
 		return false
