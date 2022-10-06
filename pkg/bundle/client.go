@@ -145,6 +145,7 @@ func (bc *bundleClient) CreateClusterNamespace(ctx context.Context, clusterName 
 	}
 	ns := &v1.Namespace{}
 	err := bc.Get(ctx, key, ns)
+	// Nil err check here means that the namespace exists thus we can just return with no error
 	if err == nil {
 		return nil
 	}
@@ -175,6 +176,7 @@ func (bc *bundleClient) CreateClusterConfigMap(ctx context.Context, clusterName 
 		},
 	}
 	err := bc.Get(ctx, key, cm)
+	// Nil err check here means that the config map exists thus we can just return with no error
 	if err == nil {
 		return nil
 	}
