@@ -179,7 +179,7 @@ endef
 
 ## Generate mocks
 .PHONY: mocks
-mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/client.go pkg/bundle/mocks/manager.go pkg/bundle/mocks/registry_client.go pkg/packages/mocks/manager.go pkg/artifacts/mocks/puller.go pkg/authenticator/mocks/target_cluster_client.go
+mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/client.go pkg/bundle/mocks/manager.go pkg/bundle/mocks/registry_client.go pkg/packages/mocks/manager.go pkg/artifacts/mocks/puller.go pkg/authenticator/mocks/target_cluster_client.go pkg/authenticator/mocks/authenticator.go
 
 
 pkg/bundle/mocks/client.go: pkg/bundle/client.go
@@ -209,6 +209,9 @@ controllers/mocks/manager.go: go.mod
 pkg/authenticator/mocks/target_cluster_client.go: pkg/authenticator/target_cluster_client.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
 		$(MOCKGEN) -source pkg/authenticator/target_cluster_client.go -destination=pkg/authenticator/mocks/target_cluster_client.go -package=mocks TargetClusterClient
+pkg/authenticator/mocks/authenticator.go: pkg/authenticator/target_cluster_client.go
+	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
+		$(MOCKGEN) -source pkg/authenticator/authenticator.go -destination=pkg/authenticator/mocks/authenticator.go -package=mocks Authenticator
 
 .PHONY: presubmit
 presubmit: vet generate manifests build helm/package test # lint is run via github action
