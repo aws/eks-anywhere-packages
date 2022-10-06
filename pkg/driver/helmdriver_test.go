@@ -50,7 +50,7 @@ func TestHelmDriverInitialize(t *testing.T) {
 		require.NoError(t, err)
 		mockTargetClusterClient.EXPECT().Init(ctx, "billy").Return(nil)
 
-		err = helm.Initialize(ctx, "billy", "eksa-packages")
+		err = helm.Initialize(ctx, "billy")
 
 		assert.NoError(t, err)
 	})
@@ -158,7 +158,7 @@ func givenInitializedHelmDriver(t *testing.T) (*helmDriver, error) {
 	helm, err := givenHelmDriver(t)
 	if err == nil {
 		mockTargetClusterClient.EXPECT().Init(ctx, "billy")
-		err = helm.Initialize(ctx, "billy", "eksa-packages")
+		err = helm.Initialize(ctx, "billy")
 	}
 	return helm, err
 }
