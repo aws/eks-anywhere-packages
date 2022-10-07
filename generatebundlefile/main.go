@@ -43,7 +43,7 @@ func main() {
 	}
 
 	if opts.promote != "" {
-		err := cmdPromote(opts.promote)
+		err := cmdPromote(opts)
 		if err != nil {
 			BundleLog.Error(err, "promoting curated package")
 			os.Exit(1)
@@ -74,8 +74,37 @@ func cmdGenerateSample(w io.Writer) error {
 	return nil
 }
 
-func cmdPromote(packageName string) error {
+func cmdPromote(opts *Options) error {
 	BundleLog.Info("Starting Promote from private ECR to Public ECR....")
+
+	promoteCharts := make(map[string][]string)
+
+	// If we are promoting an individual chart with the --promote flag like we do for most charts.
+	if opts.promote != "" {
+		promoteCharts[opts.promote] = append(promoteCharts[opts.promote], "latest")
+	}
+
+	// If we are promoting multiple chart with the --input file flag we override the struct with files inputs from the file.
+	if opts.inputFile != "" {
+		packages, err := opts.ValidateInput()
+		if err != nil {
+			return err
+		}
+		for _, f := range packages {
+			Inputs, err := ValidateInputConfig(f)
+			if err != nil {
+				BundleLog.Error(err, "Unable to validate input file")
+				os.Exit(1)
+			}
+			delete(promoteCharts, opts.promote) // Clear the promote map to pull values only from file
+			for _, p := range Inputs.Packages {
+				for _, project := range p.Projects {
+					promoteCharts[project.Repository] = append(promoteCharts[project.Repository], project.Versions[0].Name)
+				}
+			}
+		}
+	}
+
 	clients, err := GetSDKClients()
 	if err != nil {
 		return fmt.Errorf("getting SDK clients: %w", err)
@@ -97,16 +126,19 @@ func cmdPromote(packageName string) error {
 	if dockerAuth.Authfile == "" {
 		return fmt.Errorf("no authfile generated")
 	}
-	err = clients.PromoteHelmChart(packageName, dockerAuth.Authfile, "latest", false)
-	if err != nil {
-		return fmt.Errorf("promoting Helm chart: %w", err)
+	for repoName, versions := range promoteCharts {
+		for _, version := range versions {
+			err = clients.PromoteHelmChart(repoName, dockerAuth.Authfile, version, false)
+			if err != nil {
+				return fmt.Errorf("promoting Helm chart: %w", err)
+			}
+		}
 	}
 	err = dockerAuth.Remove()
 	if err != nil {
 		return fmt.Errorf("cleaning up docker auth file: %w", err)
 	}
 	BundleLog.Info("Promote Finished, exiting gracefully")
-
 	return nil
 }
 
