@@ -119,7 +119,6 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 			return fmt.Errorf("Error getting name and version from helmchart %s", err)
 		}
 	}
-
 	if c.ecrPublicClientRelease != nil {
 		name, version, sha, err = c.getNameAndVersionPublic(repository, tag, c.stsClient.AccountID)
 		if err != nil {
@@ -152,6 +151,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 	}
 	// Check for requires.yaml in the unpacked helm chart
 	helmDest := filepath.Join(pwd, chartName, helmname)
+	defer os.RemoveAll(helmDest)
 	f, err := hasRequires(helmDest)
 	if err != nil {
 		return fmt.Errorf("Helm chart doesn't have requires.yaml inside %s", err)
@@ -176,7 +176,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 	}
 	// Loop through each image, and the helm chart itself and check for existance in ECR Public, skip if we find the SHA already exists in destination.
 	// If we don't find the SHA in public, we lookup the tag from Private Dev account, and move to Private Artifact account.
-	// This runs for flags --private-profile and --promote.
+	// This runs for flags --private-profile
 	if copyImages {
 		for _, images := range helmRequiresImages.Spec.Images {
 			checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)

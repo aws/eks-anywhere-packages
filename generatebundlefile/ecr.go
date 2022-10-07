@@ -205,7 +205,7 @@ func (d DockerAuthFile) Remove() error {
 	return nil
 }
 
-// getNameAndVersionPrivate looks up the latest pushed helm chart's tag from a given repo name from ECR.
+// getNameAndVersion looks up the latest pushed helm chart's tag from a given repo name from ECR.
 func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string, string, string, error) {
 	var version string
 	var sha string
@@ -214,7 +214,7 @@ func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string,
 	ecrname := fmt.Sprintf("%s.dkr.ecr.us-west-2.amazonaws.com/%s", accountID, name)
 	if len(splitname) > 0 {
 		// If for promotion, we use a named tag instead of latest we do a lookup for that tag.
-		if !strings.Contains(tag, "latest") {
+		if !strings.HasSuffix(tag, "latest") {
 			imageIDs := []ecrtypes.ImageIdentifier{{ImageTag: &tag}}
 			ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
 				RepositoryName: aws.String(repoName),
@@ -223,10 +223,8 @@ func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string,
 			if err != nil {
 				return "", "", "", fmt.Errorf("DescribeImagesRequest to public ECR failed: %w", err)
 			}
-			for _, images := range ImageDetails {
-				if len(images.ImageTags) == 1 {
-					return ecrname, tag, *images.ImageDigest, nil
-				}
+			if len(ImageDetails) == 1 {
+				return ecrname, tag, *ImageDetails[0].ImageDigest, nil
 			}
 		}
 		// If for promotion we use latest tag we do a time based lookup to find the latest.
