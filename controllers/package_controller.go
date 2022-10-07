@@ -21,11 +21,8 @@ import (
 
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/apis/meta/internalversion/scheme"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -43,9 +40,6 @@ import (
 const (
 	packageName = "Package"
 	retryLong   = time.Second * time.Duration(60)
-	groupName   = ""
-	groupVer    = "v1"
-	apiPath     = "/api"
 )
 
 // PackageReconciler reconciles a Package object
@@ -79,7 +73,7 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	manager := packages.NewManager()
 	cfg := mgr.GetConfig()
 
-	secretAuth, err := createSecretAuth(cfg)
+	secretAuth, err := auth.NewECRSecret(cfg)
 	if err != nil {
 		return err
 	}
@@ -109,24 +103,6 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 		Watches(&source.Kind{Type: &api.PackageBundle{}},
 			handler.EnqueueRequestsFromMapFunc(reconciler.mapBundleChangesToPackageUpdate)).
 		Complete(reconciler)
-}
-
-func createSecretAuth(cfg *rest.Config) (auth.Authenticator, error) {
-	config := cfg
-	gv := schema.GroupVersion{Group: groupName, Version: groupVer}
-	config.GroupVersion = &gv
-	config.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
-	config.UserAgent = rest.DefaultKubernetesUserAgent()
-	config.APIPath = apiPath
-	restclient, err := rest.RESTClientFor(config)
-	if err != nil {
-		return nil, fmt.Errorf("creating rest client from config %s", err)
-	}
-	secretAuth, err := auth.NewECRSecret(restclient)
-	if err != nil {
-		return nil, fmt.Errorf("creating ECR secret %s", err)
-	}
-	return secretAuth, nil
 }
 
 func (r *PackageReconciler) mapBundleChangesToPackageUpdate(_ client.Object) (req []reconcile.Request) {
