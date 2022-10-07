@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	configMapName = "ns-secret-map"
+	ConfigMapName = "ns-secret-map"
 	ecrTokenName  = "ecr-token"
 )
 
@@ -46,7 +46,7 @@ func (s *ecrSecret) AuthFilename() string {
 
 func (s *ecrSecret) AddToConfigMap(ctx context.Context, name string, namespace string) error {
 	cm, err := s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
-		Get(ctx, configMapName, metav1.GetOptions{})
+		Get(ctx, ConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func createSecret(name string, namespace string) *corev1.Secret {
 
 func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name string, namespace string) error {
 	cm, err := s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
-		Get(ctx, configMapName, metav1.GetOptions{})
+		Get(ctx, ConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}

@@ -49,7 +49,7 @@ func TestAddToConfigMap(t *testing.T) {
 		cmdata["otherns"] = "a"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      configMapName,
+				Name:      ConfigMapName,
 				Namespace: api.PackageNamespace,
 			},
 			Data: cmdata,
@@ -60,7 +60,7 @@ func TestAddToConfigMap(t *testing.T) {
 		require.NoError(t, err)
 
 		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
-			Get(ctx, configMapName, metav1.GetOptions{})
+			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		if assert.NoError(t, err) {
 			assert.Equal(t, name, updatedCM.Data[namespace])
 			assert.Equal(t, "a", updatedCM.Data["otherns"])
@@ -71,7 +71,7 @@ func TestAddToConfigMap(t *testing.T) {
 		cmdata[namespace] = "a"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      configMapName,
+				Name:      ConfigMapName,
 				Namespace: api.PackageNamespace,
 			},
 			Data: cmdata,
@@ -82,7 +82,7 @@ func TestAddToConfigMap(t *testing.T) {
 		require.NoError(t, err)
 
 		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
-			Get(ctx, configMapName, metav1.GetOptions{})
+			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		if assert.NoError(t, err) {
 			assert.ObjectsAreEqual([]string{"a", name},
 				strings.Split(updatedCM.Data[namespace], ","))
@@ -94,7 +94,7 @@ func TestAddToConfigMap(t *testing.T) {
 		cmdata[namespace] = "a"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      configMapName,
+				Name:      ConfigMapName,
 				Namespace: api.PackageNamespace,
 			},
 			Data: cmdata,
@@ -105,14 +105,14 @@ func TestAddToConfigMap(t *testing.T) {
 		require.NoError(t, err)
 
 		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
-			Get(ctx, configMapName, metav1.GetOptions{})
+			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		assert.Equal(t, "a", updatedCM.Data[namespace])
 	})
 
 	t.Run("fails if config map doesnt exist", func(t *testing.T) {
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      configMapName,
+				Name:      ConfigMapName,
 				Namespace: "wrong-ns",
 			},
 			Data: cmdata,
@@ -136,7 +136,7 @@ func TestDelFromConfigMap(t *testing.T) {
 		cmdata[namespace] = "a,b"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      configMapName,
+				Name:      ConfigMapName,
 				Namespace: api.PackageNamespace,
 			},
 			Data: cmdata,
@@ -146,7 +146,7 @@ func TestDelFromConfigMap(t *testing.T) {
 		err := ecrAuth.DelFromConfigMap(ctx, name, namespace)
 
 		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
-			Get(ctx, configMapName, metav1.GetOptions{})
+			Get(ctx, ConfigMapName, metav1.GetOptions{})
 
 		val, exists := updatedCM.Data["eksa-packages"]
 		assert.Nil(t, err)
@@ -159,7 +159,7 @@ func TestDelFromConfigMap(t *testing.T) {
 		cmdata[namespace] = "a"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      configMapName,
+				Name:      ConfigMapName,
 				Namespace: api.PackageNamespace,
 			},
 			Data: cmdata,
@@ -169,7 +169,7 @@ func TestDelFromConfigMap(t *testing.T) {
 		err := ecrAuth.DelFromConfigMap(ctx, name, namespace)
 		require.NoError(t, err)
 		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
-			Get(ctx, configMapName, metav1.GetOptions{})
+			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		require.NoError(t, err)
 		_, exists := updatedCM.Data["eksa-packages"]
 		assert.False(t, exists)
