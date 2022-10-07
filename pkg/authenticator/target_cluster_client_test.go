@@ -3,7 +3,6 @@ package authenticator
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -14,7 +13,28 @@ import (
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
 )
 
-func TestTargetClusterClient_GetKubeconfigFile(t *testing.T) {
+const actualData = `
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0t
+    server: https://127.0.0.1:6443
+  name: billy
+contexts:
+- context:
+    cluster: billy
+    user: billy-admin
+  name: billy-admin@billy
+kind: Config
+preferences: {}
+users:
+- name: billy-admin
+  user:
+    client-certificate-data: LS0t
+    client-key-data: LS0t
+`
+
+func TestTargetClusterClient_Init(t *testing.T) {
 	ctx := context.Background()
 	setKubeConfigSecret := func(src *corev1.Secret) func(_ context.Context, _ types.NamespacedName, kc *corev1.Secret) error {
 		return func(ctx context.Context, name types.NamespacedName, target *corev1.Secret) error {
@@ -28,7 +48,7 @@ func TestTargetClusterClient_GetKubeconfigFile(t *testing.T) {
 		sut := NewTargetClusterClient(nil, mockClient)
 		var kubeconfigSecret corev1.Secret
 		kubeconfigSecret.Data = make(map[string][]byte)
-		kubeconfigSecret.Data["value"] = []byte("actual data")
+		kubeconfigSecret.Data["value"] = []byte(actualData)
 		nn := types.NamespacedName{
 			Namespace: "eksa-system",
 			Name:      "billy-kubeconfig",
@@ -36,10 +56,7 @@ func TestTargetClusterClient_GetKubeconfigFile(t *testing.T) {
 		mockClient.EXPECT().Get(ctx, nn, gomock.Any()).DoAndReturn(setKubeConfigSecret(&kubeconfigSecret)).Return(nil)
 		t.Setenv("CLUSTER_NAME", "franky")
 
-		fileName, err := sut.GetKubeconfigFile(ctx, "billy")
-		assert.NoError(t, err)
-		assert.Equal(t, "billy-kubeconfig", fileName)
-		err = os.Remove(fileName)
+		err := sut.Initialize(ctx, "billy")
 		assert.NoError(t, err)
 	})
 
@@ -48,9 +65,8 @@ func TestTargetClusterClient_GetKubeconfigFile(t *testing.T) {
 		sut := NewTargetClusterClient(nil, mockClient)
 		t.Setenv("CLUSTER_NAME", "billy")
 
-		fileName, err := sut.GetKubeconfigFile(ctx, "billy")
+		err := sut.Initialize(ctx, "billy")
 		assert.NoError(t, err)
-		assert.Equal(t, "", fileName)
 	})
 
 	t.Run("get kubeconfig failure", func(t *testing.T) {
@@ -63,17 +79,16 @@ func TestTargetClusterClient_GetKubeconfigFile(t *testing.T) {
 		t.Setenv("CLUSTER_NAME", "franky")
 		mockClient.EXPECT().Get(ctx, nn, gomock.Any()).Return(fmt.Errorf("boom"))
 
-		fileName, err := sut.GetKubeconfigFile(ctx, "billy")
+		err := sut.Initialize(ctx, "billy")
 		assert.EqualError(t, err, "getting kubeconfig for cluster \"billy\": boom")
-		assert.Equal(t, "", fileName)
 	})
 
 	t.Run("get kubeconfig no cluster", func(t *testing.T) {
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
 		sut := NewTargetClusterClient(nil, mockClient)
 
-		fileName, err := sut.GetKubeconfigFile(ctx, "")
+		// TODO do we need to support this case?
+		err := sut.Initialize(ctx, "")
 		assert.NoError(t, err)
-		assert.Equal(t, "", fileName)
 	})
 }
