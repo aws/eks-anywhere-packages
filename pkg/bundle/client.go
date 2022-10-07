@@ -8,10 +8,12 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
 )
 
 type Client interface {
@@ -32,6 +34,9 @@ type Client interface {
 
 	// CreateClusterNamespace based on cluster name
 	CreateClusterNamespace(ctx context.Context, clusterName string) error
+
+	// CreateClusterConfigMap based on cluster name
+	CreateClusterConfigMap(ctx context.Context, clusterName string) error
 
 	// SaveStatus saves a resource status
 	SaveStatus(ctx context.Context, object client.Object) error
@@ -140,6 +145,7 @@ func (bc *bundleClient) CreateClusterNamespace(ctx context.Context, clusterName 
 	}
 	ns := &v1.Namespace{}
 	err := bc.Get(ctx, key, ns)
+	// Nil err check here means that the namespace exists thus we can just return with no error
 	if err == nil {
 		return nil
 	}
@@ -149,6 +155,42 @@ func (bc *bundleClient) CreateClusterNamespace(ctx context.Context, clusterName 
 
 	ns.Name = name
 	err = bc.Client.Create(ctx, ns)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (bc *bundleClient) CreateClusterConfigMap(ctx context.Context, clusterName string) error {
+	name := auth.ConfigMapName
+	namespace := api.PackageNamespace + "-" + clusterName
+	key := types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
+
+	cm := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+	err := bc.Get(ctx, key, cm)
+	// Nil err check here means that the config map exists thus we can just return with no error
+	if err == nil {
+		return nil
+	}
+
+	if !apierrors.IsNotFound(err) {
+		return err
+	}
+
+	cm.Data = make(map[string]string)
+	cm.Data[namespace] = "eksa-package-controller"
+	// Unfortunate workaround for emissary webhooks hard coded crd namespace
+	cm.Data["emissary-system"] = "eksa-package-placeholder"
+
+	err = bc.Client.Create(ctx, cm)
 	if err != nil {
 		return err
 	}

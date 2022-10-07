@@ -44,21 +44,20 @@ func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClus
 }
 
 func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err error) {
+	err = d.tcc.Initialize(ctx, clusterName)
+	if err != nil {
+		return fmt.Errorf("initialiing target cluster %s client for helm driver: %w", clusterName, err)
+	}
+
 	authorizationFileName := d.secretAuth.AuthFilename()
 	client, err := registry.NewClient(registry.ClientOptCredentialsFile(authorizationFileName))
 	if err != nil {
 		return fmt.Errorf("creating registry client for helm driver: %w", err)
 	}
 
-	kubeconfigPath, err := d.tcc.GetKubeconfigFile(ctx, clusterName)
-	if err != nil {
-		return fmt.Errorf("getting kubeconfig for helm driver: %w", err)
-	}
-
 	d.settings = cli.New()
 	d.cfg = &action.Configuration{RegistryClient: client}
-	d.settings.KubeConfig = kubeconfigPath
-	err = d.cfg.Init(d.settings.RESTClientGetter(), d.settings.Namespace(), os.Getenv("HELM_DRIVER"), helmLog(d.log))
+	err = d.cfg.Init(d.tcc, d.settings.Namespace(), os.Getenv("HELM_DRIVER"), helmLog(d.log))
 	if err != nil {
 		return fmt.Errorf("initializing helm driver: %w", err)
 	}

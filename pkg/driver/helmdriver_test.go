@@ -48,7 +48,7 @@ func TestHelmDriverInitialize(t *testing.T) {
 		t.Parallel()
 		helm, err := givenHelmDriver(t)
 		require.NoError(t, err)
-		mockTargetClusterClient.EXPECT().GetKubeconfigFile(ctx, "billy")
+		mockTargetClusterClient.EXPECT().Init(ctx, "billy").Return(nil)
 
 		err = helm.Initialize(ctx, "billy")
 
@@ -157,7 +157,7 @@ func givenHelmDriver(t *testing.T) (*helmDriver, error) {
 func givenInitializedHelmDriver(t *testing.T) (*helmDriver, error) {
 	helm, err := givenHelmDriver(t)
 	if err == nil {
-		mockTargetClusterClient.EXPECT().GetKubeconfigFile(ctx, "billy")
+		mockTargetClusterClient.EXPECT().Init(ctx, "billy")
 		err = helm.Initialize(ctx, "billy")
 	}
 	return helm, err

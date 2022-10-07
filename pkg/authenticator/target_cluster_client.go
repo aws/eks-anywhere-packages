@@ -6,11 +6,15 @@ import (
 	"os"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery/cached/memory"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -20,57 +24,98 @@ const (
 )
 
 type TargetClusterClient interface {
-	// GetKubeconfigFile for a cluster
-	GetKubeconfigFile(ctx context.Context, clusterName string) (fileName string, err error)
-
-	// GetKubeconfigString for a cluster
-	GetKubeconfigString(ctx context.Context, clusterName string) (config []byte, err error)
+	// Init the target cluster client
+	Initialize(ctx context.Context, clusterName string) error
 
 	// GetServerVersion of the target api server
 	GetServerVersion(ctx context.Context, clusterName string) (info *version.Info, err error)
+
+	// Implement RESTClientGetter
+	ToRESTConfig() (*rest.Config, error)
+	ToDiscoveryClient() (discovery.CachedDiscoveryInterface, error)
+	ToRESTMapper() (meta.RESTMapper, error)
+	ToRawKubeConfigLoader() clientcmd.ClientConfig
 }
 
 type targetClusterClient struct {
-	Config *rest.Config
-	Client client.Client
+	Config       *rest.Config
+	Client       client.Client
+	targetSelf   bool
+	clientConfig clientcmd.ClientConfig
 }
+
+var _ TargetClusterClient = (*targetClusterClient)(nil)
 
 func NewTargetClusterClient(config *rest.Config, client client.Client) *targetClusterClient {
 	return &targetClusterClient{Config: config, Client: client}
 }
 
-var _ TargetClusterClient = (*targetClusterClient)(nil)
+func (tcc *targetClusterClient) Initialize(ctx context.Context, clusterName string) error {
+	kubeconfig, err := tcc.getKubeconfig(ctx, clusterName)
+	if err != nil {
+		return err
+	}
 
-func (tcc *targetClusterClient) getSecretName(clusterName string) string {
-	return clusterName + "-kubeconfig"
+	tcc.targetSelf = false
+	if kubeconfig == nil {
+		tcc.targetSelf = true
+		tcc.clientConfig = clientcmd.NewDefaultClientConfig(clientcmdapi.Config{}, &clientcmd.ConfigOverrides{})
+		return nil
+	}
+
+	clientConfig, err := clientcmd.NewClientConfigFromBytes(kubeconfig)
+	if err != nil {
+		return err
+	}
+
+	rawConfig, err := clientConfig.RawConfig()
+	if err != nil {
+		return err
+	}
+
+	tcc.clientConfig = clientcmd.NewDefaultClientConfig(rawConfig, &clientcmd.ConfigOverrides{})
+	return nil
 }
 
-func (tcc *targetClusterClient) GetKubeconfigFile(ctx context.Context, clusterName string) (fileName string, err error) {
-	kubeconfig, err := tcc.GetKubeconfigString(ctx, clusterName)
-	if err != nil {
-		return "", err
+func (tcc *targetClusterClient) ToRESTConfig() (*rest.Config, error) {
+	if tcc.targetSelf {
+		return tcc.Config, nil
 	}
-	if len(kubeconfig) == 0 {
-		return "", nil
-	}
-
-	secretName := tcc.getSecretName(clusterName)
-	err = os.WriteFile(secretName, kubeconfig, 0600)
-	if err != nil {
-		return "", fmt.Errorf("opening temporary file: %v", err)
-	}
-
-	return secretName, nil
+	return tcc.clientConfig.ClientConfig()
 }
 
-func (tcc *targetClusterClient) GetKubeconfigString(ctx context.Context, clusterName string) (kubeconfig []byte, err error) {
+func (tcc *targetClusterClient) ToDiscoveryClient() (discovery.CachedDiscoveryInterface, error) {
+	restConfig, err := tcc.ToRESTConfig()
+	if err != nil {
+		return nil, err
+	}
+	dc, err := discovery.NewDiscoveryClientForConfig(restConfig)
+	if err != nil {
+		return nil, err
+	}
+	return memory.NewMemCacheClient(dc), nil
+}
+
+func (tcc *targetClusterClient) ToRESTMapper() (meta.RESTMapper, error) {
+	dc, err := tcc.ToDiscoveryClient()
+	if err != nil {
+		return nil, err
+	}
+	return restmapper.NewDeferredDiscoveryRESTMapper(dc), nil
+}
+
+func (tcc *targetClusterClient) ToRawKubeConfigLoader() clientcmd.ClientConfig {
+	return tcc.clientConfig
+}
+
+func (tcc *targetClusterClient) getKubeconfig(ctx context.Context, clusterName string) (kubeconfig []byte, err error) {
 	// Avoid using kubeconfig for ourselves
 	if clusterName == "" || os.Getenv(clusterNameEnvVar) == clusterName {
 		// Empty string will cause helm to use the current cluster
-		return []byte{}, nil
+		return nil, nil
 	}
 
-	secretName := tcc.getSecretName(clusterName)
+	secretName := clusterName + "-kubeconfig"
 	nn := types.NamespacedName{
 		Namespace: eksaSystemNamespace,
 		Name:      secretName,
@@ -84,25 +129,12 @@ func (tcc *targetClusterClient) GetKubeconfigString(ctx context.Context, cluster
 }
 
 func (tcc *targetClusterClient) GetServerVersion(ctx context.Context, clusterName string) (info *version.Info, err error) {
-	kubeconfig, err := tcc.GetKubeconfigString(ctx, clusterName)
+	err = tcc.Initialize(ctx, clusterName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("initializing target client: %s", err)
 	}
 
-	config := tcc.Config
-	if len(kubeconfig) > 0 {
-		clientConfig, err := clientcmd.NewClientConfigFromBytes(kubeconfig)
-		if err != nil {
-			return nil, fmt.Errorf("creating client config: %s", err)
-		}
-
-		config, err = clientConfig.ClientConfig()
-		if err != nil {
-			return nil, fmt.Errorf("creating rest config config: %s", err)
-		}
-	}
-
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	discoveryClient, err := tcc.ToDiscoveryClient()
 	if err != nil {
 		return nil, fmt.Errorf("creating discoveryClient client: %s", err)
 	}
