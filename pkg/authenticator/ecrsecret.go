@@ -20,16 +20,18 @@ const (
 )
 
 type ecrSecret struct {
-	clientset    kubernetes.Interface
-	nsReleaseMap map[string]string
+	clientset     kubernetes.Interface
+	nsReleaseMap  map[string]string
+	targetCluster string
 }
 
 var _ Authenticator = (*ecrSecret)(nil)
 
 func NewECRSecret(config rest.Interface) (*ecrSecret, error) {
 	return &ecrSecret{
-		clientset:    kubernetes.New(config),
-		nsReleaseMap: make(map[string]string),
+		clientset:     kubernetes.New(config),
+		nsReleaseMap:  make(map[string]string),
+		targetCluster: api.PackageNamespace,
 	}, nil
 }
 
@@ -44,8 +46,13 @@ func (s *ecrSecret) AuthFilename() string {
 	return ""
 }
 
+func (s *ecrSecret) Initialize(clusterName string) error {
+	s.targetCluster = api.PackageNamespace + "-" + clusterName
+	return nil
+}
+
 func (s *ecrSecret) AddToConfigMap(ctx context.Context, name string, namespace string) error {
-	cm, err := s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
+	cm, err := s.clientset.CoreV1().ConfigMaps(s.targetCluster).
 		Get(ctx, ConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -55,7 +62,7 @@ func (s *ecrSecret) AddToConfigMap(ctx context.Context, name string, namespace s
 	css.Add(name)
 	cm.Data[namespace] = css.String()
 
-	_, err = s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
+	_, err = s.clientset.CoreV1().ConfigMaps(s.targetCluster).
 		Update(ctx, cm, metav1.UpdateOptions{})
 	if err != nil {
 		return err
@@ -118,7 +125,7 @@ func createSecret(name string, namespace string) *corev1.Secret {
 }
 
 func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name string, namespace string) error {
-	cm, err := s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
+	cm, err := s.clientset.CoreV1().ConfigMaps(s.targetCluster).
 		Get(ctx, ConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -131,7 +138,7 @@ func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name string, namespace
 		delete(cm.Data, namespace)
 	}
 
-	_, err = s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
+	_, err = s.clientset.CoreV1().ConfigMaps(s.targetCluster).
 		Update(ctx, cm, metav1.UpdateOptions{})
 	if err != nil {
 		return err

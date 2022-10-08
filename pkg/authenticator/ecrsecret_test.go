@@ -44,22 +44,26 @@ func TestAddToConfigMap(t *testing.T) {
 	name := "test-name"
 	namespace := "eksa-packages"
 	cmdata := make(map[string]string)
+	clusterName := "w-test"
+	targetClusterNamespace := api.PackageNamespace + "-" + clusterName
 
 	t.Run("golden path for adding new namespace", func(t *testing.T) {
 		cmdata["otherns"] = "a"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      ConfigMapName,
-				Namespace: api.PackageNamespace,
+				Namespace: targetClusterNamespace,
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
-
-		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
+		err := ecrAuth.Initialize(clusterName)
 		require.NoError(t, err)
 
-		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		err = ecrAuth.AddToConfigMap(ctx, name, namespace)
+		require.NoError(t, err)
+
+		updatedCM, err := mockClientset.CoreV1().ConfigMaps(targetClusterNamespace).
 			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		if assert.NoError(t, err) {
 			assert.Equal(t, name, updatedCM.Data[namespace])
@@ -72,16 +76,18 @@ func TestAddToConfigMap(t *testing.T) {
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      ConfigMapName,
-				Namespace: api.PackageNamespace,
+				Namespace: targetClusterNamespace,
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
-
-		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
+		err := ecrAuth.Initialize(clusterName)
 		require.NoError(t, err)
 
-		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		err = ecrAuth.AddToConfigMap(ctx, name, namespace)
+		require.NoError(t, err)
+
+		updatedCM, err := mockClientset.CoreV1().ConfigMaps(targetClusterNamespace).
 			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		if assert.NoError(t, err) {
 			assert.ObjectsAreEqual([]string{"a", name},
@@ -95,16 +101,18 @@ func TestAddToConfigMap(t *testing.T) {
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      ConfigMapName,
-				Namespace: api.PackageNamespace,
+				Namespace: targetClusterNamespace,
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
-
-		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
+		err := ecrAuth.Initialize(clusterName)
 		require.NoError(t, err)
 
-		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		err = ecrAuth.AddToConfigMap(ctx, name, namespace)
+		require.NoError(t, err)
+
+		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(targetClusterNamespace).
 			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		assert.Equal(t, "a", updatedCM.Data[namespace])
 	})
@@ -118,8 +126,10 @@ func TestAddToConfigMap(t *testing.T) {
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
+		err := ecrAuth.Initialize(clusterName)
+		require.NoError(t, err)
 
-		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
+		err = ecrAuth.AddToConfigMap(ctx, name, namespace)
 
 		assert.NotNil(t, err)
 	})
@@ -130,6 +140,8 @@ func TestDelFromConfigMap(t *testing.T) {
 	name := "test-name"
 	namespace := "eksa-packages"
 	cmdata := make(map[string]string)
+	clusterName := "w-test"
+	targetClusterNamespace := api.PackageNamespace + "-" + clusterName
 
 	t.Run("golden path for removing one name but still exists", func(t *testing.T) {
 		name = "a"
@@ -137,15 +149,17 @@ func TestDelFromConfigMap(t *testing.T) {
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      ConfigMapName,
-				Namespace: api.PackageNamespace,
+				Namespace: targetClusterNamespace,
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
+		err := ecrAuth.Initialize(clusterName)
+		require.NoError(t, err)
 
-		err := ecrAuth.DelFromConfigMap(ctx, name, namespace)
+		err = ecrAuth.DelFromConfigMap(ctx, name, namespace)
 
-		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(targetClusterNamespace).
 			Get(ctx, ConfigMapName, metav1.GetOptions{})
 
 		val, exists := updatedCM.Data["eksa-packages"]
@@ -160,15 +174,18 @@ func TestDelFromConfigMap(t *testing.T) {
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      ConfigMapName,
-				Namespace: api.PackageNamespace,
+				Namespace: targetClusterNamespace,
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
 
-		err := ecrAuth.DelFromConfigMap(ctx, name, namespace)
+		err := ecrAuth.Initialize(clusterName)
 		require.NoError(t, err)
-		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+
+		err = ecrAuth.DelFromConfigMap(ctx, name, namespace)
+		require.NoError(t, err)
+		updatedCM, err := mockClientset.CoreV1().ConfigMaps(targetClusterNamespace).
 			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		require.NoError(t, err)
 		_, exists := updatedCM.Data["eksa-packages"]
