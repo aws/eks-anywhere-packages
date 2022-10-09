@@ -39,6 +39,20 @@ func (m *MockTargetClusterClient) EXPECT() *MockTargetClusterClientMockRecorder 
 	return m.recorder
 }
 
+// CreateClusterNamespace mocks base method.
+func (m *MockTargetClusterClient) CreateClusterNamespace(ctx context.Context, clusterName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateClusterNamespace", ctx, clusterName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateClusterNamespace indicates an expected call of CreateClusterNamespace.
+func (mr *MockTargetClusterClientMockRecorder) CreateClusterNamespace(ctx, clusterName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateClusterNamespace", reflect.TypeOf((*MockTargetClusterClient)(nil).CreateClusterNamespace), ctx, clusterName)
+}
+
 // GetServerVersion mocks base method.
 func (m *MockTargetClusterClient) GetServerVersion(ctx context.Context, clusterName string) (*version.Info, error) {
 	m.ctrl.T.Helper()
@@ -54,7 +68,7 @@ func (mr *MockTargetClusterClientMockRecorder) GetServerVersion(ctx, clusterName
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServerVersion", reflect.TypeOf((*MockTargetClusterClient)(nil).GetServerVersion), ctx, clusterName)
 }
 
-// Init mocks base method.
+// Initialize mocks base method.
 func (m *MockTargetClusterClient) Initialize(ctx context.Context, clusterName string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Initialize", ctx, clusterName)
@@ -62,8 +76,8 @@ func (m *MockTargetClusterClient) Initialize(ctx context.Context, clusterName st
 	return ret0
 }
 
-// Init indicates an expected call of Init.
-func (mr *MockTargetClusterClientMockRecorder) Init(ctx, clusterName interface{}) *gomock.Call {
+// Initialize indicates an expected call of Initialize.
+func (mr *MockTargetClusterClientMockRecorder) Initialize(ctx, clusterName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Initialize", reflect.TypeOf((*MockTargetClusterClient)(nil).Initialize), ctx, clusterName)
 }

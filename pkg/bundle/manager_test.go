@@ -135,6 +135,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().GetBundle(ctx, pbc.Spec.ActiveBundle).Return(&allBundles[0], nil)
 
 		err := bm.ProcessBundleController(ctx, pbc)
@@ -152,6 +153,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().GetBundle(ctx, pbc.Spec.ActiveBundle).Return(nil, nil)
 		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles:v1-21-1003").Return(&allBundles[0], nil)
 		bc.EXPECT().CreateBundle(ctx, gomock.Any()).Return(nil)
@@ -171,6 +173,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().GetBundle(ctx, pbc.Spec.ActiveBundle).Return(nil, nil)
 		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles:v1-21-1003").Return(&allBundles[0], fmt.Errorf("boom"))
 
@@ -189,6 +192,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().GetBundle(ctx, pbc.Spec.ActiveBundle).Return(nil, nil)
 		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles:v1-21-1003").Return(&allBundles[0], nil)
 		bc.EXPECT().CreateBundle(ctx, gomock.Any()).Return(fmt.Errorf("boom"))
@@ -254,7 +258,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-cluster01 status to disconnected: oops")
+		assert.EqualError(t, err, "updating cluster01 status to disconnected: oops")
 	})
 
 	t.Run("active to upgradeAvailable", func(t *testing.T) {
@@ -268,6 +272,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().GetBundle(ctx, pbc.Spec.ActiveBundle).Return(&allBundles[0], nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
 
@@ -290,7 +295,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "creating namespace for eksa-packages-cluster01: boom")
+		assert.EqualError(t, err, "creating namespace for cluster01: boom")
 	})
 
 	t.Run("active to cm error", func(t *testing.T) {
@@ -307,7 +312,25 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "creating configmap for eksa-packages-cluster01: boom")
+		assert.EqualError(t, err, "creating configmap for cluster01: boom")
+	})
+
+	t.Run("workload create cluster error", func(t *testing.T) {
+		tcc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
+		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx, "v1-21").Return(allBundles, nil)
+		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
+		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
+		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(fmt.Errorf("boom"))
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.EqualError(t, err, "creating workload cluster namespace eksa-packages for cluster01: boom")
 	})
 
 	t.Run("active to upgradeAvailable active bundle error", func(t *testing.T) {
@@ -321,6 +344,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().GetBundle(ctx, pbc.Spec.ActiveBundle).Return(nil, fmt.Errorf("boom"))
 
 		err := bm.ProcessBundleController(ctx, pbc)
@@ -339,12 +363,13 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().GetBundle(ctx, pbc.Spec.ActiveBundle).Return(&allBundles[0], nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-cluster01 status to upgrade available: oops")
+		assert.EqualError(t, err, "updating cluster01 status to upgrade available: oops")
 	})
 
 	t.Run("active to upgradeAvailable create error", func(t *testing.T) {
@@ -407,7 +432,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-cluster01 status to active: oops")
+		assert.EqualError(t, err, "updating cluster01 status to active: oops")
 	})
 
 	t.Run("disconnected to active", func(t *testing.T) {
@@ -438,7 +463,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-cluster01 status to active: oops")
+		assert.EqualError(t, err, "updating cluster01 status to active: oops")
 	})
 
 	t.Run("nothing to active bundle set", func(t *testing.T) {
@@ -476,7 +501,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-cluster01 activeBundle to v1-21-1004: oops")
+		assert.EqualError(t, err, "updating cluster01 activeBundle to v1-21-1004: oops")
 	})
 
 	t.Run("nothing to active state", func(t *testing.T) {
@@ -510,6 +535,6 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.EqualError(t, err, "updating eksa-packages-cluster01 status to active: oops")
+		assert.EqualError(t, err, "updating cluster01 status to active: oops")
 	})
 }

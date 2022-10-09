@@ -142,7 +142,7 @@ func givenHelmDriver(t *testing.T) (*helmDriver, error) {
 	mockSecretAuth.EXPECT().AuthFilename()
 
 	mockTargetClusterClient := mocks.NewMockTargetClusterClient(gomock.NewController(t))
-	mockTargetClusterClient.EXPECT().Init(ctx, "billy")
+	mockTargetClusterClient.EXPECT().Initialize(ctx, "billy")
 	return NewHelm(logr.Discard(), mockSecretAuth, mockTargetClusterClient)
 }
 
