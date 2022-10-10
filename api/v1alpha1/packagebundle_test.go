@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -486,5 +487,21 @@ func TestGetJsonSchemFromBundlePackage(t *testing.T) {
 		_, err := packageBundle.GetJsonSchema()
 
 		assert.NotNil(t, err)
+	})
+}
+
+func TestBundlesByVersion(t *testing.T) {
+	t.Run("sort.Interface is implemented", func(t *testing.T) {
+		bundles := []PackageBundle{
+			{ObjectMeta: metav1.ObjectMeta{Name: "v1-21-003"}},
+			{ObjectMeta: metav1.ObjectMeta{Name: "v1-21-001"}},
+			{ObjectMeta: metav1.ObjectMeta{Name: "v1-21-002"}},
+		}
+
+		sort.Sort(BundlesByVersion(bundles))
+
+		assert.Equal(t, bundles[0].Name, "v1-21-001")
+		assert.Equal(t, bundles[1].Name, "v1-21-002")
+		assert.Equal(t, bundles[2].Name, "v1-21-003")
 	})
 }

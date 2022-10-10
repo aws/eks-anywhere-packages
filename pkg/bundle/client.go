@@ -3,7 +3,6 @@ package bundle
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -120,13 +119,7 @@ func (bc *bundleClient) GetBundleList(ctx context.Context) (bundles []api.Packag
 		return nil, fmt.Errorf("listing package bundles: %s", err)
 	}
 
-	sortedBundles := allBundles.Items
-	sortFn := func(i, j int) bool {
-		return sortedBundles[j].LessThan(&sortedBundles[i])
-	}
-	sort.Slice(sortedBundles, sortFn)
-
-	return sortedBundles, nil
+	return allBundles.Items, nil
 }
 
 func (bc *bundleClient) CreateClusterNamespace(ctx context.Context, clusterName string) error {

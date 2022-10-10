@@ -3,6 +3,7 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/go-logr/logr"
 
@@ -66,8 +67,9 @@ func (m bundleManager) ProcessBundle(_ context.Context, newBundle *api.PackageBu
 	return false, nil
 }
 
-func (m *bundleManager) hasLatestBundle(sortedBundles []api.PackageBundle, latestBundle *api.PackageBundle) bool {
-	for _, b := range sortedBundles {
+func (m *bundleManager) hasLatestBundle(bundles []api.PackageBundle, latestBundle *api.PackageBundle) bool {
+	sort.Sort(api.BundlesByVersion(bundles))
+	for _, b := range bundles {
 		if b.Name == latestBundle.Name {
 			return true
 		}
