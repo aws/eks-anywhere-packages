@@ -3,6 +3,7 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/go-logr/logr"
 
@@ -36,7 +37,7 @@ func NewBundleManager(log logr.Logger, registryClient RegistryClient, bundleClie
 
 var _ Manager = (*bundleManager)(nil)
 
-func (m bundleManager) ProcessBundle(ctx context.Context, newBundle *api.PackageBundle) (bool, error) {
+func (m bundleManager) ProcessBundle(_ context.Context, newBundle *api.PackageBundle) (bool, error) {
 	if newBundle.Namespace != api.PackageNamespace {
 		if newBundle.Status.State != api.PackageBundleStateIgnored {
 			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
@@ -64,6 +65,16 @@ func (m bundleManager) ProcessBundle(ctx context.Context, newBundle *api.Package
 		return true, nil
 	}
 	return false, nil
+}
+
+func (m *bundleManager) hasBundleNamed(bundles []api.PackageBundle, bundleName string) bool {
+	sort.Sort(api.BundlesByVersion(bundles))
+	for _, b := range bundles {
+		if b.Name == bundleName {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.PackageBundleController) error {
@@ -95,29 +106,18 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		return nil
 	}
 
-	serverVersion := fmt.Sprintf("v%s-%s", info.Major, info.Minor)
-	m.log.V(6).Info("info.String()", "version", serverVersion)
-	sortedBundles, err := m.bundleClient.GetBundleList(ctx, serverVersion)
+	sortedBundles, err := m.bundleClient.GetBundleList(ctx)
 	if err != nil {
 		return fmt.Errorf("getting bundle list: %s", err)
 	}
 
-	latestBundleIsKnown := false
-	latestBundleIsCurrentBundle := true
-	for _, b := range sortedBundles {
-		if b.Name == latestBundle.Name {
-			latestBundleIsKnown = true
-			break
-		}
-		latestBundleIsCurrentBundle = false
-	}
-
-	if !latestBundleIsKnown {
+	if !m.hasBundleNamed(sortedBundles, latestBundle.Name) {
 		err = m.bundleClient.CreateBundle(ctx, latestBundle)
 		if err != nil {
 			return err
 		}
 	}
+	latestBundleIsCurrentBundle := latestBundle.Name == pbc.Spec.ActiveBundle
 
 	switch pbc.Status.State {
 	case api.BundleControllerStateActive:
@@ -129,6 +129,11 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		err = m.bundleClient.CreateClusterConfigMap(ctx, pbc.Name)
 		if err != nil {
 			return fmt.Errorf("creating configmap for %s: %s", pbc.Name, err)
+		}
+
+		err = m.targetClient.CreateClusterNamespace(ctx, pbc.GetName())
+		if err != nil {
+			return fmt.Errorf("creating workload cluster namespace eksa-packages for %s: %s", pbc.Name, err)
 		}
 
 		if len(pbc.Spec.ActiveBundle) > 0 {

@@ -7,23 +7,22 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
-	fakerest "k8s.io/client-go/rest/fake"
+	"k8s.io/client-go/rest"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 func TestAuthFilename(t *testing.T) {
-	fakeRestClient := fakerest.RESTClient{
-		GroupVersion: api.GroupVersion,
-	}
+	fakeConfig := rest.Config{}
 
 	t.Run("golden path for set HELM_REGISTRY_CONFIG", func(t *testing.T) {
 		testfile := "/test.txt"
 		t.Setenv("HELM_REGISTRY_CONFIG", testfile)
-		ecrAuth, err := NewECRSecret(&fakeRestClient)
+		ecrAuth, err := NewECRSecret(&fakeConfig)
 		require.NoError(t, err)
 		val := ecrAuth.AuthFilename()
 
@@ -32,7 +31,7 @@ func TestAuthFilename(t *testing.T) {
 
 	t.Run("golden path for no config or secrets", func(t *testing.T) {
 		t.Setenv("HELM_REGISTRY_CONFIG", "")
-		ecrAuth, _ := NewECRSecret(&fakeRestClient)
+		ecrAuth, _ := NewECRSecret(&fakeConfig)
 		val := ecrAuth.AuthFilename()
 
 		assert.Equal(t, val, "")
@@ -44,22 +43,26 @@ func TestAddToConfigMap(t *testing.T) {
 	name := "test-name"
 	namespace := "eksa-packages"
 	cmdata := make(map[string]string)
+	clusterName := "w-test"
+	targetClusterNamespace := api.PackageNamespace + "-" + clusterName
 
 	t.Run("golden path for adding new namespace", func(t *testing.T) {
 		cmdata["otherns"] = "a"
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      ConfigMapName,
-				Namespace: api.PackageNamespace,
+				Namespace: targetClusterNamespace,
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
-
-		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
+		err := ecrAuth.Initialize(clusterName)
 		require.NoError(t, err)
 
-		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		err = ecrAuth.AddToConfigMap(ctx, name, namespace)
+		require.NoError(t, err)
+
+		updatedCM, err := mockClientset.CoreV1().ConfigMaps(targetClusterNamespace).
 			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		if assert.NoError(t, err) {
 			assert.Equal(t, name, updatedCM.Data[namespace])
@@ -72,16 +75,18 @@ func TestAddToConfigMap(t *testing.T) {
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      ConfigMapName,
-				Namespace: api.PackageNamespace,
+				Namespace: targetClusterNamespace,
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
-
-		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
+		err := ecrAuth.Initialize(clusterName)
 		require.NoError(t, err)
 
-		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		err = ecrAuth.AddToConfigMap(ctx, name, namespace)
+		require.NoError(t, err)
+
+		updatedCM, err := mockClientset.CoreV1().ConfigMaps(targetClusterNamespace).
 			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		if assert.NoError(t, err) {
 			assert.ObjectsAreEqual([]string{"a", name},
@@ -95,16 +100,18 @@ func TestAddToConfigMap(t *testing.T) {
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      ConfigMapName,
-				Namespace: api.PackageNamespace,
+				Namespace: targetClusterNamespace,
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
-
-		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
+		err := ecrAuth.Initialize(clusterName)
 		require.NoError(t, err)
 
-		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		err = ecrAuth.AddToConfigMap(ctx, name, namespace)
+		require.NoError(t, err)
+
+		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(targetClusterNamespace).
 			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		assert.Equal(t, "a", updatedCM.Data[namespace])
 	})
@@ -118,8 +125,10 @@ func TestAddToConfigMap(t *testing.T) {
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
+		err := ecrAuth.Initialize(clusterName)
+		require.NoError(t, err)
 
-		err := ecrAuth.AddToConfigMap(ctx, name, namespace)
+		err = ecrAuth.AddToConfigMap(ctx, name, namespace)
 
 		assert.NotNil(t, err)
 	})
@@ -130,6 +139,8 @@ func TestDelFromConfigMap(t *testing.T) {
 	name := "test-name"
 	namespace := "eksa-packages"
 	cmdata := make(map[string]string)
+	clusterName := "w-test"
+	targetClusterNamespace := api.PackageNamespace + "-" + clusterName
 
 	t.Run("golden path for removing one name but still exists", func(t *testing.T) {
 		name = "a"
@@ -137,16 +148,20 @@ func TestDelFromConfigMap(t *testing.T) {
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      ConfigMapName,
-				Namespace: api.PackageNamespace,
+				Namespace: targetClusterNamespace,
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
+		err := ecrAuth.Initialize(clusterName)
+		require.NoError(t, err)
 
-		err := ecrAuth.DelFromConfigMap(ctx, name, namespace)
+		err = ecrAuth.DelFromConfigMap(ctx, name, namespace)
+		require.NoError(t, err)
 
-		updatedCM, _ := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+		updatedCM, err := mockClientset.CoreV1().ConfigMaps(targetClusterNamespace).
 			Get(ctx, ConfigMapName, metav1.GetOptions{})
+		require.NoError(t, err)
 
 		val, exists := updatedCM.Data["eksa-packages"]
 		assert.Nil(t, err)
@@ -160,15 +175,17 @@ func TestDelFromConfigMap(t *testing.T) {
 		mockClientset := fake.NewSimpleClientset(&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      ConfigMapName,
-				Namespace: api.PackageNamespace,
+				Namespace: targetClusterNamespace,
 			},
 			Data: cmdata,
 		})
 		ecrAuth := ecrSecret{clientset: mockClientset}
-
-		err := ecrAuth.DelFromConfigMap(ctx, name, namespace)
+		err := ecrAuth.Initialize(clusterName)
 		require.NoError(t, err)
-		updatedCM, err := mockClientset.CoreV1().ConfigMaps(api.PackageNamespace).
+
+		err = ecrAuth.DelFromConfigMap(ctx, name, namespace)
+		require.NoError(t, err)
+		updatedCM, err := mockClientset.CoreV1().ConfigMaps(targetClusterNamespace).
 			Get(ctx, ConfigMapName, metav1.GetOptions{})
 		require.NoError(t, err)
 		_, exists := updatedCM.Data["eksa-packages"]
@@ -180,8 +197,6 @@ func TestGetSecretValues(t *testing.T) {
 	ctx := context.TODO()
 	secretdata := make(map[string][]byte)
 	namespace := "eksa-packages"
-	releaseMap := make(map[string]string)
-	releaseMap[namespace] = "release1"
 
 	t.Run("golden path for Retrieving ECR Secret", func(t *testing.T) {
 		namespace = "test"
@@ -195,7 +210,7 @@ func TestGetSecretValues(t *testing.T) {
 			Data: secretdata,
 			Type: ".dockerconfigjson",
 		})
-		ecrAuth := ecrSecret{clientset: mockClientset, nsReleaseMap: releaseMap}
+		ecrAuth := ecrSecret{clientset: mockClientset}
 
 		values, err := ecrAuth.GetSecretValues(ctx, namespace)
 
@@ -215,7 +230,7 @@ func TestGetSecretValues(t *testing.T) {
 			Data: secretdata,
 			Type: ".dockerconfigjson",
 		})
-		ecrAuth := ecrSecret{clientset: mockClientset, nsReleaseMap: releaseMap}
+		ecrAuth := ecrSecret{clientset: mockClientset}
 
 		values, err := ecrAuth.GetSecretValues(ctx, namespace)
 
@@ -227,24 +242,53 @@ func TestGetSecretValues(t *testing.T) {
 		_, exists = values["pullSecretData"]
 		assert.False(t, exists)
 	})
+}
 
-	t.Run("fails when retrieving nonexistant secret", func(t *testing.T) {
-		namespace = "eksa-packages"
-		testdata := []byte("testdata")
-		secretdata[".dockerconfigjson"] = testdata
-		mockClientset := fake.NewSimpleClientset(&v1.Secret{
+func TestAddSecretToAllNamespace(t *testing.T) {
+	ctx := context.TODO()
+
+	t.Run("golden path for adding ECR Secret to all namespaces", func(t *testing.T) {
+		mockClientset := fake.NewSimpleClientset(&batchv1.CronJob{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      ecrTokenName,
-				Namespace: "wrong-ns",
+				Name:      cronJobName,
+				Namespace: api.PackageNamespace,
 			},
-			Data: secretdata,
-			Type: ".dockerconfigjson",
+			Spec: batchv1.CronJobSpec{},
 		})
+
 		ecrAuth := ecrSecret{clientset: mockClientset}
 
-		values, err := ecrAuth.GetSecretValues(ctx, namespace)
+		err := ecrAuth.AddSecretToAllNamespace(ctx)
+		assert.NoError(t, err)
+	})
 
+	t.Run("golden path for adding ECR Secret to all namespaces with missing job", func(t *testing.T) {
+		mockClientset := fake.NewSimpleClientset(&batchv1.CronJob{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "wrong-name",
+				Namespace: api.PackageNamespace,
+			},
+			Spec: batchv1.CronJobSpec{},
+		})
+
+		ecrAuth := ecrSecret{clientset: mockClientset}
+
+		err := ecrAuth.AddSecretToAllNamespace(ctx)
 		assert.NotNil(t, err)
-		assert.Nil(t, values)
+	})
+
+	t.Run("golden path for adding ECR Secret to all namespaces with missing job in namespace", func(t *testing.T) {
+		mockClientset := fake.NewSimpleClientset(&batchv1.CronJob{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      cronJobName,
+				Namespace: "wrong-ns",
+			},
+			Spec: batchv1.CronJobSpec{},
+		})
+
+		ecrAuth := ecrSecret{clientset: mockClientset}
+
+		err := ecrAuth.AddSecretToAllNamespace(ctx)
+		assert.NotNil(t, err)
 	})
 }

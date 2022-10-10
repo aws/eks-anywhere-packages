@@ -6,6 +6,7 @@ import (
 	"os"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/version"
@@ -16,6 +17,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
 const (
@@ -29,6 +32,9 @@ type TargetClusterClient interface {
 
 	// GetServerVersion of the target api server
 	GetServerVersion(ctx context.Context, clusterName string) (info *version.Info, err error)
+
+	// CreateClusterNamespace for the workload cluster
+	CreateClusterNamespace(ctx context.Context, clusterName string) (err error)
 
 	// Implement RESTClientGetter
 	ToRESTConfig() (*rest.Config, error)
@@ -144,4 +150,42 @@ func (tcc *targetClusterClient) GetServerVersion(ctx context.Context, clusterNam
 		return nil, fmt.Errorf("getting server version: %w", err)
 	}
 	return info, nil
+}
+
+func (tcc *targetClusterClient) CreateClusterNamespace(ctx context.Context, clusterName string) (err error) {
+	err = tcc.Initialize(ctx, clusterName)
+	if err != nil {
+		return fmt.Errorf("initializing target client: %s", err)
+	}
+
+	restConfig, err := tcc.ToRESTConfig()
+	if err != nil {
+		return fmt.Errorf("create rest config for %s: %s", clusterName, err)
+	}
+
+	k8sClient, err := client.New(restConfig, client.Options{})
+	if err != nil {
+		return fmt.Errorf("creating client for %s: %s", clusterName, err)
+	}
+
+	name := api.PackageNamespace
+	key := types.NamespacedName{
+		Name: name,
+	}
+	ns := &corev1.Namespace{}
+	err = k8sClient.Get(ctx, key, ns)
+	// Nil err check here means that the namespace exists thus we can just return with no error
+	if err == nil {
+		return nil
+	}
+	if !apierrors.IsNotFound(err) {
+		return fmt.Errorf("get namespace for %s: %s", clusterName, err)
+	}
+
+	ns.Name = name
+	err = k8sClient.Create(ctx, ns)
+	if err != nil {
+		return fmt.Errorf("create namespace for %s: %s", clusterName, err)
+	}
+	return nil
 }

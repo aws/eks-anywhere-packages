@@ -3,8 +3,6 @@ package bundle
 import (
 	"context"
 	"fmt"
-	"sort"
-	"strings"
 
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -24,7 +22,7 @@ type Client interface {
 	GetPackageBundleController(ctx context.Context, clusterName string) (controller *api.PackageBundleController, err error)
 
 	// GetBundleList get list of bundles worthy of consideration
-	GetBundleList(ctx context.Context, serverVersion string) (bundles []api.PackageBundle, err error)
+	GetBundleList(ctx context.Context) (bundles []api.PackageBundle, err error)
 
 	// GetBundle retrieves the named bundle.
 	GetBundle(ctx context.Context, name string) (namedBundle *api.PackageBundle, err error)
@@ -114,28 +112,14 @@ func (bc *bundleClient) GetBundle(ctx context.Context, name string) (namedBundle
 	return namedBundle, nil
 }
 
-func (bc *bundleClient) GetBundleList(ctx context.Context, serverVersion string) (bundles []api.PackageBundle, err error) {
+func (bc *bundleClient) GetBundleList(ctx context.Context) (bundles []api.PackageBundle, err error) {
 	var allBundles = &api.PackageBundleList{}
 	err = bc.Client.List(ctx, allBundles, &client.ListOptions{Namespace: api.PackageNamespace})
 	if err != nil {
 		return nil, fmt.Errorf("listing package bundles: %s", err)
 	}
 
-	sortedBundles := allBundles.Items
-	sortFn := func(i, j int) bool {
-		if strings.HasPrefix(sortedBundles[i].Name, serverVersion) {
-			if !strings.HasPrefix(sortedBundles[j].Name, serverVersion) {
-				return true
-			}
-		} else if strings.HasPrefix(sortedBundles[j].Name, serverVersion) {
-			return false
-		}
-
-		return sortedBundles[j].LessThan(&sortedBundles[i])
-	}
-	sort.Slice(sortedBundles, sortFn)
-
-	return sortedBundles, nil
+	return allBundles.Items, nil
 }
 
 func (bc *bundleClient) CreateClusterNamespace(ctx context.Context, clusterName string) error {

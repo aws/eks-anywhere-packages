@@ -63,10 +63,16 @@ This command will move **Only** the images from the listed helm charts in the in
 To promote a package from a private ECR to public you need the repository name. This repository must contain a Helm chart built by the process in the eks-anywhere-build-tooling git repository.
 This will **both** for the helm chart, and the imgaes required to the public ECR of the calling user.
 
-**This command only supports promotion of the latest helm chart from the private repository.**
+To promote the latest helm chart from the private repository.
 
 ```sh
 generatebundlefile --promote hello-eks-anywhere
+```
+
+To promote multiple versions of a helm chart in one command
+
+```sh
+generatebundlefile --promote hello-eks-anywhere --input data/promote.yaml
 ```
 
 ### Input File Supported Formats

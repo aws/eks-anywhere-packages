@@ -2,10 +2,11 @@ package authenticator
 
 import (
 	"context"
-	"fmt"
 	"os"
+	"strconv"
+	"time"
 
-	corev1 "k8s.io/api/core/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -17,19 +18,24 @@ import (
 const (
 	ConfigMapName = "ns-secret-map"
 	ecrTokenName  = "ecr-token"
+	cronJobName   = "cron-ecr-renew"
 )
 
 type ecrSecret struct {
-	clientset    kubernetes.Interface
-	nsReleaseMap map[string]string
+	clientset     kubernetes.Interface
+	targetCluster string
 }
 
 var _ Authenticator = (*ecrSecret)(nil)
 
-func NewECRSecret(config rest.Interface) (*ecrSecret, error) {
+func NewECRSecret(config *rest.Config) (*ecrSecret, error) {
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
 	return &ecrSecret{
-		clientset:    kubernetes.New(config),
-		nsReleaseMap: make(map[string]string),
+		clientset:     clientset,
+		targetCluster: api.PackageNamespace,
 	}, nil
 }
 
@@ -44,8 +50,13 @@ func (s *ecrSecret) AuthFilename() string {
 	return ""
 }
 
+func (s *ecrSecret) Initialize(clusterName string) error {
+	s.targetCluster = api.PackageNamespace + "-" + clusterName
+	return nil
+}
+
 func (s *ecrSecret) AddToConfigMap(ctx context.Context, name string, namespace string) error {
-	cm, err := s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
+	cm, err := s.clientset.CoreV1().ConfigMaps(s.targetCluster).
 		Get(ctx, ConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -55,70 +66,40 @@ func (s *ecrSecret) AddToConfigMap(ctx context.Context, name string, namespace s
 	css.Add(name)
 	cm.Data[namespace] = css.String()
 
-	_, err = s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
+	_, err = s.clientset.CoreV1().ConfigMaps(s.targetCluster).
 		Update(ctx, cm, metav1.UpdateOptions{})
 	if err != nil {
 		return err
 	}
-	// Store data
-	s.nsReleaseMap = cm.Data
 
 	return nil
 }
 
 func (s *ecrSecret) AddSecretToAllNamespace(ctx context.Context) error {
-	secret, err := s.clientset.CoreV1().Secrets(api.PackageNamespace).Get(ctx, ecrTokenName, metav1.GetOptions{})
+	cronjob, err := s.clientset.BatchV1().CronJobs(api.PackageNamespace).Get(ctx, cronJobName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	issue := false
-	for namespace := range s.nsReleaseMap {
-		// Create secret
-		// Check there is valid token data in the secret
-		secretData, exist := secret.Data[".dockerconfigjson"]
-		if !exist {
-			return fmt.Errorf("No dockerconfigjson data in secret %s", ecrTokenName)
-		}
 
-		newSecret, err := s.clientset.CoreV1().Secrets(namespace).Get(ctx, ecrTokenName, metav1.GetOptions{})
-		if err != nil {
-			newSecret = createSecret(ecrTokenName, namespace)
-			newSecret.Data[corev1.DockerConfigJsonKey] = secretData
-			_, err = s.clientset.CoreV1().Secrets(namespace).Create(context.TODO(), newSecret, metav1.CreateOptions{})
-			if err != nil {
-				issue = true
-			}
-		} else {
-			newSecret.Data[corev1.DockerConfigJsonKey] = secretData
-			_, err = s.clientset.CoreV1().Secrets(namespace).Update(context.TODO(), newSecret, metav1.UpdateOptions{})
-			if err != nil {
-				issue = true
-			}
-		}
+	jobSpec := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-controller-job-" + strconv.FormatInt(time.Now().UTC().UnixMilli(), 10),
+			Namespace: api.PackageNamespace,
+		},
+		Spec: cronjob.Spec.JobTemplate.Spec,
 	}
 
-	if issue {
-		return fmt.Errorf("failed to update namespaces")
+	jobs := s.clientset.BatchV1().Jobs(api.PackageNamespace)
+	_, err = jobs.Create(ctx, jobSpec, metav1.CreateOptions{})
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func createSecret(name string, namespace string) *corev1.Secret {
-	object := metav1.ObjectMeta{
-		Name:      name,
-		Namespace: namespace,
-	}
-	secret := corev1.Secret{
-		ObjectMeta: object,
-		Type:       corev1.SecretTypeDockerConfigJson,
-		Data:       map[string][]byte{},
-	}
-	return &secret
-}
-
 func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name string, namespace string) error {
-	cm, err := s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
+	cm, err := s.clientset.CoreV1().ConfigMaps(s.targetCluster).
 		Get(ctx, ConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -131,28 +112,16 @@ func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name string, namespace
 		delete(cm.Data, namespace)
 	}
 
-	_, err = s.clientset.CoreV1().ConfigMaps(api.PackageNamespace).
+	_, err = s.clientset.CoreV1().ConfigMaps(s.targetCluster).
 		Update(ctx, cm, metav1.UpdateOptions{})
 	if err != nil {
 		return err
 	}
-	// Store data
-	s.nsReleaseMap = cm.Data
 
 	return nil
 }
 
 func (s *ecrSecret) GetSecretValues(ctx context.Context, namespace string) (map[string]interface{}, error) {
-	secret, err := s.clientset.CoreV1().Secrets(api.PackageNamespace).Get(ctx, ecrTokenName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	// Check there is valid token data in the secret
-	_, exist := secret.Data[".dockerconfigjson"]
-	if !exist {
-		return nil, fmt.Errorf("No dockerconfigjson data in secret %s", ecrTokenName)
-	}
-
 	values := make(map[string]interface{})
 	var imagePullSecret [1]map[string]string
 	imagePullSecret[0] = make(map[string]string)

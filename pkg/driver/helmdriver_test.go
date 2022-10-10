@@ -11,14 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"helm.sh/helm/v3/pkg/kube"
 	"helm.sh/helm/v3/pkg/release"
-	fakerest "k8s.io/client-go/rest/fake"
 
-	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
 	"github.com/aws/eks-anywhere-packages/pkg/authenticator/mocks"
 )
 
-var mockTargetClusterClient *mocks.MockTargetClusterClient
 var ctx context.Context = context.Background()
 
 func TestHelmChartURLIsPrefixed(t *testing.T) {
@@ -48,7 +44,6 @@ func TestHelmDriverInitialize(t *testing.T) {
 		t.Parallel()
 		helm, err := givenHelmDriver(t)
 		require.NoError(t, err)
-		mockTargetClusterClient.EXPECT().Init(ctx, "billy").Return(nil)
 
 		err = helm.Initialize(ctx, "billy")
 
@@ -142,22 +137,18 @@ func TestIsConfigChanged(t *testing.T) {
 }
 
 func givenHelmDriver(t *testing.T) (*helmDriver, error) {
-	fakeRestClient := fakerest.RESTClient{
-		GroupVersion: api.GroupVersion,
-	}
-	secretAuth, err := auth.NewECRSecret(&fakeRestClient)
-	if err != nil {
-		return nil, err
-	}
+	mockSecretAuth := mocks.NewMockAuthenticator(gomock.NewController(t))
+	mockSecretAuth.EXPECT().Initialize("billy")
+	mockSecretAuth.EXPECT().AuthFilename()
 
-	mockTargetClusterClient = mocks.NewMockTargetClusterClient(gomock.NewController(t))
-	return NewHelm(logr.Discard(), secretAuth, mockTargetClusterClient)
+	mockTargetClusterClient := mocks.NewMockTargetClusterClient(gomock.NewController(t))
+	mockTargetClusterClient.EXPECT().Initialize(ctx, "billy")
+	return NewHelm(logr.Discard(), mockSecretAuth, mockTargetClusterClient)
 }
 
 func givenInitializedHelmDriver(t *testing.T) (*helmDriver, error) {
 	helm, err := givenHelmDriver(t)
 	if err == nil {
-		mockTargetClusterClient.EXPECT().Init(ctx, "billy")
 		err = helm.Initialize(ctx, "billy")
 	}
 	return helm, err
