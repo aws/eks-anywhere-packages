@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -139,25 +140,11 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 	})
 }
 
-func doAndReturnBundleList(_ context.Context, bundles *api.PackageBundleList, _ *client.ListOptions) error {
-	bundles.Items = []api.PackageBundle{
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "v1-16-1003",
-			},
-		},
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "v1-21-1002",
-			},
-		},
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "v1-21-1001",
-			},
-		},
+func doAndReturnBundleList(source *api.PackageBundleList) func(context.Context, *api.PackageBundleList, *client.ListOptions) error {
+	return func(ctx context.Context, target *api.PackageBundleList, options *client.ListOptions) error {
+		source.DeepCopyInto(target)
+		return nil
 	}
-	return nil
 }
 
 func doAndReturnBundle(_ context.Context, nn types.NamespacedName, theBundle *api.PackageBundle) error {
@@ -222,14 +209,34 @@ func TestBundleClient_GetBundleList(t *testing.T) {
 	t.Run("golden path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
 		bundleClient := NewPackageBundleClient(mockClient)
-		mockClient.EXPECT().List(ctx, gomock.Any(), &client.ListOptions{Namespace: api.PackageNamespace}).DoAndReturn(doAndReturnBundleList)
+		testBundleList := &api.PackageBundleList{
+			Items: []api.PackageBundle{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "v1-16-1003",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "v1-21-1002",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "v1-21-1001",
+					},
+				},
+			},
+		}
+
+		mockClient.EXPECT().
+			List(ctx, gomock.Any(), &client.ListOptions{Namespace: api.PackageNamespace}).
+			DoAndReturn(doAndReturnBundleList(testBundleList))
 
 		bundleItems, err := bundleClient.GetBundleList(ctx)
 
-		assert.NoError(t, err)
-		assert.Equal(t, "v1-21-1002", bundleItems[0].Name)
-		assert.Equal(t, "v1-21-1001", bundleItems[1].Name)
-		assert.Equal(t, "v1-16-1003", bundleItems[2].Name)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, bundleItems, testBundleList.Items)
 	})
 
 	t.Run("error scenario", func(t *testing.T) {

@@ -49,10 +49,25 @@ func (config *PackageBundle) FindSource(pkgName, pkgVersion string) (retSource P
 // If the left hand side bundle is older than the right hand side, this
 // method returns true. If it is newer (greater) it returns false. If they are
 // the same it returns false.
-func (config *PackageBundle) LessThan(rhsBundle *PackageBundle) bool {
+func (config PackageBundle) LessThan(rhsBundle *PackageBundle) bool {
 	lhsMajor, lhsMinor, lhsBuild, _ := config.getMajorMinorBuild()
 	rhsMajor, rhsMinor, rhsBuild, _ := rhsBundle.getMajorMinorBuild()
 	return lhsMajor < rhsMajor || lhsMinor < rhsMinor || lhsBuild < rhsBuild
+}
+
+// BundlesByVersion implements sort.Interface for PackageBundles.
+type BundlesByVersion []PackageBundle
+
+func (b BundlesByVersion) Len() int {
+	return len(b)
+}
+
+func (b BundlesByVersion) Less(i, j int) bool {
+	return b[i].LessThan(&b[j])
+}
+
+func (b BundlesByVersion) Swap(i, j int) {
+	b[i], b[j] = b[j], b[i]
 }
 
 // getMajorMinorBuild returns the Kubernetes major version, Kubernetes minor
