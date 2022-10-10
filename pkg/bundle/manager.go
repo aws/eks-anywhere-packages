@@ -67,10 +67,10 @@ func (m bundleManager) ProcessBundle(_ context.Context, newBundle *api.PackageBu
 	return false, nil
 }
 
-func (m *bundleManager) hasLatestBundle(bundles []api.PackageBundle, latestBundle *api.PackageBundle) bool {
+func (m *bundleManager) hasBundleNamed(bundles []api.PackageBundle, bundleName string) bool {
 	sort.Sort(api.BundlesByVersion(bundles))
 	for _, b := range bundles {
-		if b.Name == latestBundle.Name {
+		if b.Name == bundleName {
 			return true
 		}
 	}
@@ -111,7 +111,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		return fmt.Errorf("getting bundle list: %s", err)
 	}
 
-	if !m.hasLatestBundle(sortedBundles, latestBundle) {
+	if !m.hasBundleNamed(sortedBundles, latestBundle.Name) {
 		err = m.bundleClient.CreateBundle(ctx, latestBundle)
 		if err != nil {
 			return err
