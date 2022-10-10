@@ -74,7 +74,7 @@ oras pull public.ecr.aws/f5b7k4z5/eks-anywhere-packages-bundles:v1
 ########################
 
 go mod vendor
-docker run -d -v ${HOME}/.aws/credentials:/root/.aws/credentials:ro -v ${HOME}/go/src/github.com/modelrocket/eks-anywhere-packages:/go/src/github.com/aws/eks-distro/eks-anywhere-packages public.ecr.aws/eks-distro-build-tooling/builder-base:latest  tail -f /dev/null
+docker run -d -v ${HOME}/.aws/credentials:/root/.aws/credentials:ro -v ${HOME}/go/src/github.com/modelrocket/eks-anywhere-packages:/go/src/github.com/aws/modelrocket/eks-anywhere-packages public.ecr.aws/eks-distro-build-tooling/builder-base:latest  tail -f /dev/null
 docker ps
 docker exec -it <CONTAINER_ID> /bin/bash
 cd eks-anywhere-packages/
@@ -86,9 +86,3 @@ build: ## Build release binary.
 	mkdir -p $(REPO_ROOT)/generatebundlefile/bin
 	$(GO) build -mod vendor -o $(REPO_ROOT)/generatebundlefile/bin/generatebundlefile *.go
 
-# Change the `make dev-promote` to use build-linux instead of build
-dev-promote: build-linux priv-login public-login
-
-export HELM_REPO=hello-eks-anywhere
-cd generatebundlefile/
-make dev-promote

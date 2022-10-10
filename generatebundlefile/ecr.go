@@ -227,23 +227,47 @@ func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string,
 				return ecrname, tag, *ImageDetails[0].ImageDigest, nil
 			}
 		}
-		// If for promotion we use latest tag we do a time based lookup to find the latest.
-		ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
-			RepositoryName: aws.String(repoName),
-		})
-		if err != nil {
-			return "", "", "", err
-		}
-		var images []ImageDetailsBothECR
-		for _, image := range ImageDetails {
-			details, err := createECRImageDetails(ImageDetailsECR{PrivateImageDetails: image})
+		// If tag is -latest we do a timestamp lookup
+		if tag == "latest" {
+			ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
+				RepositoryName: aws.String(repoName),
+			})
 			if err != nil {
 				return "", "", "", err
 			}
-			images = append(images, details)
+			var images []ImageDetailsBothECR
+			for _, image := range ImageDetails {
+				details, err := createECRImageDetails(ImageDetailsECR{PrivateImageDetails: image})
+				if err != nil {
+					return "", "", "", err
+				}
+				images = append(images, details)
+			}
+			version, sha, err = getLastestHelmTagandSha(images)
+			return ecrname, version, sha, err
 		}
-		version, sha, err = getLastestHelmTagandSha(images)
-		return ecrname, version, sha, err
+		// If tag contains -latest we do timestamp lookup of any tags matching a regexp of the specified tag.
+		if strings.Contains(tag, "-latest") {
+			regex := regexp.MustCompile(`-latest`)
+			splitVersion := regex.Split(tag, -1) //extract out the version without the latest
+			ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
+				RepositoryName: aws.String(repoName),
+			})
+			if err != nil {
+				return "", "", "", fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
+			}
+			var images []ImageDetailsBothECR
+			for _, image := range ImageDetails {
+				details, _ := createECRImageDetails(ImageDetailsECR{PrivateImageDetails: image})
+				images = append(images, details)
+			}
+			filteredImageDetails := ImageTagFilter(images, splitVersion[0])
+			version, sha, err = getLastestHelmTagandSha(filteredImageDetails)
+			if err != nil {
+				return "", "", "", err
+			}
+			return ecrname, version, sha, err
+		}
 	}
 	return "", "", "", fmt.Errorf("invalid repository: %q", repoName)
 }
