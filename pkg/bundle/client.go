@@ -65,7 +65,7 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context, clusterName string)
 		return nil, err
 	}
 
-	if len(pbc.Spec.ActiveBundle) < 1 {
+	if pbc.Spec.ActiveBundle == "" {
 		return nil, fmt.Errorf("no activeBundle set in PackageBundleController")
 	}
 

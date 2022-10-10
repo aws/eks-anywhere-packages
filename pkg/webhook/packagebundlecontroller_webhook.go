@@ -77,7 +77,7 @@ func (v *activeBundleValidator) Handle(ctx context.Context, req admission.Reques
 func (v *activeBundleValidator) handleInner(ctx context.Context, pbc *v1alpha1.PackageBundleController, bundles *v1alpha1.PackageBundleList) (
 	*admission.Response, error) {
 
-	if len(pbc.Spec.ActiveBundle) < 1 {
+	if pbc.Spec.ActiveBundle == "" {
 		resp := &admission.Response{
 			AdmissionResponse: admissionv1.AdmissionResponse{
 				Allowed: true,
