@@ -33,5 +33,11 @@ aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 h
 
 cd "${BASE_DIRECTORY}/generatebundlefile"
 
-./bin/generatebundlefile  \
-    --promote ${HELM_REPO}
+if [[ -z "${PROMOTE_FILE}" ]]; then
+    ./bin/generatebundlefile  \
+        --promote ${HELM_REPO}
+else
+    echo $PROMOTE_FILE
+    ./bin/generatebundlefile  \
+        --promote ${HELM_REPO} --input ${PROMOTE_FILE}
+fi
