@@ -191,7 +191,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
 		}
 	default:
-		if pbc.Spec.ActiveBundle != "" {
+		if len(pbc.Spec.ActiveBundle) > 0 {
 			pbc.Status.State = api.BundleControllerStateActive
 			m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 			pbc.Status.Detail = ""
