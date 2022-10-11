@@ -228,6 +228,10 @@ spec:
                       - repository
                       - versions
                       type: object
+                    workloadonly:
+                      description: WorkloadOnly specifies if the package should be
+                        installed only on the workload cluster
+                      type: boolean
                   required:
                   - source
                   type: object
@@ -310,6 +314,10 @@ spec:
                           - repository
                           - versions
                           type: object
+                        workloadonly:
+                          description: WorkloadOnly specifies if the package should
+                            be installed only on the workload cluster
+                          type: boolean
                       required:
                       - source
                       type: object

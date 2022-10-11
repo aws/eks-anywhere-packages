@@ -49,6 +49,10 @@ type BundlePackage struct {
 	// +kubebuilder:validation:Required
 	// Source location for the package (probably a helm chart).
 	Source BundlePackageSource `json:"source"`
+
+	// WorkloadOnly specifies if the package should be installed
+	// only on the workload cluster
+	WorkloadOnly bool `json:"workloadonly,omitempty"`
 }
 
 // BundlePackageSource identifies the location of a package.
