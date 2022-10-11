@@ -181,7 +181,7 @@ func TestManagerLifecycle(t *testing.T) {
 		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 60*time.Second, "")
 	})
 
-	t.Run("installing installs in deprecated namespace", func(t *testing.T) {
+	t.Run("installing in deprecated namespace", func(t *testing.T) {
 		mc, mockDriver := givenMocks(t)
 		mc.Package.Status.State = api.StateInstalling
 		mc.Package.Namespace = "eksa-packages"
