@@ -2,7 +2,9 @@ package packages
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,11 +13,13 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/driver"
+	"github.com/aws/eks-anywhere-packages/pkg/utils"
 )
 
 const (
 	retryNever     = time.Duration(0)
 	retryNow       = time.Duration(1)
+	retrySoon      = time.Duration(2) * time.Second
 	retryShort     = time.Duration(30) * time.Second
 	retryLong      = time.Duration(60) * time.Second
 	retryVeryLong  = time.Duration(180) * time.Second
@@ -28,9 +32,11 @@ type ManagerContext struct {
 	PackageDriver driver.PackageDriver
 	Source        api.PackageOCISource
 	PBC           api.PackageBundleController
-	Version       string
+	Version       api.SourceVersion
 	RequeueAfter  time.Duration
 	Log           logr.Logger
+	Bundle        *api.PackageBundle
+	PackageClient Client
 }
 
 func NewManagerContext(ctx context.Context, log logr.Logger, packageDriver driver.PackageDriver) *ManagerContext {
@@ -65,8 +71,66 @@ func (mc *ManagerContext) getRegistry(values map[string]interface{}) string {
 func processInitializing(mc *ManagerContext) bool {
 	mc.Log.Info("New installation", "name", mc.Package.Name)
 	mc.Package.Status.Source = mc.Source
-	mc.Package.Status.State = api.StateInstalling
+	mc.Package.Status.State = api.StateInstallingDependencies
 	mc.RequeueAfter = retryNow
+	return true
+}
+
+func processUpdating(mc *ManagerContext) bool {
+	mc.Log.Info("Updating package ", "name", mc.Package.Name)
+	mc.Package.Status.State = api.StateInstallingDependencies
+	mc.RequeueAfter = retryNow
+	return true
+}
+
+func processInstallingDependencies(mc *ManagerContext) bool {
+	mc.Log.Info("Installing dependencies", "chart", mc.Source)
+	dependencies, err := mc.Bundle.GetDependencies(mc.Version)
+	if err != nil {
+		mc.Package.Status.Detail = fmt.Sprintf("invalid package bundle. (%s@%s bundle: %s)", mc.Package.Name, mc.Version, mc.Bundle.Name)
+		mc.Log.Info(mc.Package.Status.Detail)
+		mc.RequeueAfter = retryLong
+		return true
+	}
+	pkgs, err := mc.PackageClient.GetPackageList(mc.Ctx, mc.Package.Namespace)
+	if err != nil {
+		mc.RequeueAfter = retryShort
+		mc.Package.Status.Detail = err.Error()
+		return true
+	}
+	pkgsNotReady := []api.Package{}
+
+	for _, dep := range dependencies {
+		var pkg *api.Package
+		for i := range pkgs.Items {
+			items := pkgs.Items
+			if items[i].Spec.PackageName == dep.Name {
+				pkg = &items[i]
+			}
+		}
+		if pkg != nil {
+			if pkg.Status.State != api.StateInstalled {
+				pkgsNotReady = append(pkgsNotReady, *pkg)
+			}
+		} else {
+			p := api.NewPackage(dep.Name, dep.Name, mc.Package.Namespace)
+			p.Spec.TargetNamespace = mc.Package.Spec.TargetNamespace
+			pkgsNotReady = append(pkgsNotReady, p)
+			err := mc.PackageClient.CreatePackage(mc.Ctx, &p)
+			if err != nil {
+				mc.Log.Error(err, "creating dependency package")
+			}
+		}
+	}
+
+	if len(pkgsNotReady) > 0 {
+		depsStr := utils.Map(pkgsNotReady, func(pkg api.Package) string { return pkg.Spec.PackageName })
+		mc.Package.Status.Detail = "Waiting for dependencies: " + strings.Join(depsStr, ", ")
+		mc.RequeueAfter = retrySoon
+		return true
+	}
+	mc.Package.Status.State = api.StateInstalling
+	mc.Package.Status.Detail = ""
 	return true
 }
 
@@ -194,12 +258,13 @@ func NewManager() Manager {
 	once.Do(func() {
 		instance = &(manager{
 			packageStates: map[api.StateEnum]func(*ManagerContext) bool{
-				api.StateInitializing: processInitializing,
-				api.StateInstalling:   processInstalling,
-				api.StateInstalled:    processInstalled,
-				api.StateUpdating:     processInstalling,
-				api.StateUninstalling: processUninstalling,
-				api.StateUnknown:      processDone,
+				api.StateInitializing:           processInitializing,
+				api.StateInstalling:             processInstalling,
+				api.StateInstallingDependencies: processInstallingDependencies,
+				api.StateInstalled:              processInstalled,
+				api.StateUpdating:               processUpdating,
+				api.StateUninstalling:           processUninstalling,
+				api.StateUnknown:                processDone,
 			},
 		})
 	})

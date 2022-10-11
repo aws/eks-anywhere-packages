@@ -186,6 +186,12 @@ spec:
                             description: SourceVersion describes a version of a package
                               within a repository.
                             properties:
+                              dependencies:
+                                description: Dependencies to be installed before the
+                                  package
+                                items:
+                                  type: string
+                                type: array
                               digest:
                                 description: Digest is a checksum value identifying
                                   the version of the package and its contents.
@@ -271,6 +277,12 @@ spec:
                                 description: SourceVersion describes a version of
                                   a package within a repository.
                                 properties:
+                                  dependencies:
+                                    description: Dependencies to be installed before
+                                      the package
+                                    items:
+                                      type: string
+                                    type: array
                                   digest:
                                     description: Digest is a checksum value identifying
                                       the version of the package and its contents.
@@ -458,6 +470,7 @@ spec:
                 enum:
                 - initializing
                 - installing
+                - installing dependencies
                 - installed
                 - updating
                 - uninstalling

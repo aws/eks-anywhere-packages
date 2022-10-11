@@ -110,6 +110,7 @@ spec:
                 enum:
                 - initializing
                 - installing
+                - installing dependencies
                 - installed
                 - updating
                 - uninstalling

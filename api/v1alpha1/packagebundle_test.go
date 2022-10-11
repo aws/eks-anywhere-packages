@@ -43,18 +43,22 @@ func TestPackageBundle_Find(t *testing.T) {
 		Version:    "0.1.0",
 	}
 
-	actual, err := sut.FindSource("hello-eks-anywhere", "0.1.0")
+	actual, err := sut.FindOCISourceByName("hello-eks-anywhere", "0.1.0")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	actual, err = sut.FindSource("hello-eks-anywhere", "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7")
+	actual, err = sut.FindOCISourceByName("hello-eks-anywhere", "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	expectedErr := "package not found in bundle (fake bundle): Bogus @ bar"
+	expectedPkgNotFoundErr := "package not found in bundle (fake bundle): Bogus"
 	sut.ObjectMeta.Name = "fake bundle"
-	_, err = sut.FindSource("Bogus", "bar")
-	assert.EqualError(t, err, expectedErr)
+	_, err = sut.FindPackage("Bogus")
+	assert.EqualError(t, err, expectedPkgNotFoundErr)
+
+	expectedPkgVersionNotFoundErr := "package version not found in bundle (fake bundle): hello-eks-anywhere @ 9.9.9"
+	_, err = sut.FindOCISourceByName("hello-eks-anywhere", "9.9.9")
+	assert.EqualError(t, err, expectedPkgVersionNotFoundErr)
 
 	t.Run("Get latest version returns the first item", func(t *testing.T) {
 		latest := givenBundle(
@@ -75,7 +79,7 @@ func TestPackageBundle_Find(t *testing.T) {
 			Digest:     "sha256:deadbeef",
 			Version:    "0.1.1",
 		}
-		actual, err = latest.FindSource("hello-eks-anywhere", Latest)
+		actual, err = latest.FindOCISourceByName("hello-eks-anywhere", Latest)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
@@ -99,7 +103,7 @@ func TestPackageBundle_Find(t *testing.T) {
 			Digest:     "sha256:eaa07ae1c06ffb563fe3c16cdb317f7ac31c8f829d5f1f32442f0e5ab982c3e7",
 			Version:    "0.1.0",
 		}
-		actual, err = latest.FindSource("hello-eks-anywhere", Latest)
+		actual, err = latest.FindOCISourceByName("hello-eks-anywhere", Latest)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
@@ -418,7 +422,7 @@ func TestGetPackageFromBundle(t *testing.T) {
 			},
 		)
 
-		result, err := bundle.GetPackageFromBundle("hello-eks-anywhere")
+		result, err := bundle.FindPackage("hello-eks-anywhere")
 
 		assert.NoError(t, err)
 		assert.Equal(t, bundle.Spec.Packages[0].Name, result.Name)
@@ -435,7 +439,7 @@ func TestGetPackageFromBundle(t *testing.T) {
 			},
 		)
 
-		_, err := bundle.GetPackageFromBundle("harbor")
+		_, err := bundle.FindPackage("harbor")
 
 		assert.NotNil(t, err)
 	})
@@ -469,7 +473,8 @@ func TestGetJsonSchemFromBundlePackage(t *testing.T) {
 		expected := "{\n  \"$id\": \"https://hello-eks-anywhere.packages.eks.amazonaws.com/schema.json\",\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"title\": \"hello-eks-anywhere\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"sourceRegistry\": {\n      \"type\": \"string\",\n      \"default\": \"public.ecr.aws/eks-anywhere\",\n      \"description\": \"Source registry for package.\"\n    },\n    \"title\": {\n      \"type\": \"string\",\n      \"default\": \"Amazon EKS Anywhere\",\n      \"description\": \"Container title.\"\n    }\n  },\n  \"additionalProperties\": false\n}\n"
 
 		packageBundle := bundle.Spec.Packages[0]
-		schema, err := packageBundle.GetJsonSchema()
+		version := packageBundle.Source.Versions[0]
+		schema, err := packageBundle.GetJsonSchema(&version)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expected, string(schema))
@@ -484,7 +489,8 @@ func TestGetJsonSchemFromBundlePackage(t *testing.T) {
 			},
 		)
 		packageBundle := bundle.Spec.Packages[0]
-		_, err := packageBundle.GetJsonSchema()
+		version := packageBundle.Source.Versions[0]
+		_, err := packageBundle.GetJsonSchema(&version)
 
 		assert.NotNil(t, err)
 	})
