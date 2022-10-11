@@ -3,7 +3,6 @@ package bundle
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	"github.com/go-logr/logr"
 
@@ -68,7 +67,6 @@ func (m bundleManager) ProcessBundle(_ context.Context, newBundle *api.PackageBu
 }
 
 func (m *bundleManager) hasBundleNamed(bundles []api.PackageBundle, bundleName string) bool {
-	sort.Sort(api.BundlesByVersion(bundles))
 	for _, b := range bundles {
 		if b.Name == bundleName {
 			return true
@@ -106,12 +104,12 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		return nil
 	}
 
-	sortedBundles, err := m.bundleClient.GetBundleList(ctx)
+	allBundles, err := m.bundleClient.GetBundleList(ctx)
 	if err != nil {
 		return fmt.Errorf("getting bundle list: %s", err)
 	}
 
-	if !m.hasBundleNamed(sortedBundles, latestBundle.Name) {
+	if !m.hasBundleNamed(allBundles, latestBundle.Name) {
 		err = m.bundleClient.CreateBundle(ctx, latestBundle)
 		if err != nil {
 			return err
@@ -137,15 +135,10 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		}
 
 		if len(pbc.Spec.ActiveBundle) > 0 {
-			activeBundle, err := m.bundleClient.GetBundle(ctx, pbc.Spec.ActiveBundle)
-			if err != nil {
-				m.log.Error(err, "Unable to get active bundle", "bundle", pbc.Spec.ActiveBundle)
-				return nil
-			}
 
-			if activeBundle == nil {
+			if !m.hasBundleNamed(allBundles, pbc.Spec.ActiveBundle) {
 
-				activeBundle, err = m.registryClient.DownloadBundle(ctx, pbc.GetActiveBundleURI())
+				activeBundle, err := m.registryClient.DownloadBundle(ctx, pbc.GetActiveBundleURI())
 				if err != nil {
 					m.log.Error(err, "Active bundle download failed", "bundle", pbc.Spec.ActiveBundle)
 					return nil
