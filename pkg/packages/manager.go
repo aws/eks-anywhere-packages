@@ -32,6 +32,14 @@ type ManagerContext struct {
 	Log           logr.Logger
 }
 
+func NewManagerContext(ctx context.Context, log logr.Logger, packageDriver driver.PackageDriver) *ManagerContext {
+	return &ManagerContext{
+		Ctx:           ctx,
+		Log:           log,
+		PackageDriver: packageDriver,
+	}
+}
+
 func (mc *ManagerContext) SetUninstalling(namespace string, name string) {
 	mc.Package.Namespace = namespace
 	mc.Package.Name = name
