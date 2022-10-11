@@ -2,6 +2,7 @@ package packages
 
 import (
 	"context"
+	"os"
 	"sync"
 	"time"
 
@@ -89,6 +90,9 @@ func processInstalling(mc *ManagerContext) bool {
 	mc.Package.Status.State = api.StateInstalled
 	mc.Package.Status.CurrentVersion = mc.Source.Version
 	mc.Package.Status.Detail = ""
+	if len(mc.Package.GetClusterName()) == 0 {
+		mc.Package.Status.Detail = "Deprecated package namespace. Move to eksa-packages-" + os.Getenv("CLUSTER_NAME")
+	}
 	return true
 }
 
