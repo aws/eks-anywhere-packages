@@ -51,16 +51,16 @@ func (mr *MockRegistryClientMockRecorder) DownloadBundle(ctx, ref interface{}) *
 }
 
 // LatestBundle mocks base method.
-func (m *MockRegistryClient) LatestBundle(ctx context.Context, baseRef, kubeVersion string) (*v1alpha1.PackageBundle, error) {
+func (m *MockRegistryClient) LatestBundle(ctx context.Context, baseRef, kubeMajor, kubeMinor string) (*v1alpha1.PackageBundle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LatestBundle", ctx, baseRef, kubeVersion)
+	ret := m.ctrl.Call(m, "LatestBundle", ctx, baseRef, kubeMajor, kubeMinor)
 	ret0, _ := ret[0].(*v1alpha1.PackageBundle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LatestBundle indicates an expected call of LatestBundle.
-func (mr *MockRegistryClientMockRecorder) LatestBundle(ctx, baseRef, kubeVersion interface{}) *gomock.Call {
+func (mr *MockRegistryClientMockRecorder) LatestBundle(ctx, baseRef, kubeMajor, kubeMinor interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LatestBundle", reflect.TypeOf((*MockRegistryClient)(nil).LatestBundle), ctx, baseRef, kubeVersion)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LatestBundle", reflect.TypeOf((*MockRegistryClient)(nil).LatestBundle), ctx, baseRef, kubeMajor, kubeMinor)
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"strings"
 
 	"sigs.k8s.io/yaml"
 
@@ -14,8 +13,7 @@ import (
 
 type RegistryClient interface {
 	// LatestBundle pulls the bundle tagged with "latest" from the bundle source.
-	LatestBundle(ctx context.Context, baseRef string, kubeVersion string) (
-		*api.PackageBundle, error)
+	LatestBundle(ctx context.Context, baseRef string, kubeMajor string, kubeMinor string) (*api.PackageBundle, error)
 
 	// DownloadBundle downloads the bundle with a given tag.
 	DownloadBundle(ctx context.Context, ref string) (
@@ -39,15 +37,9 @@ var _ RegistryClient = (*registryClient)(nil)
 // It returns an error if the bundle it retrieves is empty. This is because an
 // empty file would be successfully parsed and a Zero-value PackageBundle
 // returned, which is not acceptable.
-func (rc *registryClient) LatestBundle(ctx context.Context, baseRef string, kubeVersion string) (*api.PackageBundle, error) {
+func (rc *registryClient) LatestBundle(ctx context.Context, baseRef string, kubeMajor string, kubeMinor string) (*api.PackageBundle, error) {
 	tag := "latest"
-	kubeVersion = strings.TrimPrefix(kubeVersion, "v")
-	kubeVersionSplit := strings.Split(kubeVersion, ".")
-	if len(kubeVersionSplit) < 2 {
-		return nil, fmt.Errorf("kubeversion should be in <major>.<minor> format")
-	}
-	major, minor := kubeVersionSplit[0], kubeVersionSplit[1]
-	ref := fmt.Sprintf("%s:v%s-%s-%s", baseRef, major, minor, tag)
+	ref := fmt.Sprintf("%s:v%s-%s-%s", baseRef, kubeMajor, kubeMinor, tag)
 	return rc.DownloadBundle(ctx, ref)
 }
 
