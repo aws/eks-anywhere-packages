@@ -15,7 +15,7 @@ packages:
         repository: adot/charts/aws-otel-collector
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.20.0-b080e6ed612e034aac686247043a15ec08668ece
+            - name: 0.21.1-971c31238aeea5f1bda6ec95caaf24993b304157
   - org: harbor
     projects:
       - name: harbor
