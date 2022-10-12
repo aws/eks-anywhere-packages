@@ -46,7 +46,7 @@ func (config *Package) IsValidNamespace() bool {
 	return true
 }
 
-// IsInstalledOnWorkload returns true if the package is being installed in a workload cluster
+// IsInstalledOnWorkload returns true if the package is being installed on a workload cluster
 // returns false otherwise
 func (config *Package) IsInstalledOnWorkload() bool {
 	clusterName := config.GetClusterName()
