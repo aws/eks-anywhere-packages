@@ -19,6 +19,8 @@ import (
 const testPreviousBundleName = "v1-21-1002"
 const testBundleName = "v1-21-1003"
 const testNextBundleName = "v1-21-1004"
+const testKubeMajor = "1"
+const testKubeMinor = "21"
 const testKubernetesVersion = "v1.21"
 
 func GivenBundle(state api.PackageBundleStateEnum) *api.PackageBundle {
@@ -131,7 +133,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		pbc := givenPackageBundleController()
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
@@ -149,7 +151,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		pbc.Spec.ActiveBundle = "v1-21-1002"
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
@@ -170,7 +172,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		pbc.Spec.ActiveBundle = "v1-21-1002"
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
@@ -189,7 +191,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		pbc.Spec.ActiveBundle = "v1-21-1002"
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
@@ -209,7 +211,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(nil, fmt.Errorf("oops"))
 
 		err := bm.ProcessBundleController(ctx, pbc)
@@ -223,7 +225,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, fmt.Errorf("ooops"))
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, fmt.Errorf("ooops"))
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
 
 		err := bm.ProcessBundleController(ctx, pbc)
@@ -239,7 +241,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, fmt.Errorf("ooops"))
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, fmt.Errorf("ooops"))
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
@@ -253,7 +255,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		assert.Equal(t, pbc.Spec.ActiveBundle, testBundleName)
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, fmt.Errorf("ooops"))
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, fmt.Errorf("ooops"))
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
 
 		err := bm.ProcessBundleController(ctx, pbc)
@@ -267,7 +269,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
@@ -287,7 +289,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(fmt.Errorf("boom"))
@@ -303,7 +305,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
@@ -320,7 +322,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
@@ -338,7 +340,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
@@ -357,7 +359,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(fmt.Errorf("oops"))
 
@@ -373,7 +375,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 
@@ -389,7 +391,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		pbc.Status.State = api.BundleControllerStateUpgradeAvailable
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
 
@@ -405,7 +407,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		pbc.Status.State = api.BundleControllerStateUpgradeAvailable
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
 
@@ -420,7 +422,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		pbc.Status.State = api.BundleControllerStateDisconnected
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
 
@@ -436,7 +438,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		pbc.Status.State = api.BundleControllerStateDisconnected
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
 
@@ -453,7 +455,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().Save(ctx, pbc).Return(nil)
@@ -473,7 +475,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().Save(ctx, pbc).Return(fmt.Errorf("oops"))
@@ -489,7 +491,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		pbc.Status.State = ""
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
 
@@ -507,7 +509,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubernetesVersion).Return(latestBundle, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
