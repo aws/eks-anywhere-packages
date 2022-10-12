@@ -1,15 +1,17 @@
 package v1alpha1
 
 import (
+	"os"
 	"strings"
 
 	"sigs.k8s.io/yaml"
 )
 
 const (
-	PackageKind      = "Package"
-	PackageNamespace = "eksa-packages"
-	namespacePrefix  = PackageNamespace + "-"
+	PackageKind       = "Package"
+	PackageNamespace  = "eksa-packages"
+	namespacePrefix   = PackageNamespace + "-"
+	clusterNameEnvVar = "CLUSTER_NAME"
 )
 
 func (config *Package) MetaKind() string {
@@ -42,4 +44,13 @@ func (config *Package) IsValidNamespace() bool {
 		}
 	}
 	return true
+}
+
+// IsInstalledOnWorkload returns true if the package is being installed in a workload cluster
+// returns false otherwise
+func (config *Package) IsInstalledOnWorkload() bool {
+	clusterName := config.GetClusterName()
+	managementClusterName := os.Getenv(clusterNameEnvVar)
+
+	return managementClusterName != clusterName
 }
