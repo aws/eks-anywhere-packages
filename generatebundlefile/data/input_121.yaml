@@ -16,6 +16,14 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: latest
+  - org: cert-manager
+    projects:
+        - name: cert-manager
+          workloadonly: true
+          repository: cert-manager/cert-manager
+          registry: public.ecr.aws/l0g8r8j6
+          versions:
+            - name: latest
   - org: harbor
     projects:
       - name: harbor

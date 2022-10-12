@@ -96,7 +96,8 @@ func (c *SDKClients) NewPackageFromInput(project Project) (*api.BundlePackage, e
 		return nil, fmt.Errorf("unable to find SHA sum for given input tag %v", project.Versions)
 	}
 	bundlePkg := &api.BundlePackage{
-		Name: project.Name,
+		Name:         project.Name,
+		WorkloadOnly: project.WorkloadOnly,
 		Source: api.BundlePackageSource{
 			Repository: project.Repository,
 			Registry:   project.Registry,
