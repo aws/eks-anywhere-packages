@@ -46,7 +46,7 @@ func main() {
 	checkErrAndLog(err, errorLogger)
 	infoLogger.Println("Success.")
 
-	err, failedList := k8s.UpdateTokens(secretname, credentials.Username, credentials.Token, credentials.Registry)
+	err, failedList := k8s.UpdateTokens(secretname, credentials)
 	if len(failedList) > 0 {
 		warningLogger.Printf("Failed the following: %s", failedList)
 	}

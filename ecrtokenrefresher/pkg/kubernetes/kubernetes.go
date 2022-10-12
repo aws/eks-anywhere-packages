@@ -14,6 +14,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/aws"
 )
 
 type config struct {
@@ -35,14 +37,14 @@ const (
 	namespacePrefix     = packagesNamespace + "-"
 )
 
-func UpdateTokens(secretname string, username string, token string, registries string) (error, []string) {
+func UpdateTokens(secretname string, creds []aws.ECRAuth) (error, []string) {
 	failedList := make([]string, 0)
 	clientset, err := getDefaultClientSet()
 	if err != nil {
 		return err, failedList
 	}
 
-	ecrAuth, err := createECRAuthConfig(username, token, registries)
+	ecrAuth, err := createECRAuthConfig(creds)
 	if err != nil {
 		return err, failedList
 	}
@@ -151,14 +153,16 @@ func getSecret(clientset kubernetes.Interface, name, namespace string) (*corev1.
 	return secret, nil
 }
 
-func createECRAuthConfig(username, password string, server string) ([]byte, error) {
+func createECRAuthConfig(creds []aws.ECRAuth) ([]byte, error) {
 	config := config{Auths: make(map[string]*auth)}
 
-	config.Auths[server] = &auth{
-		Username: username,
-		Password: password,
-		Email:    defaultEmail,
-		Auth:     base64.StdEncoding.EncodeToString([]byte(username + ":" + password)),
+	for _, cred := range creds {
+		config.Auths[cred.Registry] = &auth{
+			Username: cred.Username,
+			Password: cred.Token,
+			Email:    defaultEmail,
+			Auth:     base64.StdEncoding.EncodeToString([]byte(cred.Username + ":" + cred.Token)),
+		}
 	}
 
 	configJson, err := json.Marshal(config)

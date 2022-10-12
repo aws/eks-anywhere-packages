@@ -23,11 +23,12 @@ const (
 	sessionName        = "GetECRTOKENSession"
 	sessionTimeSeconds = 1000
 	defaultAccountID   = "783794618700"
+	devAccountID       = "857151390494"
 	envRegionName      = "AWS_REGION"
 	regionDefault      = "us-west-2"
 )
 
-func GetECRCredentials() (*ECRAuth, error) {
+func GetECRCredentials() ([]ECRAuth, error) {
 	// Default AWS Region to us-west-2
 	err := os.Setenv(envRegionName, regionDefault)
 	if err != nil {
@@ -35,8 +36,10 @@ func GetECRCredentials() (*ECRAuth, error) {
 	}
 
 	var ecrRegs []*string
-	id := defaultAccountID
-	ecrRegs = append(ecrRegs, &id)
+	defID := defaultAccountID
+	ecrRegs = append(ecrRegs, &defID)
+	devID := devAccountID
+	ecrRegs = append(ecrRegs, &devID)
 	svc := ecr.New(session.Must(session.NewSession()))
 	token, err := svc.GetAuthorizationToken(&ecr.GetAuthorizationTokenInput{RegistryIds: ecrRegs})
 	if err != nil {
@@ -51,23 +54,26 @@ func GetECRCredentials() (*ECRAuth, error) {
 		return nil, fmt.Errorf("authorization data was empty")
 	}
 
-	auth := token.AuthorizationData[0]
-	decode, err := base64.StdEncoding.DecodeString(*auth.AuthorizationToken)
-	if err != nil {
-		return nil, err
+	var creds []ECRAuth
+	for _, auth := range token.AuthorizationData {
+		decode, err := base64.StdEncoding.DecodeString(*auth.AuthorizationToken)
+		if err != nil {
+			return nil, err
+		}
+
+		parts := strings.Split(string(decode), ":")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("error parsing username and password from authorization token")
+		}
+		cred := ECRAuth{
+			Username: parts[0],
+			Token:    parts[1],
+			Registry: *auth.ProxyEndpoint,
+		}
+		creds = append(creds, cred)
 	}
 
-	parts := strings.Split(string(decode), ":")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("error parsing username and password from authorization token")
-	}
-	cred := ECRAuth{
-		Username: parts[0],
-		Token:    parts[1],
-		Registry: *auth.ProxyEndpoint,
-	}
-
-	return &cred, nil
+	return creds, nil
 }
 
 func SetupIRSA() error {
