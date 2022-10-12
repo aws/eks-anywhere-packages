@@ -156,7 +156,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
 		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
-		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles:v1-21-1002").Return(&allBundles[0], nil)
+		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1-21-1002").Return(&allBundles[0], nil)
 		bc.EXPECT().CreateBundle(ctx, gomock.Any()).Return(nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil) // update available
 
@@ -177,7 +177,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
 		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
-		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles:v1-21-1002").Return(&allBundles[0], fmt.Errorf("boom"))
+		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1-21-1002").Return(&allBundles[0], fmt.Errorf("boom"))
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
@@ -196,7 +196,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
 		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
-		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/j0a1m4z9/eks-anywhere-packages-bundles:v1-21-1002").Return(&allBundles[0], nil)
+		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1-21-1002").Return(&allBundles[0], nil)
 		bc.EXPECT().CreateBundle(ctx, gomock.Any()).Return(fmt.Errorf("boom"))
 
 		err := bm.ProcessBundleController(ctx, pbc)

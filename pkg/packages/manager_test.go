@@ -46,13 +46,13 @@ var expectedEmptySource = PackageOCISource{
 }
 
 var expectedSource = PackageOCISource{
-	Registry:   "public.ecr.aws/j0a1m4z9/",
+	Registry:   "public.ecr.aws/l0g8r8j6/",
 	Repository: "hello-eks-anywhere",
 	Digest:     "sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
 }
 
 var expectedUpdate = PackageOCISource{
-	Registry:   "public.ecr.aws/j0a1m4z9/",
+	Registry:   "public.ecr.aws/l0g8r8j6/",
 	Repository: "hello-eks-anywhere",
 	Digest:     "sha256:deadbeefc7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
 }
