@@ -63,7 +63,7 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting PackageBundle: %v", err))
 	}
 
-	isConfigValid, err := v.isPackageConfigValid(p, activeBundle)
+	isConfigValid, err := v.isPackageValid(p, activeBundle)
 
 	resp := &admission.Response{
 		AdmissionResponse: admissionv1.AdmissionResponse{Allowed: isConfigValid},
@@ -82,7 +82,7 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 	return *resp
 }
 
-func (v *packageValidator) isPackageConfigValid(p *v1alpha1.Package, activeBundle *v1alpha1.PackageBundle) (bool, error) {
+func (v *packageValidator) isPackageValid(p *v1alpha1.Package, activeBundle *v1alpha1.PackageBundle) (bool, error) {
 	packageInBundle, err := activeBundle.GetPackageFromBundle(p.Spec.PackageName)
 	if err != nil {
 		return false, err
@@ -91,6 +91,10 @@ func (v *packageValidator) isPackageConfigValid(p *v1alpha1.Package, activeBundl
 	packageVersions := packageInBundle.Source.Versions
 	if len(packageVersions) < 1 {
 		return false, fmt.Errorf("package %s does not contain any versions", p.Name)
+	}
+
+	if packageInBundle.WorkloadOnly && !p.IsInstalledOnWorkload() {
+		return false, fmt.Errorf("package %s should only be installed on a workload cluster", p.Name)
 	}
 
 	jsonSchema, err := packageInBundle.GetJsonSchema()
