@@ -19,7 +19,7 @@ else
 GOBIN=$(shell $(GO) env GOBIN)
 endif
 
-all: vet generate manifests build helm/package test # lint is run via github action
+all: generate manifests build helm/package test # lint is run via github action
 
 ##@ General
 
@@ -70,9 +70,11 @@ bin/golangci-lint: GOLANGCI_LINT_VERSION?=$(shell cat .github/workflows/golangci
 bin/golangci-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s $(GOLANGCI_LINT_VERSION)
 
+go.sum: go.mod
+	$(GO) mod tidy
+
 .PHONY: vet
 vet: ## Run go vet against code.
-	$(GO) mod tidy
 	$(GO) vet ./...
 
 gosec: ## Run gosec against code.
@@ -87,9 +89,9 @@ GOTESTS ?= ./...
 # Use "-short" to skip long tests, or "-verbose" for more verbose reporting. Run
 # go help testflags to see all options.
 GOTESTFLAGS ?= ""
-test: manifests generate vet mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ## Run tests.
+test: manifests generate mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ## Run tests.
 	source <($(GOBIN)/setup-envtest use -i -p env 1.23.x)
-	$(GO) test $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks | grep -v fake | grep -v testutil` -coverprofile cover.out
+	$(GO) test -vet=all $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks | grep -v fake | grep -v testutil` -coverprofile cover.out
 
 $(GOBIN)/setup-envtest: ## Install setup-envtest
 	# While it's preferable not to use @latest here, we have no choice at the moment. Details at 
@@ -104,7 +106,7 @@ clean: ## Clean up resources created by make targets
 
 ##@ Build
 
-build: generate vet ## Build package-manager binary.
+build: go.sum generate ## Build package-manager binary.
 	$(GO) build -o bin/package-manager main.go
 
 run: manifests generate vet ## Run a controller from your host.
@@ -163,7 +165,7 @@ MOCKGEN = $(shell pwd)/bin/mockgen
 mockgen: ## Download mockgen locally if necessary.
 	$(call go-get-tool,$(MOCKGEN),github.com/golang/mock/mockgen@v1.6.0)
 
-# go-get-tool will 'go get' any package $2 and install it to $1.
+# go-get-tool will 'go install' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 define go-get-tool
 @[ -f $(1) ] || { \
