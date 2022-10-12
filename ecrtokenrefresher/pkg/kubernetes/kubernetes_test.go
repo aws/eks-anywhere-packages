@@ -8,11 +8,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
+
+	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/aws"
 )
 
 func TestPushECRAuthToSecret(t *testing.T) {
 	secretname := "ecr-token"
-	ecrAuth, err := createECRAuthConfig("user", "test", "test@test.com")
+	var creds []aws.ECRAuth
+	creds = append(creds, aws.ECRAuth{
+		Username: "user",
+		Token:    "test",
+		Registry: "test@test.com"})
+	ecrAuth, err := createECRAuthConfig(creds)
 	assert.NoError(t, err)
 	targetNamespaces := []string{"ns1", "ns2"}
 
