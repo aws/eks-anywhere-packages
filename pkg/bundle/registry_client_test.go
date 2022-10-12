@@ -94,27 +94,17 @@ func TestDownloadBundle(t *testing.T) {
 	})
 }
 
-func TestBundleManager_LatestBundle(t *testing.T) {
+func TestRegistryClient_LatestBundle(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-
-	t.Run("latest bundle bogus version", func(t *testing.T) {
-		puller := mocks.NewMockPuller(gomock.NewController(t))
-		bm := NewRegistryClient(puller)
-
-		result, err := bm.LatestBundle(ctx, "test", "v121")
-
-		assert.EqualError(t, err, "kubeversion should be in <major>.<minor> format")
-		assert.Nil(t, result)
-	})
 
 	t.Run("latest bundle error", func(t *testing.T) {
 		puller := mocks.NewMockPuller(gomock.NewController(t))
 		puller.EXPECT().Pull(ctx, "test:v1-21-latest").Return(nil, fmt.Errorf("oops"))
 		bm := NewRegistryClient(puller)
 
-		result, err := bm.LatestBundle(ctx, "test", "v1.21")
+		result, err := bm.LatestBundle(ctx, "test", "1", "21")
 
 		assert.EqualError(t, err, "pulling package bundle: oops")
 		assert.Nil(t, result)

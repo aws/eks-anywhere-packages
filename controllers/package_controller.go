@@ -133,15 +133,10 @@ func (r *PackageReconciler) mapBundleChangesToPackageUpdate(_ client.Object) (re
 // move the current state of the cluster closer to the desired state.
 func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.V(6).Info("Reconcile:", "NamespacedName", req.NamespacedName)
+	managerContext := packages.NewManagerContext(ctx, r.Log, r.PackageDriver)
 
 	// Get the CRD object from the k8s API.
 	var err error
-	managerContext := &packages.ManagerContext{
-		Ctx:           ctx,
-		Log:           r.Log,
-		PackageDriver: r.PackageDriver,
-	}
-
 	if err = r.Get(ctx, req.NamespacedName, &managerContext.Package); err != nil {
 		if !apierrors.IsNotFound(err) {
 			return ctrl.Result{}, err
