@@ -130,7 +130,7 @@ func ParseInputConfig(fileName string, inputConfig *Input) error {
 		}
 		err = yaml.UnmarshalStrict([]byte(c), inputConfig)
 		if err != nil {
-			return fmt.Errorf("unable to UnmarshalStrict %s\nyaml: %s\n %v", inputConfig, string(c), err)
+			return fmt.Errorf("unable to UnmarshalStrict %s\nyaml: %s\n %v", fileName, string(c), err)
 		}
 		return nil
 	}

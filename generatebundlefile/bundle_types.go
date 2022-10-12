@@ -73,10 +73,11 @@ type Org struct {
 
 // Repos is the object containing the project within the github org, and the release tag
 type Project struct {
-	Name       string `json:"name,omitempty"`
-	Registry   string `json:"registry,omitempty"`
-	Repository string `json:"repository,omitempty"`
-	Versions   []Tag  `json:"versions,omitempty"`
+	Name         string `json:"name,omitempty"`
+	Registry     string `json:"registry,omitempty"`
+	Repository   string `json:"repository,omitempty"`
+	Versions     []Tag  `json:"versions,omitempty"`
+	WorkloadOnly bool   `json:"workloadonly,omitempty""`
 }
 
 // Tag is the release tag
