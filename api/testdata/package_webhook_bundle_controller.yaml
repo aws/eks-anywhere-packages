@@ -2,9 +2,8 @@ apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: PackageBundleController
 metadata:
   name: cluster01
-  namespace: eksa-packages
+  namespace: eksa-packages-cluster01
 spec:
-  activeBundle: "v1-21-1001"
+  activeBundle: v1-21-88
   logLevel: 4
   upgradeCheckInterval: "24h"
-  bundleRepository: eks-anywhere-packages-bundles
