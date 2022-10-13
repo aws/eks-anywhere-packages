@@ -55,6 +55,10 @@ func (r *PackageBundle) ValidateDelete() error {
 }
 
 func (r *PackageBundle) validate() error {
+	return r.BundleValidate()
+}
+
+func (r *PackageBundle) BundleValidate() error {
 	if !r.IsValidVersion() {
 		apilog.Info("Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): " + r.Name)
 		return errors.New("Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): " + r.Name)
