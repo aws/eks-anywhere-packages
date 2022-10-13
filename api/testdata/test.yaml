@@ -2,7 +2,7 @@ apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: Package
 metadata:
   name: my-test
-  namespace: eksa-packages
+  namespace: eksa-packages-cluster01
 spec:
   packageName: test
   config: |

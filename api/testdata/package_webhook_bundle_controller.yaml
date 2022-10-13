@@ -1,12 +1,9 @@
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: PackageBundleController
 metadata:
-  name: eksa-packages-cluster01
-  namespace: eksa-packages
+  name: cluster01
+  namespace: eksa-packages-cluster01
 spec:
-  activeBundle: "package-webhook-bundle"
+  activeBundle: v1-21-88
   logLevel: 4
   upgradeCheckInterval: "24h"
-  source:
-    registry: public.ecr.aws/l0g8r8j6
-    repository: eks-anywhere-packages-bundles

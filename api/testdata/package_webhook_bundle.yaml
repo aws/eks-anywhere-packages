@@ -2,7 +2,7 @@ apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: PackageBundle
 metadata:
   annotations: {}
-  name: package-webhook-bundle
+  name: v1-21-88
   namespace: eksa-packages
 spec:
   packages:
