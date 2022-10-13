@@ -49,7 +49,7 @@ type PackageBundleControllerSpec struct {
 	// +optional
 	LogLevel *int32 `json:"logLevel,omitempty"`
 
-	// +kubebuilder:default:="1d"
+	// +kubebuilder:default:="24h"
 	// UpgradeCheckInterval is the time between upgrade checks.
 	//
 	// The format is that of time's ParseDuration.
