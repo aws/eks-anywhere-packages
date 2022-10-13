@@ -36,7 +36,7 @@ func TestDownloadBundle(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, bundle)
 		assert.Equal(t, 3, len(bundle.Spec.Packages))
-		assert.Equal(t, "test", bundle.Spec.Packages[0].Name)
+		assert.Equal(t, "hello-eks-anywhere", bundle.Spec.Packages[0].Name)
 		assert.Equal(t, "flux", bundle.Spec.Packages[1].Name)
 		assert.Equal(t, "harbor", bundle.Spec.Packages[2].Name)
 
