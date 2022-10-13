@@ -73,7 +73,7 @@ spec:
                   charts and bundles
                 type: string
               upgradeCheckInterval:
-                default: 1d
+                default: 24h
                 description: "UpgradeCheckInterval is the time between upgrade checks.
                   \n The format is that of time's ParseDuration."
                 type: string
