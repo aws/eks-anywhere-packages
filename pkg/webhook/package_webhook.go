@@ -83,21 +83,25 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 }
 
 func (v *packageValidator) isPackageValid(p *v1alpha1.Package, activeBundle *v1alpha1.PackageBundle) (bool, error) {
-	packageInBundle, err := activeBundle.GetPackageFromBundle(p.Spec.PackageName)
+	packageInBundle, err := activeBundle.FindPackage(p.Spec.PackageName)
 	if err != nil {
 		return false, err
 	}
 
-	packageVersions := packageInBundle.Source.Versions
-	if len(packageVersions) < 1 {
-		return false, fmt.Errorf("package %s does not contain any versions", p.Name)
+	version := p.Spec.PackageVersion
+	if version == "" {
+		version = v1alpha1.Latest
+	}
+	packageVersion, err := activeBundle.FindVersion(packageInBundle, version)
+	if err != nil {
+		return false, err
 	}
 
 	if packageInBundle.WorkloadOnly && !p.IsInstalledOnWorkload() {
 		return false, fmt.Errorf("package %s should only be installed on a workload cluster", p.Name)
 	}
 
-	jsonSchema, err := packageInBundle.GetJsonSchema()
+	jsonSchema, err := packageInBundle.GetJsonSchema(&packageVersion)
 	if err != nil {
 		return false, err
 	}

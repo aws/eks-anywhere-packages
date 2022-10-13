@@ -52,16 +52,17 @@ type PackageSpec struct {
 	TargetNamespace string `json:"targetNamespace,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=initializing;installing;installed;updating;uninstalling;unknown
+// +kubebuilder:validation:Enum=initializing;installing;installing dependencies;installed;updating;uninstalling;unknown
 type StateEnum string
 
 const (
-	StateInitializing StateEnum = "initializing"
-	StateInstalling   StateEnum = "installing"
-	StateInstalled    StateEnum = "installed"
-	StateUpdating     StateEnum = "updating"
-	StateUninstalling StateEnum = "uninstalling"
-	StateUnknown      StateEnum = "unknown"
+	StateInitializing           StateEnum = "initializing"
+	StateInstalling             StateEnum = "installing"
+	StateInstallingDependencies StateEnum = "installing dependencies"
+	StateInstalled              StateEnum = "installed"
+	StateUpdating               StateEnum = "updating"
+	StateUninstalling           StateEnum = "uninstalling"
+	StateUnknown                StateEnum = "unknown"
 )
 
 // PackageStatus defines the observed state of Package.
