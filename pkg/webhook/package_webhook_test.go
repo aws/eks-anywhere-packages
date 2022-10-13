@@ -3,9 +3,10 @@ package webhook
 import (
 	"testing"
 
-	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
 func TestPackageValidate(t *testing.T) {
