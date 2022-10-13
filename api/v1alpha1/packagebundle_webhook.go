@@ -43,19 +43,15 @@ func (r *PackageBundle) SetupWebhookWithManager(mgr ctrl.Manager) error {
 var _ webhook.Validator = &PackageBundle{}
 
 func (r *PackageBundle) ValidateCreate() error {
-	return r.validate()
+	return r.BundleValidate()
 }
 
 func (r *PackageBundle) ValidateUpdate(old runtime.Object) error {
-	return r.validate()
+	return r.BundleValidate()
 }
 
 func (r *PackageBundle) ValidateDelete() error {
 	return nil
-}
-
-func (r *PackageBundle) validate() error {
-	return r.BundleValidate()
 }
 
 func (r *PackageBundle) BundleValidate() error {
