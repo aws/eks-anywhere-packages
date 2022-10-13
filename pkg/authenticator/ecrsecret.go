@@ -19,6 +19,7 @@ const (
 	ConfigMapName = "ns-secret-map"
 	ecrTokenName  = "ecr-token"
 	cronJobName   = "cron-ecr-renew"
+	jobExecName   = "eksa-auth-refresher-"
 )
 
 type ecrSecret struct {
@@ -83,7 +84,7 @@ func (s *ecrSecret) AddSecretToAllNamespace(ctx context.Context) error {
 
 	jobSpec := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-controller-job-" + strconv.FormatInt(time.Now().UTC().UnixMilli(), 10),
+			Name:      jobExecName + strconv.FormatInt(time.Now().UTC().UnixMilli(), 10),
 			Namespace: api.PackageNamespace,
 		},
 		Spec: cronjob.Spec.JobTemplate.Spec,
