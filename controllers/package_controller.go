@@ -51,11 +51,13 @@ type PackageReconciler struct {
 	Manager       packages.Manager
 	bundleManager bundle.Manager
 	bundleClient  bundle.Client
+	packageClient packages.Client
 }
 
 func NewPackageReconciler(client client.Client, scheme *runtime.Scheme,
 	driver driver.PackageDriver, manager packages.Manager,
-	bundleManager bundle.Manager, bundleClient bundle.Client, log logr.Logger) *PackageReconciler {
+	bundleManager bundle.Manager, bundleClient bundle.Client,
+	packageClient packages.Client, log logr.Logger) *PackageReconciler {
 
 	return &PackageReconciler{
 		Client:        client,
@@ -64,6 +66,7 @@ func NewPackageReconciler(client client.Client, scheme *runtime.Scheme,
 		Manager:       manager,
 		bundleManager: bundleManager,
 		bundleClient:  bundleClient,
+		packageClient: packageClient,
 		Log:           log,
 	}
 }
@@ -87,6 +90,7 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	puller := artifacts.NewRegistryPuller()
 	registryClient := bundle.NewRegistryClient(puller)
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
+	packageClient := packages.NewPackageClient(mgr.GetClient())
 	bundleManager := bundle.NewBundleManager(log, registryClient, bundleClient, tcc)
 	reconciler := NewPackageReconciler(
 		mgr.GetClient(),
@@ -95,6 +99,7 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 		manager,
 		bundleManager,
 		bundleClient,
+		packageClient,
 		log,
 	)
 
@@ -134,6 +139,7 @@ func (r *PackageReconciler) mapBundleChangesToPackageUpdate(_ client.Object) (re
 func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.V(6).Info("Reconcile:", "NamespacedName", req.NamespacedName)
 	managerContext := packages.NewManagerContext(ctx, r.Log, r.PackageDriver)
+	managerContext.PackageClient = r.packageClient
 
 	// Get the CRD object from the k8s API.
 	var err error
@@ -164,22 +170,33 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			}
 			return ctrl.Result{RequeueAfter: retryLong}, nil
 		}
+		managerContext.Bundle = bundle
 
 		targetVersion := managerContext.Package.Spec.PackageVersion
 		if targetVersion == "" {
 			targetVersion = api.Latest
 		}
 		pkgName := managerContext.Package.Spec.PackageName
-		managerContext.Source, err = bundle.FindSource(pkgName, targetVersion)
-		managerContext.Package.Status.TargetVersion = printableTargetVersion(managerContext.Source, targetVersion)
+		pkg, err := bundle.FindPackage(pkgName)
 		if err != nil {
-			managerContext.Package.Status.Detail = fmt.Sprintf("Package %s@%s is not in the active bundle (%s).", pkgName, targetVersion, bundle.ObjectMeta.Name)
+			managerContext.Package.Status.Detail = fmt.Sprintf("Package %s is not in the active bundle (%s).", pkgName, bundle.Name)
 			r.Log.Info(managerContext.Package.Status.Detail)
 			if err = r.Status().Update(ctx, &managerContext.Package); err != nil {
 				return ctrl.Result{RequeueAfter: managerContext.RequeueAfter}, err
 			}
 			return ctrl.Result{RequeueAfter: retryLong}, err
 		}
+		managerContext.Version, err = bundle.FindVersion(pkg, targetVersion)
+		if err != nil {
+			managerContext.Package.Status.Detail = fmt.Sprintf("Package %s@%s is not in the active bundle (%s).", pkgName, targetVersion, bundle.Name)
+			r.Log.Info(managerContext.Package.Status.Detail)
+			if err = r.Status().Update(ctx, &managerContext.Package); err != nil {
+				return ctrl.Result{RequeueAfter: managerContext.RequeueAfter}, err
+			}
+			return ctrl.Result{RequeueAfter: retryLong}, err
+		}
+		managerContext.Source = bundle.GetOCISource(pkg, managerContext.Version)
+		managerContext.Package.Status.TargetVersion = printableTargetVersion(managerContext.Source, targetVersion)
 	}
 
 	updateNeeded := r.Manager.Process(managerContext)

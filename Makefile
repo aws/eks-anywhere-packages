@@ -98,8 +98,8 @@ test: manifests generate mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ## Run
 	$(GO) test -vet=all $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks | grep -v fake | grep -v testutil` -coverprofile cover.out
 
 $(GOBIN)/setup-envtest: ## Install setup-envtest
-	# While it's preferable not to use @latest here, we have no choice at the moment. Details at 
-	# https://github.com/kubernetes-sigs/kubebuilder/issues/2480 
+	# While it's preferable not to use @latest here, we have no choice at the moment. Details at
+	# https://github.com/kubernetes-sigs/kubebuilder/issues/2480
 	$(GO) install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 clean: ## Clean up resources created by make targets
@@ -184,7 +184,7 @@ endef
 
 ## Generate mocks
 .PHONY: mocks
-mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/client.go pkg/bundle/mocks/manager.go pkg/bundle/mocks/registry_client.go pkg/packages/mocks/manager.go pkg/artifacts/mocks/puller.go pkg/authenticator/mocks/target_cluster_client.go pkg/authenticator/mocks/authenticator.go
+mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/client.go pkg/bundle/mocks/manager.go pkg/bundle/mocks/registry_client.go pkg/packages/mocks/client.go pkg/packages/mocks/manager.go pkg/artifacts/mocks/puller.go pkg/authenticator/mocks/target_cluster_client.go pkg/authenticator/mocks/authenticator.go
 
 
 pkg/bundle/mocks/client.go: pkg/bundle/client.go
@@ -196,6 +196,9 @@ pkg/bundle/mocks/manager.go: pkg/bundle/manager.go
 pkg/bundle/mocks/registry_client.go: pkg/bundle/registry_client.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
 		$(MOCKGEN) -source pkg/bundle/registry_client.go -destination=pkg/bundle/mocks/registry_client.go -package=mocks RegistryClient
+pkg/packages/mocks/client.go: pkg/packages/client.go
+	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
+		$(MOCKGEN) -source pkg/packages/client.go -destination=pkg/packages/mocks/client.go -package=mocks Client
 pkg/packages/mocks/manager.go: pkg/packages/manager.go
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
 		$(MOCKGEN) -source pkg/packages/manager.go -destination=pkg/packages/mocks/manager.go -package=mocks Manager

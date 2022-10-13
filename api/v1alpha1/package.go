@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 )
 
@@ -20,6 +21,21 @@ func (config *Package) MetaKind() string {
 
 func (config *Package) ExpectedKind() string {
 	return PackageKind
+}
+
+func NewPackage(packageName string, name, namespace string) Package {
+	return Package{
+		TypeMeta: metav1.TypeMeta{
+			Kind: PackageKind,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: PackageSpec{
+			PackageName: packageName,
+		},
+	}
 }
 
 // GetValues convert spec values into generic values map
