@@ -19,6 +19,11 @@ else
 GOBIN=$(shell $(GO) env GOBIN)
 endif
 
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+BIN_DIR := $(PROJECT_DIR)/bin
+GOLANGCI_LINT_CONFIG ?= .github/workflows/golangci-lint.yml
+GOLANGCI_LINT := $(BIN_DIR)/golangci-lint
+
 all: generate manifests build helm/package test # lint is run via github action
 
 ##@ General
@@ -62,13 +67,12 @@ run-gci: $(GOBIN)/gci ## Run gci against code.
 	$(LS_FILES_CMD) | xargs $(GOBIN)/gci write --skip-generated -s standard,default -s "prefix($(shell go list -m))"
 
 .PHONY: lint
-lint: bin/golangci-lint ## Run golangci-lint
-	bin/golangci-lint run
+lint: $(GOLANGCI_LINT) ## Run golangci-lint
+	$(GOLANGCI_LINT) run
 
-bin/golangci-lint: ## Download golangci-lint
-bin/golangci-lint: GOLANGCI_LINT_VERSION?=$(shell cat .github/workflows/golangci-lint.yml | sed -n -e 's/^\s*version: //p')
-bin/golangci-lint:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s $(GOLANGCI_LINT_VERSION)
+$(GOLANGCI_LINT): $(BIN_DIR) $(GOLANGCI_LINT_CONFIG)
+	$(eval GOLANGCI_LINT_VERSION?=$(shell cat .github/workflows/golangci-lint.yml | yq e '.jobs.golangci.steps[] | select(.name == "golangci-lint") .with.version' -))
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(BIN_DIR) $(GOLANGCI_LINT_VERSION)
 
 go.sum: go.mod
 	$(GO) mod tidy
@@ -99,7 +103,7 @@ $(GOBIN)/setup-envtest: ## Install setup-envtest
 	$(GO) install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 clean: ## Clean up resources created by make targets
-	rm -rf ./bin/*
+	rm -rf $(BIN_DIR)
 	rm -rf cover.out
 	rm -rf testbin
 	rm -rf charts/_output
@@ -107,7 +111,7 @@ clean: ## Clean up resources created by make targets
 ##@ Build
 
 build: go.sum generate ## Build package-manager binary.
-	$(GO) build -o bin/package-manager main.go
+	$(GO) build -o $(BIN_DIR)/package-manager main.go
 
 run: manifests generate vet ## Run a controller from your host.
 	$(GO) run ./main.go --zap-log-level 9
@@ -153,20 +157,19 @@ helm-deploy:
 helm-delete:
 	helm delete eksa-packages
 
-CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
+CONTROLLER_GEN = $(BIN_DIR)/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1)
 
-KUSTOMIZE = $(shell pwd)/bin/kustomize
+KUSTOMIZE = $(BIN_DIR)/kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
 
-MOCKGEN = $(shell pwd)/bin/mockgen
+MOCKGEN = $(BIN_DIR)/mockgen
 mockgen: ## Download mockgen locally if necessary.
 	$(call go-get-tool,$(MOCKGEN),github.com/golang/mock/mockgen@v1.6.0)
 
 # go-get-tool will 'go install' any package $2 and install it to $1.
-PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 define go-get-tool
 @[ -f $(1) ] || { \
 set -e ;\
@@ -216,7 +219,7 @@ pkg/authenticator/mocks/authenticator.go: pkg/authenticator/target_cluster_clien
 		$(MOCKGEN) -source pkg/authenticator/authenticator.go -destination=pkg/authenticator/mocks/authenticator.go -package=mocks Authenticator
 
 .PHONY: presubmit
-presubmit: vet generate manifests build helm/package test # lint is run via github action
+presubmit: vet generate manifests build helm/package test # targets for presubmit
 	git --no-pager diff --name-only --exit-code ':!Makefile'
 
 %.yaml.signed: %.yaml
