@@ -14,7 +14,7 @@ import (
 func TestBundleValidate(t *testing.T) {
 
 	t.Run("happy case", func(t *testing.T) {
-		myBundle, err := testutil.GivenPackageBundle("../../api/testdata/bundle_one.yaml")
+		myBundle, err := testutil.GivenPackageBundle("../../api/testdata/prod_bundle.yaml")
 		require.Nil(t, err)
 
 		err = myBundle.BundleValidate()
