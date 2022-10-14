@@ -21,13 +21,15 @@ Create a cluster with EKS Anywhere and set and export with KUBECONFIG.
         # If testing with private repositories
         make run ENABLE_WEBHOOKS=false HELM_REGISTRY_CONFIG=~/.docker/config.json
 
-1. Load the controller resources:
+1. Load the package bundle controller resources:
 
-        kubectl apply -f api/testdata/packagebundlecontroller.yaml
-
-1. Load a bundle resource:
-
-        kubectl apply -f api/testdata/bundle_one.yaml
+        cat <<! | k apply -f -
+        apiVersion: packages.eks.amazonaws.com/v1alpha1
+        kind: PackageBundleController
+        metadata:
+          name: ${CLUSTER_NAME}
+          namespace: eksa-packages
+        !
 
 1. Create a package installation:
 
