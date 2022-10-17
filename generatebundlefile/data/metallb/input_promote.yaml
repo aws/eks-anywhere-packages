@@ -1,0 +1,18 @@
+# This file is only used to determine which Helm charts to move from Dev to Prod during a release.
+name: "v1-23-1001"
+kubernetesVersion: "1.23"
+packages:
+  - org: metallb 
+    projects:
+      - name: crds
+        repository: metallb/crds
+        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 0.13.5-latest
+  - org: metallb 
+    projects:
+      - name: metallb
+        repository: metallb/metallb
+        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 0.12.1-latest
