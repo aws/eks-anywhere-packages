@@ -53,7 +53,7 @@ func (mc *ManagerContext) SetUninstalling(namespace string, name string) {
 	mc.Package.Status.State = api.StateUninstalling
 }
 
-func (mc *ManagerContext) getRegistry(values map[string]interface{}) string {
+func (mc *ManagerContext) getImageRegistry(values map[string]interface{}) string {
 	if val, ok := values[sourceRegistry]; ok {
 		if val != "" {
 			return val.(string)
@@ -61,9 +61,6 @@ func (mc *ManagerContext) getRegistry(values map[string]interface{}) string {
 	}
 	if mc.PBC.Spec.PrivateRegistry != "" {
 		return mc.PBC.Spec.PrivateRegistry
-	}
-	if mc.Source.Registry != "" {
-		return mc.Source.Registry
 	}
 	return mc.PBC.GetDefaultImageRegistry()
 }
@@ -144,7 +141,7 @@ func processInstalling(mc *ManagerContext) bool {
 		mc.Log.Error(err, "Install failed")
 		return true
 	}
-	values[sourceRegistry] = mc.getRegistry(values)
+	values[sourceRegistry] = mc.getImageRegistry(values)
 	if mc.Source.Registry == "" {
 		mc.Source.Registry = mc.PBC.GetDefaultRegistry()
 	}
@@ -192,7 +189,7 @@ func processInstalled(mc *ManagerContext) bool {
 		return true
 	}
 
-	newValues[sourceRegistry] = mc.getRegistry(newValues)
+	newValues[sourceRegistry] = mc.getImageRegistry(newValues)
 	needs, err := mc.PackageDriver.IsConfigChanged(mc.Ctx, mc.Package.Name, newValues)
 	if err != nil {
 		mc.Log.Error(err, "checking necessity of reconfiguration")
