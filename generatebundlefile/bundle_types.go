@@ -95,6 +95,7 @@ type RequiresSpec struct {
 	Images         []Image         `json:"images,omitempty"`
 	Configurations []Configuration `json:"configurations,omitempty"`
 	Schema         string          `json:"schema,omitempty"`
+	Dependencies   []string        `json:"dependencies,omitempty"`
 }
 
 type Configuration struct {
