@@ -18,6 +18,8 @@ sourceRegistry: public.ecr.aws/eks-anywhere
 defaultRegistry: public.ecr.aws/eks-anywhere
 # -- defaultImageRegistry for all package images.
 defaultImageRegistry: 783794618700.dkr.ecr.us-west-2.amazonaws.com
+# -- privateRegistry for all package helm charts.
+privateRegistry: ""
 # -- clusterName managed by a particular PBC
 clusterName: bundle-controller
 # -- Image pull policy for Docker images.
