@@ -256,7 +256,7 @@ func cmdGenerate(opts *Options) error {
 			charts.Source.Versions[0].Images = helmImage
 			// Populate Configurations to bundle spec from Requires.yaml
 
-			if len(helmRequires.Spec.Dependencies) > 0 {
+			if len(deleteEmptyStringSlice(helmRequires.Spec.Dependencies)) > 0 {
 				charts.Source.Versions[0].Dependencies = helmRequires.Spec.Dependencies
 			}
 			charts.Source.Versions[0].Schema = helmRequires.Spec.Schema

@@ -52,6 +52,16 @@ func removeStringSlice(l []string, item string) []string {
 	return l
 }
 
+func deleteEmptyStringSlice(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
+}
+
 // ExecCommand runs a given command, and constructs the log/output.
 func ExecCommand(cmd *exec.Cmd) (string, error) {
 	stdout, err := cmd.Output()
