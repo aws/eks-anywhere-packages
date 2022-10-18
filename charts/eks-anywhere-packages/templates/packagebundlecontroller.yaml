@@ -8,4 +8,7 @@ metadata:
 spec:
   upgradeCheckInterval: 24h
   upgradeCheckShortInterval: 5m
+  defaultRegistry: {{.Values.defaultRegistry}}
+  defaultImageRegistry: {{.Values.defaultImageRegistry}}
+  privateRegistry: {{.Values.privateRegistry}}
 {{- end -}}
