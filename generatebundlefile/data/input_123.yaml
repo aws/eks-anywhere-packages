@@ -45,21 +45,21 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 0.6.1-eks-1-23-6-latest
-  - org: metallb 
+  - org: metallb
     projects:
-      - name: metallb 
+      - name: metallb
         repository: metallb/metallb
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: latest
-      - name: crds 
+      - name: metallb/crds
         repository: metallb/crds
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: latest
-  - org: emissary 
+  - org: emissary
     projects:
-      - name: emissary 
+      - name: emissary
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/l0g8r8j6
         versions:

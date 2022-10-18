@@ -23,16 +23,16 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 2.5.1-0d4e0476a740b48a232041597ded2031595d9409
-  - org: metallb 
+  - org: metallb
     projects:
-      - name: metallb 
+      - name: metallb
         repository: metallb/metallb
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 0.12.1-0d4e0476a740b48a232041597ded2031595d9409
-  - org: emissary 
+  - org: emissary
     projects:
-      - name: emissary 
+      - name: emissary
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/l0g8r8j6
         versions:
