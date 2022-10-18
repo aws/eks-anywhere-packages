@@ -52,6 +52,11 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: latest
+      - name: crds 
+        repository: metallb/crds
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
   - org: emissary 
     projects:
       - name: emissary 
