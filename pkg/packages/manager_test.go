@@ -179,22 +179,14 @@ func TestManagerContext_getRegistry(t *testing.T) {
 		values := make(map[string]interface{})
 		values["sourceRegistry"] = "valuesRegistry"
 
-		assert.Equal(t, "valuesRegistry", sut.getRegistry(values))
+		assert.Equal(t, "valuesRegistry", sut.getImageRegistry(values))
 	})
 
 	t.Run("registry from privateRegistry", func(t *testing.T) {
 		sut, _ := givenMocks(t)
 		values := make(map[string]interface{})
 
-		assert.Equal(t, "privateRegistry", sut.getRegistry(values))
-	})
-
-	t.Run("registry from bundle package", func(t *testing.T) {
-		sut, _ := givenMocks(t)
-		values := make(map[string]interface{})
-		sut.PBC.Spec.PrivateRegistry = ""
-
-		assert.Equal(t, "public.ecr.aws/j0a1m4z9/", sut.getRegistry(values))
+		assert.Equal(t, "privateRegistry", sut.getImageRegistry(values))
 	})
 
 	t.Run("registry from default gated registry", func(t *testing.T) {
@@ -203,7 +195,7 @@ func TestManagerContext_getRegistry(t *testing.T) {
 		sut.PBC.Spec.PrivateRegistry = ""
 		sut.Source.Registry = ""
 
-		assert.Equal(t, "783794618700.dkr.ecr.us-west-2.amazonaws.com", sut.getRegistry(values))
+		assert.Equal(t, "783794618700.dkr.ecr.us-west-2.amazonaws.com", sut.getImageRegistry(values))
 	})
 }
 
