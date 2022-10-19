@@ -29,14 +29,14 @@ packages:
         repository: metallb/metallb
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: v0.13.5-8b5dee03aa15bcded27118ef535f0a6c3004e462
+            - name: 0.13.5-8b5dee03aa15bcded27118ef535f0a6c3004e462
   - org: metallb
     projects:
       - name: metallb-crds
         repository: metallb/crds
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: v0.13.5-8b5dee03aa15bcded27118ef535f0a6c3004e462
+            - name: 0.13.5-8b5dee03aa15bcded27118ef535f0a6c3004e462
   - org: emissary
     projects:
       - name: emissary
