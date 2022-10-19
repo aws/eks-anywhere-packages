@@ -372,6 +372,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc, rc, bc, bm := givenBundleManager(t)
 		pbc := givenPackageBundleController()
 		pbc.Status.State = api.BundleControllerStateUpgradeAvailable
+		pbc.Status.Detail = "v1-21-1004 available"
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
@@ -383,6 +384,45 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateUpgradeAvailable, pbc.Status.State)
+		assert.Equal(t, "v1-21-1004 available", pbc.Status.Detail)
+	})
+
+	t.Run("upgradeAvailable to upgradeAvailable detail fix", func(t *testing.T) {
+		tcc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = api.BundleControllerStateUpgradeAvailable
+		pbc.Status.Detail = "v1-21-1003 available"
+		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
+		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
+		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
+		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.NoError(t, err)
+		assert.Equal(t, api.BundleControllerStateUpgradeAvailable, pbc.Status.State)
+		assert.Equal(t, "v1-21-1004 available", pbc.Status.Detail)
+	})
+
+	t.Run("upgradeAvailable to upgradeAvailable detail fix", func(t *testing.T) {
+		tcc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		pbc.Status.State = api.BundleControllerStateUpgradeAvailable
+		pbc.Status.Detail = "v1-21-1003 available"
+		latestBundle := givenBundle()
+		latestBundle.Name = testNextBundleName
+		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
+		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
+		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		assert.EqualError(t, err, "updating cluster01 detail to v1-21-1004 available: oops")
 	})
 
 	t.Run("upgradeAvailable to active", func(t *testing.T) {
@@ -399,6 +439,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateActive, pbc.Status.State)
+		assert.Equal(t, "", pbc.Status.Detail)
 	})
 
 	t.Run("upgradeAvailable to active error", func(t *testing.T) {
