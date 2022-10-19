@@ -23,26 +23,8 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 9.21.0-1.21-b4cbeea77ccbb983f652717cd691b3d47f34e06a-release-0.12-helm
-  - org: kubernetes
-    projects:
-      - name: cluster-autoscaler
-        repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: public.ecr.aws/l0g8r8j6
-        versions:
             - name: 9.21.0-1.22-b4cbeea77ccbb983f652717cd691b3d47f34e06a
-  - org: kubernetes
-    projects:
-      - name: cluster-autoscaler
-        repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: public.ecr.aws/l0g8r8j6
-        versions:
             - name: 9.21.0-1.23-b4cbeea77ccbb983f652717cd691b3d47f34e06a-release-0.12-helm
-  - org: kubernetes
-    projects:
-      - name: cluster-autoscaler
-        repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: public.ecr.aws/l0g8r8j6
-        versions:
             - name: 9.21.0-1.24-b4cbeea77ccbb983f652717cd691b3d47f34e06a
   - org: harbor
     projects:
@@ -72,26 +54,8 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 0.6.1-eks-1-21-18-7d3545390a5140c663c6024ba9b5743f5c5f5073-release-0.12-helm
-  - org: kubernetes-sigs 
-    projects:
-      - name: metrics-server
-        repository: metrics-server/charts/metrics-server
-        registry: public.ecr.aws/l0g8r8j6
-        versions:
             - name: 0.6.1-eks-1-22-11-7d3545390a5140c663c6024ba9b5743f5c5f5073-release-0.12-helm
-  - org: kubernetes-sigs 
-    projects:
-      - name: metrics-server
-        repository: metrics-server/charts/metrics-server
-        registry: public.ecr.aws/l0g8r8j6
-        versions:
             - name: 0.6.1-eks-1-23-6-7d3545390a5140c663c6024ba9b5743f5c5f5073-release-0.12-helm
-  - org: kubernetes-sigs 
-    projects:
-      - name: metrics-server
-        repository: metrics-server/charts/metrics-server
-        registry: public.ecr.aws/l0g8r8j6
-        versions:
             - name: 0.6.1-eks-1-24-1-7d3545390a5140c663c6024ba9b5743f5c5f5073
   - org: emissary
     projects:
