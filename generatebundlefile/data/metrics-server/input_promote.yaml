@@ -29,4 +29,4 @@ packages:
         repository: metrics-server/charts/metrics-server
         registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.6.1-eks-1-21-19-latest
+            - name: 0.6.1-eks-1-21-18-latest
