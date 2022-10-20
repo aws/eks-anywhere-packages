@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/xeipuuv/gojsonschema"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -57,7 +58,12 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 			fmt.Errorf("decoding request: %w", err))
 	}
 
-	activeBundle, err := v.BundleClient.GetActiveBundle(ctx, p.GetClusterName())
+	clusterName := p.GetClusterName()
+	if clusterName == "" {
+		clusterName = os.Getenv("CLUSTER_NAME")
+	}
+
+	activeBundle, err := v.BundleClient.GetActiveBundle(ctx, clusterName)
 
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting PackageBundle: %v", err))

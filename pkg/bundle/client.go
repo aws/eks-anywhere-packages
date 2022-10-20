@@ -3,6 +3,7 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"os"
 
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -83,6 +84,9 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context, clusterName string)
 }
 
 func (bc *bundleClient) GetPackageBundleController(ctx context.Context, clusterName string) (*api.PackageBundleController, error) {
+	if clusterName == "" {
+		clusterName = os.Getenv("CLUSTER_NAME")
+	}
 	pbc := api.PackageBundleController{}
 	key := types.NamespacedName{
 		Namespace: api.PackageNamespace,
