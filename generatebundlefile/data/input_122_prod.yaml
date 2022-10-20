@@ -37,7 +37,12 @@ packages:
         repository: metallb/metallb
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 0.12.1-0d4e0476a740b48a232041597ded2031595d9409
+            - name: 0.13.5-0c9bc01066c2b8e8006c60d09f55015501ad2fc2
+      - name: metallb-crds
+        repository: metallb/crds
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 0.13.5-0c9bc01066c2b8e8006c60d09f55015501ad2fc2
   - org: emissary
     projects:
       - name: emissary
