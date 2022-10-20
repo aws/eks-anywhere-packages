@@ -22,10 +22,10 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 9.21.0-1.21-c94ed410f56421659f554f13b4af7a877da72bc1
-            - name: 9.21.0-1.22-c94ed410f56421659f554f13b4af7a877da72bc1
-            - name: 9.21.0-1.23-c94ed410f56421659f554f13b4af7a877da72bc1
-            - name: 9.21.0-1.24-c94ed410f56421659f554f13b4af7a877da72bc1
+            - name: 9.21.0-1.21-5516c0368ff74d14c328d61fe374da9787ecf437
+            - name: 9.21.0-1.22-5516c0368ff74d14c328d61fe374da9787ecf437
+            - name: 9.21.0-1.23-5516c0368ff74d14c328d61fe374da9787ecf437
+            - name: 9.21.0-1.24-5516c0368ff74d14c328d61fe374da9787ecf437
   - org: harbor
     projects:
       - name: harbor
