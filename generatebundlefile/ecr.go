@@ -87,7 +87,7 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 				if *images.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" || len(images.ImageTags) == 0 {
 					continue
 				}
-				if len(images.ImageTags) == 1 {
+				if len(images.ImageTags) > 0 {
 					v := &api.SourceVersion{Name: tag.Name, Digest: *images.ImageDigest}
 					sourceVersion = append(sourceVersion, *v)
 					continue
@@ -115,7 +115,7 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 			continue
 		}
 		//
-		if strings.Contains(tag.Name, "-latest") {
+		if strings.HasSuffix(tag.Name, "-latest") {
 			regex := regexp.MustCompile(`-latest`)
 			splitVersion := regex.Split(tag.Name, -1) //extract out the version without the latest
 			ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{

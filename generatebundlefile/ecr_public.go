@@ -105,7 +105,7 @@ func (c *ecrPublicClient) GetShaForPublicInputs(project Project) ([]api.SourceVe
 			continue
 		}
 		//
-		if strings.Contains(tag.Name, "-latest") {
+		if strings.HasSuffix(tag.Name, "-latest") {
 			regex := regexp.MustCompile(`-latest`)
 			splitVersion := regex.Split(tag.Name, -1) //extract out the version without the latest
 			ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
