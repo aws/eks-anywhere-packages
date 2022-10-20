@@ -43,6 +43,13 @@ packages:
         registry: public.ecr.aws/eks-anywhere
         versions:
             - name: 0.13.5-0c9bc01066c2b8e8006c60d09f55015501ad2fc2
+  - org: kubernetes-sigs
+    projects:
+      - name: metrics-server
+        repository: metrics-server/charts/metrics-server
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 0.6.1-eks-1-23-6-c94ed410f56421659f554f13b4af7a877da72bc1
   - org: emissary
     projects:
       - name: emissary
