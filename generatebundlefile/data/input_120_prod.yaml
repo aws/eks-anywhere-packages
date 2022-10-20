@@ -16,6 +16,14 @@ packages:
         registry: public.ecr.aws/eks-anywhere
         versions:
             - name: 0.21.1-971c31238aeea5f1bda6ec95caaf24993b304157
+  - org: cert-manager
+    projects:
+      - name: cert-manager
+        workloadonly: true
+        repository: cert-manager/cert-manager
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+          - name: 1.9.1-dc0c845b5f71bea6869efccd3ca3f2dd11b5c95f
   - org: harbor
     projects:
       - name: harbor
