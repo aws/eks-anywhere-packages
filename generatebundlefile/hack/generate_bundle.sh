@@ -50,7 +50,7 @@ function push () {
     "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
 }
 
-for version in 1-20 1-21 1-22 1-23; do
+for version in 1-21 1-22 1-23 1-24; do
     generate ${version}
     push ${version}
 done
