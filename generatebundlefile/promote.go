@@ -221,12 +221,22 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 				BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("docker://%s/%s:%s @ %s", destinationRegistry, images.Repository, images.Tag, images.Digest))
 				continue
 			} else {
-				source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, images.Repository, images.Tag)
-				destination := fmt.Sprintf("docker://%s/%s:%s", destinationRegistry, images.Repository, images.Tag)
-				BundleLog.Info("Copying Helm Digest, and Tag to destination location......", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag, images.Digest))
-				err = copyImage(BundleLog, authFile, source, destination)
-				if err != nil {
-					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
+				if c.ecrPublicClientRelease == nil {
+					source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, images.Repository, images.Tag)
+					destination := fmt.Sprintf("docker://%s/%s:%s", destinationRegistry, images.Repository, images.Tag)
+					BundleLog.Info("Copying Helm Digest, and Tag to destination location......", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag, images.Digest))
+					err = copyImage(BundleLog, authFile, source, destination)
+					if err != nil {
+						return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
+					}
+				} else {
+					source := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag)
+					destination := fmt.Sprintf("docker://%s/%s:%s", destinationRegistry, images.Repository, images.Tag)
+					BundleLog.Info("Copying Helm Digest, and Tag to destination location......", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag, images.Digest))
+					err = copyImage(BundleLog, authFile, source, destination)
+					if err != nil {
+						return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
+					}
 				}
 			}
 		}
