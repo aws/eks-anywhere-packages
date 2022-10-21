@@ -24,6 +24,13 @@ packages:
         registry: public.ecr.aws/eks-anywhere
         versions:
           - name: 1.9.1-dc0c845b5f71bea6869efccd3ca3f2dd11b5c95f
+  - org: kubernetes
+    projects:
+      - name: cluster-autoscaler
+        repository: cluster-autoscaler/charts/cluster-autoscaler
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 9.21.0-1.21-5516c0368ff74d14c328d61fe374da9787ecf437
   - org: harbor
     projects:
       - name: harbor
