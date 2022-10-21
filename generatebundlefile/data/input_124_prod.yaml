@@ -1,0 +1,67 @@
+# This info is hardcoded and comes from https://github.com/aws/eks-anywhere-build-tooling
+name: "v1-24-1001"
+kubernetesVersion: "1.24"
+packages:
+  - org: aws-containers
+    projects:
+      - name: hello-eks-anywhere
+        repository: hello-eks-anywhere
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 0.1.2-a6847010915747a9fc8a412b233a2b1ee608ae76
+  - org: aws-observability
+    projects:
+      - name: adot
+        repository: adot/charts/aws-otel-collector
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 0.21.1-971c31238aeea5f1bda6ec95caaf24993b304157
+  - org: cert-manager
+    projects:
+      - name: cert-manager
+        workloadonly: true
+        repository: cert-manager/cert-manager
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+          - name: 1.9.1-dc0c845b5f71bea6869efccd3ca3f2dd11b5c95f
+  - org: emissary
+    projects:
+      - name: emissary
+        repository: emissary-ingress/emissary
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 3.0.0-c5b5d47b53ae5d769cc8349f4822ce2786ad198e
+  - org: harbor
+    projects:
+      - name: harbor
+        repository: harbor/harbor-helm
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 2.5.1-0d4e0476a740b48a232041597ded2031595d9409
+  - org: kubernetes
+    projects:
+      - name: cluster-autoscaler
+        repository: cluster-autoscaler/charts/cluster-autoscaler
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 9.21.0-1.24-5516c0368ff74d14c328d61fe374da9787ecf437
+  - org: kubernetes-sigs
+    projects:
+      - name: metrics-server
+        repository: metrics-server/charts/metrics-server
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 0.6.1-eks-1-24-1-c94ed410f56421659f554f13b4af7a877da72bc1
+  - org: metallb
+    projects:
+      - name: metallb
+        repository: metallb/metallb
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 0.13.5-0c9bc01066c2b8e8006c60d09f55015501ad2fc2
+      - name: metallb-crds
+        repository: metallb/crds
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 0.13.5-0c9bc01066c2b8e8006c60d09f55015501ad2fc2
+
