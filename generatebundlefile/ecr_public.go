@@ -77,7 +77,7 @@ func (c *ecrPublicClient) GetShaForPublicInputs(project Project) ([]api.SourceVe
 				if *images.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" || len(images.ImageTags) == 0 {
 					continue
 				}
-				if len(images.ImageTags) == 1 {
+				if len(images.ImageTags) > 0 {
 					v := &api.SourceVersion{Name: tag.Name, Digest: *images.ImageDigest}
 					sourceVersion = append(sourceVersion, *v)
 					continue
@@ -214,7 +214,7 @@ func (c *SDKClients) getNameAndVersionPublic(repoName, tag, registryURI string) 
 	name := splitname[0]
 	ecrname := fmt.Sprintf("%s/%s", c.ecrPublicClient.SourceRegistry, name)
 	if len(splitname) > 0 {
-		if !strings.Contains(tag, "latest") {
+		if !strings.HasSuffix(tag, "latest") {
 			imageIDs := []ecrpublictypes.ImageIdentifier{{ImageTag: &tag}}
 			ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
 				RepositoryName: aws.String(repoName),
@@ -223,10 +223,8 @@ func (c *SDKClients) getNameAndVersionPublic(repoName, tag, registryURI string) 
 			if err != nil {
 				return "", "", "", fmt.Errorf("DescribeImagesRequest to public ECR failed: %w", err)
 			}
-			for _, images := range ImageDetails {
-				if len(images.ImageTags) == 1 {
-					return ecrname, tag, *images.ImageDigest, nil
-				}
+			if len(ImageDetails) == 1 {
+				return ecrname, tag, *ImageDetails[0].ImageDigest, nil
 			}
 		}
 		ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{

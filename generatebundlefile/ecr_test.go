@@ -286,7 +286,8 @@ func newMockRegistryClient(err error) *mockRegistryClient {
 	}
 }
 
-var testTag string = "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea660"
+var testTag1 string = "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea660"
+var testTag2 string = "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea661"
 
 func (r *mockRegistryClient) DescribeImages(ctx context.Context, params *ecr.DescribeImagesInput, optFns ...func(*ecr.Options)) (*ecr.DescribeImagesOutput, error) {
 	if r.err != nil {
@@ -295,7 +296,7 @@ func (r *mockRegistryClient) DescribeImages(ctx context.Context, params *ecr.Des
 	return &ecr.DescribeImagesOutput{
 		ImageDetails: []ecrtypes.ImageDetail{
 			{
-				ImageTags: []string{testTag},
+				ImageTags: []string{testTag1, testTag2},
 			},
 		},
 	}, nil
