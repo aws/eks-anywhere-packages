@@ -51,7 +51,7 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 $(GOBIN)/gci:
-	$(GO) install github.com/daixiang0/gci@v0.6.3
+	$(GO) install github.com/daixiang0/gci@v0.8.0
 
 .PHONY: fmt
 fmt: run-gofmt run-gci
