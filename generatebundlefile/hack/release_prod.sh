@@ -42,13 +42,13 @@ aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm reg
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_release.yaml \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/prod_artifact_move.yaml.yaml \
     --private-profile ${PROFILE}
 
 # Release Helm Chart, and bundle to Production account
 cat << EOF > prodconfigfile
 [profile prod]
-role_arn=$PROD_ARTIFACT_DEPLOYMENT_ROLE
+role_arn=$ARTIFACT_DEPLOYMENT_ROLE
 region=us-east-1
 credential_source=EcsContainer
 EOF
@@ -63,7 +63,7 @@ aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 h
 
 # Move Helm charts within the bundle to another account
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_release.yaml \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/prod_artifact_move.yaml.yaml \
     --public-profile ${PROFILE}
 
 if [ ! -x "${ORAS_BIN}" ]; then
@@ -75,7 +75,7 @@ function generate () {
     local kms_key=signingPackagesKey
 
     cd "${BASE_DIRECTORY}/generatebundlefile"
-    ./bin/generatebundlefile --input "./data/input_${version/-}_prod.yaml" \
+    ./bin/generatebundlefile --input "./data/bundles_prod/${version}.yaml" \
                  --key alias/${kms_key} \
                  --output "output-${version}"
 }

@@ -1,0 +1,11 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+    - ./generatebundlefile/hack/setup.sh
+
+  build:
+    commands:
+    - cd generatebundlefile
+    - ./hack/release_prod.sh
