@@ -42,19 +42,19 @@ aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm reg
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_release.yaml \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml.yaml \
     --private-profile ${PROFILE}
 
-# Release Helm Chart, and bundle to Production account
-cat << EOF > prodconfigfile
-[profile prod]
-role_arn=$PROD_ARTIFACT_DEPLOYMENT_ROLE
+# Release Helm Chart, and bundle to Staging account
+cat << EOF > stagingconfigfile
+[profile staging]
+role_arn=$ARTIFACT_DEPLOYMENT_ROLE
 region=us-east-1
 credential_source=EcsContainer
 EOF
 
-export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/prodconfigfile
-export PROFILE=prod
+export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/stagingconfigfile
+export PROFILE=staging
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
 ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
 REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
@@ -63,7 +63,7 @@ aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 h
 
 # Move Helm charts within the bundle to another account
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/input_release.yaml \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml.yaml \
     --public-profile ${PROFILE}
 
 if [ ! -x "${ORAS_BIN}" ]; then
@@ -75,7 +75,7 @@ function generate () {
     local kms_key=signingPackagesKey
 
     cd "${BASE_DIRECTORY}/generatebundlefile"
-    ./bin/generatebundlefile --input "./data/input_${version/-}_prod.yaml" \
+    ./bin/generatebundlefile --input "./data/bundles_staging/${version}.yaml" \
                  --key alias/${kms_key} \
                  --output "output-${version}"
 }
@@ -92,7 +92,7 @@ for version in 1-20 1-21 1-22 1-23 1-24; do
     generate ${version}
 done
 
-export AWS_PROFILE=prod
+export AWS_PROFILE=staging
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
 for version in 1-20 1-21 1-22 1-23 1-24; do
