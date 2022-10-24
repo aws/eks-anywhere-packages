@@ -45,7 +45,7 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml.yaml \
     --private-profile ${PROFILE}
 
-# Release Helm Chart, and bundle to Production account
+# Release Helm Chart, and bundle to Staging account
 cat << EOF > stagingconfigfile
 [profile staging]
 role_arn=$ARTIFACT_DEPLOYMENT_ROLE
@@ -92,7 +92,7 @@ for version in 1-20 1-21 1-22 1-23 1-24; do
     generate ${version}
 done
 
-export AWS_PROFILE=prod
+export AWS_PROFILE=staging
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
 for version in 1-20 1-21 1-22 1-23 1-24; do
