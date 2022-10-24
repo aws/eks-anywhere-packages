@@ -166,6 +166,13 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		}
 	case api.BundleControllerStateUpgradeAvailable:
 		if !latestBundleIsCurrentBundle {
+			if pbc.Status.Detail != latestBundle.Name+" available" {
+				pbc.Status.Detail = latestBundle.Name + " available"
+				err = m.bundleClient.SaveStatus(ctx, pbc)
+				if err != nil {
+					return fmt.Errorf("updating %s detail to %s: %s", pbc.Name, pbc.Status.Detail, err)
+				}
+			}
 			break
 		}
 		pbc.Status.State = api.BundleControllerStateActive
