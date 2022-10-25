@@ -12,6 +12,7 @@ import (
 )
 
 func TestBundleValidate(t *testing.T) {
+	t.Setenv("EKSA_PUBLIC_KEY", "")
 
 	t.Run("happy case", func(t *testing.T) {
 		myBundle, err := testutil.GivenPackageBundle("../../api/testdata/prod_bundle.yaml")
