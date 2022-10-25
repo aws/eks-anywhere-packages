@@ -43,18 +43,18 @@ func (r *PackageBundle) SetupWebhookWithManager(mgr ctrl.Manager) error {
 var _ webhook.Validator = &PackageBundle{}
 
 func (r *PackageBundle) ValidateCreate() error {
-	return r.validate()
+	return r.BundleValidate()
 }
 
 func (r *PackageBundle) ValidateUpdate(old runtime.Object) error {
-	return r.validate()
+	return r.BundleValidate()
 }
 
 func (r *PackageBundle) ValidateDelete() error {
 	return nil
 }
 
-func (r *PackageBundle) validate() error {
+func (r *PackageBundle) BundleValidate() error {
 	if !r.IsValidVersion() {
 		apilog.Info("Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): " + r.Name)
 		return errors.New("Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): " + r.Name)

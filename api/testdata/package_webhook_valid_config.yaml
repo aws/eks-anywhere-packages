@@ -2,12 +2,10 @@ apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: Package
 metadata:
   name: my-hello-eks-anywhere
-  namespace: eksa-packages
+  namespace: eksa-packages-cluster01
 spec:
   packageName: hello-eks-anywhere
   config: |
     sourceRegistry: "public.ecr.aws/dev"
     title: "Amazon EKS Anywhere"
     subtitle: "Run EKS in your datacenter"
-    nested:
-      test: "nodePort"

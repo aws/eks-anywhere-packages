@@ -6,13 +6,14 @@ metadata:
   annotations: {}
 spec:
   packages:
-    - name: test
+    - name: hello-eks-anywhere
       source:
         registry: public.ecr.aws/l0g8r8j6
         repository: hello-eks-anywhere
         versions:
           - name: 0.1.1-6d0e566362d03a00f41d75524d21de5ddb95fd1d
             digest: sha256:b2f1efe2f2bf126992ddcba03c353dc1106113c924c49553a9da7366f1653d2a
+            schema: H4sIAIux/mIAA51Ry27CMBC85yusqMfGoRy5oaqnXir4gsXZJAbHttYboRTx7zWOQagc+rjO7LzsUyFE+aSbciXKntmHVV33aIyr8BAqsNOxR0LpQR2gwyAjKmGAT2fhGKRyQx1UjwPIfXC2fE5uM3LveCGrfOioqxuCluvlYrmoXpbZYRazZoNJ+lAiH0w+8W63R8Uz5sl5JNYYInOKSMSCG0nhBjsdmKYbfucQcW275JDwBlsYDV8oP+6MVhIVyTizfmiR74Mi7VnH4VGzTYGCcqJoHYn8bLJMmvMsvW38S6N1enPx9r4V65+avDrLoC2SSEnf0sO4+0+BzTinayumuFQ0wKDQMtIvelwzr1WKXKeEptGXczAf93/YgglYnIsv0Gdet54CAAA=
     - name: flux
       source:
         registry: public.ecr.aws/j0a1m4z9
@@ -20,6 +21,7 @@ spec:
         versions:
           - name: v0.23.0-0b585d5986a1cfcee67b7a956eeef687f00ae468-helm
             digest: sha256:5fb61d0b650483851ce3892e30f1d2c4c1372aafd51be24f37bbb0056db04012
+            schema: H4sIAIux/mIAA51Ry27CMBC85yusqMfGoRy5oaqnXir4gsXZJAbHttYboRTx7zWOQagc+rjO7LzsUyFE+aSbciXKntmHVV33aIyr8BAqsNOxR0LpQR2gwyAjKmGAT2fhGKRyQx1UjwPIfXC2fE5uM3LveCGrfOioqxuCluvlYrmoXpbZYRazZoNJ+lAiH0w+8W63R8Uz5sl5JNYYInOKSMSCG0nhBjsdmKYbfucQcW275JDwBlsYDV8oP+6MVhIVyTizfmiR74Mi7VnH4VGzTYGCcqJoHYn8bLJMmvMsvW38S6N1enPx9r4V65+avDrLoC2SSEnf0sO4+0+BzTinayumuFQ0wKDQMtIvelwzr1WKXKeEptGXczAf93/YgglYnIsv0Gdet54CAAA=
     - name: harbor
       source:
         registry: public.ecr.aws/l0g8r8j6
@@ -27,3 +29,4 @@ spec:
         versions:
           - name: 2.5.0-f78bf0f83fc6986478cab1336de8c411647c2096
             digest: sha256:0fe93a79c75e9d81cfc1141e20bb7d2d17fa1d516a2f001e229d01245ede1519
+            schema: H4sIAIux/mIAA51Ry27CMBC85yusqMfGoRy5oaqnXir4gsXZJAbHttYboRTx7zWOQagc+rjO7LzsUyFE+aSbciXKntmHVV33aIyr8BAqsNOxR0LpQR2gwyAjKmGAT2fhGKRyQx1UjwPIfXC2fE5uM3LveCGrfOioqxuCluvlYrmoXpbZYRazZoNJ+lAiH0w+8W63R8Uz5sl5JNYYInOKSMSCG0nhBjsdmKYbfucQcW275JDwBlsYDV8oP+6MVhIVyTizfmiR74Mi7VnH4VGzTYGCcqJoHYn8bLJMmvMsvW38S6N1enPx9r4V65+avDrLoC2SSEnf0sO4+0+BzTinayumuFQ0wKDQMtIvelwzr1WKXKeEptGXczAf93/YgglYnIsv0Gdet54CAAA=
