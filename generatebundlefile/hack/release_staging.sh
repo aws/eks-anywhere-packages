@@ -42,7 +42,7 @@ aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm reg
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml.yaml \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml \
     --private-profile ${PROFILE}
 
 # Release Helm Chart, and bundle to Staging account
@@ -63,7 +63,7 @@ aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 h
 
 # Move Helm charts within the bundle to another account
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml.yaml \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml \
     --public-profile ${PROFILE}
 
 if [ ! -x "${ORAS_BIN}" ]; then
