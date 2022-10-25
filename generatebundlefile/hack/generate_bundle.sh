@@ -38,7 +38,7 @@ function generate () {
     local version=${1?:no version specified}
 
     cd "${BASE_DIRECTORY}/generatebundlefile"
-    ./bin/generatebundlefile --input "./data/input_${version/-}.yaml" \
+    ./bin/generatebundlefile --input "./data/bundles_dev/${version}.yaml" \
 			     --key alias/signingPackagesKey
 }
 
