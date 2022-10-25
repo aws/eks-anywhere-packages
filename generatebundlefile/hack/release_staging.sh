@@ -84,8 +84,12 @@ function push () {
     local version=${1?:no version specified}
     cd "${BASE_DIRECTORY}/generatebundlefile/output-${version}"
     awsAuth "$REPO" | "$ORAS_BIN" login "$REPO" --username AWS --password-stdin
-    "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-    "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
+    "$ORAS_BIN" pull "${REPO}:v${version}-latest" -o ${version}
+    if (git diff --no-index --quiet -- ${version}/bundle.yaml bundle.yaml) then
+        echo "bundle contents are identical skipping bundle push for ${version}"
+    else
+        "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+        "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
 }
 
 for version in 1-20 1-21 1-22 1-23 1-24; do
