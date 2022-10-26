@@ -61,7 +61,7 @@ test:
 presubmit: build test # lint is run via github action
 
 ## ORAS Make commands
-ORAS_VERSION := "0.12.0"
+ORAS_VERSION := "0.15.0"
 ifeq ($(OS),Windows_NT)
         # no op
 else
