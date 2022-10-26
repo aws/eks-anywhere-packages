@@ -16,7 +16,7 @@ spec:
             schema: H4sIAIux/mIAA51Ry27CMBC85yusqMfGoRy5oaqnXir4gsXZJAbHttYboRTx7zWOQagc+rjO7LzsUyFE+aSbciXKntmHVV33aIyr8BAqsNOxR0LpQR2gwyAjKmGAT2fhGKRyQx1UjwPIfXC2fE5uM3LveCGrfOioqxuCluvlYrmoXpbZYRazZoNJ+lAiH0w+8W63R8Uz5sl5JNYYInOKSMSCG0nhBjsdmKYbfucQcW275JDwBlsYDV8oP+6MVhIVyTizfmiR74Mi7VnH4VGzTYGCcqJoHYn8bLJMmvMsvW38S6N1enPx9r4V65+avDrLoC2SSEnf0sO4+0+BzTinayumuFQ0wKDQMtIvelwzr1WKXKeEptGXczAf93/YgglYnIsv0Gdet54CAAA=
     - name: flux
       source:
-        registry: public.ecr.aws/j0a1m4z9
+        registry: public.ecr.aws/l0g8r8j6
         repository: fluxcd/flux2
         versions:
           - name: v0.23.0-0b585d5986a1cfcee67b7a956eeef687f00ae468-helm

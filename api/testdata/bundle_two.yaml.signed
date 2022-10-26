@@ -3,7 +3,7 @@ kind: PackageBundle
 metadata:
   name: v1-21-1002
   namespace: eksa-packages
-  annotations: {eksa.aws.com/signature: MEUCIQDvYu8Sk2bfN+JQJcdYUVvi+ccT7OT+tV+KMDQ9WbZPxAIgcXy0+8/FMb1F/tqfcu1m4h9IyBaRdcHc5pUy8zUsBug=}
+  annotations: {eksa.aws.com/signature: MEUCIQCWiNKovQPIYKxxCgCBEHl6j0SHPnZE3Y7QHQartLsdSgIgBfumGoQTUcZ+v8m6+lekXDtc6M6Ga6bR/NnlhMxYU0I=}
 spec:
   packages:
     - name: test
@@ -15,7 +15,7 @@ spec:
             digest: sha256:64ea03b119d2421f9206252ff4af4bf7cdc2823c343420763e0e6fc20bf03b68
     - name: flux
       source:
-        registry: public.ecr.aws/j0a1m4z9
+        registry: public.ecr.aws/l0g8r8j6
         repository: fluxcd/flux2
         versions:
           - name: v0.25.1-7fb396bd0be3769162a408aa4d22a48fd74a9db7-helm
