@@ -93,8 +93,8 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "PackageBundle")
 			os.Exit(1)
 		}
-		if err := webhook.InitActiveBundleValidator(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "ActiveBundleValidator")
+		if err := webhook.InitPackageBundleControllerValidator(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "PackageBundleController")
 			os.Exit(1)
 		}
 		if err = webhook.InitPackageValidator(mgr); err != nil {
