@@ -87,6 +87,9 @@ type PackageStatus struct {
 
 	// UpgradesAvailable indicates upgraded versions in the bundle.
 	UpgradesAvailable []PackageAvailableUpgrade `json:"upgradesAvailable,omitempty"`
+
+	// Spec previous settings
+	Spec PackageSpec `json:"spec,omitempty"`
 }
 
 type PackageOCISource struct {

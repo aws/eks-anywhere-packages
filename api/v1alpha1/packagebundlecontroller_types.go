@@ -110,6 +110,9 @@ type PackageBundleControllerStatus struct {
 
 	// Detail of the state.
 	Detail string `json:"detail,omitempty"`
+
+	// Spec previous settings
+	Spec PackageBundleControllerSpec `json:"spec,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -105,6 +105,27 @@ spec:
                 - repository
                 - version
                 type: object
+              spec:
+                description: Spec previous settings
+                properties:
+                  config:
+                    description: Config for the package.
+                    type: string
+                  packageName:
+                    description: PackageName is the name of the package as specified
+                      in the bundle.
+                    type: string
+                  packageVersion:
+                    description: PackageVersion is a human-friendly version name or
+                      sha256 checksum for the package, as specified in the bundle.
+                    type: string
+                  targetNamespace:
+                    description: TargetNamespace defines where package resources will
+                      be deployed.
+                    type: string
+                required:
+                - packageName
+                type: object
               state:
                 description: State of the installation.
                 enum:

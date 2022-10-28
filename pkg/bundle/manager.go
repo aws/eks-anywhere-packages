@@ -160,6 +160,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		pbc.Status.State = api.BundleControllerStateUpgradeAvailable
 		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 		pbc.Status.Detail = latestBundle.Name + " available"
+		pbc.Spec.DeepCopyInto(&pbc.Status.Spec)
 		err = m.bundleClient.SaveStatus(ctx, pbc)
 		if err != nil {
 			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
@@ -168,6 +169,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		if !latestBundleIsCurrentBundle {
 			if pbc.Status.Detail != latestBundle.Name+" available" {
 				pbc.Status.Detail = latestBundle.Name + " available"
+				pbc.Spec.DeepCopyInto(&pbc.Status.Spec)
 				err = m.bundleClient.SaveStatus(ctx, pbc)
 				if err != nil {
 					return fmt.Errorf("updating %s detail to %s: %s", pbc.Name, pbc.Status.Detail, err)
@@ -178,6 +180,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		pbc.Status.State = api.BundleControllerStateActive
 		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 		pbc.Status.Detail = ""
+		pbc.Spec.DeepCopyInto(&pbc.Status.Spec)
 		err = m.bundleClient.SaveStatus(ctx, pbc)
 		if err != nil {
 			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
@@ -186,6 +189,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		pbc.Status.State = api.BundleControllerStateActive
 		m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 		pbc.Status.Detail = ""
+		pbc.Spec.DeepCopyInto(&pbc.Status.Spec)
 		err = m.bundleClient.SaveStatus(ctx, pbc)
 		if err != nil {
 			return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
@@ -195,6 +199,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 			pbc.Status.State = api.BundleControllerStateActive
 			m.log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
 			pbc.Status.Detail = ""
+			pbc.Spec.DeepCopyInto(&pbc.Status.Spec)
 			err = m.bundleClient.SaveStatus(ctx, pbc)
 			if err != nil {
 				return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
