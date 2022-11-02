@@ -91,7 +91,8 @@ ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 GOTESTS ?= ./...
 # Use "-short" to skip long tests, or "-verbose" for more verbose reporting. Run
 # go help testflags to see all options.
-GOTESTFLAGS ?= ""
+# -buildmod=pie is temporary fix for https://github.com/golang/go/issues/54482
+GOTESTFLAGS ?= "-buildmode=pie"
 test: manifests generate mocks ${SIGNED_ARTIFACTS} ## Run tests.
 	$(GO) test -vet=all $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks | grep -v fake | grep -v testutil` -coverprofile cover.out
 
