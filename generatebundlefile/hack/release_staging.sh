@@ -90,6 +90,7 @@ function push () {
     else
         "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
         "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
+    fi
 }
 
 for version in 1-20 1-21 1-22 1-23 1-24; do
