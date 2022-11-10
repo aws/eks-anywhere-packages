@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	testBundleRegistry = "public.ecr.aws/j0a1m4z9"
+	testBundleRegistry = "public.ecr.aws/l0g8r8j6"
 )
 
 func givenMockClient(t *testing.T) *ctrlmocks.MockClient {
@@ -60,7 +60,7 @@ func givenPackageBundleController() *api.PackageBundleController {
 		},
 		Spec: api.PackageBundleControllerSpec{
 			ActiveBundle:         testBundleName,
-			DefaultRegistry:      "public.ecr.aws/j0a1m4z9",
+			DefaultRegistry:      "public.ecr.aws/l0g8r8j6",
 			DefaultImageRegistry: "783794618700.dkr.ecr.us-west-2.amazonaws.com",
 			BundleRepository:     "eks-anywhere-packages-bundles",
 		},

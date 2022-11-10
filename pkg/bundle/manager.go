@@ -39,7 +39,6 @@ var _ Manager = (*bundleManager)(nil)
 func (m bundleManager) ProcessBundle(_ context.Context, newBundle *api.PackageBundle) (bool, error) {
 	if newBundle.Namespace != api.PackageNamespace {
 		if newBundle.Status.State != api.PackageBundleStateIgnored {
-			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateIgnored
 			m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
 			return true, nil
@@ -49,7 +48,6 @@ func (m bundleManager) ProcessBundle(_ context.Context, newBundle *api.PackageBu
 
 	if !newBundle.IsValidVersion() {
 		if newBundle.Status.State != api.PackageBundleStateInvalid {
-			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateInvalid
 			m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
 			return true, nil
@@ -58,7 +56,6 @@ func (m bundleManager) ProcessBundle(_ context.Context, newBundle *api.PackageBu
 	}
 
 	if newBundle.Status.State != api.PackageBundleStateAvailable {
-		newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 		newBundle.Status.State = api.PackageBundleStateAvailable
 		m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
 		return true, nil

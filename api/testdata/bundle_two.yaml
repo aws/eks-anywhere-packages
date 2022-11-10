@@ -15,7 +15,7 @@ spec:
             digest: sha256:64ea03b119d2421f9206252ff4af4bf7cdc2823c343420763e0e6fc20bf03b68
     - name: flux
       source:
-        registry: public.ecr.aws/j0a1m4z9
+        registry: public.ecr.aws/l0g8r8j6
         repository: fluxcd/flux2
         versions:
           - name: v0.25.1-7fb396bd0be3769162a408aa4d22a48fd74a9db7-helm

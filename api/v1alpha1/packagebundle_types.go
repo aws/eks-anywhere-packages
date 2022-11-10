@@ -23,6 +23,7 @@ import (
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:webhook:path=/validate-packages-eks-amazonaws-com-v1alpha1-packagebundle,mutating=false,failurePolicy=fail,sideEffects=None,groups=packages.eks.amazonaws.com,resources=packagebundles,verbs=create;update,versions=v1alpha1,name=vpackagebundle.kb.io,admissionReviewVersions=v1
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // PackageBundle is the Schema for the packagebundle API.
 type PackageBundle struct {

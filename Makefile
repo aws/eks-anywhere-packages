@@ -1,5 +1,4 @@
 # Setting SHELL to bash allows bash commands to be executed by recipes.
-# This is a requirement for setup-envtest in the test target.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
@@ -92,15 +91,10 @@ ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 GOTESTS ?= ./...
 # Use "-short" to skip long tests, or "-verbose" for more verbose reporting. Run
 # go help testflags to see all options.
-GOTESTFLAGS ?= ""
-test: manifests generate mocks ${SIGNED_ARTIFACTS} $(GOBIN)/setup-envtest ## Run tests.
-	source <($(GOBIN)/setup-envtest use -i -p env 1.23.x)
+# -buildmod=pie is temporary fix for https://github.com/golang/go/issues/54482
+GOTESTFLAGS ?= "-buildmode=pie"
+test: manifests generate mocks ${SIGNED_ARTIFACTS} ## Run tests.
 	$(GO) test -vet=all $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks | grep -v fake | grep -v testutil` -coverprofile cover.out
-
-$(GOBIN)/setup-envtest: ## Install setup-envtest
-	# While it's preferable not to use @latest here, we have no choice at the moment. Details at
-	# https://github.com/kubernetes-sigs/kubebuilder/issues/2480
-	$(GO) install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 clean: ## Clean up resources created by make targets
 	rm -rf $(BIN_DIR)

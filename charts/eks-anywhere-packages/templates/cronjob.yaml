@@ -10,6 +10,7 @@ metadata:
 spec:
   schedule: "0 */5 * * *"
   successfulJobsHistoryLimit: 3
+  suspend: {{.Values.cronjob.suspend}}
   failedJobsHistoryLimit: 5
   jobTemplate:
     spec:

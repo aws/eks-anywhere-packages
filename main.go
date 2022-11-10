@@ -89,12 +89,12 @@ func main() {
 	}
 
 	if os.Getenv("ENABLE_WEBHOOKS") == "true" {
-		if err = (&api.PackageBundle{}).SetupWebhookWithManager(mgr); err != nil {
+		if err := webhook.InitPackageBundleValidator(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "PackageBundle")
 			os.Exit(1)
 		}
-		if err := webhook.InitActiveBundleValidator(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "ActiveBundleValidator")
+		if err := webhook.InitPackageBundleControllerValidator(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "PackageBundleController")
 			os.Exit(1)
 		}
 		if err = webhook.InitPackageValidator(mgr); err != nil {

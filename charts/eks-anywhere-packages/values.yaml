@@ -77,8 +77,10 @@ controller:
     periodSeconds: 10
   # -- Controller repository name.
   repository: "eks-anywhere-packages"
-  # -- Controller image tag, or SHA256 checksum.
-  tag: "{{eks-anywhere-packages}}"
+  # -- Controller image tag
+  tag: "{{eks-anywhere-packages-tag}}"
+  # -- Controller image digest
+  digest: "{{eks-anywhere-packages}}"
   # -- Whether to turn on Webhooks for the controller image
   enableWebhooks: "true"
   # -- Additional environment variables for the controller pod.
@@ -103,8 +105,11 @@ cronjob:
   name: ecr-refresher
   # -- ECR refresher repository name.
   repository: "ecr-token-refresher"
-  # -- ECR refresher tag, or SHA256 checksum.
-  tag: "{{ecr-token-refresher}}"
+  # -- ECR refresher tag
+  tag: "{{ecr-token-refresher-tag}}"
+  # -- ECR refresher digest
+  digest: "{{ecr-token-refresher}}"
+  suspend: false
 #  Additional Variables for Config Map for namespace
 nsconfigmap:
   name: ns-secret-map
