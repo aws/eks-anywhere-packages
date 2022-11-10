@@ -8,6 +8,7 @@ import (
 
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -82,10 +83,15 @@ func (s *ecrSecret) AddSecretToAllNamespace(ctx context.Context) error {
 		return err
 	}
 
+	if *cronjob.Spec.Suspend {
+		return nil
+	}
+
 	jobSpec := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      jobExecName + strconv.FormatInt(time.Now().UTC().UnixMilli(), 10),
 			Namespace: api.PackageNamespace,
+			Labels:    map[string]string{"createdBy": "controller"},
 		},
 		Spec: cronjob.Spec.JobTemplate.Spec,
 	}
@@ -96,7 +102,8 @@ func (s *ecrSecret) AddSecretToAllNamespace(ctx context.Context) error {
 		return err
 	}
 
-	return nil
+	err = s.cleanupPrevRuns(ctx)
+	return err
 }
 
 func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name string, namespace string) error {
@@ -130,4 +137,27 @@ func (s *ecrSecret) GetSecretValues(ctx context.Context, namespace string) (map[
 	values["imagePullSecrets"] = imagePullSecret
 
 	return values, nil
+}
+
+func (s *ecrSecret) cleanupPrevRuns(ctx context.Context) error {
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"createdBy": "controller"}}
+	deletePropagation := metav1.DeletePropagationBackground
+	jobs, err := s.clientset.BatchV1().Jobs(api.PackageNamespace).
+		List(ctx, metav1.ListOptions{LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
+
+	if err != nil {
+		return err
+	}
+	for _, job := range jobs.Items {
+		if job.Status.Succeeded == 1 {
+			err := s.clientset.BatchV1().Jobs(api.PackageNamespace).
+				Delete(ctx, job.Name,
+					metav1.DeleteOptions{PropagationPolicy: &deletePropagation})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

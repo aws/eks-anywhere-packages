@@ -246,20 +246,25 @@ func TestGetSecretValues(t *testing.T) {
 
 func TestAddSecretToAllNamespace(t *testing.T) {
 	ctx := context.TODO()
-
+	suspend := false
 	t.Run("golden path for adding ECR Secret to all namespaces", func(t *testing.T) {
 		mockClientset := fake.NewSimpleClientset(&batchv1.CronJob{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      cronJobName,
 				Namespace: api.PackageNamespace,
 			},
-			Spec: batchv1.CronJobSpec{},
+			Spec: batchv1.CronJobSpec{
+				Suspend: &suspend,
+			},
 		})
 
 		ecrAuth := ecrSecret{clientset: mockClientset}
 
 		err := ecrAuth.AddSecretToAllNamespace(ctx)
 		assert.NoError(t, err)
+		jobs, err := mockClientset.BatchV1().Jobs(api.PackageNamespace).List(ctx, metav1.ListOptions{})
+		assert.NoError(t, err)
+		assert.NotNil(t, jobs.Items)
 	})
 
 	t.Run("golden path for adding ECR Secret to all namespaces with missing job", func(t *testing.T) {
@@ -268,7 +273,9 @@ func TestAddSecretToAllNamespace(t *testing.T) {
 				Name:      "wrong-name",
 				Namespace: api.PackageNamespace,
 			},
-			Spec: batchv1.CronJobSpec{},
+			Spec: batchv1.CronJobSpec{
+				Suspend: &suspend,
+			},
 		})
 
 		ecrAuth := ecrSecret{clientset: mockClientset}
@@ -283,12 +290,94 @@ func TestAddSecretToAllNamespace(t *testing.T) {
 				Name:      cronJobName,
 				Namespace: "wrong-ns",
 			},
-			Spec: batchv1.CronJobSpec{},
+			Spec: batchv1.CronJobSpec{
+				Suspend: &suspend,
+			},
 		})
 
 		ecrAuth := ecrSecret{clientset: mockClientset}
 
 		err := ecrAuth.AddSecretToAllNamespace(ctx)
 		assert.NotNil(t, err)
+	})
+
+	t.Run("golden path for adding ECR Secret to all namespaces skipping if suspended cronjob", func(t *testing.T) {
+		suspend = true
+		mockClientset := fake.NewSimpleClientset(&batchv1.CronJob{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      cronJobName,
+				Namespace: api.PackageNamespace,
+			},
+			Spec: batchv1.CronJobSpec{
+				Suspend: &suspend,
+			},
+		})
+
+		ecrAuth := ecrSecret{clientset: mockClientset}
+
+		err := ecrAuth.AddSecretToAllNamespace(ctx)
+		assert.NoError(t, err)
+		jobs, err := mockClientset.BatchV1().Jobs(api.PackageNamespace).List(ctx, metav1.ListOptions{})
+		assert.NoError(t, err)
+		assert.Nil(t, jobs.Items)
+	})
+}
+
+func TestCleanupPrevRuns(t *testing.T) {
+	ctx := context.TODO()
+	t.Run("golden path for deleting old auth pods", func(t *testing.T) {
+		mockClientset := fake.NewSimpleClientset(&batchv1.Job{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      jobExecName + "1",
+				Namespace: api.PackageNamespace,
+				Labels:    map[string]string{"createdBy": "controller"},
+			},
+			Status: batchv1.JobStatus{Succeeded: 1},
+		})
+
+		ecrAuth := ecrSecret{clientset: mockClientset}
+
+		err := ecrAuth.cleanupPrevRuns(ctx)
+		assert.NoError(t, err)
+		jobs, err := mockClientset.BatchV1().Jobs(api.PackageNamespace).List(ctx, metav1.ListOptions{})
+		assert.NoError(t, err)
+		assert.Nil(t, jobs.Items)
+	})
+
+	t.Run("golden path for not deleting running auth pods", func(t *testing.T) {
+		mockClientset := fake.NewSimpleClientset(&batchv1.Job{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      jobExecName + "1",
+				Namespace: api.PackageNamespace,
+				Labels:    map[string]string{"createdBy": "controller"},
+			},
+			Status: batchv1.JobStatus{Succeeded: 0},
+		})
+
+		ecrAuth := ecrSecret{clientset: mockClientset}
+
+		err := ecrAuth.cleanupPrevRuns(ctx)
+		assert.NoError(t, err)
+		jobs, err := mockClientset.BatchV1().Jobs(api.PackageNamespace).List(ctx, metav1.ListOptions{})
+		assert.NoError(t, err)
+		assert.NotNil(t, jobs.Items)
+	})
+
+	t.Run("golden path for not deleting jobs not created by controller", func(t *testing.T) {
+		mockClientset := fake.NewSimpleClientset(&batchv1.Job{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      jobExecName + "1",
+				Namespace: api.PackageNamespace,
+			},
+			Status: batchv1.JobStatus{Succeeded: 1},
+		})
+
+		ecrAuth := ecrSecret{clientset: mockClientset}
+
+		err := ecrAuth.cleanupPrevRuns(ctx)
+		assert.NoError(t, err)
+		jobs, err := mockClientset.BatchV1().Jobs(api.PackageNamespace).List(ctx, metav1.ListOptions{})
+		assert.NoError(t, err)
+		assert.NotNil(t, jobs.Items)
 	})
 }
