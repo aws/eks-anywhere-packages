@@ -20,7 +20,7 @@ spec:
           serviceAccountName: {{ include "eks-anywhere-packages.serviceAccountName" . }}
           containers:
             - name: {{.Values.cronjob.name}}
-              image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.cronjob }}
+              image: {{.Values.sourceRegistry}}{{ template "cronjob.image" . }}
               imagePullPolicy: {{ .Values.imagePullPolicy }}
               env:
                 - name: ECR_TOKEN_SECRET_NAME
