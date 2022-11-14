@@ -47,7 +47,7 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.controller }}
+          image: {{.Values.sourceRegistry}}{{ template "controller.image" . }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: ENABLE_WEBHOOKS
