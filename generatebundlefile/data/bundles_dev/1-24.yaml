@@ -71,3 +71,10 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: latest
+  - org: prometheus
+    projects:
+      - name: prometheus
+        repository: prometheus/charts/prometheus
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
