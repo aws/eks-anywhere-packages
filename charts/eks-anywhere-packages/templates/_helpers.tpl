@@ -87,17 +87,3 @@ Create image name
 {{- printf "/%s:%s" .repository .tag -}}
 {{- end -}}
 {{- end -}}
-
-{{/*
-Template Controller image from Chart version
-*/}}
-{{- define "controller.image" -}}
-{{- printf "/%s:v%s" .Values.controller.repository .Chart.Version -}}
-{{- end -}}
-
-{{/*
-Template Cronjob image from Chart version
-*/}}
-{{- define "cronjob.image" -}}
-{{- printf "/%s:v%s" .Values.cronjob.repository .Chart.Version -}}
-{{- end -}}
