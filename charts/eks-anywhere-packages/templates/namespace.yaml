@@ -1,6 +1,8 @@
 apiVersion: v1
 kind: Namespace
 metadata:
+  annotations:
+    "helm.sh/resource-policy": keep
   creationTimestamp: null
   name: eksa-packages
 spec: {}
