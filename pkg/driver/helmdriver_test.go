@@ -60,9 +60,10 @@ func TestIsConfigChanged(t *testing.T) {
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(fmt.Errorf("blah"))
 
-		_, err = helm.IsConfigChanged(ctx, "name-does-not-exist", values)
+		changed, err := helm.IsConfigChanged(ctx, "name-does-not-exist", values)
 
-		assert.EqualError(t, err, "installation not found \"name-does-not-exist\": IsReachable test error blah")
+		assert.NoError(t, err)
+		assert.True(t, changed)
 	})
 
 	t.Run("golden path returning true", func(t *testing.T) {

@@ -228,7 +228,8 @@ func (d *helmDriver) IsConfigChanged(_ context.Context, name string, values map[
 	get := action.NewGet(d.cfg)
 	rel, err := get.Run(name)
 	if err != nil {
-		return false, fmt.Errorf("installation not found %q: %w", name, err)
+		d.log.Info("Installation not found %q: %w", name, err)
+		return true, nil
 	}
 
 	// Check imagePullSecret not defined in config
