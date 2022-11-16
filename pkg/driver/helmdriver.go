@@ -109,7 +109,7 @@ func (d *helmDriver) Install(ctx context.Context,
 		if errors.Is(err, driver.ErrReleaseNotFound) {
 			// Trigger configmap updates and namespace before trying to install charts
 			if err := d.secretAuth.AddToConfigMap(ctx, name, namespace); err != nil {
-				d.log.Info("failed to Update ConfigMap with installed namespace")
+				d.log.Info("failed to Update ConfigMap with installed namespace", "error", err)
 			}
 			if err := d.secretAuth.AddSecretToAllNamespace(ctx); err != nil {
 				d.log.Info("failed to Update Secret in all namespaces", "error", err)
@@ -139,7 +139,7 @@ func (d *helmDriver) Install(ctx context.Context,
 	// Update installed-namespaces on successful install
 	err = d.secretAuth.AddToConfigMap(ctx, name, namespace)
 	if err != nil {
-		d.log.Info("failed to Update ConfigMap with installed namespace")
+		d.log.Info("failed to Update ConfigMap with installed namespace", "error", err)
 	}
 	if err := d.secretAuth.AddSecretToAllNamespace(ctx); err != nil {
 		d.log.Info("failed to Update Secret in all namespaces", "error", err)

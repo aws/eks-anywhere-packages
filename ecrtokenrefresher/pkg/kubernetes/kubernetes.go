@@ -63,7 +63,7 @@ func UpdateTokens(secretname string, creds []aws.ECRAuth) (error, []string) {
 
 		remoteClientset, err := getRemoteClient(clusterName, clientset)
 		if err != nil {
-			failedList = append(failedList, fmt.Sprintf("Failed to create client for %s cluster, ", clusterName))
+			failedList = append(failedList, fmt.Sprintf("Failed to create client for %s cluster, with error: %s", clusterName, err))
 			continue
 		}
 
