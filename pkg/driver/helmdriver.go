@@ -70,12 +70,12 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 }
 
 func (d *helmDriver) Install(ctx context.Context,
-	name string, namespace string, source api.PackageOCISource, values map[string]interface{}) error {
+	name string, namespace string, createNamespace bool, source api.PackageOCISource, values map[string]interface{}) error {
 	var err error
 	install := action.NewInstall(d.cfg)
 	install.Version = source.Version
 	install.ReleaseName = name
-	install.Namespace = namespace
+	install.CreateNamespace = createNamespace
 
 	helmChart, err := d.getChart(install, source)
 	if err != nil {
@@ -90,6 +90,7 @@ func (d *helmDriver) Install(ctx context.Context,
 			namespace = "default"
 		}
 	}
+	install.Namespace = namespace
 
 	// Update values with imagePullSecrets
 	// If no secret values we should still continue as it could be case of public registry or local registry

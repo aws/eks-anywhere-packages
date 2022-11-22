@@ -85,6 +85,11 @@ type PackageBundleControllerSpec struct {
 	// Repository portion of an OCI address to the bundle
 	// +optional
 	BundleRepository string `json:"bundleRepository"`
+
+	// +kubebuilder:default:=false
+	// Allow target namespace creation by the controller
+	// +optional
+	CreateNamespace bool `json:"createNamespace"`
 }
 
 // +kubebuilder:validation:Enum=ignored;active;disconnected;upgrade available

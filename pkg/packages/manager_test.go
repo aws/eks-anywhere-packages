@@ -305,7 +305,7 @@ func TestManagerLifecycle(t *testing.T) {
 		mc, mockDriver := givenMocks(t)
 		mc.Package.Status.State = api.StateInstalling
 		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
-		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any()).Return(nil)
+		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, false, mc.Source, gomock.Any()).Return(nil)
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 60*time.Second, "")
@@ -317,10 +317,21 @@ func TestManagerLifecycle(t *testing.T) {
 		mc.Package.Namespace = "eksa-packages"
 		t.Setenv("CLUSTER_NAME", "franky")
 		mockDriver.EXPECT().Initialize(mc.Ctx, "").Return(nil)
-		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any()).Return(nil)
+		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, false, mc.Source, gomock.Any()).Return(nil)
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 60*time.Second, "Deprecated package namespace. Move to eksa-packages-franky")
+	})
+
+	t.Run("installing with namespace creation enabled creates the namespace", func(t *testing.T) {
+		mc, mockDriver := givenMocks(t)
+		mc.PBC.Spec.CreateNamespace = true
+		mc.Package.Status.State = api.StateInstalling
+		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
+		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, true, mc.Source, gomock.Any()).Return(nil)
+		result := sut.Process(mc)
+		assert.True(t, result)
+		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 60*time.Second, "")
 	})
 
 	t.Run("installing initialize fails", func(t *testing.T) {
@@ -336,7 +347,7 @@ func TestManagerLifecycle(t *testing.T) {
 		mc, mockDriver := givenMocks(t)
 		mc.Package.Status.State = api.StateInstalling
 		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
-		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, mc.Source, gomock.Any()).Return(fmt.Errorf("boom"))
+		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, false, mc.Source, gomock.Any()).Return(fmt.Errorf("boom"))
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalling, expectedSource, 60*time.Second, "boom")

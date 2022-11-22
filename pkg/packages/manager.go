@@ -150,7 +150,9 @@ func processInstalling(mc *ManagerContext) bool {
 		mc.Log.Error(err, "Initialization failed")
 		return true
 	}
-	if err := mc.PackageDriver.Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, mc.Source, values); err != nil {
+
+	createNamespace := mc.PBC.Spec.CreateNamespace
+	if err := mc.PackageDriver.Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, createNamespace, mc.Source, values); err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Install failed")
 		return true

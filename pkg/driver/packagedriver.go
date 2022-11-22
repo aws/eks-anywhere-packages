@@ -16,7 +16,7 @@ type PackageDriver interface {
 	Initialize(ctx context.Context, clusterName string) error
 
 	// Install or upgrade an package.
-	Install(ctx context.Context, name string, namespace string, source api.PackageOCISource, values map[string]interface{}) error
+	Install(ctx context.Context, name string, namespace string, createNamespace bool, source api.PackageOCISource, values map[string]interface{}) error
 
 	// Uninstall an package.
 	Uninstall(ctx context.Context, name string) error

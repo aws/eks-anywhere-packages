@@ -50,17 +50,17 @@ func (mr *MockPackageDriverMockRecorder) Initialize(ctx, clusterName interface{}
 }
 
 // Install mocks base method.
-func (m *MockPackageDriver) Install(ctx context.Context, name, namespace string, source v1alpha1.PackageOCISource, values map[string]interface{}) error {
+func (m *MockPackageDriver) Install(ctx context.Context, name, namespace string, createNamespace bool, source v1alpha1.PackageOCISource, values map[string]interface{}) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Install", ctx, name, namespace, source, values)
+	ret := m.ctrl.Call(m, "Install", ctx, name, namespace, createNamespace, source, values)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Install indicates an expected call of Install.
-func (mr *MockPackageDriverMockRecorder) Install(ctx, name, namespace, source, values interface{}) *gomock.Call {
+func (mr *MockPackageDriverMockRecorder) Install(ctx, name, namespace, createNamespace, source, values interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Install", reflect.TypeOf((*MockPackageDriver)(nil).Install), ctx, name, namespace, source, values)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Install", reflect.TypeOf((*MockPackageDriver)(nil).Install), ctx, name, namespace, createNamespace, source, values)
 }
 
 // IsConfigChanged mocks base method.
