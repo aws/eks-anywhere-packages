@@ -1,0 +1,16 @@
+# This file is only used to determine which Helm charts to move from Dev to Prod during a release.
+name: "v1-23-1001"
+kubernetesVersion: "1.23"
+packages:
+  - org: emissary
+    projects:
+      - name: emissary
+        repository: emissary-ingress/emissary
+        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 3.3.0-latest
+      - name: emissary-crds
+        repository: emissary-ingress/crds
+        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 3.3.0-latest
