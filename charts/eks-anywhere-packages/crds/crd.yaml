@@ -105,6 +105,10 @@ spec:
                     default: eks-anywhere-packages-bundles
                     description: Repository portion of an OCI address to the bundle
                     type: string
+                  createNamespace:
+                    default: false
+                    description: Allow target namespace creation by the controller
+                    type: boolean
                   defaultImageRegistry:
                     default: 783794618700.dkr.ecr.us-west-2.amazonaws.com
                     description: DefaultImageRegistry for pulling images
