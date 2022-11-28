@@ -94,6 +94,49 @@ spec:
               detail:
                 description: Detail of the state.
                 type: string
+              spec:
+                description: Spec previous settings
+                properties:
+                  activeBundle:
+                    description: ActiveBundle is name of the bundle from which packages
+                      should be sourced.
+                    type: string
+                  bundleRepository:
+                    default: eks-anywhere-packages-bundles
+                    description: Repository portion of an OCI address to the bundle
+                    type: string
+                  createNamespace:
+                    default: false
+                    description: Allow target namespace creation by the controller
+                    type: boolean
+                  defaultImageRegistry:
+                    default: 783794618700.dkr.ecr.us-west-2.amazonaws.com
+                    description: DefaultImageRegistry for pulling images
+                    type: string
+                  defaultRegistry:
+                    default: public.ecr.aws/eks-anywhere
+                    description: DefaultRegistry for pulling helm charts and the bundle
+                    type: string
+                  logLevel:
+                    description: LogLevel controls the verbosity of logging in the
+                      controller.
+                    format: int32
+                    type: integer
+                  privateRegistry:
+                    description: PrivateRegistry is the registry being used for all
+                      images, charts and bundles
+                    type: string
+                  upgradeCheckInterval:
+                    default: 24h
+                    description: "UpgradeCheckInterval is the time between upgrade
+                      checks. \n The format is that of time's ParseDuration."
+                    type: string
+                  upgradeCheckShortInterval:
+                    default: 1h
+                    description: "UpgradeCheckShortInterval time between upgrade checks
+                      if there is a problem. \n The format is that of time's ParseDuration."
+                    type: string
+                type: object
               state:
                 description: State of the bundle controller.
                 enum:
@@ -468,6 +511,27 @@ spec:
                 - registry
                 - repository
                 - version
+                type: object
+              spec:
+                description: Spec previous settings
+                properties:
+                  config:
+                    description: Config for the package.
+                    type: string
+                  packageName:
+                    description: PackageName is the name of the package as specified
+                      in the bundle.
+                    type: string
+                  packageVersion:
+                    description: PackageVersion is a human-friendly version name or
+                      sha256 checksum for the package, as specified in the bundle.
+                    type: string
+                  targetNamespace:
+                    description: TargetNamespace defines where package resources will
+                      be deployed.
+                    type: string
+                required:
+                - packageName
                 type: object
               state:
                 description: State of the installation.

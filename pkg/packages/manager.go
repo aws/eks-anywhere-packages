@@ -70,6 +70,7 @@ func processInitializing(mc *ManagerContext) bool {
 	mc.Package.Status.Source = mc.Source
 	mc.Package.Status.State = api.StateInstallingDependencies
 	mc.RequeueAfter = retryNow
+	mc.Package.Spec.DeepCopyInto(&mc.Package.Status.Spec)
 	return true
 }
 
@@ -147,7 +148,6 @@ func processInstalling(mc *ManagerContext) bool {
 	}
 	if err := mc.PackageDriver.Initialize(mc.Ctx, mc.Package.GetClusterName()); err != nil {
 		mc.Package.Status.Detail = err.Error()
-		mc.Log.Error(err, "Initialization failed")
 		return true
 	}
 
@@ -164,6 +164,7 @@ func processInstalling(mc *ManagerContext) bool {
 	if len(mc.Package.GetClusterName()) == 0 {
 		mc.Package.Status.Detail = "Deprecated package namespace. Move to eksa-packages-" + os.Getenv("CLUSTER_NAME")
 	}
+	mc.Package.Spec.DeepCopyInto(&mc.Package.Status.Spec)
 	return true
 }
 
@@ -203,6 +204,7 @@ func processInstalled(mc *ManagerContext) bool {
 		mc.Log.Info("configuration change detected, upgrading")
 		mc.Package.Status.State = api.StateUpdating
 		mc.RequeueAfter = retryShort
+		mc.Package.Spec.DeepCopyInto(&mc.Package.Status.Spec)
 		return true
 	}
 	mc.RequeueAfter = retryVeryLong
@@ -231,6 +233,7 @@ func processUnknown(mc *ManagerContext) bool {
 	mc.Log.Info("Unknown state", "name", mc.Package.Name)
 	mc.Package.Status.Detail = "Unknown state: " + string(mc.Package.Status.State)
 	mc.RequeueAfter = retryNever
+	mc.Package.Spec.DeepCopyInto(&mc.Package.Status.Spec)
 	return true
 }
 
