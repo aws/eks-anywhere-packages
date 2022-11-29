@@ -110,6 +110,9 @@ build: go.sum generate ## Build package-manager binary.
 run: manifests generate vet ## Run a controller from your host.
 	$(GO) run ./main.go --zap-log-level 9
 
+migrate: build ## Run a controller from your host.
+	$(GO) run ./main.go --migrate --zap-log-level 9
+
 docker-build: test ## Build docker image with the package-manager.
 	docker build -t ${IMG} .
 
