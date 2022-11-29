@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"context"
+	"log"
+
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"log"
 )
 
 var packageLog logr.Logger

@@ -16,17 +16,19 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	"github.com/aws/eks-anywhere-packages/controllers"
-	"github.com/aws/eks-anywhere-packages/pkg/webhook"
+	"os"
+
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
+
+	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/controllers"
+	"github.com/aws/eks-anywhere-packages/pkg/webhook"
 )
 
 var scheme = runtime.NewScheme()
