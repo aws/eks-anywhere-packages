@@ -31,3 +31,9 @@ function awsAuth () {
 
     aws "$awsCmd" "$region" "--profile=${PROFILE:-}" get-login-password
 }
+
+function removeBundleMetadata () {
+    local bundle=${1?:no bundle specified}
+    yq 'del(.metadata.name)' ${bundle} > ${bundle}.strippedname
+    yq 'del(.metadata.annotations)' ${bundle}.strippedname > ${bundle}.stripped
+}
