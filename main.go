@@ -14,8 +14,16 @@
 
 package main
 
-import "github.com/aws/eks-anywhere-packages/cmd"
+import (
+	"os"
+
+	"github.com/aws/eks-anywhere-packages/cmd"
+)
 
 func main() {
-	cmd.Execute()
+	err := cmd.Execute()
+	if err != nil {
+		os.Exit(-1)
+	}
+	os.Exit(0)
 }
