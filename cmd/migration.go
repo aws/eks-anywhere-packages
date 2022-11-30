@@ -85,14 +85,15 @@ func migrate() error {
 		return fmt.Errorf("reading: %v", err)
 	}
 
-	for _, pkg := range packageList.Items {
+	for i := range packageList.Items {
+		pkg := &packageList.Items[i]
 		newPackage := v1alpha1.Package{}
 		err = rtClient.Get(ctx, client.ObjectKey{Namespace: clusterNamespace, Name: pkg.Name}, &newPackage)
 		if err != nil {
 			pkg.Namespace = clusterNamespace
 			pkg.ResourceVersion = ""
 			pkg.UID = ""
-			err = rtClient.Create(ctx, &pkg, &client.CreateOptions{})
+			err = rtClient.Create(ctx, pkg, &client.CreateOptions{})
 			if err != nil {
 				return fmt.Errorf("update error: %v", err)
 			}
@@ -100,7 +101,7 @@ func migrate() error {
 			pkg.Namespace = clusterNamespace
 			pkg.ResourceVersion = newPackage.ResourceVersion
 			pkg.UID = newPackage.UID
-			err = rtClient.Update(ctx, &pkg, &client.UpdateOptions{})
+			err = rtClient.Update(ctx, pkg, &client.UpdateOptions{})
 			if err != nil {
 				return fmt.Errorf("update error: %v", err)
 			}
