@@ -71,4 +71,9 @@ packages:
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 3.0.0-c5b5d47b53ae5d769cc8349f4822ce2786ad198e
+            - name: 3.3.0-cbf71de34d8bb5a72083f497d599da63e8b3837b
+      - name: emissary-crds
+        repository: emissary-ingress/crds
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: 3.3.0-cbf71de34d8bb5a72083f497d599da63e8b3837b
