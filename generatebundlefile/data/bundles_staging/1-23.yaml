@@ -69,4 +69,11 @@ packages:
         registry: public.ecr.aws/w9m0f3l5
         versions:
             - name: 3.3.0-cbf71de34d8bb5a72083f497d599da63e8b3837b
+  - org: prometheus
+    projects:
+      - name: prometheus
+        repository: prometheus/charts/prometheus
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+            - name: 2.39.1-7ff2453390a7073fd940a0dfc27dbfd2c6c58c0f
 
