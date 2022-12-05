@@ -20,6 +20,8 @@ type Options struct {
 	key            string
 	publicProfile  string
 	privateProfile string
+	bundleFile     string
+	regionCheck    bool
 }
 
 func (o *Options) SetupLogger() {
@@ -78,7 +80,8 @@ func NewOptions() *Options {
 	fs.StringVar(&o.key, "key", "k", "The key to sign with")
 	fs.StringVar(&o.publicProfile, "public-profile", "", "The AWS Public Profile to release the prod bundle into")
 	fs.StringVar(&o.privateProfile, "private-profile", "", "The AWS Private Profile to release all packages into")
-
+	fs.StringVar(&o.bundleFile, "bundle", "", "The path where the bundle file lives")
+	fs.BoolVar(&o.regionCheck, "region-check", false, "Check the passed in bundle resource and if they exist in the supported ECR regions")
 	err := fs.Parse(os.Args[1:])
 	if err != nil {
 		BundleLog.Error(err, "Error parsing input flags")

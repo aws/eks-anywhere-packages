@@ -62,6 +62,23 @@ func deleteEmptyStringSlice(s []string) []string {
 	return r
 }
 
+func printSlice(s []string) {
+	if len(s) == 0 {
+		return
+	}
+	fmt.Println(s[0])
+	printSlice(s[1:])
+}
+
+func printMap(s map[string]string) {
+	if len(s) == 0 {
+		return
+	}
+	for k, v := range s {
+		fmt.Println(k, ":", v)
+	}
+}
+
 // ExecCommand runs a given command, and constructs the log/output.
 func ExecCommand(cmd *exec.Cmd) (string, error) {
 	stdout, err := cmd.Output()

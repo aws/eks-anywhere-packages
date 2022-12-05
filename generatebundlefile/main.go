@@ -51,6 +51,15 @@ func main() {
 		return
 	}
 
+	if opts.regionCheck {
+		err := cmdRegion(opts)
+		if err != nil {
+			BundleLog.Error(err, "checking bundle across region")
+			os.Exit(1)
+		}
+		return
+	}
+
 	err := cmdGenerate(opts)
 	if err != nil {
 		BundleLog.Error(err, "generating bundle")
@@ -139,6 +148,74 @@ func cmdPromote(opts *Options) error {
 		return fmt.Errorf("cleaning up docker auth file: %w", err)
 	}
 	BundleLog.Info("Promote Finished, exiting gracefully")
+	return nil
+}
+
+func cmdRegion(opts *Options) error {
+	BundleLog.Info("Starting Region Check Process")
+	if opts.bundleFile == "" {
+		BundleLog.Info("Please use the --bundle flag when running region check")
+		os.Exit(1)
+	}
+	Bundle, err := ValidateBundle(opts.bundleFile)
+	if err != nil {
+		BundleLog.Error(err, "Unable to validate input file")
+		os.Exit(1)
+	}
+
+	BundleLog.Info("Getting list of images to Region Check")
+	imagesToCheck := make(map[string]string)
+	for _, packages := range Bundle.Spec.Packages {
+		for _, versions := range packages.Source.Versions {
+			for _, images := range versions.Images {
+				imagesToCheck[images.Repository] = images.Digest
+			}
+		}
+	}
+	printMap(imagesToCheck)
+
+	//STS and ECR Client to get Account Number
+	BundleLog.Info("Creating SDK connections to Region Check")
+	clients := &SDKClients{}
+	clients, err = clients.GetProfileSDKConnection("ecr", "default", ecrRegion)
+	if err != nil {
+		BundleLog.Error(err, "getting SDK connection")
+		os.Exit(1)
+	}
+	clients, err = clients.GetProfileSDKConnection("sts", "default", ecrRegion)
+	if err != nil {
+		BundleLog.Error(err, "getting profile SDK connection")
+		os.Exit(1)
+	}
+	var imagesNotFound []string
+	for _, region := range RegionList {
+		BundleLog.Info("Starting Check for", "Region", region)
+		clients, err = clients.GetProfileSDKConnection("ecr", "default", region)
+		if err != nil {
+			BundleLog.Error(err, "getting ECR SDK connection")
+			os.Exit(1)
+		}
+		if err != nil {
+			BundleLog.Error(err, "error creating ECR client")
+			os.Exit(1)
+		}
+		registry := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClientRelease.AccountID, region)
+		for repository, sha := range imagesToCheck {
+			check, err := clients.ecrClientRelease.shaExistsInRepository(repository, sha)
+			if err != nil {
+				BundleLog.Error(err, "finding ECR images")
+			}
+			if !check {
+				imagesNotFound = append(imagesNotFound, fmt.Sprintf("%s:%s@%s", registry, repository, sha))
+			}
+		}
+	}
+	if len(imagesNotFound) > 0 {
+		BundleLog.Error(fmt.Errorf("Missing Image List"), "Region check failed")
+		printSlice(imagesNotFound)
+		os.Exit(1)
+	}
+	BundleLog.Info("Passed Region Check, All Clear!")
 	return nil
 }
 
@@ -282,7 +359,7 @@ func cmdGenerate(opts *Options) error {
 				os.Exit(1)
 			}
 
-			clients, err = clients.GetProfileSDKConnection("ecrpublic", opts.publicProfile)
+			clients, err = clients.GetProfileSDKConnection("ecrpublic", opts.publicProfile, ecrPublicRegion)
 			if err != nil {
 				BundleLog.Error(err, "Unable create SDK Client connections")
 				os.Exit(1)
@@ -338,12 +415,12 @@ func cmdGenerate(opts *Options) error {
 				os.Exit(1)
 			}
 
-			clients, err = clients.GetProfileSDKConnection("ecr", opts.privateProfile)
+			clients, err = clients.GetProfileSDKConnection("ecr", opts.privateProfile, ecrRegion)
 			if err != nil {
 				BundleLog.Error(err, "getting SDK connection")
 				os.Exit(1)
 			}
-			clients, err = clients.GetProfileSDKConnection("sts", opts.privateProfile)
+			clients, err = clients.GetProfileSDKConnection("sts", opts.privateProfile, ecrRegion)
 			if err != nil {
 				BundleLog.Error(err, "getting profile SDK connection")
 				os.Exit(1)
