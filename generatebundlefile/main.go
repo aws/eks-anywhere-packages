@@ -195,10 +195,6 @@ func cmdRegion(opts *Options) error {
 			BundleLog.Error(err, "getting ECR SDK connection")
 			os.Exit(1)
 		}
-		if err != nil {
-			BundleLog.Error(err, "error creating ECR client")
-			os.Exit(1)
-		}
 		registry := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClientRelease.AccountID, region)
 		for repository, sha := range imagesToCheck {
 			check, err := clients.ecrClientRelease.shaExistsInRepository(repository, sha)
