@@ -23,7 +23,7 @@ func NewRegistryPuller() *RegistryPuller {
 }
 
 func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
-	registry, err := content.NewRegistry(content.RegistryOptions{})
+	registry, err := content.NewRegistry(content.RegistryOptions{Insecure: true})
 	if err != nil {
 		return nil, fmt.Errorf("creating registry: %w", err)
 	}
