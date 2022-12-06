@@ -34,30 +34,7 @@ fi
 make build
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin
 
-function generate () {
-    local version=${1?:no version specified}
-
-    cd "${BASE_DIRECTORY}/generatebundlefile"
-    ./bin/generatebundlefile --input "./data/bundles_dev/${version}.yaml" \
-			     --key alias/signingPackagesKey
-}
-
-function push () {
-    local version=${1?:no version specified}
-    cd "${BASE_DIRECTORY}/generatebundlefile/output"
-    awsAuth "$REPO" | "$ORAS_BIN" login "$REPO" --username AWS --password-stdin
-    "$ORAS_BIN" pull "${REPO}:v${version}-latest" -o ${version}
-    removeBundleMetadata ${version}/bundle.yaml
-    removeBundleMetadata bundle.yaml
-    if (git diff --no-index --quiet -- ${version}/bundle.yaml.stripped bundle.yaml.stripped) then
-        echo "bundle contents are identical skipping bundle push for ${version}"
-    else
-        "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-        "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
-    fi
-}
-
-for version in 1-20 1-21 1-22 1-23 1-24; do
-    generate ${version}
+for version in 1-21 1-22 1-23 1-24; do
+    generate ${version} "dev"
     push ${version}
 done
