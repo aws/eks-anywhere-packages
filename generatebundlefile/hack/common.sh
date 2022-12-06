@@ -32,6 +32,39 @@ function awsAuth () {
     aws "$awsCmd" "$region" "--profile=${PROFILE:-}" get-login-password
 }
 
+function generate () {
+    local version=$1
+    local stage=$2
+    local kms_key=signingPackagesKey
+
+    cd "${BASE_DIRECTORY}/generatebundlefile"
+    ./bin/generatebundlefile --input "./data/bundles_${stage}/${version}.yaml" \
+                 --key alias/${kms_key} \
+                 --output "output-${version}"
+}
+
+function regionCheck () {
+    local version=$1
+    cd "${BASE_DIRECTORY}/generatebundlefile"
+    ./bin/generatebundlefile --bundle "output-${version}/bundle.yaml" \
+                --region-check true || true
+}
+
+function push () {
+    local version=${1?:no version specified}
+    cd "${BASE_DIRECTORY}/generatebundlefile/output-${version}"
+    awsAuth "$REPO" | "$ORAS_BIN" login "$REPO" --username AWS --password-stdin
+    "$ORAS_BIN" pull "${REPO}:v${version}-latest" -o ${version}
+    removeBundleMetadata ${version}/bundle.yaml
+    removeBundleMetadata bundle.yaml
+    if (git diff --no-index --quiet -- ${version}/bundle.yaml.stripped bundle.yaml.stripped) then
+        echo "bundle contents are identical skipping bundle push for ${version}"
+    else
+        "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+        "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
+    fi
+}
+
 function removeBundleMetadata () {
     local bundle=${1?:no bundle specified}
     yq 'del(.metadata.name)' ${bundle} > ${bundle}.strippedname

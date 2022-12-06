@@ -70,38 +70,13 @@ if [ ! -x "${ORAS_BIN}" ]; then
     make oras-install
 fi
 
-function generate () {
-    local version=$1
-    local kms_key=signingPackagesKey
-
-    cd "${BASE_DIRECTORY}/generatebundlefile"
-    ./bin/generatebundlefile --input "./data/bundles_prod/${version}.yaml" \
-                 --key alias/${kms_key} \
-                 --output "output-${version}"
-}
-
-function push () {
-    local version=${1?:no version specified}
-    cd "${BASE_DIRECTORY}/generatebundlefile/output-${version}"
-    awsAuth "$REPO" | "$ORAS_BIN" login "$REPO" --username AWS --password-stdin
-    "$ORAS_BIN" pull "${REPO}:v${version}-latest" -o ${version}
-    removeBundleMetadata ${version}/bundle.yaml
-    removeBundleMetadata bundle.yaml
-    if (git diff --no-index --quiet -- ${version}/bundle.yaml.stripped bundle.yaml.stripped) then
-        echo "bundle contents are identical skipping bundle push for ${version}"
-    else
-        "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-        "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
-    fi
-}
-
-for version in 1-20 1-21 1-22 1-23 1-24; do
-    generate ${version}
+for version in 1-21 1-22 1-23 1-24; do
+    generate ${version} "prod"
 done
 
 export AWS_PROFILE=prod
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
-for version in 1-20 1-21 1-22 1-23 1-24; do
+for version in 1-21 1-22 1-23 1-24; do
     push ${version}
 done
