@@ -20,6 +20,7 @@ import (
 	mocks2 "github.com/aws/eks-anywhere-packages/pkg/authenticator/mocks"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
+	"github.com/aws/eks-anywhere-packages/pkg/config"
 )
 
 const testBundleName = "v1.21-1001"
@@ -42,10 +43,11 @@ func givenPackageBundleController() api.PackageBundleController {
 func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 	t.Parallel()
 
+	cfg := config.GetConfig()
 	tcc := mocks2.NewMockTargetClusterClient(gomock.NewController(t))
 	rc := bundleMocks.NewMockRegistryClient(gomock.NewController(t))
 	bc := bundleMocks.NewMockClient(gomock.NewController(t))
-	bm := bundle.NewBundleManager(logr.Discard(), rc, bc, tcc)
+	bm := bundle.NewBundleManager(logr.Discard(), rc, bc, tcc, cfg)
 
 	controllerNN := types.NamespacedName{
 		Namespace: api.PackageNamespace,

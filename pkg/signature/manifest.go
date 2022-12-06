@@ -32,8 +32,16 @@ type GojqParams struct {
 }
 
 var (
-	AlwaysExcluded = []string{".status", ".metadata.creationTimestamp", ".metadata.generation", ".metadata.managedFields", ".metadata.uid", ".metadata.resourceVersion"}
-	GojqTemplate   = template.Must(template.New("gojq_query").Funcs(
+	AlwaysExcluded = []string{
+		".status",
+		".metadata.creationTimestamp",
+		".metadata.generation",
+		".metadata.managedFields",
+		".metadata.uid",
+		".metadata.resourceVersion",
+		".spec.minControllerVersion",
+	}
+	GojqTemplate = template.Must(template.New("gojq_query").Funcs(
 		template.FuncMap{
 			"StringsJoin": strings.Join,
 			"Escape": func(in string) string {

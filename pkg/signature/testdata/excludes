@@ -1,2 +1,3 @@
 .spec.packages[].source.registry
 .spec.packages[].source.repository
+.spec.minControllerVersion

@@ -40,6 +40,9 @@ spec:
           spec:
             description: PackageBundleSpec defines the desired state of PackageBundle.
             properties:
+              minControllerVersion:
+                description: Minimum required packages controller version
+                type: string
               packages:
                 description: Packages supported by this bundle.
                 items:
@@ -130,6 +133,9 @@ spec:
               spec:
                 description: PackageBundleSpec defines the desired state of PackageBundle.
                 properties:
+                  minControllerVersion:
+                    description: Minimum required packages controller version
+                    type: string
                   packages:
                     description: Packages supported by this bundle.
                     items:
@@ -223,6 +229,7 @@ spec:
                 - available
                 - ignored
                 - invalid
+                - controller upgrade required
                 type: string
             required:
             - state

@@ -18,9 +18,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:webhook:path=/validate-packages-eks-amazonaws-com-v1alpha1-packagebundle,mutating=false,failurePolicy=fail,sideEffects=None,groups=packages.eks.amazonaws.com,resources=packagebundles,verbs=create;update,versions=v1alpha1,name=vpackagebundle.kb.io,admissionReviewVersions=v1
@@ -39,6 +36,10 @@ type PackageBundleSpec struct {
 	// +kubebuilder:validation:Required
 	// Packages supported by this bundle.
 	Packages []BundlePackage `json:"packages"`
+
+	// +kubebuilder:validation:Optional
+	// Minimum required packages controller version
+	MinVersion string `json:"minControllerVersion"`
 }
 
 // BundlePackage specifies a package within a bundle.
@@ -109,14 +110,15 @@ type PackageBundleStatus struct {
 	State PackageBundleStateEnum `json:"state"`
 }
 
-// +kubebuilder:validation:Enum={"available","ignored","invalid"}
+// +kubebuilder:validation:Enum={"available","ignored","invalid","controller upgrade required"}
 // PackageBundleStateEnum defines the observed state of PackageBundle.
 type PackageBundleStateEnum string
 
 const (
-	PackageBundleStateAvailable PackageBundleStateEnum = "available"
-	PackageBundleStateIgnored   PackageBundleStateEnum = "ignored"
-	PackageBundleStateInvalid   PackageBundleStateEnum = "invalid"
+	PackageBundleStateAvailable       PackageBundleStateEnum = "available"
+	PackageBundleStateIgnored         PackageBundleStateEnum = "ignored"
+	PackageBundleStateInvalid         PackageBundleStateEnum = "invalid"
+	PackageBundleStateUpgradeRequired PackageBundleStateEnum = "controller upgrade required"
 )
 
 // +kubebuilder:object:root=true
