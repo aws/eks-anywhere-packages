@@ -61,13 +61,9 @@ func GetSDKClients() (*SDKClients, error) {
 	return clients, nil
 }
 
-func (c *SDKClients) GetProfileSDKConnection(service, profile string) (*SDKClients, error) {
+func (c *SDKClients) GetProfileSDKConnection(service, profile, region string) (*SDKClients, error) {
 	if service == "" || profile == "" {
 		return nil, fmt.Errorf("empty service, or profile passed to GetProfileSDKConnection")
-	}
-	var region = ecrRegion
-	if service == "ecrpublic" {
-		region = ecrPublicRegion
 	}
 	confWithProfile, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithRegion(region),

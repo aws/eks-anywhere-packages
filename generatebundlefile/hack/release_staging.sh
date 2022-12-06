@@ -80,6 +80,13 @@ function generate () {
                  --output "output-${version}"
 }
 
+function regionCheck () {
+    local version=$1
+    cd "${BASE_DIRECTORY}/generatebundlefile"
+    ./bin/generatebundlefile --bundle "output/${version}"/bundle.yaml \
+                --region-check true || true
+}
+
 function push () {
     local version=${1?:no version specified}
     cd "${BASE_DIRECTORY}/generatebundlefile/output-${version}"
@@ -103,5 +110,6 @@ export AWS_PROFILE=staging
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
 for version in 1-20 1-21 1-22 1-23 1-24; do
+    regionCheck ${version}
     push ${version}
 done
