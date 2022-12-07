@@ -177,12 +177,19 @@ func cmdRegion(opts *Options) error {
 	//STS and ECR Client to get Account Number
 	BundleLog.Info("Creating SDK connections to Region Check")
 	clients := &SDKClients{}
-	clients, err = clients.GetProfileSDKConnection("ecr", "default", ecrRegion)
+
+	Profile := "default"
+	val, ok := os.LookupEnv("AWS_PROFILE")
+	if ok {
+		Profile = val
+	}
+
+	clients, err = clients.GetProfileSDKConnection("ecr", Profile, ecrRegion)
 	if err != nil {
 		BundleLog.Error(err, "getting SDK connection")
 		os.Exit(1)
 	}
-	clients, err = clients.GetProfileSDKConnection("sts", "default", ecrRegion)
+	clients, err = clients.GetProfileSDKConnection("sts", Profile, ecrRegion)
 	if err != nil {
 		BundleLog.Error(err, "getting profile SDK connection")
 		os.Exit(1)
@@ -190,7 +197,7 @@ func cmdRegion(opts *Options) error {
 	var imagesNotFound []string
 	for _, region := range RegionList {
 		BundleLog.Info("Starting Check for", "Region", region)
-		clients, err = clients.GetProfileSDKConnection("ecr", "default", region)
+		clients, err = clients.GetProfileSDKConnection("ecr", Profile, region)
 		if err != nil {
 			BundleLog.Error(err, "getting ECR SDK connection")
 			os.Exit(1)
