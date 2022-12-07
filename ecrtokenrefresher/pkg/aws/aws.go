@@ -29,10 +29,13 @@ const (
 )
 
 func GetECRCredentials() ([]ECRAuth, error) {
-	// Default AWS Region to us-west-2
-	err := os.Setenv(envRegionName, regionDefault)
-	if err != nil {
-		return nil, err
+	// Default AWS Region to us-west-2 if not set by User.
+	_, ok := os.LookupEnv(envRegionName)
+	if !ok {
+		err := os.Setenv(envRegionName, regionDefault)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var ecrRegs []*string
