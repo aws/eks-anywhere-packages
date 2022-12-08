@@ -5,9 +5,11 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	"golang.org/x/mod/semver"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/authenticator"
+	"github.com/aws/eks-anywhere-packages/pkg/config"
 )
 
 type Manager interface {
@@ -23,14 +25,16 @@ type bundleManager struct {
 	bundleClient   Client
 	registryClient RegistryClient
 	targetClient   authenticator.TargetClusterClient
+	config         config.Config
 }
 
-func NewBundleManager(log logr.Logger, registryClient RegistryClient, bundleClient Client, targetClient authenticator.TargetClusterClient) *bundleManager {
+func NewBundleManager(log logr.Logger, registryClient RegistryClient, bundleClient Client, targetClient authenticator.TargetClusterClient, config config.Config) *bundleManager {
 	return &bundleManager{
 		log:            log,
 		bundleClient:   bundleClient,
 		registryClient: registryClient,
 		targetClient:   targetClient,
+		config:         config,
 	}
 }
 
@@ -41,6 +45,16 @@ func (m bundleManager) ProcessBundle(_ context.Context, newBundle *api.PackageBu
 		if newBundle.Status.State != api.PackageBundleStateIgnored {
 			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
 			newBundle.Status.State = api.PackageBundleStateIgnored
+			m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
+			return true, nil
+		}
+		return false, nil
+	}
+
+	if !m.isCompatibleWith(newBundle) {
+		if newBundle.Status.State != api.PackageBundleStateUpgradeRequired {
+			newBundle.Spec.DeepCopyInto(&newBundle.Status.Spec)
+			newBundle.Status.State = api.PackageBundleStateUpgradeRequired
 			m.log.V(6).Info("update", "bundle", newBundle.Name, "state", newBundle.Status.State)
 			return true, nil
 		}
@@ -64,6 +78,11 @@ func (m bundleManager) ProcessBundle(_ context.Context, newBundle *api.PackageBu
 		return true, nil
 	}
 	return false, nil
+}
+
+func (m *bundleManager) isCompatibleWith(bundle *api.PackageBundle) bool {
+	currentVersion := m.config.BuildInfo.Version
+	return currentVersion == config.DEVELOPMENT || semver.Compare(currentVersion, bundle.Spec.MinVersion) >= 0
 }
 
 func (m *bundleManager) hasBundleNamed(bundles []api.PackageBundle, bundleName string) bool {

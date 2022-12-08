@@ -33,6 +33,7 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
 	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	"github.com/aws/eks-anywhere-packages/pkg/config"
 	"github.com/aws/eks-anywhere-packages/pkg/driver"
 	"github.com/aws/eks-anywhere-packages/pkg/packages"
 )
@@ -91,7 +92,7 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	registryClient := bundle.NewRegistryClient(puller)
 	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
 	packageClient := packages.NewPackageClient(mgr.GetClient())
-	bundleManager := bundle.NewBundleManager(log, registryClient, bundleClient, tcc)
+	bundleManager := bundle.NewBundleManager(log, registryClient, bundleClient, tcc, config.GetGlobalConfig())
 	reconciler := NewPackageReconciler(
 		mgr.GetClient(),
 		mgr.GetScheme(),

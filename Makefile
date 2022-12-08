@@ -84,7 +84,7 @@ gosec: ## Run gosec against code.
 	$(GO) install github.com/securego/gosec/v2/cmd/gosec@latest
 	gosec --exclude-dir generatebundlefile --exclude-dir ecrtokenrefresher  ./...
 
-SIGNED_ARTIFACTS = pkg/signature/testdata/packagebundle_valid.yaml.signed pkg/signature/testdata/pod_valid.yaml.signed api/testdata/bundle_one.yaml.signed api/testdata/bundle_two.yaml.signed
+SIGNED_ARTIFACTS = pkg/signature/testdata/packagebundle_minControllerVersion.yaml.signed pkg/signature/testdata/packagebundle_valid.yaml.signed pkg/signature/testdata/pod_valid.yaml.signed api/testdata/bundle_one.yaml.signed api/testdata/bundle_two.yaml.signed
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 # Test a specific package with something like ./api/... see go help packages for
 # full syntax details.

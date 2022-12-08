@@ -29,6 +29,7 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
 	"github.com/aws/eks-anywhere-packages/pkg/authenticator"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
+	"github.com/aws/eks-anywhere-packages/pkg/config"
 )
 
 const (
@@ -67,7 +68,7 @@ func RegisterPackageBundleControllerReconciler(mgr ctrl.Manager) error {
 	tcc := authenticator.NewTargetClusterClient(mgr.GetConfig(), mgr.GetClient())
 	puller := artifacts.NewRegistryPuller()
 	registryClient := bundle.NewRegistryClient(puller)
-	bm := bundle.NewBundleManager(log, registryClient, bundleClient, tcc)
+	bm := bundle.NewBundleManager(log, registryClient, bundleClient, tcc, config.GetGlobalConfig())
 	reconciler := NewPackageBundleControllerReconciler(mgr.GetClient(),
 		mgr.GetScheme(), bm, log)
 	return ctrl.NewControllerManagedBy(mgr).

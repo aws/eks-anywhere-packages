@@ -146,6 +146,15 @@ func TestValidateSignature(t *testing.T) {
 		assert.True(t, valid, "Signature should be valid")
 		assert.Nil(t, err, "No error, the signature should be valid")
 	})
+
+	t.Run("A packagebundle with minControllerVersion can be validated", func(t *testing.T) {
+		bundle, _ := testutil.GivenPackageBundle("testdata/packagebundle_minControllerVersion.yaml")
+
+		valid, _, _, err := ValidateSignature(bundle, EksaDomain)
+		assert.True(t, valid, "The signature should be valid")
+		assert.Nil(t, err, "No error, the signature is simply invalid")
+	})
+
 }
 
 func TestMetadata(t *testing.T) {
