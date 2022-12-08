@@ -15,7 +15,7 @@ packages:
         repository: adot/charts/aws-otel-collector
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 0.23.0-d1af23539146745d92f96a2036cd0a1327d9b9cc
+            - name: 0.23.0-8dcf5fb5a1502a1da44c3e4c0552a13fa125fb74
   - org: cert-manager
     projects:
       - name: cert-manager
