@@ -75,4 +75,4 @@ packages:
         repository: prometheus/charts/prometheus
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 2.39.1-7ff2453390a7073fd940a0dfc27dbfd2c6c58c0f
+            - name: 2.39.1-8ef6124c157133f6869ad9c7cc9869321d43d727
