@@ -64,3 +64,10 @@ packages:
         registry: public.ecr.aws/eks-anywhere
         versions:
             - name: 3.0.0-c5b5d47b53ae5d769cc8349f4822ce2786ad198e
+  - org: prometheus
+    projects:
+      - name: prometheus
+        repository: prometheus/charts/prometheus
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 2.39.1-8ef6124c157133f6869ad9c7cc9869321d43d727
