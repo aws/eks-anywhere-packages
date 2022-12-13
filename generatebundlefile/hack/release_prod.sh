@@ -28,6 +28,7 @@ credential_source=EcsContainer
 EOF
 
 # Release Package Images to Packages Artifact account
+export CODEBUILD_BUILD_NUMBER=$(($CODEBUILD_BUILD_NUMBER+110))
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/configfile
 export PROFILE=packages
