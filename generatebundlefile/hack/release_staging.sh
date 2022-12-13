@@ -70,7 +70,7 @@ if [ ! -x "${ORAS_BIN}" ]; then
     make oras-install
 fi
 
-for version in 1-20 1-21 1-22 1-23 1-24; do
+for version in 1-21 1-22 1-23 1-24; do
     generate ${version} "staging"
     export AWS_PROFILE=packages && regionCheck ${version}
 done
