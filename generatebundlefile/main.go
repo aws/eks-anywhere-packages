@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	cloudwatchtypes "github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	"gopkg.in/yaml.v2"
@@ -163,16 +165,38 @@ func cmdRegion(opts *Options) error {
 		os.Exit(1)
 	}
 
+	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
+	if err != nil {
+		return fmt.Errorf("loading default AWS config: %w", err)
+	}
+	cloudwatchC := cloudwatch.NewFromConfig(conf)
+
+	d := &RepositoryCloudWatch{}
+	cloudWatchDataStruct := []RepositoryCloudWatch{}
+
 	BundleLog.Info("Getting list of images to Region Check")
-	imagesToCheck := make(map[string]string)
 	for _, packages := range Bundle.Spec.Packages {
 		for _, versions := range packages.Source.Versions {
 			for _, images := range versions.Images {
-				imagesToCheck[images.Repository] = images.Digest
+				d = &RepositoryCloudWatch{
+					Repository: images.Repository,
+					Digest:     images.Digest,
+					TotalHits:  0,
+				}
+				cloudWatchDataStruct = append(cloudWatchDataStruct, *d)
 			}
 		}
 	}
-	printMap(imagesToCheck)
+
+	// Deduplicate the Array of structs for the CRDs packages which contain the same image reference twice.
+	m := map[RepositoryCloudWatch]struct{}{}
+	uniquecloudWatchDataStruct := []RepositoryCloudWatch{}
+	for _, d := range cloudWatchDataStruct {
+		if _, ok := m[d]; !ok {
+			uniquecloudWatchDataStruct = append(uniquecloudWatchDataStruct, d)
+			m[d] = struct{}{}
+		}
+	}
 
 	//STS and ECR Client to get Account Number
 	BundleLog.Info("Creating SDK connections to Region Check")
@@ -183,6 +207,7 @@ func cmdRegion(opts *Options) error {
 	if ok {
 		Profile = val
 	}
+	BundleLog.Info("Using Env", "AWS_PROFILE", Profile)
 
 	clients, err = clients.GetProfileSDKConnection("ecr", Profile, ecrRegion)
 	if err != nil {
@@ -194,7 +219,9 @@ func cmdRegion(opts *Options) error {
 		BundleLog.Error(err, "getting profile SDK connection")
 		os.Exit(1)
 	}
-	var imagesNotFound []string
+
+	var cloudwatchData []cloudwatchtypes.MetricDatum
+	var missingList []string
 	for _, region := range RegionList {
 		BundleLog.Info("Starting Check for", "Region", region)
 		clients, err = clients.GetProfileSDKConnection("ecr", Profile, region)
@@ -202,23 +229,27 @@ func cmdRegion(opts *Options) error {
 			BundleLog.Error(err, "getting ECR SDK connection")
 			os.Exit(1)
 		}
-		registry := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClientRelease.AccountID, region)
-		for repository, sha := range imagesToCheck {
-			check, err := clients.ecrClientRelease.shaExistsInRepository(repository, sha)
+		for i, image := range uniquecloudWatchDataStruct {
+			check, err := clients.ecrClientRelease.shaExistsInRepository(image.Repository, image.Digest)
 			if err != nil {
 				BundleLog.Error(err, "finding ECR images")
 			}
-			if !check {
-				imagesNotFound = append(imagesNotFound, fmt.Sprintf("%s:%s@%s", registry, repository, sha))
+			if check {
+				uniquecloudWatchDataStruct[i].TotalHits++
+			} else {
+				missingList = append(missingList, fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com/%s:%s", clients.stsClientRelease.AccountID, region, image.Repository, image.Digest))
 			}
 		}
 	}
-	if len(imagesNotFound) > 0 {
-		BundleLog.Error(fmt.Errorf("Missing Image List"), "Region check failed")
-		printSlice(imagesNotFound)
-		os.Exit(1)
+	BundleLog.Info("Missing Region List:")
+	printSlice(missingList)
+	for i, image := range uniquecloudWatchDataStruct {
+		percent := (float64(image.TotalHits) / float64(len(RegionList))) * 100
+		uniquecloudWatchDataStruct[i].Percent = percent
+		cloudwatchData = FormCloudWatchData(cloudwatchData, image.Repository, uniquecloudWatchDataStruct[i].Percent)
 	}
-	BundleLog.Info("Passed Region Check, All Clear!")
+	err = PushCloudWatchRegionCheckData(cloudwatchC, cloudwatchData, "v1-21")
+	BundleLog.Info("Finished Region Check!")
 	return nil
 }
 

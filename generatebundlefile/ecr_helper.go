@@ -62,7 +62,7 @@ func deleteEmptyStringSlice(s []string) []string {
 	return r
 }
 
-func printSlice(s []string) {
+func printSlice[v any](s []v) {
 	if len(s) == 0 {
 		return
 	}
@@ -70,11 +70,11 @@ func printSlice(s []string) {
 	printSlice(s[1:])
 }
 
-func printMap(s map[string]string) {
-	if len(s) == 0 {
+func printMap[k comparable, v any](m map[k]v) {
+	if len(m) == 0 {
 		return
 	}
-	for k, v := range s {
+	for k, v := range m {
 		fmt.Println(k, ":", v)
 	}
 }
