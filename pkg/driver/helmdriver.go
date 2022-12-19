@@ -35,12 +35,12 @@ type helmDriver struct {
 
 var _ PackageDriver = (*helmDriver)(nil)
 
-func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) (*helmDriver, error) {
+func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) *helmDriver {
 	return &helmDriver{
 		secretAuth: secretAuth,
 		tcc:        tcc,
 		log:        log,
-	}, nil
+	}
 }
 
 func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err error) {

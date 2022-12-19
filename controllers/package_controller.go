@@ -83,10 +83,7 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 	}
 
 	tcc := auth.NewTargetClusterClient(cfg, mgr.GetClient())
-	helmDriver, err := driver.NewHelm(log, secretAuth, tcc)
-	if err != nil {
-		return fmt.Errorf("creating helm driver: %w", err)
-	}
+	helmDriver := driver.NewHelm(log, secretAuth, tcc)
 
 	puller := artifacts.NewRegistryPuller()
 	registryClient := bundle.NewRegistryClient(puller)
