@@ -42,10 +42,9 @@ func TestHelmChartURLIsPrefixed(t *testing.T) {
 func TestHelmDriverInitialize(t *testing.T) {
 	t.Run("golden path", func(t *testing.T) {
 		t.Parallel()
-		helm, err := givenHelmDriver(t)
-		require.NoError(t, err)
+		helm := givenHelmDriver(t)
 
-		err = helm.Initialize(ctx, "billy")
+		err := helm.Initialize(ctx, "billy")
 
 		assert.NoError(t, err)
 	})
@@ -137,7 +136,7 @@ func TestIsConfigChanged(t *testing.T) {
 	})
 }
 
-func givenHelmDriver(t *testing.T) (*helmDriver, error) {
+func givenHelmDriver(t *testing.T) *helmDriver {
 	mockSecretAuth := mocks.NewMockAuthenticator(gomock.NewController(t))
 	mockSecretAuth.EXPECT().Initialize("billy")
 	mockSecretAuth.EXPECT().AuthFilename()
@@ -148,10 +147,8 @@ func givenHelmDriver(t *testing.T) (*helmDriver, error) {
 }
 
 func givenInitializedHelmDriver(t *testing.T) (*helmDriver, error) {
-	helm, err := givenHelmDriver(t)
-	if err == nil {
-		err = helm.Initialize(ctx, "billy")
-	}
+	helm := givenHelmDriver(t)
+	err := helm.Initialize(ctx, "billy")
 	return helm, err
 }
 
