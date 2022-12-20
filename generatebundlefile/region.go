@@ -33,6 +33,7 @@ type RepositoryCloudWatch struct {
 	Region     string  `json:"region,omitempty"`
 	TotalHits  int     `json:"totalhits,omitempty"`
 	Percent    float64 `json:"percent,omitempty"`
+	K8sVersion string  `json:"k8sversion,omitempty"`
 }
 
 func FormCloudWatchData(metricData []cloudwatchtypes.MetricDatum, name string, value float64) []cloudwatchtypes.MetricDatum {
