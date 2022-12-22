@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
@@ -165,13 +166,10 @@ func cmdRegion(opts *Options) error {
 		os.Exit(1)
 	}
 
-	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
-	if err != nil {
-		return fmt.Errorf("loading default AWS config: %w", err)
-	}
-	cloudwatchC := cloudwatch.NewFromConfig(conf)
-
 	d := &RepositoryCloudWatch{}
+	k8sVersionSlice := strings.Split(Bundle.ObjectMeta.Name, "-")
+	K8sVersion := fmt.Sprintf("%s-%s", k8sVersionSlice[0], k8sVersionSlice[1])
+
 	cloudWatchDataStruct := []RepositoryCloudWatch{}
 
 	BundleLog.Info("Getting list of images to Region Check")
@@ -182,6 +180,7 @@ func cmdRegion(opts *Options) error {
 					Repository: images.Repository,
 					Digest:     images.Digest,
 					TotalHits:  0,
+					K8sVersion: K8sVersion,
 				}
 				cloudWatchDataStruct = append(cloudWatchDataStruct, *d)
 			}
@@ -198,17 +197,23 @@ func cmdRegion(opts *Options) error {
 		}
 	}
 
-	//STS and ECR Client to get Account Number
-	BundleLog.Info("Creating SDK connections to Region Check")
-	clients := &SDKClients{}
-
+	//Creating AWS Clients with profile
 	Profile := "default"
 	val, ok := os.LookupEnv("AWS_PROFILE")
 	if ok {
 		Profile = val
 	}
 	BundleLog.Info("Using Env", "AWS_PROFILE", Profile)
-
+	BundleLog.Info("Creating SDK connections to Region Check")
+	clients := &SDKClients{}
+	conf, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(ecrRegion),
+		config.WithSharedConfigProfile(Profile),
+	)
+	if err != nil {
+		return fmt.Errorf("loading default AWS config: %w", err)
+	}
+	cloudwatchC := cloudwatch.NewFromConfig(conf)
 	clients, err = clients.GetProfileSDKConnection("ecr", Profile, ecrRegion)
 	if err != nil {
 		BundleLog.Error(err, "getting SDK connection")
@@ -248,7 +253,11 @@ func cmdRegion(opts *Options) error {
 		uniquecloudWatchDataStruct[i].Percent = percent
 		cloudwatchData = FormCloudWatchData(cloudwatchData, image.Repository, uniquecloudWatchDataStruct[i].Percent)
 	}
-	err = PushCloudWatchRegionCheckData(cloudwatchC, cloudwatchData, "v1-21")
+	err = PushCloudWatchRegionCheckData(cloudwatchC, cloudwatchData, uniquecloudWatchDataStruct[0].K8sVersion)
+	if err != nil {
+		BundleLog.Error(err, "pushing cloudwatch data")
+		os.Exit(1)
+	}
 	BundleLog.Info("Finished Region Check!")
 	return nil
 }
