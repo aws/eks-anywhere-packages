@@ -42,8 +42,11 @@ func main() {
 	}
 
 	infoLogger.Println("Fetching auth data from AWS... ")
-	credentials, err := aws.GetECRCredentials()
+	credentials, failedRegionList, err := aws.GetECRCredentials()
 	checkErrAndLog(err, errorLogger)
+	if len(failedRegionList) > 0 {
+		warningLogger.Printf("Failed to authenticate the following regions: %s", failedRegionList)
+	}
 	infoLogger.Println("Success.")
 
 	err, failedList := k8s.UpdateTokens(secretname, credentials)

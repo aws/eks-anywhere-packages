@@ -25,20 +25,61 @@ const (
 	defaultAccountID   = "783794618700"
 	devAccountID       = "857151390494"
 	envRegionName      = "AWS_REGION"
-	regionDefault      = "us-west-2"
 )
 
-func GetECRCredentials() ([]ECRAuth, error) {
-	// Default AWS Region to us-west-2 if not set by User.
-	_, ok := os.LookupEnv(envRegionName)
-	if !ok {
-		err := os.Setenv(envRegionName, regionDefault)
+func GetECRCredentials() ([]ECRAuth, []string, error) {
+	var creds []ECRAuth
+	var err error
+	failedList := make([]string, 0)
+	for _, region := range getSupportedRegions() {
+		regionCreds, err := getECRCredentialByRegion(region)
 		if err != nil {
-			return nil, err
+			failedList = append(failedList, region)
 		}
+		creds = append(creds, regionCreds...)
 	}
+	if len(creds) < 1 {
+		return nil, failedList, fmt.Errorf("failed for all regions, %v", err)
+	}
+	return creds, failedList, nil
+}
 
+func getSupportedRegions() []string {
+	return []string{
+		"us-east-1",
+		"us-east-2",
+		"us-west-1",
+		"us-west-2",
+		"af-south-1",
+		"ap-east-1",
+		"ap-south-2",
+		"ap-southeast-3",
+		"ap-south-1",
+		"ap-northeast-3",
+		"ap-northeast-2",
+		"ap-southeast-1",
+		"ap-southeast-2",
+		"ap-northeast-1",
+		"ca-central-1",
+		"eu-central-1",
+		"eu-west-1",
+		"eu-west-2",
+		"eu-south-1",
+		"eu-west-3",
+		"eu-south-2",
+		"eu-north-1",
+		"eu-central-2",
+		"me-south-1",
+		"me-central-1",
+		"sa-east-1"}
+}
+
+func getECRCredentialByRegion(region string) ([]ECRAuth, error) {
 	var ecrRegs []*string
+	err := os.Setenv(envRegionName, region)
+	if err != nil {
+		return nil, err
+	}
 	defID := defaultAccountID
 	ecrRegs = append(ecrRegs, &defID)
 	devID := devAccountID
