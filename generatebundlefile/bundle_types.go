@@ -6,8 +6,8 @@ import (
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
+// BundleGenerate same as Bundle except stripped down for generation of yaml file during generate bundleconfig
 // +kubebuilder:object:generate=false
-// Same as Bundle except stripped down for generation of yaml file during generate bundleconfig
 type BundleGenerate struct {
 	// TypeMeta   metav1.TypeMeta `json:",inline"`
 	metav1.TypeMeta   `json:",inline"`
@@ -56,29 +56,28 @@ func newSigningObjectMeta(meta *metav1.ObjectMeta) *SigningObjectMeta {
 	}
 }
 
-// Types for input file format
+// Input is the schema for the input file
 // +kubebuilder:object:root=true
 // +kubebuilder:object:generate=false
-// Input is the schema for the Input file
 type Input struct {
 	Packages          []Org  `json:"packages,omitempty"`
 	Name              string `json:"name,omitempty"`
 	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
 }
 
-// Projects object containing the input file github org and repo locations
+// Org object containing the input file gitHub org and repo locations
 type Org struct {
 	Org      string    `json:"org,omitempty"`
 	Projects []Project `json:"projects,omitempty"`
 }
 
-// Repos is the object containing the project within the github org, and the release tag
+// Project is the object containing the project within the gitHub org, and the release tag
 type Project struct {
 	Name         string `json:"name,omitempty"`
 	Registry     string `json:"registry,omitempty"`
 	Repository   string `json:"repository,omitempty"`
 	Versions     []Tag  `json:"versions,omitempty"`
-	WorkloadOnly bool   `json:"workloadonly,omitempty""`
+	WorkloadOnly bool   `json:"workloadonly,omitempty"`
 }
 
 // Tag is the release tag
@@ -125,11 +124,11 @@ type DockerAuthFile struct {
 
 // Matches returns a list of inputs which align with ECR tags that exist
 func (project Project) Matches(tag string) []string {
-	matchlist := []string{}
+	var matches []string
 	for _, version := range project.Versions {
 		if version.Name == tag {
-			matchlist = append(matchlist, version.Name)
+			matches = append(matches, version.Name)
 		}
 	}
-	return matchlist
+	return matches
 }
