@@ -77,7 +77,7 @@ func TestNewPackageBundleClient(t *testing.T) {
 		t.Parallel()
 
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 
 		assert.NotNil(t, bundleClient)
 	})
@@ -91,7 +91,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 
 	t.Run("golden path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		testBundle := givenBundle()
 
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
@@ -108,7 +108,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 	t.Run("no active bundle", func(t *testing.T) {
 		pbc := givenPackageBundleController()
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		pbc.Spec.ActiveBundle = ""
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
 
@@ -120,7 +120,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 
 	t.Run("error path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
 
 		_, err := bundleClient.GetActiveBundle(ctx, "billy")
@@ -130,7 +130,7 @@ func TestBundleClient_GetActiveBundle(t *testing.T) {
 
 	t.Run("other error path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(pbc)).SetArg(2, *pbc)
 		mockClient.EXPECT().Get(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
 
@@ -165,7 +165,7 @@ func TestBundleClient_GetBundle(t *testing.T) {
 
 	t.Run("already exists", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		mockClient.EXPECT().Get(ctx, key, gomock.Any()).DoAndReturn(doAndReturnBundle)
 
 		actualBundle, err := bundleClient.GetBundle(ctx, "v1-21-1003")
@@ -176,7 +176,7 @@ func TestBundleClient_GetBundle(t *testing.T) {
 
 	t.Run("already exists error", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(namedBundle)).Return(fmt.Errorf("boom"))
 
 		actualBundle, err := bundleClient.GetBundle(ctx, "v1-21-1003")
@@ -187,7 +187,7 @@ func TestBundleClient_GetBundle(t *testing.T) {
 
 	t.Run("returns nil when bundle does not", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		groupResource := schema.GroupResource{
 			Group:    key.Name,
 			Resource: "Namespace",
@@ -208,7 +208,7 @@ func TestBundleClient_GetBundleList(t *testing.T) {
 
 	t.Run("golden path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		testBundleList := &api.PackageBundleList{
 			Items: []api.PackageBundle{
 				{
@@ -241,7 +241,7 @@ func TestBundleClient_GetBundleList(t *testing.T) {
 
 	t.Run("error scenario", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		actualList := &api.PackageBundleList{}
 		mockClient.EXPECT().List(ctx, actualList, &client.ListOptions{Namespace: api.PackageNamespace}).Return(fmt.Errorf("oops"))
 
@@ -259,7 +259,7 @@ func TestBundleClient_CreateBundle(t *testing.T) {
 
 	t.Run("golden path", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		actualBundle := &api.PackageBundle{}
 		mockClient.EXPECT().Create(ctx, actualBundle).Return(nil)
 
@@ -270,7 +270,7 @@ func TestBundleClient_CreateBundle(t *testing.T) {
 
 	t.Run("error scenario", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		actualBundle := &api.PackageBundle{}
 		mockClient.EXPECT().Create(ctx, actualBundle).Return(fmt.Errorf("oops"))
 
@@ -292,7 +292,7 @@ func TestBundleClient_CreateClusterNamespace(t *testing.T) {
 
 	t.Run("already exists", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(ns)).Return(nil)
 
 		err := bundleClient.CreateClusterNamespace(ctx, "bobby")
@@ -302,7 +302,7 @@ func TestBundleClient_CreateClusterNamespace(t *testing.T) {
 
 	t.Run("get error", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(ns)).Return(fmt.Errorf("boom"))
 
 		err := bundleClient.CreateClusterNamespace(ctx, "bobby")
@@ -312,7 +312,7 @@ func TestBundleClient_CreateClusterNamespace(t *testing.T) {
 
 	t.Run("create namespace", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		groupResource := schema.GroupResource{
 			Group:    key.Name,
 			Resource: "Namespace",
@@ -328,7 +328,7 @@ func TestBundleClient_CreateClusterNamespace(t *testing.T) {
 
 	t.Run("create namespace error", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		groupResource := schema.GroupResource{
 			Group:    key.Name,
 			Resource: "Namespace",
@@ -366,7 +366,7 @@ func TestBundleClient_CreateClusterConfigMap(t *testing.T) {
 
 	t.Run("already exists", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(cm)).Return(nil)
 
 		err := bundleClient.CreateClusterConfigMap(ctx, "bobby")
@@ -376,7 +376,7 @@ func TestBundleClient_CreateClusterConfigMap(t *testing.T) {
 
 	t.Run("get error", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		mockClient.EXPECT().Get(ctx, key, gomock.AssignableToTypeOf(cm)).Return(fmt.Errorf("boom"))
 
 		err := bundleClient.CreateClusterConfigMap(ctx, "bobby")
@@ -386,7 +386,7 @@ func TestBundleClient_CreateClusterConfigMap(t *testing.T) {
 
 	t.Run("create configmap", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		groupResource := schema.GroupResource{
 			Group:    key.Name,
 			Resource: "Namespace",
@@ -402,7 +402,7 @@ func TestBundleClient_CreateClusterConfigMap(t *testing.T) {
 
 	t.Run("create configmap error", func(t *testing.T) {
 		mockClient := givenMockClient(t)
-		bundleClient := NewPackageBundleClient(mockClient)
+		bundleClient := NewManagerClient(mockClient)
 		groupResource := schema.GroupResource{
 			Group:    key.Name,
 			Resource: "Namespace",

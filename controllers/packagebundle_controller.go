@@ -64,7 +64,7 @@ func NewPackageBundleReconciler(client client.Client, scheme *runtime.Scheme,
 
 func RegisterPackageBundleReconciler(mgr ctrl.Manager) error {
 	log := ctrl.Log.WithName(packageBundleName)
-	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
+	bundleClient := bundle.NewManagerClient(mgr.GetClient())
 	tcc := authenticator.NewTargetClusterClient(mgr.GetConfig(), mgr.GetClient())
 	puller := artifacts.NewRegistryPuller()
 	registryClient := bundle.NewRegistryClient(puller)

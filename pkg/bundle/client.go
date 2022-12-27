@@ -44,23 +44,23 @@ type Client interface {
 	Save(ctx context.Context, object client.Object) error
 }
 
-type bundleClient struct {
+type managerClient struct {
 	client.Client
 }
 
-func NewPackageBundleClient(client client.Client) *bundleClient {
-	return &(bundleClient{
+func NewManagerClient(client client.Client) *managerClient {
+	return &(managerClient{
 		Client: client,
 	})
 }
 
-var _ Client = (*bundleClient)(nil)
+var _ Client = (*managerClient)(nil)
 
 // GetActiveBundle retrieves the bundle from which package are installed.
 //
 // It retrieves the name of the active bundle from the PackageBundleController,
 // then uses the K8s API to retrieve and return the active bundle.
-func (bc *bundleClient) GetActiveBundle(ctx context.Context, clusterName string) (activeBundle *api.PackageBundle, err error) {
+func (bc *managerClient) GetActiveBundle(ctx context.Context, clusterName string) (activeBundle *api.PackageBundle, err error) {
 	pbc, err := bc.GetPackageBundleController(ctx, clusterName)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (bc *bundleClient) GetActiveBundle(ctx context.Context, clusterName string)
 	return activeBundle, nil
 }
 
-func (bc *bundleClient) GetPackageBundleController(ctx context.Context, clusterName string) (*api.PackageBundleController, error) {
+func (bc *managerClient) GetPackageBundleController(ctx context.Context, clusterName string) (*api.PackageBundleController, error) {
 	if clusterName == "" {
 		clusterName = os.Getenv("CLUSTER_NAME")
 	}
@@ -99,7 +99,7 @@ func (bc *bundleClient) GetPackageBundleController(ctx context.Context, clusterN
 	return &pbc, nil
 }
 
-func (bc *bundleClient) GetBundle(ctx context.Context, name string) (namedBundle *api.PackageBundle, err error) {
+func (bc *managerClient) GetBundle(ctx context.Context, name string) (namedBundle *api.PackageBundle, err error) {
 	nn := types.NamespacedName{
 		Namespace: api.PackageNamespace,
 		Name:      name,
@@ -116,7 +116,7 @@ func (bc *bundleClient) GetBundle(ctx context.Context, name string) (namedBundle
 	return namedBundle, nil
 }
 
-func (bc *bundleClient) GetBundleList(ctx context.Context) (bundles []api.PackageBundle, err error) {
+func (bc *managerClient) GetBundleList(ctx context.Context) (bundles []api.PackageBundle, err error) {
 	var allBundles = &api.PackageBundleList{}
 	err = bc.Client.List(ctx, allBundles, &client.ListOptions{Namespace: api.PackageNamespace})
 	if err != nil {
@@ -126,7 +126,7 @@ func (bc *bundleClient) GetBundleList(ctx context.Context) (bundles []api.Packag
 	return allBundles.Items, nil
 }
 
-func (bc *bundleClient) CreateClusterNamespace(ctx context.Context, clusterName string) error {
+func (bc *managerClient) CreateClusterNamespace(ctx context.Context, clusterName string) error {
 	name := api.PackageNamespace + "-" + clusterName
 	key := types.NamespacedName{
 		Name: name,
@@ -149,7 +149,7 @@ func (bc *bundleClient) CreateClusterNamespace(ctx context.Context, clusterName 
 	return nil
 }
 
-func (bc *bundleClient) CreateClusterConfigMap(ctx context.Context, clusterName string) error {
+func (bc *managerClient) CreateClusterConfigMap(ctx context.Context, clusterName string) error {
 	name := auth.ConfigMapName
 	namespace := api.PackageNamespace + "-" + clusterName
 	key := types.NamespacedName{
@@ -185,7 +185,7 @@ func (bc *bundleClient) CreateClusterConfigMap(ctx context.Context, clusterName 
 	return nil
 }
 
-func (bc *bundleClient) CreateBundle(ctx context.Context, bundle *api.PackageBundle) error {
+func (bc *managerClient) CreateBundle(ctx context.Context, bundle *api.PackageBundle) error {
 	err := bc.Client.Create(ctx, bundle)
 	if err != nil {
 		return fmt.Errorf("creating new package bundle: %s", err)
@@ -193,10 +193,10 @@ func (bc *bundleClient) CreateBundle(ctx context.Context, bundle *api.PackageBun
 	return nil
 }
 
-func (bc *bundleClient) SaveStatus(ctx context.Context, object client.Object) error {
+func (bc *managerClient) SaveStatus(ctx context.Context, object client.Object) error {
 	return bc.Client.Status().Update(ctx, object, &client.UpdateOptions{})
 }
 
-func (bc *bundleClient) Save(ctx context.Context, object client.Object) error {
+func (bc *managerClient) Save(ctx context.Context, object client.Object) error {
 	return bc.Client.Update(ctx, object, &client.UpdateOptions{})
 }

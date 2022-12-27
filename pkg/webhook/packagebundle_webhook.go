@@ -49,7 +49,7 @@ func NewPackageBundleValidator(mgr ctrl.Manager) packageBundleValidator {
 	client := mgr.GetClient()
 	return packageBundleValidator{
 		Client:       client,
-		BundleClient: bundle.NewPackageBundleClient(client),
+		BundleClient: bundle.NewManagerClient(client),
 		log:          mgr.GetLogger().WithName("webhook"),
 	}
 }
