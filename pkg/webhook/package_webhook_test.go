@@ -49,4 +49,49 @@ func TestPackageValidate(t *testing.T) {
 		assert.False(t, result)
 		assert.EqualError(t, err, "error validating configurations - title: Invalid type. Expected: string, given: integer\n")
 	})
+
+	t.Run("status targetNamespace not set", func(t *testing.T) {
+		activeBundle, err := testutil.GivenPackageBundle("../../api/testdata/bundle_one.yaml")
+		require.Nil(t, err)
+		myPackage, err := testutil.GivenPackage("../../api/testdata/package_webhook_valid_config.yaml")
+		require.Nil(t, err)
+		myPackage.Spec.TargetNamespace = "default"
+		myPackage.Status.Spec.TargetNamespace = ""
+		validator := packageValidator{}
+
+		result, err := validator.isPackageValid(myPackage, activeBundle)
+
+		assert.True(t, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("status targetNamespace same", func(t *testing.T) {
+		activeBundle, err := testutil.GivenPackageBundle("../../api/testdata/bundle_one.yaml")
+		require.Nil(t, err)
+		myPackage, err := testutil.GivenPackage("../../api/testdata/package_webhook_valid_config.yaml")
+		require.Nil(t, err)
+		myPackage.Spec.TargetNamespace = "default"
+		myPackage.Status.Spec.TargetNamespace = "default"
+		validator := packageValidator{}
+
+		result, err := validator.isPackageValid(myPackage, activeBundle)
+
+		assert.True(t, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("status targetNamespace not same", func(t *testing.T) {
+		activeBundle, err := testutil.GivenPackageBundle("../../api/testdata/bundle_one.yaml")
+		require.Nil(t, err)
+		myPackage, err := testutil.GivenPackage("../../api/testdata/package_webhook_valid_config.yaml")
+		require.Nil(t, err)
+		myPackage.Spec.TargetNamespace = "new-namespace"
+		myPackage.Status.Spec.TargetNamespace = "default"
+		validator := packageValidator{}
+
+		result, err := validator.isPackageValid(myPackage, activeBundle)
+
+		assert.False(t, result)
+		assert.EqualError(t, err, "package my-hello-eks-anywhere targetNamespace is immutable")
+	})
 }

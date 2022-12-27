@@ -117,6 +117,10 @@ func (v *packageValidator) isPackageValid(p *v1alpha1.Package, activeBundle *v1a
 		return false, fmt.Errorf(err.Error())
 	}
 
+	if p.Status.Spec.TargetNamespace != "" && p.Status.Spec.TargetNamespace != p.Spec.TargetNamespace {
+		return false, fmt.Errorf("package %s targetNamespace is immutable", p.Name)
+	}
+
 	b := new(bytes.Buffer)
 	if !result.Valid() {
 		for _, e := range result.Errors() {
