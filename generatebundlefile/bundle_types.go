@@ -58,6 +58,7 @@ func newSigningObjectMeta(meta *metav1.ObjectMeta) *SigningObjectMeta {
 
 // Types for input file format
 // +kubebuilder:object:root=true
+// +kubebuilder:object:generate=false
 // Input is the schema for the Input file
 type Input struct {
 	Packages          []Org  `json:"packages,omitempty"`
