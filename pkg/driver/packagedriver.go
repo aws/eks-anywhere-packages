@@ -6,6 +6,8 @@ import (
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
+//go:generate mockgen -source packagedriver.go -destination=mocks/packagedriver.go -package=mocks PackageDriver
+
 // PackageDriver is an interface for converting a CRD to a series of Kubernetes
 // objects.
 //

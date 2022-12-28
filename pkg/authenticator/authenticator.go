@@ -11,6 +11,8 @@ type DockerAuthRegistry struct {
 	Auth string `json:"auth"`
 }
 
+//go:generate mockgen -source authenticator.go -destination=mocks/authenticator.go -package=mocks Authenticator
+
 // Authenticator is an interface for creating an authentication file with credentials to private registries
 //
 // Currently this is used with the Helm Driver which takes credentials in this way

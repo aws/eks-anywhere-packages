@@ -8,6 +8,8 @@ import (
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
+//go:generate mockgen -source client.go -destination=mocks/client.go -package=mocks Client
+
 type Client interface {
 	// CreatePackage creates a package
 	CreatePackage(ctx context.Context, pkg *api.Package) (err error)

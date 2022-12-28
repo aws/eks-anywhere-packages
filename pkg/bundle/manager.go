@@ -12,6 +12,8 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/config"
 )
 
+//go:generate mockgen -source manager.go -destination=mocks/manager.go -package=mocks Manager
+
 type Manager interface {
 	// ProcessBundle returns true if there are changes
 	ProcessBundle(ctx context.Context, newBundle *api.PackageBundle) (bool, error)

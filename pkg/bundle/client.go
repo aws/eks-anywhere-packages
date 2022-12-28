@@ -15,6 +15,8 @@ import (
 	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
 )
 
+//go:generate mockgen -source client.go -destination=mocks/client.go -package=mocks Client
+
 type Client interface {
 	// GetActiveBundle retrieves the currently active bundle.
 	GetActiveBundle(ctx context.Context, clusterName string) (activeBundle *api.PackageBundle, err error)

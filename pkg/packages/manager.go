@@ -242,6 +242,8 @@ func processDone(mc *ManagerContext) bool {
 	return false
 }
 
+//go:generate mockgen -source manager.go -destination=mocks/manager.go -package=mocks Manager
+
 type Manager interface {
 	// Process package events returns true if status update
 	Process(mc *ManagerContext) bool
