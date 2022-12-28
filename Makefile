@@ -182,7 +182,7 @@ endef
 ## Generate mocks
 .PHONY: mocks
 mocks: mockgen
-	go generate ./...
+	PATH=$(BIN_DIR):$(PATH) go generate ./...
 
 .PHONY: presubmit
 presubmit: vet generate manifests build helm/package test # targets for presubmit
