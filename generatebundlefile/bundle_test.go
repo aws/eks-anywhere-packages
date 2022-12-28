@@ -168,7 +168,7 @@ func TestIfSignature(t *testing.T) {
 			testbundle: &api.PackageBundle{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       api.PackageBundleKind,
-					APIVersion: SchemeBuilder.GroupVersion.String(),
+					APIVersion: api.SchemeBuilder.GroupVersion.String(),
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "1.20",
@@ -182,7 +182,7 @@ func TestIfSignature(t *testing.T) {
 			testbundle: &api.PackageBundle{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       api.PackageBundleKind,
-					APIVersion: SchemeBuilder.GroupVersion.String(),
+					APIVersion: api.SchemeBuilder.GroupVersion.String(),
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "1.20",
@@ -221,7 +221,7 @@ func TestCheckSignature(t *testing.T) {
 			testbundle: &api.PackageBundle{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       api.PackageBundleKind,
-					APIVersion: SchemeBuilder.GroupVersion.String(),
+					APIVersion: api.SchemeBuilder.GroupVersion.String(),
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "1.20",
@@ -242,7 +242,7 @@ func TestCheckSignature(t *testing.T) {
 			testbundle: &api.PackageBundle{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       api.PackageBundleKind,
-					APIVersion: SchemeBuilder.GroupVersion.String(),
+					APIVersion: api.SchemeBuilder.GroupVersion.String(),
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "1.20",
@@ -261,7 +261,7 @@ func TestCheckSignature(t *testing.T) {
 			testbundle: &api.PackageBundle{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       api.PackageBundleKind,
-					APIVersion: SchemeBuilder.GroupVersion.String(),
+					APIVersion: api.SchemeBuilder.GroupVersion.String(),
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "1.20",

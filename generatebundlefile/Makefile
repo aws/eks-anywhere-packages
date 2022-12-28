@@ -38,6 +38,7 @@ help: ## Display this help.
 
 clean: ## Clean output directory, and the built binary
 	rm -rf output/
+	rm -rf hello-eks-anywhere/
 	rm -rf bin/generatebundlefile
 
 ##@ Build
