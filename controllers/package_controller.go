@@ -87,7 +87,7 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 
 	puller := artifacts.NewRegistryPuller()
 	registryClient := bundle.NewRegistryClient(puller)
-	bundleClient := bundle.NewPackageBundleClient(mgr.GetClient())
+	bundleClient := bundle.NewManagerClient(mgr.GetClient())
 	packageClient := packages.NewPackageClient(mgr.GetClient())
 	bundleManager := bundle.NewBundleManager(log, registryClient, bundleClient, tcc, config.GetGlobalConfig())
 	reconciler := NewPackageReconciler(

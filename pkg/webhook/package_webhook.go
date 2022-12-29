@@ -45,7 +45,7 @@ func InitPackageValidator(mgr ctrl.Manager) error {
 		Register("/validate-packages-eks-amazonaws-com-v1alpha1-package",
 			&webhook.Admission{Handler: &packageValidator{
 				Client:       mgr.GetClient(),
-				BundleClient: bundle.NewPackageBundleClient(mgr.GetClient()),
+				BundleClient: bundle.NewManagerClient(mgr.GetClient()),
 			}})
 	return nil
 }
