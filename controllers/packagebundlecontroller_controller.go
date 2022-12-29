@@ -32,6 +32,9 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/config"
 )
 
+//go:generate mockgen -destination=mocks/client.go -package=mocks sigs.k8s.io/controller-runtime/pkg/client Client,StatusWriter
+//go:generate mockgen -destination=mocks/manager.go -package=mocks sigs.k8s.io/controller-runtime/pkg/manager Manager
+
 const (
 	DefaultUpgradeCheckInterval          = time.Hour * 24
 	packageBundleControllerName          = "PackageBundleController"

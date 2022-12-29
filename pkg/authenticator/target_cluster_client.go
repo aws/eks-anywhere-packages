@@ -26,6 +26,8 @@ const (
 	eksaSystemNamespace = "eksa-system"
 )
 
+//go:generate mockgen -source target_cluster_client.go -destination=mocks/target_cluster_client.go -package=mocks TargetClusterClient
+
 type TargetClusterClient interface {
 	// Init the target cluster client
 	Initialize(ctx context.Context, clusterName string) error

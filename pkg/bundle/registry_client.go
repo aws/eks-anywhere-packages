@@ -11,6 +11,8 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
 )
 
+//go:generate mockgen -source registry_client.go -destination=mocks/registry_client.go -package=mocks RegistryClient
+
 type RegistryClient interface {
 	// LatestBundle pulls the bundle tagged with "latest" from the bundle source.
 	LatestBundle(ctx context.Context, baseRef string, kubeMajor string, kubeMinor string) (*api.PackageBundle, error)

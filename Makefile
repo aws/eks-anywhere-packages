@@ -181,42 +181,8 @@ endef
 
 ## Generate mocks
 .PHONY: mocks
-mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go pkg/driver/mocks/packagedriver.go pkg/bundle/mocks/client.go pkg/bundle/mocks/manager.go pkg/bundle/mocks/registry_client.go pkg/packages/mocks/client.go pkg/packages/mocks/manager.go pkg/artifacts/mocks/puller.go pkg/authenticator/mocks/target_cluster_client.go pkg/authenticator/mocks/authenticator.go
-
-
-pkg/bundle/mocks/client.go: pkg/bundle/client.go
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/bundle/client.go -destination=pkg/bundle/mocks/client.go -package=mocks Client
-pkg/bundle/mocks/manager.go: pkg/bundle/manager.go
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/bundle/manager.go -destination=pkg/bundle/mocks/manager.go -package=mocks Manager
-pkg/bundle/mocks/registry_client.go: pkg/bundle/registry_client.go
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/bundle/registry_client.go -destination=pkg/bundle/mocks/registry_client.go -package=mocks RegistryClient
-pkg/packages/mocks/client.go: pkg/packages/client.go
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/packages/client.go -destination=pkg/packages/mocks/client.go -package=mocks Client
-pkg/packages/mocks/manager.go: pkg/packages/manager.go
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/packages/manager.go -destination=pkg/packages/mocks/manager.go -package=mocks Manager
-pkg/driver/mocks/packagedriver.go: pkg/driver/packagedriver.go
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/driver/packagedriver.go -destination=pkg/driver/mocks/packagedriver.go -package=mocks PackageDriver
-pkg/artifacts/mocks/puller.go: pkg/artifacts/puller.go
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/artifacts/puller.go -destination=pkg/artifacts/mocks/puller.go -package=mocks Client
-controllers/mocks/client.go: go.mod
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -destination=controllers/mocks/client.go -package=mocks "sigs.k8s.io/controller-runtime/pkg/client" Client,StatusWriter
-controllers/mocks/manager.go: go.mod
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -destination=controllers/mocks/manager.go -package=mocks "sigs.k8s.io/controller-runtime/pkg/manager" Manager
-pkg/authenticator/mocks/target_cluster_client.go: pkg/authenticator/target_cluster_client.go
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/authenticator/target_cluster_client.go -destination=pkg/authenticator/mocks/target_cluster_client.go -package=mocks TargetClusterClient
-pkg/authenticator/mocks/authenticator.go: pkg/authenticator/target_cluster_client.go
-	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
-		$(MOCKGEN) -source pkg/authenticator/authenticator.go -destination=pkg/authenticator/mocks/authenticator.go -package=mocks Authenticator
+mocks: mockgen
+	PATH=$(BIN_DIR):$(PATH) go generate ./...
 
 .PHONY: presubmit
 presubmit: vet generate manifests build helm/package test # targets for presubmit
