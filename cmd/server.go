@@ -45,7 +45,6 @@ func init() {
 	ctrl.Log.WithName("server")
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
-	//+kubebuilder:scaffold:scheme
 
 	rootCmd.AddCommand(serverCommand)
 
@@ -93,7 +92,6 @@ func server() error {
 			return fmt.Errorf("unable to create package webhook: %v", err)
 		}
 	}
-	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		return fmt.Errorf("unable to set up health check")
