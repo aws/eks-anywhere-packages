@@ -4,33 +4,24 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"os"
 	"path"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"sigs.k8s.io/controller-runtime/pkg/scheme"
-
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
-	//.spec.packages[].source.registry
-	//.spec.packages[].source.repository
+	// Excludes .spec.packages[].source.registry .spec.packages[].source.repository
 	Excludes = "LnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVnaXN0cnkKLnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVwb3NpdG9yeQo="
 )
 
 var (
-	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "packages.eks.amazonaws.com", Version: "v1alpha1"}
-
-	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
-	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
-
 	FullSignatureAnnotation   = path.Join(sig.EksaDomain.Name, sig.SignatureAnnotation)
 	FullExcludesAnnotation    = path.Join(sig.EksaDomain.Name, sig.ExcludesAnnotation)
 	DefaultExcludesAnnotation = map[string]string{
@@ -38,7 +29,6 @@ var (
 	}
 )
 
-// +kubebuilder:object:generate=false
 type BundleGenerateOpt func(config *BundleGenerate)
 
 // NewBundleGenerate is used for generating YAML for generating a new sample CRD file.
@@ -48,7 +38,7 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.Packag
 	return &api.PackageBundle{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       api.PackageBundleKind,
-			APIVersion: SchemeBuilder.GroupVersion.String(),
+			APIVersion: api.SchemeBuilder.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        bundleName,
@@ -112,7 +102,7 @@ func AddMetadata(s api.PackageBundleSpec, name string) *api.PackageBundle {
 	return &api.PackageBundle{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       api.PackageBundleKind,
-			APIVersion: SchemeBuilder.GroupVersion.String(),
+			APIVersion: api.SchemeBuilder.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
@@ -155,7 +145,8 @@ func GetBundleSignature(ctx context.Context, bundle *api.PackageBundle, key stri
 	}
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		panic("configuration error, " + err.Error())
+		fmt.Println("configuration error, " + err.Error())
+		os.Exit(-1)
 	}
 
 	client := kms.NewFromConfig(cfg)

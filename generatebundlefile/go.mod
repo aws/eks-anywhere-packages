@@ -9,7 +9,6 @@ replace (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.44.153
 	github.com/aws/aws-sdk-go-v2 v1.17.2
 	github.com/aws/aws-sdk-go-v2/config v1.13.1
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.22.1
