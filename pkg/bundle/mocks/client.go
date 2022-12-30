@@ -78,6 +78,20 @@ func (mr *MockClientMockRecorder) CreateClusterNamespace(ctx, clusterName interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateClusterNamespace", reflect.TypeOf((*MockClient)(nil).CreateClusterNamespace), ctx, clusterName)
 }
 
+// CreatePackage mocks base method.
+func (m *MockClient) CreatePackage(ctx context.Context, pkg *v1alpha1.Package) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePackage", ctx, pkg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreatePackage indicates an expected call of CreatePackage.
+func (mr *MockClientMockRecorder) CreatePackage(ctx, pkg interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePackage", reflect.TypeOf((*MockClient)(nil).CreatePackage), ctx, pkg)
+}
+
 // GetActiveBundle mocks base method.
 func (m *MockClient) GetActiveBundle(ctx context.Context, clusterName string) (*v1alpha1.PackageBundle, error) {
 	m.ctrl.T.Helper()
@@ -136,6 +150,21 @@ func (m *MockClient) GetPackageBundleController(ctx context.Context, clusterName
 func (mr *MockClientMockRecorder) GetPackageBundleController(ctx, clusterName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackageBundleController", reflect.TypeOf((*MockClient)(nil).GetPackageBundleController), ctx, clusterName)
+}
+
+// GetPackageList mocks base method.
+func (m *MockClient) GetPackageList(ctx context.Context, namespace string) (v1alpha1.PackageList, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPackageList", ctx, namespace)
+	ret0, _ := ret[0].(v1alpha1.PackageList)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPackageList indicates an expected call of GetPackageList.
+func (mr *MockClientMockRecorder) GetPackageList(ctx, namespace interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackageList", reflect.TypeOf((*MockClient)(nil).GetPackageList), ctx, namespace)
 }
 
 // Save mocks base method.
