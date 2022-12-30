@@ -39,6 +39,12 @@ type Client interface {
 	// CreateClusterConfigMap based on cluster name
 	CreateClusterConfigMap(ctx context.Context, clusterName string) error
 
+	// CreatePackage creates a package
+	CreatePackage(ctx context.Context, pkg *api.Package) (err error)
+
+	// GetPackageList retrieves the list of packages resources.
+	GetPackageList(ctx context.Context, namespace string) (packages api.PackageList, err error)
+
 	// SaveStatus saves a resource status
 	SaveStatus(ctx context.Context, object client.Object) error
 
@@ -185,6 +191,17 @@ func (bc *managerClient) CreateClusterConfigMap(ctx context.Context, clusterName
 		return err
 	}
 	return nil
+}
+
+// CreatePackage Creates the given package resource
+func (p *managerClient) CreatePackage(ctx context.Context, pkg *api.Package) (err error) {
+	return p.Client.Create(ctx, pkg)
+}
+
+// GetPackageList retrieves all packages present in the given namespace
+func (p *managerClient) GetPackageList(ctx context.Context, namespace string) (packages api.PackageList, err error) {
+	list := api.PackageList{}
+	return list, p.Client.List(ctx, &list, client.InNamespace(namespace))
 }
 
 func (bc *managerClient) CreateBundle(ctx context.Context, bundle *api.PackageBundle) error {

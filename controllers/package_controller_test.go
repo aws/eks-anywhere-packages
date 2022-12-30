@@ -378,7 +378,7 @@ func (tf *testFixtures) newReconciler() *PackageReconciler {
 		PackageDriver: mockPackageDriver,
 		Manager:       mockPackageManager,
 		bundleManager: mockBundleManager,
-		bundleClient:  mockBundleClient,
+		managerClient: mockBundleClient,
 	}
 }
 

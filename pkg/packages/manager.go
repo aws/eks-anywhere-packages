@@ -12,6 +12,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"github.com/aws/eks-anywhere-packages/pkg/driver"
 	"github.com/aws/eks-anywhere-packages/pkg/utils"
 )
@@ -36,7 +37,7 @@ type ManagerContext struct {
 	RequeueAfter  time.Duration
 	Log           logr.Logger
 	Bundle        *api.PackageBundle
-	PackageClient Client
+	ManagerClient bundle.Client
 }
 
 func NewManagerContext(ctx context.Context, log logr.Logger, packageDriver driver.PackageDriver) *ManagerContext {
@@ -90,7 +91,7 @@ func processInstallingDependencies(mc *ManagerContext) bool {
 		mc.RequeueAfter = retryLong
 		return true
 	}
-	pkgs, err := mc.PackageClient.GetPackageList(mc.Ctx, mc.Package.Namespace)
+	pkgs, err := mc.ManagerClient.GetPackageList(mc.Ctx, mc.Package.Namespace)
 	if err != nil {
 		mc.RequeueAfter = retryShort
 		mc.Package.Status.Detail = err.Error()
@@ -114,7 +115,7 @@ func processInstallingDependencies(mc *ManagerContext) bool {
 			p := api.NewPackage(dep.Name, dep.Name, mc.Package.Namespace)
 			p.Spec.TargetNamespace = mc.Package.Spec.TargetNamespace
 			pkgsNotReady = append(pkgsNotReady, p)
-			err := mc.PackageClient.CreatePackage(mc.Ctx, &p)
+			err := mc.ManagerClient.CreatePackage(mc.Ctx, &p)
 			if err != nil {
 				mc.Log.Error(err, "creating dependency package")
 			}

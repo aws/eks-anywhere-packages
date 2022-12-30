@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"testing"
 	"time"
 
@@ -131,8 +132,8 @@ func givenMockDriver(t *testing.T) *mocks.MockPackageDriver {
 func givenMocksWithClient(t *testing.T) (*ManagerContext, *cMock.MockClient) {
 	mc, _ := givenMocks(t)
 	mockClient := givenMockClient(t)
-	packageClient := NewPackageClient(mockClient)
-	mc.PackageClient = packageClient
+	managerClient := bundle.NewManagerClient(mockClient)
+	mc.ManagerClient = managerClient
 	return mc, mockClient
 }
 
