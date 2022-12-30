@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"testing"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	cMock "github.com/aws/eks-anywhere-packages/controllers/mocks"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"github.com/aws/eks-anywhere-packages/pkg/driver/mocks"
 )
 
