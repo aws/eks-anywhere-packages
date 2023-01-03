@@ -49,3 +49,38 @@ notactuallyyaml
 	assert.EqualError(t, err, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type map[string]interface {}")
 	assert.Contains(t, err.Error(), "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type map[string]interface {}")
 }
+
+func TestPackage_GetClusterName(t *testing.T) {
+	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie")
+	assert.Equal(t, "maggie", sut.GetClusterName())
+	sut.Namespace = "eksa-packages"
+	assert.Equal(t, "", sut.GetClusterName())
+}
+
+func TestPackage_IsOldNamespace(t *testing.T) {
+	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie")
+	assert.False(t, sut.IsOldNamespace())
+	sut.Namespace = "eksa-packages"
+	assert.True(t, sut.IsOldNamespace())
+}
+
+func TestPackage_IsValidNamespace(t *testing.T) {
+	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie")
+	assert.True(t, sut.IsValidNamespace())
+	sut.Namespace = "eksa-packages"
+	assert.True(t, sut.IsValidNamespace())
+	sut.Namespace = "default"
+	assert.False(t, sut.IsValidNamespace())
+}
+
+func TestPackage_IsInstalledOnWorkload(t *testing.T) {
+	t.Setenv("CLUSTER_NAME", "maggie")
+	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie")
+	assert.False(t, sut.IsInstalledOnWorkload())
+	sut.Namespace = "eksa-packages"
+	assert.True(t, sut.IsInstalledOnWorkload())
+	sut.Namespace = "default"
+	assert.True(t, sut.IsInstalledOnWorkload())
+	sut.Namespace = "eksa-packages-pharrell"
+	assert.True(t, sut.IsInstalledOnWorkload())
+}
