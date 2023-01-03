@@ -3,8 +3,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/aws/eks-anywhere-packages/pkg/testutil"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -15,11 +13,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/controllers"
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
 	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
 func givenRequest() ctrl.Request {
