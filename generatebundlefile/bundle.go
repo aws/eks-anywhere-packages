@@ -11,9 +11,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
