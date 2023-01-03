@@ -1,4 +1,4 @@
-package controllers_test
+package controllers
 
 import (
 	"context"
@@ -13,11 +13,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
-	"github.com/aws/eks-anywhere-packages/controllers"
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
 	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
 )
 
 func givenRequest() ctrl.Request {
@@ -60,7 +61,7 @@ func TestPackageBundleReconciler_ReconcileAddUpdate(t *testing.T) {
 	mockClient.EXPECT().Status().Return(statusWriter)
 	statusWriter.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).Return(nil)
 	bm.EXPECT().ProcessBundle(ctx, myBundle).Return(true, nil)
-	sut := controllers.NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, nil, logr.Discard())
+	sut := NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, nil, logr.Discard())
 
 	_, actualError := sut.Reconcile(ctx, request)
 
@@ -75,7 +76,7 @@ func TestPackageBundleReconciler_ReconcileError(t *testing.T) {
 	expectedError := fmt.Errorf("error reading")
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(expectedError)
 	bm := bundleMocks.NewMockManager(gomock.NewController(t))
-	sut := controllers.NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, nil, logr.Discard())
+	sut := NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, nil, logr.Discard())
 
 	_, actualError := sut.Reconcile(ctx, request)
 
@@ -92,7 +93,7 @@ func TestPackageBundleReconciler_ReconcileIgnored(t *testing.T) {
 	myBundle := GivenBundle()
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).DoAndReturn(doAndReturnBundle(myBundle))
 	bm.EXPECT().ProcessBundle(ctx, myBundle).Return(false, nil)
-	sut := controllers.NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, nil, logr.Discard())
+	sut := NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, nil, logr.Discard())
 
 	_, actualError := sut.Reconcile(ctx, request)
 
@@ -111,10 +112,34 @@ func TestPackageBundleReconciler_ReconcileDelete(t *testing.T) {
 	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
 	bm := bundleMocks.NewMockManager(gomock.NewController(t))
 	mockRegistryClient := bundleMocks.NewMockRegistryClient(gomock.NewController(t))
-	sut := controllers.NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, mockRegistryClient, logr.Discard())
+	sut := NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, mockRegistryClient, logr.Discard())
 	mockClient.EXPECT().Get(ctx, request.NamespacedName, gomock.Any()).Return(notFoundError)
 
 	_, actualError := sut.Reconcile(ctx, request)
 
 	assert.Nil(t, actualError)
+}
+
+func TestPackageBundleReconciler_mapBundleReconcileRequests(t *testing.T) {
+	ctx := context.Background()
+	bundleOne, err := testutil.GivenPackageBundle("../api/testdata/bundle_one.yaml")
+	assert.NoError(t, err)
+	bundleTwo, err := testutil.GivenPackageBundle("../api/testdata/bundle_two.yaml")
+	assert.NoError(t, err)
+	mockClient := mocks.NewMockClient(gomock.NewController(t))
+	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+	mockClient.EXPECT().
+		List(ctx, gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, bundles *api.PackageBundleList,
+			_ ...*client.ListOptions) error {
+			bundles.Items = []api.PackageBundle{*bundleOne, *bundleTwo}
+			return nil
+		})
+	bm := bundleMocks.NewMockManager(gomock.NewController(t))
+	sut := NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, nil, logr.Discard())
+
+	requests := sut.mapBundleReconcileRequests(&api.PackageBundleController{})
+
+	assert.Equal(t, 2, len(requests))
+
 }
