@@ -1,8 +1,10 @@
-package controllers_test
+package controllers
 
 import (
 	"context"
 	"fmt"
+	"github.com/aws/eks-anywhere-packages/pkg/testutil"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -117,4 +119,28 @@ func TestPackageBundleReconciler_ReconcileDelete(t *testing.T) {
 	_, actualError := sut.Reconcile(ctx, request)
 
 	assert.Nil(t, actualError)
+}
+
+func TestPackageBundleReconciler_mapBundleReconcileRequests(t *testing.T) {
+	ctx := context.Background()
+	bundleOne, err := testutil.GivenPackageBundle("../api/testdata/bundle_one.yaml")
+	assert.NoError(t, err)
+	bundleTwo, err := testutil.GivenPackageBundle("../api/testdata/bundle_two.yaml")
+	assert.NoError(t, err)
+	mockClient := mocks.NewMockClient(gomock.NewController(t))
+	mockBundleClient := bundleMocks.NewMockClient(gomock.NewController(t))
+	mockClient.EXPECT().
+		List(ctx, gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, bundles *api.PackageBundleList,
+			_ ...*client.ListOptions) error {
+			bundles.Items = []api.PackageBundle{*bundleOne, *bundleTwo}
+			return nil
+		})
+	bm := bundleMocks.NewMockManager(gomock.NewController(t))
+	sut := controllers.NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, nil, logr.Discard())
+
+	requests := sut.mapBundleReconcileRequests(&api.PackageBundleController{})
+
+	assert.Equal(t, 2, len(requests))
+
 }
