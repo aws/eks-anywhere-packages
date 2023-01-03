@@ -53,6 +53,10 @@ func (config *Package) GetClusterName() string {
 	return ""
 }
 
+func (config *Package) IsOldNamespace() bool {
+	return config.GetClusterName() == ""
+}
+
 func (config *Package) IsValidNamespace() bool {
 	if !strings.HasPrefix(config.Namespace, namespacePrefix) {
 		if config.Namespace != PackageNamespace {
