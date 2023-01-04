@@ -193,7 +193,7 @@ func (bc *managerClient) CreateClusterConfigMap(ctx context.Context, clusterName
 	return nil
 }
 
-// CreatePackage Creates the given package resource
+// CreatePackage creates the given package resource
 func (p *managerClient) CreatePackage(ctx context.Context, pkg *api.Package) (err error) {
 	return p.Client.Create(ctx, pkg)
 }
