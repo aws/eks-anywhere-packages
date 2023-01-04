@@ -15,6 +15,7 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	cMock "github.com/aws/eks-anywhere-packages/controllers/mocks"
+	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"github.com/aws/eks-anywhere-packages/pkg/driver/mocks"
 )
 
@@ -131,8 +132,8 @@ func givenMockDriver(t *testing.T) *mocks.MockPackageDriver {
 func givenMocksWithClient(t *testing.T) (*ManagerContext, *cMock.MockClient) {
 	mc, _ := givenMocks(t)
 	mockClient := givenMockClient(t)
-	packageClient := NewPackageClient(mockClient)
-	mc.PackageClient = packageClient
+	managerClient := bundle.NewManagerClient(mockClient)
+	mc.ManagerClient = managerClient
 	return mc, mockClient
 }
 

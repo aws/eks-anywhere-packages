@@ -51,14 +51,13 @@ type PackageReconciler struct {
 	PackageDriver driver.PackageDriver
 	Manager       packages.Manager
 	bundleManager bundle.Manager
-	bundleClient  bundle.Client
-	packageClient packages.Client
+	managerClient bundle.Client
 }
 
 func NewPackageReconciler(client client.Client, scheme *runtime.Scheme,
 	driver driver.PackageDriver, manager packages.Manager,
-	bundleManager bundle.Manager, bundleClient bundle.Client,
-	packageClient packages.Client, log logr.Logger) *PackageReconciler {
+	bundleManager bundle.Manager, managerClient bundle.Client,
+	log logr.Logger) *PackageReconciler {
 
 	return &PackageReconciler{
 		Client:        client,
@@ -66,8 +65,7 @@ func NewPackageReconciler(client client.Client, scheme *runtime.Scheme,
 		PackageDriver: driver,
 		Manager:       manager,
 		bundleManager: bundleManager,
-		bundleClient:  bundleClient,
-		packageClient: packageClient,
+		managerClient: managerClient,
 		Log:           log,
 	}
 }
@@ -87,17 +85,15 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 
 	puller := artifacts.NewRegistryPuller()
 	registryClient := bundle.NewRegistryClient(puller)
-	bundleClient := bundle.NewManagerClient(mgr.GetClient())
-	packageClient := packages.NewPackageClient(mgr.GetClient())
-	bundleManager := bundle.NewBundleManager(log, registryClient, bundleClient, tcc, config.GetGlobalConfig())
+	managerClient := bundle.NewManagerClient(mgr.GetClient())
+	bundleManager := bundle.NewBundleManager(log, registryClient, managerClient, tcc, config.GetGlobalConfig())
 	reconciler := NewPackageReconciler(
 		mgr.GetClient(),
 		mgr.GetScheme(),
 		helmDriver,
 		manager,
 		bundleManager,
-		bundleClient,
-		packageClient,
+		managerClient,
 		log,
 	)
 
@@ -137,7 +133,7 @@ func (r *PackageReconciler) mapBundleChangesToPackageUpdate(_ client.Object) (re
 func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.V(6).Info("Reconcile:", "NamespacedName", req.NamespacedName)
 	managerContext := packages.NewManagerContext(ctx, r.Log, r.PackageDriver)
-	managerContext.PackageClient = r.packageClient
+	managerContext.ManagerClient = r.managerClient
 
 	// Get the CRD object from the k8s API.
 	var err error
@@ -148,7 +144,7 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 		managerContext.SetUninstalling(req.Namespace, req.Name)
 	} else {
-		pbc, err := r.bundleClient.GetPackageBundleController(ctx, managerContext.Package.GetClusterName())
+		pbc, err := r.managerClient.GetPackageBundleController(ctx, managerContext.Package.GetClusterName())
 		if err != nil {
 			r.Log.Error(err, "Getting package bundle controller")
 			managerContext.Package.Status.Detail = err.Error()
@@ -159,7 +155,7 @@ func (r *PackageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		managerContext.PBC = *pbc
 
-		bundle, err := r.bundleClient.GetActiveBundle(ctx, managerContext.Package.GetClusterName())
+		bundle, err := r.managerClient.GetActiveBundle(ctx, managerContext.Package.GetClusterName())
 		if err != nil {
 			r.Log.Error(err, "Getting active bundle")
 			managerContext.Package.Status.Detail = err.Error()
