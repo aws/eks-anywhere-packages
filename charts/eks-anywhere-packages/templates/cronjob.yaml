@@ -1,4 +1,4 @@
-{{- if semverCompare ">=1.21-0" .Capabilities.KubeVersion.Version }}
+#{{- if semverCompare ">=1.21-0" .Capabilities.KubeVersion.Version }}
 apiVersion: batch/v1
 {{- else }}
 apiVersion: batch/v1beta1
@@ -30,19 +30,36 @@ spec:
                     secretKeyRef:
                       name: aws-secret
                       key: ID
-                      optional: true
                 - name: AWS_SECRET_ACCESS_KEY
                   valueFrom:
                     secretKeyRef:
                       name: aws-secret
                       key: SECRET
-                      optional: true
                 - name: AWS_REGION
                   valueFrom:
                     secretKeyRef:
                       name: aws-secret
                       key: REGION
-                      optional: true
+                - name: REGISTRY_MIRROR_ENDPOINT
+                  valueFrom:
+                    secretKeyRef:
+                      name: registry-mirror-secret
+                      key: ENDPOINT
+                - name: REGISTRY_MIRROR_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: registry-mirror-secret
+                      key: USERNAME
+                - name: REGISTRY_MIRROR_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: registry-mirror-secret
+                      key: PASSWORD
+                - name: REGISTRY_MIRROR_CACERTCONTENT
+                  valueFrom:
+                    secretKeyRef:
+                      name: registry-mirror-secret
+                      key: CACERTCONTENT
                 - name: HTTP_PROXY
                   value: {{ .Values.proxy.HTTP_PROXY | quote}}
                 - name: HTTPS_PROXY
