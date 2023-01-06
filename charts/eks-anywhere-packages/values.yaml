@@ -113,3 +113,13 @@ cronjob:
 #  Additional Variables for Config Map for namespace
 nsconfigmap:
   name: ns-secret-map
+# Secrets
+registryMirrorSecret:
+  endpoint: ""
+  username: ""
+  password: ""
+  cacertcontent: ""
+awsSecret:
+  id: ""
+  secret: ""
+  region: ""
