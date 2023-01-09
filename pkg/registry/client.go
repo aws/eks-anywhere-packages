@@ -84,7 +84,7 @@ func (or *OCIRegistryClient) Destination(image Artifact) string {
 
 // GetStorage object based on repository.
 func (or *OCIRegistryClient) GetStorage(ctx context.Context, image Artifact) (repo orasregistry.Repository, err error) {
-	dstRepo := or.project + image.Repository
+	dstRepo := path.Join(or.project, image.Repository)
 	repo, err = or.registry.Repository(ctx, dstRepo)
 	if err != nil {
 		return nil, fmt.Errorf("error creating repository %s: %v", dstRepo, err)
