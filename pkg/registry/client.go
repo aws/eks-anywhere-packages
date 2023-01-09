@@ -44,12 +44,13 @@ func (or *OCIRegistryClient) Init() error {
 			return
 		}
 
-		tlsConfig := &tls.Config{
-			RootCAs:            or.certificates,
-			InsecureSkipVerify: or.insecure,
-		}
 		transport := http.DefaultTransport.(*http.Transport).Clone()
-		transport.TLSClientConfig = tlsConfig
+		{ // #nosec G402
+			transport.TLSClientConfig = &tls.Config{
+				RootCAs:            or.certificates,
+				InsecureSkipVerify: or.insecure,
+			}
+		}
 		authClient := &auth.Client{
 			Client: &http.Client{
 				Transport: transport,
