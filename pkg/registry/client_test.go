@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	ctx   = context.Background()
 	image = registry.Artifact{
 		Registry:   "public.ecr.aws",
 		Repository: "eks-anywhere/eks-anywhere-packages",
