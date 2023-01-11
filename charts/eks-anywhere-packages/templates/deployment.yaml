@@ -44,10 +44,6 @@ spec:
           - --health-probe-bind-address=:8081
           - --metrics-bind-address=127.0.0.1:8080
           - --leader-elect
-          {{- with .Values.controller.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
           image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.controller }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
@@ -66,6 +62,11 @@ spec:
               value: {{ .Values.proxy.NO_PROXY | quote}}
             - name: CLUSTER_NAME
               value: {{ .Values.clusterName | quote}}
+            - name: REGISTRY_MIRROR_CA
+              valueFrom:
+                secretKeyRef:
+                  name: registry-mirror-secret
+                  key: CACERTCONTENT
           ports:
             - name: webhook-server
               containerPort: 9443
@@ -90,11 +91,18 @@ spec:
           - mountPath: /tmp/k8s-webhook-server/serving-certs
             name: cert
             readOnly: true
+          - mountPath: /tmp/registry-mirror
+            name: cert
+            readOnly: true
       volumes:
       - name: cert
         secret:
           defaultMode: 420
           secretName: webhook-server-cert
+      - name: registry-mirror
+        secret:
+          defaultMode: 420
+          secretName: registry-mirror-cred
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

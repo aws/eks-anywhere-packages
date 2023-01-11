@@ -2,20 +2,17 @@ package k8s
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/constants"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-
-	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/aws"
 )
 
 type config struct {
@@ -29,53 +26,9 @@ type auth struct {
 	Auth     string `json:"auth"`
 }
 
-const (
-	defaultEmail        = "test@test.com"
-	configMapName       = "ns-secret-map"
-	eksaSystemNamespace = "eksa-system"
-	packagesNamespace   = "eksa-packages"
-	namespacePrefix     = packagesNamespace + "-"
-)
-
-func UpdateTokens(secretname string, creds []aws.ECRAuth) (error, []string) {
-	failedList := make([]string, 0)
-	clientset, err := getDefaultClientSet()
-	if err != nil {
-		return err, failedList
-	}
-
-	ecrAuth, err := createECRAuthConfig(creds)
-	if err != nil {
-		return err, failedList
-	}
-
-	clusterNames, err := getClusterNameFromNamespaces(clientset)
-	if err != nil {
-		return err, failedList
-	}
-
-	for _, clusterName := range clusterNames {
-		targetNamespaces, err := getTargetNamespacesFromConfigMap(clientset, clusterName)
-		if err != nil {
-			failedList = append(failedList, fmt.Sprintf("Failed to find config map for %s cluster, ", clusterName))
-			continue
-		}
-
-		remoteClientset, err := getRemoteClient(clusterName, clientset)
-		if err != nil {
-			failedList = append(failedList, fmt.Sprintf("Failed to create client for %s cluster, with error: %s", clusterName, err))
-			continue
-		}
-
-		failedList = append(failedList, pushECRAuthToSecret(secretname, targetNamespaces, remoteClientset, ecrAuth)...)
-	}
-
-	return nil, failedList
-}
-
-func getRemoteClient(clusterName string, defaultClientset *kubernetes.Clientset) (*kubernetes.Clientset, error) {
+func GetRemoteClient(clusterName string, defaultClientset *kubernetes.Clientset) (*kubernetes.Clientset, error) {
 	secretName := clusterName + "-kubeconfig"
-	kubeconfigSecret, err := getSecret(defaultClientset, secretName, eksaSystemNamespace)
+	kubeconfigSecret, err := GetSecret(defaultClientset, secretName, constants.EksaSystemNamespace)
 	if err != nil {
 		return nil, err
 	}
@@ -103,29 +56,7 @@ func getRemoteClient(clusterName string, defaultClientset *kubernetes.Clientset)
 	return remoteClient, nil
 }
 
-func pushECRAuthToSecret(secretname string, targetNamespaces []string, clientset kubernetes.Interface, ecrAuth []byte) []string {
-	failedList := make([]string, 0)
-	for _, ns := range targetNamespaces {
-		secret, err := getSecret(clientset, secretname, ns)
-		if secret == nil {
-			secret = createSecret(secretname, ns)
-			secret.Data[corev1.DockerConfigJsonKey] = ecrAuth
-			_, err = clientset.CoreV1().Secrets(ns).Create(context.TODO(), secret, metav1.CreateOptions{})
-			if err != nil {
-				failedList = append(failedList, fmt.Sprintf("Failed to create %s in %s namespace, ", secretname, ns))
-			}
-		} else {
-			secret.Data[corev1.DockerConfigJsonKey] = ecrAuth
-			_, err = clientset.CoreV1().Secrets(ns).Update(context.TODO(), secret, metav1.UpdateOptions{})
-			if err != nil {
-				failedList = append(failedList, fmt.Sprintf("Failed to update %s in %s namespace, ", secretname, ns))
-			}
-		}
-	}
-	return failedList
-}
-
-func getDefaultClientSet() (*kubernetes.Clientset, error) {
+func GetDefaultClientSet() (*kubernetes.Clientset, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		// Program is not being run from inside cluster. Try default kubeconfig
@@ -144,8 +75,8 @@ func getDefaultClientSet() (*kubernetes.Clientset, error) {
 	return clientset, err
 }
 
-func getSecret(clientset kubernetes.Interface, name, namespace string) (*corev1.Secret, error) {
-	secret, err := clientset.CoreV1().Secrets(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+func GetSecret(clientSet *kubernetes.Clientset, name, namespace string) (*corev1.Secret, error) {
+	secret, err := clientSet.CoreV1().Secrets(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -153,26 +84,7 @@ func getSecret(clientset kubernetes.Interface, name, namespace string) (*corev1.
 	return secret, nil
 }
 
-func createECRAuthConfig(creds []aws.ECRAuth) ([]byte, error) {
-	config := config{Auths: make(map[string]*auth)}
-
-	for _, cred := range creds {
-		config.Auths[cred.Registry] = &auth{
-			Username: cred.Username,
-			Password: cred.Token,
-			Email:    defaultEmail,
-			Auth:     base64.StdEncoding.EncodeToString([]byte(cred.Username + ":" + cred.Token)),
-		}
-	}
-
-	configJson, err := json.Marshal(config)
-	if err != nil {
-		return nil, err
-	}
-	return configJson, nil
-}
-
-func createSecret(name string, namespace string) *corev1.Secret {
+func CreateSecret(clientSet *kubernetes.Clientset, name string, namespace string, data map[string][]byte) (*corev1.Secret, error) {
 	object := metav1.ObjectMeta{
 		Name:      name,
 		Namespace: namespace,
@@ -180,9 +92,13 @@ func createSecret(name string, namespace string) *corev1.Secret {
 	secret := corev1.Secret{
 		ObjectMeta: object,
 		Type:       corev1.SecretTypeDockerConfigJson,
-		Data:       map[string][]byte{},
+		Data:       data,
 	}
-	return &secret
+	return clientSet.CoreV1().Secrets(namespace).Create(context.TODO(), &secret, metav1.CreateOptions{})
+}
+
+func UpdateSecret(clientSet *kubernetes.Clientset, namespace string, secret *corev1.Secret, data map[string][]byte) (*corev1.Secret, error) {
+	return clientSet.CoreV1().Secrets(namespace).Update(context.TODO(), secret, metav1.UpdateOptions{})
 }
 
 func getClusterNameFromNamespaces(clientset kubernetes.Interface) ([]string, error) {
@@ -193,8 +109,8 @@ func getClusterNameFromNamespaces(clientset kubernetes.Interface) ([]string, err
 	}
 
 	for _, ns := range nslist.Items {
-		if strings.HasPrefix(ns.Name, namespacePrefix) {
-			clusterName := strings.TrimPrefix(ns.Name, namespacePrefix)
+		if strings.HasPrefix(ns.Name, constants.NamespacePrefix) {
+			clusterName := strings.TrimPrefix(ns.Name, constants.NamespacePrefix)
 			clusterNameList = append(clusterNameList, clusterName)
 		}
 	}
@@ -202,9 +118,17 @@ func getClusterNameFromNamespaces(clientset kubernetes.Interface) ([]string, err
 	return clusterNameList, nil
 }
 
+func GetNamespaces(clientSet *kubernetes.Clientset) (*corev1.NamespaceList, error) {
+	nslist, err := clientSet.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return nslist, nil
+}
+
 func getTargetNamespacesFromConfigMap(clientset kubernetes.Interface, clusterName string) ([]string, error) {
-	cm, err := clientset.CoreV1().ConfigMaps(namespacePrefix+clusterName).
-		Get(context.TODO(), configMapName, metav1.GetOptions{})
+	cm, err := clientset.CoreV1().ConfigMaps(constants.NamespacePrefix+clusterName).
+		Get(context.TODO(), constants.ConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -214,4 +138,13 @@ func getTargetNamespacesFromConfigMap(clientset kubernetes.Interface, clusterNam
 	}
 
 	return values, err
+}
+
+func GetConfigMaps(clientSet *kubernetes.Clientset, name string) (*corev1.ConfigMap, error) {
+	cm, err := clientSet.CoreV1().ConfigMaps(name).
+		Get(context.TODO(), constants.ConfigMapName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return cm, err
 }
