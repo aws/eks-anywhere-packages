@@ -30,10 +30,11 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 9.21.0-1.21-5516c0368ff74d14c328d61fe374da9787ecf437
-            - name: 9.21.0-1.22-5516c0368ff74d14c328d61fe374da9787ecf437
-            - name: 9.21.0-1.23-5516c0368ff74d14c328d61fe374da9787ecf437
-            - name: 9.21.0-1.24-5516c0368ff74d14c328d61fe374da9787ecf437
+            - name: 9.21.0-1.21-4766fd863a1b248b9f4532a7934691d96f9e8a4a
+            - name: 9.21.0-1.22-4766fd863a1b248b9f4532a7934691d96f9e8a4a
+            - name: 9.21.0-1.23-4766fd863a1b248b9f4532a7934691d96f9e8a4a
+            - name: 9.21.0-1.24-4766fd863a1b248b9f4532a7934691d96f9e8a4a
+            - name: 9.21.0-1.25-4766fd863a1b248b9f4532a7934691d96f9e8a4a
   - org: harbor
     projects:
       - name: harbor
@@ -61,10 +62,11 @@ packages:
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.6.1-eks-1-21-18-c94ed410f56421659f554f13b4af7a877da72bc1
-            - name: 0.6.1-eks-1-22-11-c94ed410f56421659f554f13b4af7a877da72bc1
-            - name: 0.6.1-eks-1-23-6-c94ed410f56421659f554f13b4af7a877da72bc1
-            - name: 0.6.1-eks-1-24-1-c94ed410f56421659f554f13b4af7a877da72bc1
+            - name: 0.6.1-eks-1-21-24-417232979864fa8c4cc0b2edbe8fcd712e586686
+            - name: 0.6.1-eks-1-22-17-417232979864fa8c4cc0b2edbe8fcd712e586686
+            - name: 0.6.1-eks-1-23-12-417232979864fa8c4cc0b2edbe8fcd712e586686
+            - name: 0.6.2-eks-1-24-7-417232979864fa8c4cc0b2edbe8fcd712e586686
+            - name: 0.6.2-eks-1-25-2-417232979864fa8c4cc0b2edbe8fcd712e586686
   - org: emissary
     projects:
       - name: emissary
