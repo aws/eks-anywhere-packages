@@ -8,7 +8,7 @@ type Credential struct {
 	Password string
 }
 
-type RemoteClusterClientset map[string]*kubernetes.Clientset
+type RemoteClusterClientset map[string]kubernetes.Interface
 
 type Secret interface {
 	Init(defaultClientSet *kubernetes.Clientset, remoteClientSets RemoteClusterClientset) error

@@ -75,7 +75,7 @@ func GetDefaultClientSet() (*kubernetes.Clientset, error) {
 	return clientset, err
 }
 
-func GetSecret(clientSet *kubernetes.Clientset, name, namespace string) (*corev1.Secret, error) {
+func GetSecret(clientSet kubernetes.Interface, name, namespace string) (*corev1.Secret, error) {
 	secret, err := clientSet.CoreV1().Secrets(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func GetSecret(clientSet *kubernetes.Clientset, name, namespace string) (*corev1
 	return secret, nil
 }
 
-func CreateSecret(clientSet *kubernetes.Clientset, name string, namespace string, data map[string][]byte) (*corev1.Secret, error) {
+func CreateSecret(clientSet kubernetes.Interface, name string, namespace string, data map[string][]byte) (*corev1.Secret, error) {
 	object := metav1.ObjectMeta{
 		Name:      name,
 		Namespace: namespace,
@@ -97,7 +97,10 @@ func CreateSecret(clientSet *kubernetes.Clientset, name string, namespace string
 	return clientSet.CoreV1().Secrets(namespace).Create(context.TODO(), &secret, metav1.CreateOptions{})
 }
 
-func UpdateSecret(clientSet *kubernetes.Clientset, namespace string, secret *corev1.Secret, data map[string][]byte) (*corev1.Secret, error) {
+func UpdateSecret(clientSet kubernetes.Interface, namespace string, secret *corev1.Secret, data map[string][]byte) (*corev1.Secret, error) {
+	for k, v := range data {
+		secret.Data[k] = v
+	}
 	return clientSet.CoreV1().Secrets(namespace).Update(context.TODO(), secret, metav1.UpdateOptions{})
 }
 
@@ -118,7 +121,7 @@ func getClusterNameFromNamespaces(clientset kubernetes.Interface) ([]string, err
 	return clusterNameList, nil
 }
 
-func GetNamespaces(clientSet *kubernetes.Clientset) (*corev1.NamespaceList, error) {
+func GetNamespaces(clientSet kubernetes.Interface) (*corev1.NamespaceList, error) {
 	nslist, err := clientSet.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
@@ -140,8 +143,8 @@ func getTargetNamespacesFromConfigMap(clientset kubernetes.Interface, clusterNam
 	return values, err
 }
 
-func GetConfigMaps(clientSet *kubernetes.Clientset, name string) (*corev1.ConfigMap, error) {
-	cm, err := clientSet.CoreV1().ConfigMaps(name).
+func GetConfigMap(clientSet kubernetes.Interface, namespace string) (*corev1.ConfigMap, error) {
+	cm, err := clientSet.CoreV1().ConfigMaps(namespace).
 		Get(context.TODO(), constants.ConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err

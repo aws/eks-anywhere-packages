@@ -11,7 +11,6 @@ import (
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/utils"
 )
 
-
 func main() {
 	utils.InfoLogger.Println("Running at " + time.Now().UTC().String())
 

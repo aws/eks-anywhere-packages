@@ -18,7 +18,7 @@ import (
 )
 
 type AwsSecret struct {
-	secretName string
+	secretName       string
 	defaultClientSet *kubernetes.Clientset
 	remoteClientSets secrets.RemoteClusterClientset
 }

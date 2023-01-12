@@ -13,11 +13,11 @@ const (
 	endpointEnv = "REGISTRY_MIRROR_ENDPOINT"
 	usernameEnv = "REGISTRY_MIRROR_USERNAME"
 	passwordEnv = "REGISTRY_MIRROR_PASSWORD"
-	secretName = "registry-mirror-cred"
+	secretName  = "registry-mirror-cred"
 )
 
 type RegistryMirrorSecret struct {
-	secretName string
+	secretName       string
 	defaultClientSet *kubernetes.Clientset
 	remoteClientSets secrets.RemoteClusterClientset
 }

@@ -6,9 +6,9 @@ import (
 )
 
 var (
-	InfoLogger *log.Logger
+	InfoLogger    *log.Logger
 	WarningLogger *log.Logger
-	ErrorLogger *log.Logger
+	ErrorLogger   *log.Logger
 )
 
 func init() {

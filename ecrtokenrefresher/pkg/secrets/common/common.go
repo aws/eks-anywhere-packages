@@ -1,7 +1,6 @@
 package common
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -14,7 +13,6 @@ import (
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets"
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -90,7 +88,7 @@ func GetRemoteClientSets(defaultClientset *kubernetes.Clientset) (secrets.Remote
 	return remoteClientSets, nil
 }
 
-func getClusterNameFromNamespaces(clientSet *kubernetes.Clientset) ([]string, error) {
+func getClusterNameFromNamespaces(clientSet kubernetes.Interface) ([]string, error) {
 	clusterNameList := make([]string, 0)
 	nslist, err := k8s.GetNamespaces(clientSet)
 	if err != nil {
@@ -134,14 +132,14 @@ func BroadcastDockerAuthConfig(dockerConfig *dockerConfig, remoteClientSets *sec
 			continue
 		}
 		for _, ns := range namespaces {
-			secret, err := k8s.GetSecret(clientSet, secretName, ns)
+			secret, _ := k8s.GetSecret(clientSet, secretName, ns)
 			if secret == nil {
-				secret, err = k8s.CreateSecret(clientSet, secretName, ns, map[string][]byte{corev1.DockerConfigJsonKey: configJson})
+				_, err = k8s.CreateSecret(clientSet, secretName, ns, map[string][]byte{corev1.DockerConfigJsonKey: configJson})
 				if err != nil {
 					utils.WarningLogger.Printf("failed to create %s in %s namespace\n", secretName, ns)
 				}
 			} else {
-				secret, err = k8s.UpdateSecret(clientSet, ns, secret, map[string][]byte{corev1.DockerConfigJsonKey: configJson})
+				_, err = k8s.UpdateSecret(clientSet, ns, secret, map[string][]byte{corev1.DockerConfigJsonKey: configJson})
 				if err != nil {
 					utils.WarningLogger.Printf("failed to update %s in %s namespace\n", secretName, ns)
 				}
@@ -151,9 +149,8 @@ func BroadcastDockerAuthConfig(dockerConfig *dockerConfig, remoteClientSets *sec
 	return nil
 }
 
-func getNamespacesFromConfigMap(clientSet *kubernetes.Clientset, keyName string) ([]string, error) {
-	cm, err := clientSet.CoreV1().ConfigMaps(keyName).
-		Get(context.TODO(), constants.ConfigMapName, metav1.GetOptions{})
+func getNamespacesFromConfigMap(clientSet kubernetes.Interface, namespace string) ([]string, error) {
+	cm, err := k8s.GetConfigMap(clientSet, namespace)
 	if err != nil {
 		return nil, err
 	}
