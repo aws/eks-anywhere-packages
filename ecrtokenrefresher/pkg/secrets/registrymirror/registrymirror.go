@@ -69,15 +69,14 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 	}
 	// create a registry mirror secret for package controller pod to mount
 	secret, _ := k8s.GetSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace)
+	data := map[string][]byte{corev1.DockerConfigJsonKey: configJson, "ca.crt": []byte(os.Getenv(caEnv))}
 	if secret == nil {
-		_, err = k8s.CreateSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace,
-			map[string][]byte{corev1.DockerConfigJsonKey: configJson, "ca.crt": []byte(os.Getenv(caEnv))})
+		_, err = k8s.CreateSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace, data)
 		if err != nil {
 			return err
 		}
 	} else {
-		_, err = k8s.UpdateSecret(mirror.defaultClientSet, constants.PackagesNamespace, secret,
-			map[string][]byte{corev1.DockerConfigJsonKey: configJson, "ca.crt": []byte(os.Getenv(caEnv))})
+		_, err = k8s.UpdateSecret(mirror.defaultClientSet, constants.PackagesNamespace, secret, data)
 		if err != nil {
 			return err
 		}
