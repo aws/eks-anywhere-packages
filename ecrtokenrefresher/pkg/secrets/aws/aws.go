@@ -23,6 +23,8 @@ type AwsSecret struct {
 	remoteClientSets secrets.RemoteClusterClientset
 }
 
+var _ secrets.Secret = (*AwsSecret)(nil)
+
 const (
 	envVarAwsSecret      = "ECR_TOKEN_SECRET_NAME"       //#nosec G101
 	envVarIRSAToken      = "AWS_WEB_IDENTITY_TOKEN_FILE" //#nosec G101

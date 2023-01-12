@@ -27,6 +27,8 @@ type RegistryMirrorSecret struct {
 	remoteClientSets secrets.RemoteClusterClientset
 }
 
+var _ secrets.Secret = (*RegistryMirrorSecret)(nil)
+
 func (mirror *RegistryMirrorSecret) Init(defaultClientSet *kubernetes.Clientset, remoteClientSets secrets.RemoteClusterClientset) error {
 	mirror.secretName = secretName
 	mirror.defaultClientSet = defaultClientSet
