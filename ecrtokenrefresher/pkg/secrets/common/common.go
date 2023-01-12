@@ -35,8 +35,12 @@ func GetDefaultClientSet() (*kubernetes.Clientset, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		// Program is not being run from inside cluster. Try default kubeconfig
-		config, err = clientcmd.BuildConfigFromFlags("",
-			filepath.Join(os.Getenv("HOME"), ".kube", "config"))
+		if val, ok := os.LookupEnv("KUBECONFIG"); ok {
+			config, err = clientcmd.BuildConfigFromFlags("", val)
+		} else {
+			config, err = clientcmd.BuildConfigFromFlags("",
+				filepath.Join(os.Getenv("HOME"), ".kube", "config"))
+		}
 		if err != nil {
 			return nil, err
 		}
