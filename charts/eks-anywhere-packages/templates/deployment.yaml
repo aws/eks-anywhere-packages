@@ -96,7 +96,7 @@ spec:
             name: cert
             readOnly: true
           - mountPath: /tmp/registry-mirror
-            name: cert
+            name: registry-mirror
             readOnly: true
       volumes:
       - name: cert
