@@ -17,6 +17,7 @@ const (
 	endpointEnv = "REGISTRY_MIRROR_ENDPOINT"
 	usernameEnv = "REGISTRY_MIRROR_USERNAME"
 	passwordEnv = "REGISTRY_MIRROR_PASSWORD"
+	caEnv       = "REGISTRY_MIRROR_CACERTCONTENT"
 	secretName  = "registry-mirror-cred"
 )
 
@@ -45,14 +46,11 @@ func (mirror *RegistryMirrorSecret) IsActive() bool {
 
 func (mirror *RegistryMirrorSecret) GetCredentials() ([]*secrets.Credential, error) {
 	utils.InfoLogger.Println("fetching auth data from Registry Mirror... ")
-	endpoint, _ := os.LookupEnv(endpointEnv)
-	username, _ := os.LookupEnv(usernameEnv)
-	password, _ := os.LookupEnv(passwordEnv)
 	secrets := []*secrets.Credential{
 		{
-			Registry: endpoint,
-			Username: username,
-			Password: password,
+			Registry: os.Getenv(endpointEnv),
+			Username: os.Getenv(usernameEnv),
+			Password: os.Getenv(passwordEnv),
 		},
 	}
 	utils.InfoLogger.Println("success.")
@@ -65,14 +63,21 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 		return err
 	}
 	dockerConfig := common.CreateDockerAuthConfig(creds)
+	configJson, err := json.Marshal(*dockerConfig)
+	if err != nil {
+		return err
+	}
 	// create a registry mirror secret for package controller pod to mount
 	secret, _ := k8s.GetSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace)
 	if secret == nil {
-		configJson, err := json.Marshal(*dockerConfig)
+		_, err = k8s.CreateSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace,
+			map[string][]byte{corev1.DockerConfigJsonKey: configJson, "ca.crt": []byte(os.Getenv(caEnv))})
 		if err != nil {
 			return err
 		}
-		_, err = k8s.CreateSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace, map[string][]byte{corev1.DockerConfigJsonKey: configJson})
+	} else {
+		_, err = k8s.UpdateSecret(mirror.defaultClientSet, constants.PackagesNamespace, secret,
+			map[string][]byte{corev1.DockerConfigJsonKey: configJson, "ca.crt": []byte(os.Getenv(caEnv))})
 		if err != nil {
 			return err
 		}
