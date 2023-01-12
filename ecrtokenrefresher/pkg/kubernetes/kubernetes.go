@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/constants"
 	corev1 "k8s.io/api/core/v1"
@@ -104,43 +103,12 @@ func UpdateSecret(clientSet kubernetes.Interface, namespace string, secret *core
 	return clientSet.CoreV1().Secrets(namespace).Update(context.TODO(), secret, metav1.UpdateOptions{})
 }
 
-func getClusterNameFromNamespaces(clientset kubernetes.Interface) ([]string, error) {
-	clusterNameList := make([]string, 0)
-	nslist, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	for _, ns := range nslist.Items {
-		if strings.HasPrefix(ns.Name, constants.NamespacePrefix) {
-			clusterName := strings.TrimPrefix(ns.Name, constants.NamespacePrefix)
-			clusterNameList = append(clusterNameList, clusterName)
-		}
-	}
-
-	return clusterNameList, nil
-}
-
 func GetNamespaces(clientSet kubernetes.Interface) (*corev1.NamespaceList, error) {
 	nslist, err := clientSet.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
 	return nslist, nil
-}
-
-func getTargetNamespacesFromConfigMap(clientset kubernetes.Interface, clusterName string) ([]string, error) {
-	cm, err := clientset.CoreV1().ConfigMaps(constants.NamespacePrefix+clusterName).
-		Get(context.TODO(), constants.ConfigMapName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	values := make([]string, 0)
-	for ns := range cm.Data {
-		values = append(values, ns)
-	}
-
-	return values, err
 }
 
 func GetConfigMap(clientSet kubernetes.Interface, namespace string) (*corev1.ConfigMap, error) {
