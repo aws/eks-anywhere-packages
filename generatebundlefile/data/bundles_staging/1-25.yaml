@@ -49,14 +49,14 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 9.21.0-1.25-4766fd863a1b248b9f4532a7934691d96f9e8a4a
+            - name: 9.21.0-1.25-56810429df35d3ec6ddd5b83ce409f1f33d76c1b-latest-helm
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 0.6.2-eks-1-25-2-417232979864fa8c4cc0b2edbe8fcd712e586686
+            - name: 0.6.2-eks-1-25-2-56810429df35d3ec6ddd5b83ce409f1f33d76c1b
   - org: metallb
     projects:
       - name: metallb
