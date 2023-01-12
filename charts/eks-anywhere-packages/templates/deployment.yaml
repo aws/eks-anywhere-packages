@@ -66,11 +66,6 @@ spec:
               value: {{ .Values.proxy.NO_PROXY | quote}}
             - name: CLUSTER_NAME
               value: {{ .Values.clusterName | quote}}
-            - name: REGISTRY_MIRROR_CA
-              valueFrom:
-                secretKeyRef:
-                  name: registry-mirror-secret
-                  key: CACERTCONTENT
           ports:
             - name: webhook-server
               containerPort: 9443
