@@ -102,6 +102,7 @@ spec:
         secret:
           defaultMode: 420
           secretName: registry-mirror-cred
+          optional: true
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
