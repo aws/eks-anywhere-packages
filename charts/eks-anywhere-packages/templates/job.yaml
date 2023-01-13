@@ -9,7 +9,7 @@ spec:
       restartPolicy: OnFailure
       serviceAccountName: {{ include "eks-anywhere-packages.serviceAccountName" . }}
       containers:
-      - name: init-cronjob
+      - name: init-job
         image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.cronjob }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         env:

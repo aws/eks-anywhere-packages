@@ -37,6 +37,9 @@ func (mirror *RegistryMirrorSecret) Init(defaultClientSet *kubernetes.Clientset,
 }
 
 func (mirror *RegistryMirrorSecret) IsActive() bool {
+	if val, _ := os.LookupEnv(endpointEnv); val == "" {
+		return false
+	}
 	if val, _ := os.LookupEnv(usernameEnv); val == "" {
 		return false
 	}
