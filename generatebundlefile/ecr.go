@@ -73,7 +73,7 @@ func (c *ecrClient) Describe(describeInput *ecr.DescribeImagesInput) ([]ecrtypes
 func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error) {
 	sourceVersion := []api.SourceVersion{}
 	for _, tag := range project.Versions {
-		if !strings.Contains(tag.Name, "latest") {
+		if !strings.HasSuffix(tag.Name, "latest") {
 			var imagelookup []ecrtypes.ImageIdentifier
 			imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageTag: &tag.Name})
 			ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{

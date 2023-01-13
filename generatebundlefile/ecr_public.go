@@ -63,7 +63,7 @@ func (c *ecrPublicClient) DescribePublic(describeInput *ecrpublic.DescribeImages
 func (c *ecrPublicClient) GetShaForPublicInputs(project Project) ([]api.SourceVersion, error) {
 	sourceVersion := []api.SourceVersion{}
 	for _, tag := range project.Versions {
-		if !strings.Contains(tag.Name, "latest") {
+		if !strings.HasSuffix(tag.Name, "latest") {
 			var imagelookup []ecrpublictypes.ImageIdentifier
 			imagelookup = append(imagelookup, ecrpublictypes.ImageIdentifier{ImageTag: &tag.Name})
 			ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
