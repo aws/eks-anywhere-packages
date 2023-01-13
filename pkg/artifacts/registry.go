@@ -2,15 +2,14 @@ package artifacts
 
 import (
 	"context"
-	"fmt"
-
-	"oras.land/oras-go/pkg/content"
-	"oras.land/oras-go/pkg/oras"
+	"github.com/aws/eks-anywhere-packages/pkg/registry"
 )
 
 // RegistryPuller handles pulling OCI artifacts from an OCI registry
 // (i.e. bundles)
-type RegistryPuller struct{}
+type RegistryPuller struct {
+	storageClient registry.StorageClient
+}
 
 var _ Puller = (*RegistryPuller)(nil)
 
@@ -23,21 +22,29 @@ func NewRegistryPuller() *RegistryPuller {
 }
 
 func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
-	registry, err := content.NewRegistry(content.RegistryOptions{})
+	var art registry.Artifact
+	err := art.SetURI(ref)
 	if err != nil {
-		return nil, fmt.Errorf("creating registry: %w", err)
+		return nil, err
 	}
-	store := content.NewMemory()
 
-	_, err = oras.Copy(ctx, registry, ref, store, "")
+	certificates, err := registry.GetCertificates("registry.crt")
 	if err != nil {
-		return nil, fmt.Errorf("pulling artifact %q: %s", ref, err)
+		return nil, err
 	}
 
-	_, data, ok := store.GetByName("bundle.yaml")
-	if !ok {
-		return nil, fmt.Errorf("getting bundle data: unknown")
+	credentialStore := registry.NewCredentialStore()
+	err = credentialStore.Init()
+	if err != nil {
+		return nil, err
 	}
 
-	return data, nil
+	sc := registry.NewStorageContext(art.Registry, credentialStore, certificates, false)
+	p.storageClient = registry.NewOCIRegistry(sc)
+	err = p.storageClient.Init()
+	if err != nil {
+		return nil, err
+	}
+
+	return registry.PullBytes(ctx, p.storageClient, art)
 }
