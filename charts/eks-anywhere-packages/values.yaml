@@ -119,6 +119,7 @@ registryMirrorSecret:
   username: ""
   password: ""
   cacertcontent: ""
+  certcontent: ""
 awsSecret:
   id: ""
   secret: ""
