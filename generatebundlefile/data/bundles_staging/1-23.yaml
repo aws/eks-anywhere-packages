@@ -30,7 +30,7 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 9.21.0-1.23-5516c0368ff74d14c328d61fe374da9787ecf437
+            - name: 9.21.0-1.23-56810429df35d3ec6ddd5b83ce409f1f33d76c1b-latest-helm
   - org: harbor
     projects:
       - name: harbor
@@ -56,7 +56,7 @@ packages:
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 0.6.1-eks-1-23-6-c94ed410f56421659f554f13b4af7a877da72bc1
+            - name: 0.6.2-eks-1-23-12-56810429df35d3ec6ddd5b83ce409f1f33d76c1b
   - org: emissary
     projects:
       - name: emissary
