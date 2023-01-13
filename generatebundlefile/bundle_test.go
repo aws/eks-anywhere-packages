@@ -138,6 +138,31 @@ func TestNewPackageFromInput(t *testing.T) {
 				},
 			},
 		},
+		{
+			testname: "Test '-latest' in the middle of tag",
+			testproject: Project{
+				Name:       "hello-eks-anywhere",
+				Repository: "hello-eks-anywhere",
+				Registry:   "public.ecr.aws/eks-anywhere",
+				Versions: []Tag{
+					{Name: "test-latest-helm"},
+				},
+			},
+			wantErr: false,
+			wantBundle: &api.BundlePackage{
+				Name: "hello-eks-anywhere",
+				Source: api.BundlePackageSource{
+					Repository: "hello-eks-anywhere",
+					Registry:   "public.ecr.aws/eks-anywhere",
+					Versions: []api.SourceVersion{
+						{
+							Name:   "test-latest-helm",
+							Digest: testShaBundle,
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.testname, func(tt *testing.T) {
