@@ -2,6 +2,7 @@ package artifacts
 
 import (
 	"context"
+
 	"github.com/aws/eks-anywhere-packages/pkg/registry"
 )
 
