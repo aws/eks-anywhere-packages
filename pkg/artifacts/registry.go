@@ -3,13 +3,18 @@ package artifacts
 import (
 	"context"
 
+	"github.com/go-logr/logr"
+
 	"github.com/aws/eks-anywhere-packages/pkg/registry"
 )
+
+const certFile = "registry.crt"
 
 // RegistryPuller handles pulling OCI artifacts from an OCI registry
 // (i.e. bundles)
 type RegistryPuller struct {
 	storageClient registry.StorageClient
+	log           logr.Logger
 }
 
 var _ Puller = (*RegistryPuller)(nil)
@@ -18,8 +23,10 @@ var _ Puller = (*RegistryPuller)(nil)
 //
 // It assumes AWS ECR, and uses a password that exists in the ECR_PASSWORD
 // environment variable.
-func NewRegistryPuller() *RegistryPuller {
-	return &RegistryPuller{}
+func NewRegistryPuller(logger logr.Logger) *RegistryPuller {
+	return &RegistryPuller{
+		log: logger,
+	}
 }
 
 func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
@@ -29,9 +36,9 @@ func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
 		return nil, err
 	}
 
-	certificates, err := registry.GetCertificates("registry.crt")
+	certificates, err := registry.GetCertificates(certFile)
 	if err != nil {
-		return nil, err
+		p.log.Error(err, "problem getting certificate file", "filename", certFile)
 	}
 
 	credentialStore := registry.NewCredentialStore()
