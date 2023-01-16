@@ -16,7 +16,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.uber.org/zap v1.23.0
 	golang.org/x/mod v0.7.0
-	helm.sh/helm/v3 v3.10.3
+	helm.sh/helm/v3 v3.9.0-rc.1.0.20221222223505-5c40996dad38
 	k8s.io/api v0.25.2
 	k8s.io/apimachinery v0.25.2
 	k8s.io/client-go v0.25.2
@@ -35,11 +35,11 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
-	github.com/BurntSushi/toml v1.1.0 // indirect
+	github.com/BurntSushi/toml v1.2.0 // indirect
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
-	github.com/Masterminds/semver/v3 v3.1.1 // indirect
-	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
+	github.com/Masterminds/semver/v3 v3.2.0 // indirect
+	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/Masterminds/squirrel v1.5.3 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
@@ -81,7 +81,7 @@ require (
 	github.com/gosuri/uitable v0.0.4 // indirect
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/huandu/xstrings v1.3.2 // indirect
+	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/itchyny/timefmt-go v0.1.3 // indirect
@@ -91,7 +91,7 @@ require (
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
-	github.com/lib/pq v1.10.6 // indirect
+	github.com/lib/pq v1.10.7 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
@@ -121,10 +121,10 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
-	github.com/rubenv/sql-migrate v1.1.2 // indirect
+	github.com/rubenv/sql-migrate v1.2.0 // indirect
 	github.com/russross/blackfriday v1.6.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -133,16 +133,15 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
-	go.etcd.io/etcd/api/v3 v3.5.5 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
-	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b // indirect
+	golang.org/x/crypto v0.3.0 // indirect
+	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
+	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/term v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect

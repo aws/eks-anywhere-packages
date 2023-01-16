@@ -53,13 +53,12 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 		return fmt.Errorf("initialiing target cluster %s client for helm driver: %w", clusterName, err)
 	}
 
-	authorizationFileName := d.secretAuth.AuthFilename()
-	client, err := registry.NewClient(registry.ClientOptCredentialsFile(authorizationFileName))
+	d.settings = cli.New()
+	client, err := newRegistryClient("", "", "/Users/acool/Desktop/Amazon/eks-anywhere-cluster/harbor.pem", false, d.settings)
 	if err != nil {
 		return fmt.Errorf("creating registry client for helm driver: %w", err)
 	}
 
-	d.settings = cli.New()
 	d.cfg = &action.Configuration{RegistryClient: client}
 	err = d.cfg.Init(d.tcc, d.settings.Namespace(), os.Getenv("HELM_DRIVER"), helmLog(d.log))
 	if err != nil {
@@ -242,4 +241,44 @@ func (d *helmDriver) IsConfigChanged(_ context.Context, name string, values map[
 	}
 
 	return !reflect.DeepEqual(values, rel.Config), nil
+}
+
+func newRegistryClient(certFile, keyFile, caFile string, insecureSkipTLSverify bool, settings *cli.EnvSettings) (*registry.Client, error) {
+	if certFile != "" && keyFile != "" || caFile != "" || insecureSkipTLSverify {
+		registryClient, err := newRegistryClientWithTLS(certFile, keyFile, caFile, insecureSkipTLSverify, settings)
+		if err != nil {
+			return nil, err
+		}
+		return registryClient, nil
+	}
+	registryClient, err := newDefaultRegistryClient(settings)
+	if err != nil {
+		return nil, err
+	}
+	return registryClient, nil
+}
+
+func newDefaultRegistryClient(settings *cli.EnvSettings) (*registry.Client, error) {
+	// Create a new registry client
+	registryClient, err := registry.NewClient(
+		registry.ClientOptDebug(settings.Debug),
+		registry.ClientOptEnableCache(true),
+		registry.ClientOptWriter(os.Stderr),
+		registry.ClientOptCredentialsFile(settings.RegistryConfig),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return registryClient, nil
+}
+
+func newRegistryClientWithTLS(certFile, keyFile, caFile string, insecureSkipTLSverify bool, settings *cli.EnvSettings) (*registry.Client, error) {
+	// Create a new registry client
+	registryClient, err := registry.NewRegistryClientWithTLS(os.Stderr, certFile, keyFile, caFile, insecureSkipTLSverify,
+		settings.RepositoryConfig, settings.Debug,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return registryClient, nil
 }
