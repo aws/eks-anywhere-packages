@@ -20,9 +20,6 @@ type RegistryPuller struct {
 var _ Puller = (*RegistryPuller)(nil)
 
 // NewRegistryPuller creates and initializes a RegistryPuller.
-//
-// It assumes AWS ECR, and uses a password that exists in the ECR_PASSWORD
-// environment variable.
 func NewRegistryPuller(logger logr.Logger) *RegistryPuller {
 	return &RegistryPuller{
 		log: logger,
