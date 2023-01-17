@@ -36,7 +36,7 @@ type helmDriver struct {
 var _ PackageDriver = (*helmDriver)(nil)
 
 // TODO: Temporarily hard coding but needs to be read from secrets
-var caFile = "/tmp/config/registry/CACERTCONTENT"
+var caFile = "/tmp/config/registry/ca.crt"
 var insecure = false
 
 func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) *helmDriver {
