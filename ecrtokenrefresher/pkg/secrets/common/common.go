@@ -163,6 +163,7 @@ func getNamespacesFromConfigMap(clientSet kubernetes.Interface, namespace string
 	for ns := range cm.Data {
 		values = append(values, ns)
 	}
+	values = append(values, constants.PackagesNamespace)
 
 	return values, err
 }
