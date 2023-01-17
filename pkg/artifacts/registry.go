@@ -16,8 +16,7 @@ var certFile = filepath.Join(configPath, "ca.crt")
 // RegistryPuller handles pulling OCI artifacts from an OCI registry
 // (i.e. bundles)
 type RegistryPuller struct {
-	storageClient registry.StorageClient
-	log           logr.Logger
+	log logr.Logger
 }
 
 var _ Puller = (*RegistryPuller)(nil)
@@ -48,11 +47,11 @@ func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
 	}
 
 	sc := registry.NewStorageContext(art.Registry, credentialStore, certificates, false)
-	p.storageClient = registry.NewOCIRegistry(sc)
-	err = p.storageClient.Init()
+	client := registry.NewOCIRegistry(sc)
+	err = client.Init()
 	if err != nil {
 		return nil, err
 	}
 
-	return registry.PullBytes(ctx, p.storageClient, *art)
+	return registry.PullBytes(ctx, client, *art)
 }
