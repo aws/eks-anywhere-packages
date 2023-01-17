@@ -93,6 +93,9 @@ spec:
           - mountPath: /tmp/registry-mirror
             name: registry-mirror
             readOnly: true
+          - mountPath: /tmp/ecr-token
+            name: ecr-token
+            readOnly: true
       volumes:
       - name: cert
         secret:
@@ -103,6 +106,10 @@ spec:
           defaultMode: 420
           secretName: registry-mirror-cred
           optional: true
+      - name: ecr-token
+        secret:
+          defaultMode: 420
+          secretName: ecr-token
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
