@@ -4,6 +4,7 @@ import (
 	"context"
 	"path/filepath"
 
+	"github.com/docker/cli/cli/config"
 	"github.com/go-logr/logr"
 
 	"github.com/aws/eks-anywhere-packages/pkg/registry"
@@ -39,14 +40,13 @@ func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
 		p.log.Error(err, "problem getting certificate file", "filename", certFile)
 	}
 
-	credentialStore := registry.NewCredentialStore()
-	credentialStore.SetDirectory(configPath)
-	err = credentialStore.Init()
+	configFile, err := config.Load("")
 	if err != nil {
 		return nil, err
 	}
+	store := registry.NewDockerCredentialStore(configFile)
 
-	sc := registry.NewStorageContext(art.Registry, credentialStore, certificates, false)
+	sc := registry.NewStorageContext(art.Registry, store, certificates, false)
 	client := registry.NewOCIRegistry(sc)
 	err = client.Init()
 	if err != nil {
