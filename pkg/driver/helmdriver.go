@@ -24,6 +24,7 @@ import (
 
 const (
 	varHelmUpgradeMaxHistory = 2
+	insecureEnvVar           = "REGISTRY_INSECURE"
 )
 
 // helmDriver implements PackageDriver to install packages from Helm charts.
@@ -38,8 +39,7 @@ type helmDriver struct {
 var _ PackageDriver = (*helmDriver)(nil)
 
 var (
-	caFile         = "/tmp/config/registry/ca.crt"
-	insecureEnvVar = "REGISTRY_INSECURE"
+	caFile = "/tmp/config/registry/ca.crt"
 )
 
 func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) *helmDriver {
