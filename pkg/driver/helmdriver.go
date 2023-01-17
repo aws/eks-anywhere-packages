@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -35,9 +36,10 @@ type helmDriver struct {
 
 var _ PackageDriver = (*helmDriver)(nil)
 
-// TODO: Temporarily hard coding but needs to be read from secrets
-var caFile = "/tmp/config/registry/ca.crt"
-var insecure = false
+var (
+	caFile         = "/tmp/config/registry/ca.crt"
+	insecureEnvVar = "INSECURE"
+)
 
 func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) *helmDriver {
 	return &helmDriver{
@@ -58,11 +60,20 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 	}
 
 	d.settings = cli.New()
-	// Check that the caFile has content before using
+
+	insecure := os.Getenv(insecureEnvVar)
+	insecureFlag, err := strconv.ParseBool(insecure)
+
+	// if insecure is empty, default to false.
+	if err != nil {
+		insecureFlag = false
+	}
+
+	// Check that the caFile has content before using.
 	if _, err = os.Stat(caFile); err != nil {
 		caFile = ""
 	}
-	client, err := newRegistryClient("", "", caFile, insecure, d.settings)
+	client, err := newRegistryClient("", "", caFile, insecureFlag, d.settings)
 	if err != nil {
 		return fmt.Errorf("creating registry client for helm driver: %w", err)
 	}

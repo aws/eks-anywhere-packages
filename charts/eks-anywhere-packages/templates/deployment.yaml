@@ -68,6 +68,8 @@ spec:
               value: {{ .Values.clusterName | quote}}
             - name: HELM_CONFIG_HOME
               value: {{ .Values.helmConfigHome | quote}}
+            - name: INSECURE
+              value: {{.Values.registryMirrorSecret.insecure | quote}}
           ports:
             - name: webhook-server
               containerPort: 9443
