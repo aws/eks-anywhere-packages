@@ -8,7 +8,7 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/registry"
 )
 
-const certFile = "/tmp/registry-mirror/CACERTCONTENT"
+const certFile = "/tmp/config/registry/CACERTCONTENT"
 
 // RegistryPuller handles pulling OCI artifacts from an OCI registry
 // (i.e. bundles)
