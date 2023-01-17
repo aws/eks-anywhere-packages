@@ -17,10 +17,11 @@ import (
 )
 
 const (
-	ConfigMapName = "ns-secret-map"
-	ecrTokenName  = "ecr-token"
-	cronJobName   = "cron-ecr-renew"
-	jobExecName   = "eksa-auth-refresher-"
+	ConfigMapName  = "ns-secret-map"
+	ecrTokenName   = "ecr-token"
+	cronJobName    = "cron-ecr-renew"
+	jobExecName    = "eksa-auth-refresher-"
+	mirrorCredName = "registry-mirror-cred"
 )
 
 type ecrSecret struct {
@@ -131,9 +132,11 @@ func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name string, namespace
 
 func (s *ecrSecret) GetSecretValues(ctx context.Context, namespace string) (map[string]interface{}, error) {
 	values := make(map[string]interface{})
-	var imagePullSecret [1]map[string]string
+	var imagePullSecret [2]map[string]string
 	imagePullSecret[0] = make(map[string]string)
 	imagePullSecret[0]["name"] = ecrTokenName
+	imagePullSecret[1] = make(map[string]string)
+	imagePullSecret[1]["name"] = mirrorCredName
 	values["imagePullSecrets"] = imagePullSecret
 
 	return values, nil

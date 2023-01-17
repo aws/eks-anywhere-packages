@@ -11,10 +11,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"k8s.io/client-go/kubernetes"
+
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets"
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets/common"
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/utils"
-	"k8s.io/client-go/kubernetes"
 )
 
 type AwsSecret struct {

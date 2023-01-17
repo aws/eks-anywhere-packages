@@ -8,14 +8,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/constants"
-	k8s "github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/kubernetes"
-	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets"
-	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/constants"
+	k8s "github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/kubernetes"
+	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets"
+	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/utils"
 )
 
 const defaultEmail = "test@test.com"
