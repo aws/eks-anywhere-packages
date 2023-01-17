@@ -30,8 +30,7 @@ func NewRegistryPuller(logger logr.Logger) *RegistryPuller {
 }
 
 func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
-	var art registry.Artifact
-	err := art.SetURI(ref)
+	art, err := registry.ParseArtifactFromURI(ref)
 	if err != nil {
 		return nil, err
 	}
@@ -55,5 +54,5 @@ func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
 		return nil, err
 	}
 
-	return registry.PullBytes(ctx, p.storageClient, art)
+	return registry.PullBytes(ctx, p.storageClient, *art)
 }

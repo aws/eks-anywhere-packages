@@ -23,11 +23,11 @@ func NewArtifact(registry, repository, tag, digest string) Artifact {
 	}
 }
 
-// SetURI value for artifact.
-func (art *Artifact) SetURI(uri string) error {
+// ParseArtifactFromURI parses the URI into a new Artifact object.
+func ParseArtifactFromURI(uri string) (*Artifact, error) {
 	elements := strings.SplitN(uri, "/", 2)
 	if len(elements) != 2 {
-		return fmt.Errorf("registry not found")
+		return nil, fmt.Errorf("registry not found")
 	}
 	registry := elements[0]
 	rol := elements[1]
@@ -38,22 +38,23 @@ func (art *Artifact) SetURI(uri string) error {
 	if len(elements) != 2 {
 		elements = strings.SplitN(rol, ":", 2)
 		if len(elements) != 2 {
-			return fmt.Errorf("tag or digest not found")
+			return nil, fmt.Errorf("tag or digest not found")
 		}
 		tag = elements[1]
 	} else {
 		digest = elements[1]
 	}
 	repository := elements[0]
-	art.Registry = registry
-	art.Repository = repository
-	art.Tag = tag
-	art.Digest = digest
-	return nil
+	return &Artifact{
+		Registry:   registry,
+		Repository: repository,
+		Tag:        tag,
+		Digest:     digest,
+	}, nil
 }
 
 // Version returns tag or digest.
-func (art *Artifact) Version() string {
+func (art Artifact) Version() string {
 	if art.Digest != "" {
 		return "@" + art.Digest
 	}
@@ -61,7 +62,7 @@ func (art *Artifact) Version() string {
 }
 
 // VersionedImage returns full URI for image.
-func (art *Artifact) VersionedImage() string {
+func (art Artifact) VersionedImage() string {
 	version := art.Version()
 	return art.Registry + "/" + art.Repository + version
 }
