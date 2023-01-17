@@ -16,6 +16,9 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.uber.org/zap v1.23.0
 	golang.org/x/mod v0.7.0
+	// Currently helm doesn't work with self signed certs during pull/push
+	// This PR: https://github.com/helm/helm/pull/11659 fixes the issue
+	// and has not been merged to main. Adding this temporarily to fix this issue
 	helm.sh/helm/v3 v3.9.0-rc.1.0.20221222223505-5c40996dad38
 	k8s.io/api v0.25.2
 	k8s.io/apimachinery v0.25.2

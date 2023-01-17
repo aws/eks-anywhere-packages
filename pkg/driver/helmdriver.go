@@ -35,6 +35,10 @@ type helmDriver struct {
 
 var _ PackageDriver = (*helmDriver)(nil)
 
+// TODO: Temporarily hard coding but needs to be read from secrets
+var caFile = "/tmp/registry-mirror/CACERTCONTENT"
+var insecure = false
+
 func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) *helmDriver {
 	return &helmDriver{
 		secretAuth: secretAuth,
@@ -54,7 +58,7 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 	}
 
 	d.settings = cli.New()
-	client, err := newRegistryClient("", "", "/Users/acool/Desktop/Amazon/eks-anywhere-cluster/harbor.pem", false, d.settings)
+	client, err := newRegistryClient("", "", caFile, insecure, d.settings)
 	if err != nil {
 		return fmt.Errorf("creating registry client for helm driver: %w", err)
 	}
