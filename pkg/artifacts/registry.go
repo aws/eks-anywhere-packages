@@ -2,13 +2,16 @@ package artifacts
 
 import (
 	"context"
+	"path/filepath"
 
 	"github.com/go-logr/logr"
 
 	"github.com/aws/eks-anywhere-packages/pkg/registry"
 )
 
-const certFile = "/tmp/config/registry/ca.crt"
+const configPath = "/tmp/config/registry"
+
+var certFile = filepath.Join(configPath, "ca.crt")
 
 // RegistryPuller handles pulling OCI artifacts from an OCI registry
 // (i.e. bundles)
@@ -42,6 +45,7 @@ func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
 	}
 
 	credentialStore := registry.NewCredentialStore()
+	credentialStore.SetDirectory(configPath)
 	err = credentialStore.Init()
 	if err != nil {
 		return nil, err
