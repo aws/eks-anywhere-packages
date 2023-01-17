@@ -2,6 +2,7 @@ package driver
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
@@ -38,7 +39,7 @@ var _ PackageDriver = (*helmDriver)(nil)
 
 var (
 	caFile         = "/tmp/config/registry/ca.crt"
-	insecureEnvVar = "INSECURE"
+	insecureEnvVar = "REGISTRY_INSECURE"
 )
 
 func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) *helmDriver {
@@ -61,19 +62,18 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 
 	d.settings = cli.New()
 
-	insecure := os.Getenv(insecureEnvVar)
-	insecureFlag, err := strconv.ParseBool(insecure)
-
+	insecureVal := decodeToString(os.Getenv(insecureEnvVar))
+	insecure, err := strconv.ParseBool(insecureVal)
 	// if insecure is empty, default to false.
 	if err != nil {
-		insecureFlag = false
+		insecure = false
 	}
 
 	// Check that the caFile has content before using.
 	if _, err = os.Stat(caFile); err != nil {
 		caFile = ""
 	}
-	client, err := newRegistryClient("", "", caFile, insecureFlag, d.settings)
+	client, err := newRegistryClient("", "", caFile, insecure, d.settings)
 	if err != nil {
 		return fmt.Errorf("creating registry client for helm driver: %w", err)
 	}
@@ -281,7 +281,7 @@ func newDefaultRegistryClient(settings *cli.EnvSettings) (*registry.Client, erro
 	// Create a new registry client
 	registryClient, err := registry.NewClient(
 		registry.ClientOptDebug(settings.Debug),
-		registry.ClientOptEnableCache(true),
+		registry.ClientOptEnableCache(false),
 		registry.ClientOptWriter(os.Stderr),
 		registry.ClientOptCredentialsFile(settings.RegistryConfig),
 	)
@@ -300,4 +300,12 @@ func newRegistryClientWithTLS(certFile, keyFile, caFile string, insecureSkipTLSv
 		return nil, err
 	}
 	return registryClient, nil
+}
+
+func decodeToString(val string) string {
+	data, err := base64.StdEncoding.DecodeString(val)
+	if err != nil {
+		return ""
+	}
+	return string(data)
 }
