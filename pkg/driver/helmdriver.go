@@ -36,7 +36,7 @@ type helmDriver struct {
 var _ PackageDriver = (*helmDriver)(nil)
 
 // TODO: Temporarily hard coding but needs to be read from secrets
-var caFile = "/tmp/registry-mirror/CACERTCONTENT"
+var caFile = "/tmp/config/registry/CACERTCONTENT"
 var insecure = false
 
 func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) *helmDriver {
@@ -58,6 +58,10 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 	}
 
 	d.settings = cli.New()
+	// Check that the caFile has content before using
+	if _, err = os.Stat(caFile); err != nil {
+		caFile = ""
+	}
 	client, err := newRegistryClient("", "", caFile, insecure, d.settings)
 	if err != nil {
 		return fmt.Errorf("creating registry client for helm driver: %w", err)
