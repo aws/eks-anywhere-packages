@@ -139,7 +139,6 @@ func TestIsConfigChanged(t *testing.T) {
 func givenHelmDriver(t *testing.T) *helmDriver {
 	mockSecretAuth := mocks.NewMockAuthenticator(gomock.NewController(t))
 	mockSecretAuth.EXPECT().Initialize("billy")
-	mockSecretAuth.EXPECT().AuthFilename()
 
 	mockTargetClusterClient := mocks.NewMockTargetClusterClient(gomock.NewController(t))
 	mockTargetClusterClient.EXPECT().Initialize(ctx, "billy")

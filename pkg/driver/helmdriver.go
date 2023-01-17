@@ -2,10 +2,12 @@ package driver
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -22,6 +24,7 @@ import (
 
 const (
 	varHelmUpgradeMaxHistory = 2
+	insecureEnvVar           = "REGISTRY_INSECURE"
 )
 
 // helmDriver implements PackageDriver to install packages from Helm charts.
@@ -34,6 +37,10 @@ type helmDriver struct {
 }
 
 var _ PackageDriver = (*helmDriver)(nil)
+
+var (
+	caFile = "/tmp/config/registry/ca.crt"
+)
 
 func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) *helmDriver {
 	return &helmDriver{
@@ -53,13 +60,24 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 		return fmt.Errorf("initialiing target cluster %s client for helm driver: %w", clusterName, err)
 	}
 
-	authorizationFileName := d.secretAuth.AuthFilename()
-	client, err := registry.NewClient(registry.ClientOptCredentialsFile(authorizationFileName))
+	d.settings = cli.New()
+
+	insecureVal := decodeToString(os.Getenv(insecureEnvVar))
+	insecure, err := strconv.ParseBool(insecureVal)
+	// if insecure is empty, default to false.
+	if err != nil {
+		insecure = false
+	}
+
+	// Check that the caFile has content before using.
+	if _, err = os.Stat(caFile); err != nil {
+		caFile = ""
+	}
+	client, err := newRegistryClient("", "", caFile, insecure, d.settings)
 	if err != nil {
 		return fmt.Errorf("creating registry client for helm driver: %w", err)
 	}
 
-	d.settings = cli.New()
 	d.cfg = &action.Configuration{RegistryClient: client}
 	err = d.cfg.Init(d.tcc, d.settings.Namespace(), os.Getenv("HELM_DRIVER"), helmLog(d.log))
 	if err != nil {
@@ -242,4 +260,52 @@ func (d *helmDriver) IsConfigChanged(_ context.Context, name string, values map[
 	}
 
 	return !reflect.DeepEqual(values, rel.Config), nil
+}
+
+func newRegistryClient(certFile, keyFile, caFile string, insecureSkipTLSverify bool, settings *cli.EnvSettings) (*registry.Client, error) {
+	if certFile != "" && keyFile != "" || caFile != "" || insecureSkipTLSverify {
+		registryClient, err := newRegistryClientWithTLS(certFile, keyFile, caFile, insecureSkipTLSverify, settings)
+		if err != nil {
+			return nil, err
+		}
+		return registryClient, nil
+	}
+	registryClient, err := newDefaultRegistryClient(settings)
+	if err != nil {
+		return nil, err
+	}
+	return registryClient, nil
+}
+
+func newDefaultRegistryClient(settings *cli.EnvSettings) (*registry.Client, error) {
+	// Create a new registry client
+	registryClient, err := registry.NewClient(
+		registry.ClientOptDebug(settings.Debug),
+		registry.ClientOptEnableCache(false),
+		registry.ClientOptWriter(os.Stderr),
+		registry.ClientOptCredentialsFile(settings.RegistryConfig),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return registryClient, nil
+}
+
+func newRegistryClientWithTLS(certFile, keyFile, caFile string, insecureSkipTLSverify bool, settings *cli.EnvSettings) (*registry.Client, error) {
+	// Create a new registry client
+	registryClient, err := registry.NewRegistryClientWithTLS(os.Stderr, certFile, keyFile, caFile, insecureSkipTLSverify,
+		settings.RegistryConfig, settings.Debug,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return registryClient, nil
+}
+
+func decodeToString(val string) string {
+	data, err := base64.StdEncoding.DecodeString(val)
+	if err != nil {
+		return ""
+	}
+	return string(data)
 }
