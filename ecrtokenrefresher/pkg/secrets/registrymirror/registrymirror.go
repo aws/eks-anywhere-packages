@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"os"
 
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
+
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/constants"
 	k8s "github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/kubernetes"
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets"
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets/common"
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/utils"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -74,7 +75,7 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 	}
 	// create a registry mirror secret for package controller pod to mount
 	secret, _ := k8s.GetSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace)
-	data := map[string][]byte{corev1.DockerConfigJsonKey: configJson, "ca.crt": []byte(os.Getenv(caEnv))}
+	data := map[string][]byte{corev1.DockerConfigJsonKey: configJson, "ca.crt": []byte(os.Getenv(caEnv)), "config.json": configJson}
 	if secret == nil {
 		_, err = k8s.CreateSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace, data)
 		if err != nil {

@@ -66,6 +66,8 @@ spec:
               value: {{ .Values.proxy.NO_PROXY | quote}}
             - name: CLUSTER_NAME
               value: {{ .Values.clusterName | quote}}
+            - name: HELM_CONFIG_HOME
+              value: {{ .Values.helmConfigHome | quote}}
           ports:
             - name: webhook-server
               containerPort: 9443
@@ -90,7 +92,7 @@ spec:
           - mountPath: /tmp/k8s-webhook-server/serving-certs
             name: cert
             readOnly: true
-          - mountPath: /tmp/registry-mirror
+          - mountPath: "{{ .Values.helmConfigHome }}/registry"
             name: registry-mirror
             readOnly: true
       volumes:

@@ -24,6 +24,7 @@ privateRegistry: ""
 clusterName: bundle-controller
 # -- Image pull policy for Docker images.
 imagePullPolicy: IfNotPresent
+helmConfigHome: /tmp/config
 proxy:
   HTTP_PROXY: ""
   HTTPS_PROXY: ""

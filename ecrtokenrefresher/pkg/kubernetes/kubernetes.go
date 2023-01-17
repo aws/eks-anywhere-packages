@@ -3,10 +3,11 @@ package k8s
 import (
 	"context"
 
-	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/constants"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/constants"
 )
 
 func GetSecret(clientSet kubernetes.Interface, name, namespace string) (*corev1.Secret, error) {

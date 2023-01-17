@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/constants"
-	k8s "github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/kubernetes"
-	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
+
+	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/constants"
+	k8s "github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/kubernetes"
+	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets"
 )
 
 const (
