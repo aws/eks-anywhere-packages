@@ -17,10 +17,10 @@ import (
 )
 
 const (
-	ConfigMapName = "ns-secret-map"
-	ecrTokenName  = "ecr-token"
-	cronJobName   = "cron-ecr-renew"
-	jobExecName   = "eksa-auth-refresher-"
+	ConfigMapName  = "ns-secret-map"
+	ecrTokenName   = "ecr-token"
+	cronJobName    = "cron-ecr-renew"
+	jobExecName    = "eksa-auth-refresher-"
 	mirrorCredName = "registry-mirror-cred"
 )
 
