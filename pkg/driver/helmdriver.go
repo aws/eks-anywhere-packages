@@ -275,7 +275,7 @@ func newDefaultRegistryClient(settings *cli.EnvSettings) (*registry.Client, erro
 func newRegistryClientWithTLS(certFile, keyFile, caFile string, insecureSkipTLSverify bool, settings *cli.EnvSettings) (*registry.Client, error) {
 	// Create a new registry client
 	registryClient, err := registry.NewRegistryClientWithTLS(os.Stderr, certFile, keyFile, caFile, insecureSkipTLSverify,
-		settings.RepositoryConfig, settings.Debug,
+		settings.RegistryConfig, settings.Debug,
 	)
 	if err != nil {
 		return nil, err
