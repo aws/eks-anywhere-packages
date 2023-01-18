@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/go-logr/logr"
+	"oras.land/oras-go/v2/registry/remote"
 
 	"github.com/aws/eks-anywhere-packages/pkg/registry"
 )
@@ -47,11 +48,11 @@ func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
 	store := registry.NewDockerCredentialStore(configFile)
 
 	sc := registry.NewStorageContext(art.Registry, store, certificates, false)
-	client := registry.NewOCIRegistry(sc)
-	err = client.Init()
+	remoteRegistry, err := remote.NewRegistry(art.Registry)
 	if err != nil {
 		return nil, err
 	}
+	client := registry.NewOCIRegistry(sc, remoteRegistry)
 
 	return registry.PullBytes(ctx, client, *art)
 }

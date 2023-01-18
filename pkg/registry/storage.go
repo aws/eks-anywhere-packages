@@ -29,7 +29,6 @@ func NewStorageContext(host string, credentialStore *DockerCredentialStore, cert
 
 // StorageClient interface for general image storage client.
 type StorageClient interface {
-	Init() error
 	Resolve(ctx context.Context, srcStorage orasregistry.Repository, versionedImage string) (desc ocispec.Descriptor, err error)
 	GetStorage(ctx context.Context, image Artifact) (repo orasregistry.Repository, err error)
 	SetProject(project string)

@@ -111,20 +111,6 @@ func (mr *MockStorageClientMockRecorder) GetStorage(ctx, image interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStorage", reflect.TypeOf((*MockStorageClient)(nil).GetStorage), ctx, image)
 }
 
-// Init mocks base method.
-func (m *MockStorageClient) Init() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Init")
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Init indicates an expected call of Init.
-func (mr *MockStorageClientMockRecorder) Init() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockStorageClient)(nil).Init))
-}
-
 // Resolve mocks base method.
 func (m *MockStorageClient) Resolve(ctx context.Context, srcStorage registry0.Repository, versionedImage string) (v1.Descriptor, error) {
 	m.ctrl.T.Helper()
