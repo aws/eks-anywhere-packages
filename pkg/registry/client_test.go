@@ -5,9 +5,7 @@ import (
 	"crypto/x509"
 	"testing"
 
-	"github.com/docker/cli/cli/config"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/aws/eks-anywhere-packages/pkg/registry"
 )
@@ -20,11 +18,13 @@ var (
 		Digest:     "sha256:6efe21500abbfbb6b3e37b80dd5dea0b11a0d1b145e84298fee5d7784a77e967",
 		Tag:        "0.2.22-eks-a-24",
 	}
-	certificates = &x509.CertPool{}
+	credentialStore = registry.NewCredentialStore()
+	certificates    = &x509.CertPool{}
+	registryContext = registry.NewStorageContext("localhost", credentialStore, certificates, false)
 )
 
 func TestOCIRegistryClient_Init(t *testing.T) {
-	sut := registry.NewOCIRegistry(newStorageContext(t, ""))
+	sut := registry.NewOCIRegistry(registryContext)
 
 	err := sut.Init()
 	assert.NoError(t, err)
@@ -35,7 +35,7 @@ func TestOCIRegistryClient_Init(t *testing.T) {
 }
 
 func TestOCIRegistryClient_Destination(t *testing.T) {
-	sut := registry.NewOCIRegistry(newStorageContext(t, ""))
+	sut := registry.NewOCIRegistry(registryContext)
 	destination := sut.Destination(image)
 	assert.Equal(t, "localhost/eks-anywhere/eks-anywhere-packages@sha256:6efe21500abbfbb6b3e37b80dd5dea0b11a0d1b145e84298fee5d7784a77e967", destination)
 	sut.SetProject("project/")
@@ -44,7 +44,7 @@ func TestOCIRegistryClient_Destination(t *testing.T) {
 }
 
 func TestOCIRegistryClient_GetStorage(t *testing.T) {
-	sut := registry.NewOCIRegistry(newStorageContext(t, ""))
+	sut := registry.NewOCIRegistry(registryContext)
 	assert.NoError(t, sut.Init())
 	_, err := sut.GetStorage(context.Background(), image)
 	assert.NoError(t, err)
@@ -56,11 +56,4 @@ func TestOCIRegistryClient_GetStorage(t *testing.T) {
 	}
 	_, err = sut.GetStorage(context.Background(), bogusImage)
 	assert.EqualError(t, err, "error creating repository !@#$: invalid reference: invalid repository")
-}
-
-func newStorageContext(t *testing.T, dir string) registry.StorageContext {
-	configFile, err := config.Load(dir)
-	require.NoError(t, err)
-	store := registry.NewDockerCredentialStore(configFile)
-	return registry.NewStorageContext("localhost", store, certificates, false)
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/docker/cli/cli/config"
 	"github.com/go-logr/logr"
 
 	"github.com/aws/eks-anywhere-packages/pkg/registry"
@@ -17,7 +16,8 @@ var certFile = filepath.Join(configPath, "ca.crt")
 // RegistryPuller handles pulling OCI artifacts from an OCI registry
 // (i.e. bundles)
 type RegistryPuller struct {
-	log logr.Logger
+	storageClient registry.StorageClient
+	log           logr.Logger
 }
 
 var _ Puller = (*RegistryPuller)(nil)
@@ -40,18 +40,19 @@ func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
 		p.log.Error(err, "problem getting certificate file", "filename", certFile)
 	}
 
-	configFile, err := config.Load("")
-	if err != nil {
-		return nil, err
-	}
-	store := registry.NewDockerCredentialStore(configFile)
-
-	sc := registry.NewStorageContext(art.Registry, store, certificates, false)
-	client := registry.NewOCIRegistry(sc)
-	err = client.Init()
+	credentialStore := registry.NewCredentialStore()
+	credentialStore.SetDirectory(configPath)
+	err = credentialStore.Init()
 	if err != nil {
 		return nil, err
 	}
 
-	return registry.PullBytes(ctx, client, *art)
+	sc := registry.NewStorageContext(art.Registry, credentialStore, certificates, false)
+	p.storageClient = registry.NewOCIRegistry(sc)
+	err = p.storageClient.Init()
+	if err != nil {
+		return nil, err
+	}
+
+	return registry.PullBytes(ctx, p.storageClient, *art)
 }
