@@ -88,5 +88,5 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 		}
 	}
 	// create registry mirror secret in all other namespaces where packages get installed
-	return common.BroadcastDockerAuthConfig(dockerConfig, &mirror.remoteClientSets, mirror.secretName)
+	return common.BroadcastDockerAuthConfig(dockerConfig, mirror.defaultClientSet, &mirror.remoteClientSets, mirror.secretName)
 }
