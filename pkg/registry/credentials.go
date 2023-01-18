@@ -1,28 +1,44 @@
 package registry
 
 import (
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-// DockerCredentialStore for Docker registry credentials, like ~/.docker/config.json.
-type DockerCredentialStore struct {
+// CredentialStore for registry credentials such as ~/.docker/config.json.
+type CredentialStore struct {
+	directory  string
 	configFile *configfile.ConfigFile
 }
 
-// NewDockerCredentialStore creates a DockerCredentialStore.
-func NewDockerCredentialStore(configFile *configfile.ConfigFile) *DockerCredentialStore {
-	if !configFile.ContainsAuth() {
-		configFile.CredentialsStore = credentials.DetectDefaultStore(configFile.CredentialsStore)
-	}
-	return &DockerCredentialStore{
-		configFile: configFile,
+// NewCredentialStore create a credential store.
+func NewCredentialStore() *CredentialStore {
+	return &CredentialStore{
+		directory: config.Dir(),
 	}
 }
 
+// SetDirectory override default directory.
+func (cs *CredentialStore) SetDirectory(directory string) {
+	cs.directory = directory
+}
+
+// Init initialize a credential store.
+func (cs *CredentialStore) Init() (err error) {
+	cs.configFile, err = config.Load(cs.directory)
+	if err != nil {
+		return err
+	}
+	if !cs.configFile.ContainsAuth() {
+		cs.configFile.CredentialsStore = credentials.DetectDefaultStore(cs.configFile.CredentialsStore)
+	}
+	return nil
+}
+
 // Credential get an authentication credential for a given registry.
-func (cs *DockerCredentialStore) Credential(registry string) (auth.Credential, error) {
+func (cs *CredentialStore) Credential(registry string) (auth.Credential, error) {
 	authConf, err := cs.configFile.GetCredentialsStore(registry).Get(registry)
 	if err != nil {
 		return auth.EmptyCredential, err
