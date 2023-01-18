@@ -37,7 +37,7 @@ func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
 
 	certificates, err := registry.GetCertificates(certFile)
 	if err != nil {
-		p.log.Error(err, "problem getting certificate file", "filename", certFile)
+		p.log.Info("problem getting certificate file", "filename", certFile, "error", err.Error())
 	}
 
 	credentialStore := registry.NewCredentialStore()
