@@ -125,13 +125,13 @@ func CreateDockerAuthConfig(creds []*secrets.Credential) *dockerConfig {
 	return &config
 }
 
-func BroadcastDockerAuthConfig(dockerConfig *dockerConfig, remoteClientSets *secrets.RemoteClusterClientset, secretName string) error {
+func BroadcastDockerAuthConfig(dockerConfig *dockerConfig, defaultClientSets kubernetes.Interface, remoteClientSets *secrets.RemoteClusterClientset, secretName string) error {
 	configJson, err := json.Marshal(*dockerConfig)
 	if err != nil {
 		return err
 	}
 	for clusterName, clientSet := range *remoteClientSets {
-		namespaces, err := getNamespacesFromConfigMap(clientSet, constants.NamespacePrefix+clusterName)
+		namespaces, err := getNamespacesFromConfigMap(defaultClientSets, constants.NamespacePrefix+clusterName)
 		if err != nil {
 			utils.WarningLogger.Printf("failed to find config map for %s cluster\n", clusterName)
 			continue

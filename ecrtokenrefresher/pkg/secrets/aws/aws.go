@@ -133,7 +133,7 @@ func (aws *AwsSecret) BroadcastCredentials() error {
 		return err
 	}
 	dockerConfig := common.CreateDockerAuthConfig(creds)
-	return common.BroadcastDockerAuthConfig(dockerConfig, &aws.remoteClientSets, aws.secretName)
+	return common.BroadcastDockerAuthConfig(dockerConfig, aws.defaultClientSet, &aws.remoteClientSets, aws.secretName)
 }
 
 func setupIRSA() error {
