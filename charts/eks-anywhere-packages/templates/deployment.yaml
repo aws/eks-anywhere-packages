@@ -106,6 +106,7 @@ spec:
       initContainers:
       - name: init-job
         image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.cronjob }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         env:
           - name: ECR_TOKEN_SECRET_NAME
             value: ecr-token
