@@ -17,6 +17,7 @@ type Options struct {
 	outputFolder   string
 	generateSample bool
 	promote        string
+	tag            string
 	key            string
 	publicProfile  string
 	privateProfile string
@@ -77,6 +78,7 @@ func NewOptions() *Options {
 	fs.StringVar(&o.inputFile, "input", "", "The path where the input bundle generation file lives")
 	fs.StringVar(&o.outputFolder, "output", "output", "The path where to write the output bundle files")
 	fs.StringVar(&o.promote, "promote", "", "The Helm chart private ECR OCI uri to pull and promote")
+	fs.StringVar(&o.tag, "tag", "", "The tag of the helm chart used with promote flag")
 	fs.StringVar(&o.key, "key", "k", "The key to sign with")
 	fs.StringVar(&o.publicProfile, "public-profile", "", "The AWS Public Profile to release the prod bundle into")
 	fs.StringVar(&o.privateProfile, "private-profile", "", "The AWS Private Profile to release all packages into")

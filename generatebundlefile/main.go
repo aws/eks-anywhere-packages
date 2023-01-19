@@ -91,9 +91,13 @@ func cmdPromote(opts *Options) error {
 
 	promoteCharts := make(map[string][]string)
 
+	if opts.tag != "" {
+		opts.tag = "latest"
+	}
+
 	// If we are promoting an individual chart with the --promote flag like we do for most charts.
 	if opts.promote != "" {
-		promoteCharts[opts.promote] = append(promoteCharts[opts.promote], "latest")
+		promoteCharts[opts.promote] = append(promoteCharts[opts.promote], opts.tag)
 	}
 
 	// If we are promoting multiple chart with the --input file flag we override the struct with files inputs from the file.
