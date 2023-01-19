@@ -106,7 +106,7 @@ func ImageTagFilter(details []ImageDetailsBothECR, version string) []ImageDetail
 	var filteredDetails []ImageDetailsBothECR
 	for _, detail := range details {
 		for _, tag := range detail.ImageTags {
-			if strings.Contains(tag, version) {
+			if strings.HasPrefix(tag, version) {
 				filteredDetails = append(filteredDetails, detail)
 			}
 		}

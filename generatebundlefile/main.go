@@ -91,7 +91,7 @@ func cmdPromote(opts *Options) error {
 
 	promoteCharts := make(map[string][]string)
 
-	if opts.tag != "" {
+	if opts.tag == "" {
 		opts.tag = "latest"
 	}
 
