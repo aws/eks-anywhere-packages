@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"oras.land/oras-go/v2/registry/remote"
 
 	"github.com/aws/eks-anywhere-packages/pkg/registry"
 )
@@ -23,19 +24,9 @@ var (
 	certificates = &x509.CertPool{}
 )
 
-func TestOCIRegistryClient_Init(t *testing.T) {
-	sut := registry.NewOCIRegistry(newStorageContext(t, ""))
-
-	err := sut.Init()
-	assert.NoError(t, err)
-
-	// Does not reinitialize
-	err = sut.Init()
-	assert.NoError(t, err)
-}
-
 func TestOCIRegistryClient_Destination(t *testing.T) {
-	sut := registry.NewOCIRegistry(newStorageContext(t, ""))
+	sc := newStorageContext(t, "")
+	sut := registry.NewOCIRegistry(sc, newTestRegistry(t, image.Registry))
 	destination := sut.Destination(image)
 	assert.Equal(t, "localhost/eks-anywhere/eks-anywhere-packages@sha256:6efe21500abbfbb6b3e37b80dd5dea0b11a0d1b145e84298fee5d7784a77e967", destination)
 	sut.SetProject("project/")
@@ -44,8 +35,8 @@ func TestOCIRegistryClient_Destination(t *testing.T) {
 }
 
 func TestOCIRegistryClient_GetStorage(t *testing.T) {
-	sut := registry.NewOCIRegistry(newStorageContext(t, ""))
-	assert.NoError(t, sut.Init())
+	sc := newStorageContext(t, "")
+	sut := registry.NewOCIRegistry(sc, newTestRegistry(t, image.Registry))
 	_, err := sut.GetStorage(context.Background(), image)
 	assert.NoError(t, err)
 
@@ -63,4 +54,11 @@ func newStorageContext(t *testing.T, dir string) registry.StorageContext {
 	require.NoError(t, err)
 	store := registry.NewDockerCredentialStore(configFile)
 	return registry.NewStorageContext("localhost", store, certificates, false)
+}
+
+func newTestRegistry(t *testing.T, host string) *remote.Registry {
+	t.Helper()
+	r, err := remote.NewRegistry(host)
+	require.NoError(t, err)
+	return r
 }

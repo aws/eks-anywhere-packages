@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"sync"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2"
@@ -22,50 +21,36 @@ import (
 // OCIRegistryClient storage client for an OCI registry.
 type OCIRegistryClient struct {
 	StorageContext
-	initialized sync.Once
-	registry    *remote.Registry
+	registry *remote.Registry
 }
 
 var _ StorageClient = (*OCIRegistryClient)(nil)
 
 // NewOCIRegistry create an OCI registry client.
-func NewOCIRegistry(context StorageContext) *OCIRegistryClient {
+func NewOCIRegistry(sc StorageContext, registry *remote.Registry) *OCIRegistryClient {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	{ // #nosec G402
+		transport.TLSClientConfig = &tls.Config{
+			RootCAs:            sc.certificates,
+			InsecureSkipVerify: sc.insecure,
+		}
+	}
+	authClient := &auth.Client{
+		Client: &http.Client{
+			Transport: transport,
+		},
+		Cache: auth.NewCache(),
+	}
+	authClient.SetUserAgent("eksa")
+	authClient.Credential = func(ctx context.Context, s string) (auth.Credential, error) {
+		return sc.credentialStore.Credential(s)
+	}
+	registry.Client = authClient
+
 	return &OCIRegistryClient{
-		StorageContext: context,
+		StorageContext: sc,
+		registry:       registry,
 	}
-}
-
-// Init registry configuration.
-func (or *OCIRegistryClient) Init() error {
-	var err error
-	onceFunc := func() {
-		or.registry, err = remote.NewRegistry(or.host)
-		if err != nil {
-			err = fmt.Errorf("error with registry <%s>: %v", or.host, err)
-			return
-		}
-
-		transport := http.DefaultTransport.(*http.Transport).Clone()
-		{ // #nosec G402
-			transport.TLSClientConfig = &tls.Config{
-				RootCAs:            or.certificates,
-				InsecureSkipVerify: or.insecure,
-			}
-		}
-		authClient := &auth.Client{
-			Client: &http.Client{
-				Transport: transport,
-			},
-			Cache: auth.NewCache(),
-		}
-		authClient.SetUserAgent("eksa")
-		authClient.Credential = func(ctx context.Context, s string) (auth.Credential, error) {
-			return or.credentialStore.Credential(s)
-		}
-		or.registry.Client = authClient
-	}
-	or.initialized.Do(onceFunc)
-	return err
 }
 
 // GetHost for registry host.
