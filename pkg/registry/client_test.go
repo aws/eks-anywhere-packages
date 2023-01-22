@@ -52,7 +52,7 @@ func TestOCIRegistryClient_GetStorage(t *testing.T) {
 func newStorageContext(t *testing.T, dir string) registry.StorageContext {
 	configFile, err := config.Load(dir)
 	require.NoError(t, err)
-	store := registry.NewDockerCredentialStore(configFile)
+	store := registry.NewCredentialStore(configFile)
 	return registry.NewStorageContext("localhost", store, certificates, false)
 }
 

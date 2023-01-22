@@ -45,7 +45,7 @@ func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	store := registry.NewDockerCredentialStore(configFile)
+	store := registry.NewCredentialStore(configFile)
 
 	sc := registry.NewStorageContext(art.Registry, store, certificates, false)
 	remoteRegistry, err := remote.NewRegistry(art.Registry)

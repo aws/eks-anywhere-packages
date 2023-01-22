@@ -6,23 +6,23 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-// DockerCredentialStore for Docker registry credentials, like ~/.docker/config.json.
-type DockerCredentialStore struct {
+// CredentialStore for registry credentials, like ~/.docker/config.json.
+type CredentialStore struct {
 	configFile *configfile.ConfigFile
 }
 
-// NewDockerCredentialStore creates a DockerCredentialStore.
-func NewDockerCredentialStore(configFile *configfile.ConfigFile) *DockerCredentialStore {
+// NewCredentialStore creates a CredentialStore.
+func NewCredentialStore(configFile *configfile.ConfigFile) *CredentialStore {
 	if !configFile.ContainsAuth() {
 		configFile.CredentialsStore = credentials.DetectDefaultStore(configFile.CredentialsStore)
 	}
-	return &DockerCredentialStore{
+	return &CredentialStore{
 		configFile: configFile,
 	}
 }
 
 // Credential get an authentication credential for a given registry.
-func (cs *DockerCredentialStore) Credential(registry string) (auth.Credential, error) {
+func (cs *CredentialStore) Credential(registry string) (auth.Credential, error) {
 	authConf, err := cs.configFile.GetCredentialsStore(registry).Get(registry)
 	if err != nil {
 		return auth.EmptyCredential, err

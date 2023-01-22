@@ -12,9 +12,9 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/registry"
 )
 
-func TestDockerCredentialStore(t *testing.T) {
+func TestCredentialStore(t *testing.T) {
 	configFile := newConfigFile(t, "testdata")
-	credentialStore := registry.NewDockerCredentialStore(configFile)
+	credentialStore := registry.NewCredentialStore(configFile)
 
 	result, err := credentialStore.Credential("localhost")
 	require.NoError(t, err)
@@ -37,7 +37,7 @@ func TestDockerCredentialStore(t *testing.T) {
 }
 
 func TestCredentialStore_InitEmpty(t *testing.T) {
-	registry.NewDockerCredentialStore(newConfigFile(t, "testdata/empty"))
+	registry.NewCredentialStore(newConfigFile(t, "testdata/empty"))
 }
 
 func newConfigFile(t *testing.T, dir string) *configfile.ConfigFile {
