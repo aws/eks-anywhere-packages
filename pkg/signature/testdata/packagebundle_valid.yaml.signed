@@ -5,7 +5,7 @@ metadata:
   namespace: eks-anywhere-packages-system
   annotations:
     eksa.aws.com/excludes: LnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVnaXN0cnkKLnNwZWMucGFja2FnZXNbXS5zb3VyY2UucmVwb3NpdG9yeQo=
-    eksa.aws.com/signature: MEUCIQD1yk2ef5l8Bqbqw2Z2GzIWKK68Lh2JhKH5UmtPdBeGLQIgTTlW10ZoSolqoya0KHCEKs33VVA1xm9hjpNKmFEuPoY=
+    eksa.aws.com/signature: MEYCIQCb0r69XcZsVhrkIAeqbuW5gP2gW1SycQR5dW1LPCupiwIhAMi8Yj+umKMyU/GtuliEge8o9lQer4kRgSPeIuHkRtG5
 spec:
   packages:
     - name: Package

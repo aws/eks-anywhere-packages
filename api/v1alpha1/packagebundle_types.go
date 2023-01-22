@@ -102,6 +102,10 @@ type VersionImages struct {
 	// +kubebuilder:validation:Required
 	// Digest is a checksum value identifying the version of the package and its contents.
 	Digest string `json:"digest"`
+
+	// +kubebuilder:validation:Optional
+	// Version tag of this image.
+	Version string `json:"version"`
 }
 
 // PackageBundleStatus defines the observed state of PackageBundle.
