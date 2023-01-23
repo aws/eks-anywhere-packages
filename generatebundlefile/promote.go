@@ -20,6 +20,7 @@ type SDKClients struct {
 	ecrClientRelease       *ecrClient
 	ecrPublicClientRelease *ecrPublicClient
 	stsClientRelease       *stsClient
+	helmDriver             *helmDriver
 }
 
 // GetSDKClients is used to handle the creation of different SDK clients.
@@ -47,7 +48,6 @@ func GetSDKClients() (*SDKClients, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create SDK connection to STS %s", err)
 	}
-
 	// ECR Private Connection with us-west-2 region
 	conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
 	if err != nil {
@@ -125,11 +125,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 	// Pull the Helm chart to Helm Cache
 	BundleLog.Info("Found Helm Chart to read requires.yaml for image information", "Chart", fmt.Sprintf("%s:%s", name, version))
 	semVer := strings.Replace(version, "_", "+", 1) // TODO use the Semvar library instead of this hack.
-	driver, err := NewHelm(BundleLog, authFile)
-	if err != nil {
-		return fmt.Errorf("Error creating helm driver %s", err)
-	}
-	chartPath, err := driver.PullHelmChart(name, semVer)
+	chartPath, err := c.helmDriver.PullHelmChart(name, semVer)
 	if err != nil {
 		return fmt.Errorf("Error pulling helmchart %s", err)
 	}
@@ -172,7 +168,10 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 	}
 	// Loop through each image, and the helm chart itself and check for existance in ECR Public, skip if we find the SHA already exists in destination.
 	// If we don't find the SHA in public, we lookup the tag from Private Dev account, and move to Private Artifact account.
-	// This runs for flags --private-profile
+	// This runs for flags
+	// --private-profile
+	// --promote --copy-images
+	var destination string
 	if copyImages {
 		for _, images := range helmRequiresImages.Spec.Images {
 			checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)
@@ -192,7 +191,11 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 				}
 				BundleLog.Info("Moving images to private ECR in artifact account")
 				source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, images.Repository, images.Tag)
-				destination := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClientRelease.AccountID, images.Repository, images.Tag)
+				if c.ecrClientRelease != nil {
+					destination = fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClientRelease.AccountID, images.Repository, images.Tag)
+				} else {
+					destination = fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag)
+				}
 				err := copyImage(BundleLog, authFile, source, destination)
 				if err != nil {
 					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
