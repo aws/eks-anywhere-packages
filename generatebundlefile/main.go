@@ -91,9 +91,13 @@ func cmdPromote(opts *Options) error {
 
 	promoteCharts := make(map[string][]string)
 
+	if opts.tag == "" {
+		opts.tag = "latest"
+	}
+
 	// If we are promoting an individual chart with the --promote flag like we do for most charts.
 	if opts.promote != "" {
-		promoteCharts[opts.promote] = append(promoteCharts[opts.promote], "latest")
+		promoteCharts[opts.promote] = append(promoteCharts[opts.promote], opts.tag)
 	}
 
 	// If we are promoting multiple chart with the --input file flag we override the struct with files inputs from the file.
@@ -138,9 +142,14 @@ func cmdPromote(opts *Options) error {
 	if dockerAuth.Authfile == "" {
 		return fmt.Errorf("no authfile generated")
 	}
+	clients.helmDriver, err = NewHelm(BundleLog, dockerAuth.Authfile)
+	if err != nil {
+		BundleLog.Error(err, "Unable to create Helm driver")
+		os.Exit(1)
+	}
 	for repoName, versions := range promoteCharts {
 		for _, version := range versions {
-			err = clients.PromoteHelmChart(repoName, dockerAuth.Authfile, version, false)
+			err = clients.PromoteHelmChart(repoName, dockerAuth.Authfile, version, opts.copyImages)
 			if err != nil {
 				return fmt.Errorf("promoting Helm chart: %w", err)
 			}
@@ -429,6 +438,11 @@ func cmdGenerate(opts *Options) error {
 				BundleLog.Error(err, "Unable create AuthFile")
 				os.Exit(1)
 			}
+			clients.helmDriver, err = NewHelm(BundleLog, dockerAuth.Authfile)
+			if err != nil {
+				BundleLog.Error(err, "Unable to create Helm driver")
+				os.Exit(1)
+			}
 			for _, charts := range addOnBundleSpec.Packages {
 				for _, versions := range charts.Source.Versions {
 					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, false)
@@ -477,6 +491,11 @@ func cmdGenerate(opts *Options) error {
 			dockerAuth, err = NewAuthFile(dockerReleaseStruct)
 			if err != nil {
 				BundleLog.Error(err, "Unable create AuthFile")
+				os.Exit(1)
+			}
+			clients.helmDriver, err = NewHelm(BundleLog, dockerAuth.Authfile)
+			if err != nil {
+				BundleLog.Error(err, "Unable to create Helm driver")
 				os.Exit(1)
 			}
 			for _, charts := range addOnBundleSpec.Packages {
