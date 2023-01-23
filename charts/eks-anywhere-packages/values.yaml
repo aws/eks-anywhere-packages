@@ -126,3 +126,4 @@ awsSecret:
   id: ""
   secret: ""
   region: ""
+workloadOnly: false

@@ -1,3 +1,4 @@
+{{- if .Values.workloadOnly }}
 {{- if semverCompare ">=1.21-0" .Capabilities.KubeVersion.Version }}
 apiVersion: batch/v1
 {{- else }}
@@ -66,3 +67,4 @@ spec:
                   value: {{ .Values.proxy.HTTPS_PROXY | quote}}
                 - name: NO_PROXY
                   value: {{ .Values.proxy.NO_PROXY | quote}}
+{{- end }}

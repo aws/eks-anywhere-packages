@@ -1,3 +1,4 @@
+{{- if .Values.workloadOnly }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -37,3 +38,4 @@ metadata:
 data:
   {{ .Values.namespace }}: {{ include "eks-anywhere-packages.fullname" . }}
   emissary-system: emissary-ingress
+{{- end }}

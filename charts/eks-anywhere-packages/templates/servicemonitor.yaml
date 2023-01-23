@@ -1,3 +1,4 @@
+{{- if .Values.workloadOnly }}
 {{- if.Values.serviceMonitor.enabled -}}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -27,3 +28,4 @@ spec:
       {{- toYaml . | nindent 6 }}
     {{- end }}
 {{- end -}}
+{{- end }}
