@@ -1,4 +1,4 @@
-{{- if .Values.workloadOnly }}
+{{- if not .Values.workloadOnly }}
 {{- if semverCompare ">=1.21-0" .Capabilities.KubeVersion.Version }}
 apiVersion: batch/v1
 {{- else }}
