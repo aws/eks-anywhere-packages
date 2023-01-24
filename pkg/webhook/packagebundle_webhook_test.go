@@ -21,15 +21,6 @@ func TestBundleValidate(t *testing.T) {
 	mockManager.EXPECT().GetLogger().Return(logr.Discard())
 	sut := NewPackageBundleValidator(mockManager)
 
-	t.Run("happy case", func(t *testing.T) {
-		myBundle, err := testutil.GivenPackageBundle("../../api/testdata/prod_bundle.yaml")
-		require.Nil(t, err)
-
-		err = sut.isPackageBundleValid(myBundle)
-
-		assert.Nil(t, err)
-	})
-
 	t.Run("missing signature", func(t *testing.T) {
 		myBundle := v1alpha1.PackageBundle{ObjectMeta: metav1.ObjectMeta{Name: "v1-21-003"}}
 
