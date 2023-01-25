@@ -38,7 +38,7 @@ if [[ -n "${PROMOTE_FILE}" ]]; then
         --promote ${HELM_REPO} --input ${PROMOTE_FILE}
 elif [[ -n "${PROMOTE_TAG}" ]]; then
     ./bin/generatebundlefile  \
-        --promote ${HELM_REPO} --tag ${PROMOTE_TAG}
+        --promote ${HELM_REPO} --tag ${PROMOTE_TAG} --copy-images
 else
     ./bin/generatebundlefile  \
         --promote ${HELM_REPO}
