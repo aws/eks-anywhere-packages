@@ -14,7 +14,7 @@ spec:
   ports:
     - name: https-metrics
       port: 8080
-      targetPort: https-metrics
+      targetPort: 8080
       protocol: TCP
   selector:
     control-plane: controller-manager
