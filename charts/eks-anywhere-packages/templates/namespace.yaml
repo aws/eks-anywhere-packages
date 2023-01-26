@@ -4,6 +4,10 @@ metadata:
   annotations:
     "helm.sh/resource-policy": keep
   creationTimestamp: null
+  {{- if not .Values.workloadOnly }}
   name: eksa-packages
+  {{- else }}
+  name: eksa-packages-{{ .Values.clusterName }}
+  {{- end }}
 spec: {}
 status: {}

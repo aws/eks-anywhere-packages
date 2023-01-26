@@ -4,7 +4,11 @@ apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: PackageBundleController
 metadata:
   name: {{.Values.clusterName}}
+  {{- if not .Values.workloadOnly }}
   namespace: eksa-packages
+  {{- else }}
+  namespace: eksa-packages-{{ .Values.clusterName }}
+  {{- end }}
 spec:
   upgradeCheckInterval: 24h
   upgradeCheckShortInterval: 5m

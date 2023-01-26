@@ -1,3 +1,4 @@
+{{- if not .Values.workloadOnly }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -33,3 +34,4 @@ metadata:
   {{- end }}
 spec:
   selfSigned: {}
+{{- end }}
