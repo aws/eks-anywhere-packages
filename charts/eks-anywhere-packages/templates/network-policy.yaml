@@ -1,0 +1,17 @@
+{{- if not .Values.workloadOnly }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+  name: allow-all-eksa-packages
+  namespace: eksa-packages
+spec:
+  egress:
+  - {}
+  ingress:
+  - {}
+  podSelector: {}
+  policyTypes:
+  - Egress
+  - Ingress
+{{- end }}
