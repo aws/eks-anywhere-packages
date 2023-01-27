@@ -3,6 +3,7 @@ package registrymirror
 import (
 	"encoding/json"
 	"os"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
@@ -63,6 +64,10 @@ func (mirror *RegistryMirrorSecret) GetCredentials() ([]*secrets.Credential, err
 	return secrets, nil
 }
 
+func getCrtFileName(endpoint string) string {
+	return strings.Replace(endpoint, ":", "-", -1) + ".crt"
+}
+
 func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 	creds, err := mirror.GetCredentials()
 	if err != nil {
@@ -75,7 +80,7 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 	}
 	// create a registry mirror secret for package controller pod to mount
 	secret, _ := k8s.GetSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace)
-	data := map[string][]byte{corev1.DockerConfigJsonKey: configJson, "ca.crt": []byte(os.Getenv(caEnv)), "config.json": configJson}
+	data := map[string][]byte{corev1.DockerConfigJsonKey: configJson, getCrtFileName(creds[0].Registry): []byte(os.Getenv(caEnv)), "config.json": configJson}
 	if secret == nil {
 		_, err = k8s.CreateSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace, data)
 		if err != nil {

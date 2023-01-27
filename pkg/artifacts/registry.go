@@ -2,7 +2,7 @@ package artifacts
 
 import (
 	"context"
-	"path/filepath"
+	"strings"
 
 	"github.com/docker/cli/cli/config"
 	"github.com/go-logr/logr"
@@ -12,8 +12,6 @@ import (
 )
 
 const configPath = "/tmp/config/registry"
-
-var certFile = filepath.Join(configPath, "ca.crt")
 
 // RegistryPuller handles pulling OCI artifacts from an OCI registry
 // (i.e. bundles)
@@ -30,12 +28,17 @@ func NewRegistryPuller(logger logr.Logger) *RegistryPuller {
 	}
 }
 
+func getCrtFileName(endpoint string) string {
+	return configPath + strings.Replace(endpoint, ":", "-", -1) + ".crt"
+}
+
 func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
 	art, err := registry.ParseArtifactFromURI(ref)
 	if err != nil {
 		return nil, err
 	}
 
+	certFile := getCrtFileName(art.Registry)
 	certificates, err := registry.GetCertificates(certFile)
 	if err != nil {
 		p.log.Info("problem getting certificate file", "filename", certFile, "error", err.Error())

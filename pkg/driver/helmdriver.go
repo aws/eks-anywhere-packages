@@ -23,6 +23,7 @@ import (
 )
 
 const (
+	configPath               = "/tmp/config/registry"
 	varHelmUpgradeMaxHistory = 2
 	insecureEnvVar           = "REGISTRY_INSECURE"
 )
@@ -38,9 +39,9 @@ type helmDriver struct {
 
 var _ PackageDriver = (*helmDriver)(nil)
 
-var (
-	caFile = "/tmp/config/registry/ca.crt"
-)
+func getCrtFileName(endpoint string) string {
+	return configPath + strings.Replace(endpoint, ":", "-", -1) + ".crt"
+}
 
 func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) *helmDriver {
 	return &helmDriver{
@@ -70,6 +71,7 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 	}
 
 	// Check that the caFile has content before using.
+	caFile := getCrtFileName("blah")
 	if _, err = os.Stat(caFile); err != nil {
 		caFile = ""
 	}
