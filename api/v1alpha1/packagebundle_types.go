@@ -104,8 +104,8 @@ type VersionImages struct {
 	Digest string `json:"digest"`
 
 	// +kubebuilder:validation:Optional
-	// Version tag of this image.
-	Version string `json:"version"`
+	// Tag version of this image.
+	Tag string `json:"tag"`
 }
 
 // PackageBundleStatus defines the observed state of PackageBundle.
