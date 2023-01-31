@@ -143,7 +143,7 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 }
 
 // tagFromSha Looks up the Tag of an ECR artifact from a sha
-func (c *ecrClient) tagFromSha(repository, sha string) (string, error) {
+func (c *ecrClient) tagFromSha(repository, sha, substringTag string) (string, error) {
 	if repository == "" || sha == "" {
 		return "", fmt.Errorf("Emtpy repository, or sha passed to the function")
 	}
@@ -164,6 +164,11 @@ func (c *ecrClient) tagFromSha(repository, sha string) (string, error) {
 		// We can return the first tag for an image, if it has multiple tags
 		if len(detail.ImageTags) > 0 {
 			detail.ImageTags = removeStringSlice(detail.ImageTags, "latest")
+			for j, tag := range detail.ImageTags {
+				if strings.HasSuffix(tag, substringTag) {
+					return detail.ImageTags[j], nil
+				}
+			}
 			return detail.ImageTags[0], nil
 		}
 	}
