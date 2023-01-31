@@ -184,7 +184,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 				BundleLog.Info("Image Digest, and Tag dont exist in destination location...... copy to", "Location", fmt.Sprintf("%s/%s sha:%s", images.Repository, images.Tag, images.Digest))
 				// We have cases with tag mismatch where the SHA is accurate, but the tag in the destination repo is not synced, this will sync it.
 				if images.Tag == "" {
-					images.Tag, err = c.ecrClient.tagFromSha(images.Repository, images.Digest)
+					images.Tag, err = c.ecrClient.tagFromSha(images.Repository, images.Digest, tag)
 				}
 				if err != nil {
 					BundleLog.Error(err, "Unable to find Tag from Digest")
