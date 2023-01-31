@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
+	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/constants"
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets"
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets/aws"
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets/common"
@@ -14,16 +16,23 @@ import (
 func main() {
 	utils.InfoLogger.Println("Running at " + time.Now().UTC().String())
 
-	clientSet, err := common.GetDefaultClientSet()
+	defaultClientSet, err := common.GetDefaultClientSet()
 	if err != nil {
 		utils.ErrorLogger.Println(err)
 		os.Exit(0)
 	}
-	remoteClientSets, err := common.GetRemoteClientSets(clientSet)
+	clientSets, err := common.GetRemoteClientSets(defaultClientSet)
 	if err != nil {
 		utils.ErrorLogger.Println(err)
 		os.Exit(0)
 	}
+
+	defaultClusterName, found := os.LookupEnv(constants.DefaultClusterNameKey)
+	if !found {
+		utils.ErrorLogger.Println(fmt.Errorf("environment variable %s is required", constants.DefaultClusterNameKey))
+		os.Exit(0)
+	}
+	clientSets[defaultClusterName] = defaultClientSet
 
 	secrets := []secrets.Secret{
 		&aws.AwsSecret{},
@@ -31,7 +40,7 @@ func main() {
 	}
 
 	for _, secret := range secrets {
-		err := secret.Init(clientSet, remoteClientSets)
+		err := secret.Init(defaultClusterName, clientSets)
 		if err != nil {
 			utils.ErrorLogger.Println(err)
 		}

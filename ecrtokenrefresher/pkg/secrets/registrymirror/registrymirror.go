@@ -2,10 +2,9 @@ package registrymirror
 
 import (
 	"encoding/json"
-	"os"
+	"path"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes"
 
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/constants"
 	k8s "github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/kubernetes"
@@ -15,78 +14,100 @@ import (
 )
 
 const (
-	endpointEnv = "REGISTRY_MIRROR_ENDPOINT"
-	usernameEnv = "REGISTRY_MIRROR_USERNAME"
-	passwordEnv = "REGISTRY_MIRROR_PASSWORD"
-	caEnv       = "REGISTRY_MIRROR_CACERTCONTENT"
-	secretName  = "registry-mirror-cred"
+	endpointKey = "REGISTRY_MIRROR_ENDPOINT"
+	usernameKey = "REGISTRY_MIRROR_USERNAME"
+	passwordKey = "REGISTRY_MIRROR_PASSWORD"
+	caKey       = "REGISTRY_MIRROR_CACERTCONTENT"
+	credName    = "registry-mirror-cred"
+	secretName  = "registry-mirror-secret"
 )
 
 type RegistryMirrorSecret struct {
-	secretName       string
-	defaultClientSet *kubernetes.Clientset
-	remoteClientSets secrets.RemoteClusterClientset
+	credName           string
+	mgmtClusterName    string
+	clientSets         secrets.ClusterClientSet
+	clusterCredentials secrets.ClusterCredential
 }
 
 var _ secrets.Secret = (*RegistryMirrorSecret)(nil)
 
-func (mirror *RegistryMirrorSecret) Init(defaultClientSet *kubernetes.Clientset, remoteClientSets secrets.RemoteClusterClientset) error {
-	mirror.secretName = secretName
-	mirror.defaultClientSet = defaultClientSet
-	mirror.remoteClientSets = remoteClientSets
-	return nil
+func (mirror *RegistryMirrorSecret) Init(mgmtClusterName string, clientSets secrets.ClusterClientSet) error {
+	var err error
+	mirror.credName = credName
+	mirror.mgmtClusterName = mgmtClusterName
+	mirror.clientSets = clientSets
+	mirror.clusterCredentials, err = mirror.GetClusterCredentials(mirror.clientSets)
+	return err
 }
 
 func (mirror *RegistryMirrorSecret) IsActive() bool {
-	if val, _ := os.LookupEnv(endpointEnv); val == "" {
-		return false
-	}
-	if val, _ := os.LookupEnv(usernameEnv); val == "" {
-		return false
-	}
-	if val, _ := os.LookupEnv(passwordEnv); val == "" {
-		return false
-	}
-	return true
+	return len(mirror.clusterCredentials) > 0
 }
 
-func (mirror *RegistryMirrorSecret) GetCredentials() ([]*secrets.Credential, error) {
-	utils.InfoLogger.Println("fetching auth data from Registry Mirror... ")
-	secrets := []*secrets.Credential{
-		{
-			Registry: os.Getenv(endpointEnv),
-			Username: os.Getenv(usernameEnv),
-			Password: os.Getenv(passwordEnv),
-		},
+func (mirror *RegistryMirrorSecret) GetClusterCredentials(clientSets secrets.ClusterClientSet) (secrets.ClusterCredential, error) {
+	clusterCredentials := make(secrets.ClusterCredential)
+	for clusterName, clientSet := range clientSets {
+		utils.InfoLogger.Printf("fetching registry mirror auth data for cluster %s...\n", clusterName)
+		namespace := constants.PackagesNamespace
+		if clusterName != mirror.mgmtClusterName {
+			namespace = constants.NamespacePrefix + clusterName
+		}
+		secret, err := k8s.GetSecret(clientSet, secretName, namespace)
+		if err == nil {
+			credential := &secrets.Credential{
+				Registry: string(secret.Data[endpointKey]),
+				Username: string(secret.Data[usernameKey]),
+				Password: string(secret.Data[passwordKey]),
+				CA:       string(secret.Data[caKey]),
+			}
+			if credential.Registry != "" && credential.Username != "" && credential.Password != "" {
+				clusterCredentials[clusterName] = []*secrets.Credential{credential}
+			}
+			utils.InfoLogger.Println("success.")
+		} else {
+			utils.ErrorLogger.Println(err)
+			return nil, err
+		}
 	}
-	utils.InfoLogger.Println("success.")
-	return secrets, nil
+	return clusterCredentials, nil
 }
 
 func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
-	creds, err := mirror.GetCredentials()
-	if err != nil {
-		return err
-	}
-	dockerConfig := common.CreateDockerAuthConfig(creds)
-	configJson, err := json.Marshal(*dockerConfig)
-	if err != nil {
-		return err
+	defaultClientSet := mirror.clientSets[mirror.mgmtClusterName]
+	data := make(map[string][]byte)
+	for clusterName, creds := range mirror.clusterCredentials {
+		dockerConfig := common.CreateDockerAuthConfig(creds)
+		configJson, err := json.Marshal(*dockerConfig)
+		if err != nil {
+			return err
+		}
+		caKey := "ca.crt"
+		configKey := "config.json"
+		if clusterName == mirror.mgmtClusterName {
+			data[corev1.DockerConfigJsonKey] = configJson
+		} else {
+			caKey = path.Join(clusterName, caKey)
+			configKey = path.Join(clusterName, configKey)
+			err = common.BroadcastDockerAuthConfig(dockerConfig, defaultClientSet, mirror.clientSets[clusterName], mirror.credName, clusterName)
+			if err != nil {
+				return err
+			}
+		}
+		data[caKey] = []byte(creds[0].CA)
+		data[configKey] = configJson
 	}
 	// create a registry mirror secret for package controller pod to mount
-	secret, _ := k8s.GetSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace)
-	data := map[string][]byte{corev1.DockerConfigJsonKey: configJson, "ca.crt": []byte(os.Getenv(caEnv)), "config.json": configJson}
+	secret, _ := k8s.GetSecret(defaultClientSet, credName, constants.PackagesNamespace)
 	if secret == nil {
-		_, err = k8s.CreateSecret(mirror.defaultClientSet, secretName, constants.PackagesNamespace, data)
+		_, err := k8s.CreateSecret(defaultClientSet, credName, constants.PackagesNamespace, data)
 		if err != nil {
 			return err
 		}
 	} else {
-		_, err = k8s.UpdateSecret(mirror.defaultClientSet, constants.PackagesNamespace, secret, data)
+		_, err := k8s.UpdateSecret(defaultClientSet, constants.PackagesNamespace, secret, data)
 		if err != nil {
 			return err
 		}
 	}
-	// create registry mirror secret in all other namespaces where packages get installed
-	return common.BroadcastDockerAuthConfig(dockerConfig, mirror.defaultClientSet, &mirror.remoteClientSets, mirror.secretName)
+	return nil
 }

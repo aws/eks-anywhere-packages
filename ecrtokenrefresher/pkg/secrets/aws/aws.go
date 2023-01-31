@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"k8s.io/client-go/kubernetes"
 
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets"
 	"github.com/aws/eks-anywhere-packages/ecrtokenrefresher/pkg/secrets/common"
@@ -19,9 +18,10 @@ import (
 )
 
 type AwsSecret struct {
-	secretName       string
-	defaultClientSet *kubernetes.Clientset
-	remoteClientSets secrets.RemoteClusterClientset
+	secretName         string
+	mgmtClusterName    string
+	clientSets         secrets.ClusterClientSet
+	clusterCredentials secrets.ClusterCredential
 }
 
 var _ secrets.Secret = (*AwsSecret)(nil)
@@ -42,7 +42,7 @@ const (
 	regionDefault        = "us-west-2"
 )
 
-func (aws *AwsSecret) Init(defaultClientSet *kubernetes.Clientset, remoteClientSets secrets.RemoteClusterClientset) error {
+func (aws *AwsSecret) Init(mgmtClusterName string, clientSets secrets.ClusterClientSet) error {
 	secretname := os.Getenv(envVarAwsSecret)
 	if secretname == "" {
 		return fmt.Errorf("environment variable %s is required", envVarAwsSecret)
@@ -59,8 +59,8 @@ func (aws *AwsSecret) Init(defaultClientSet *kubernetes.Clientset, remoteClientS
 		}
 	}
 
-	aws.defaultClientSet = defaultClientSet
-	aws.remoteClientSets = remoteClientSets
+	aws.mgmtClusterName = mgmtClusterName
+	aws.clientSets = clientSets
 	return nil
 }
 
@@ -74,7 +74,19 @@ func (aws *AwsSecret) IsActive() bool {
 	return true
 }
 
-func (aws *AwsSecret) GetCredentials() ([]*secrets.Credential, error) {
+func (aws *AwsSecret) GetClusterCredentials(clientSets secrets.ClusterClientSet) (secrets.ClusterCredential, error) {
+	creds, err := aws.getCredentials()
+	if err != nil {
+		return nil, err
+	}
+	clusterCredentials := make(secrets.ClusterCredential)
+	for clusterName := range clientSets {
+		clusterCredentials[clusterName] = creds
+	}
+	return clusterCredentials, nil
+}
+
+func (aws *AwsSecret) getCredentials() ([]*secrets.Credential, error) {
 	utils.InfoLogger.Println("fetching auth data from AWS... ")
 	// Default AWS Region to us-west-2 if not set by User.
 	_, ok := os.LookupEnv(envRegionName)
@@ -128,12 +140,19 @@ func (aws *AwsSecret) GetCredentials() ([]*secrets.Credential, error) {
 }
 
 func (aws *AwsSecret) BroadcastCredentials() error {
-	creds, err := aws.GetCredentials()
+	var err error
+	aws.clusterCredentials, err = aws.GetClusterCredentials(aws.clientSets)
 	if err != nil {
 		return err
 	}
-	dockerConfig := common.CreateDockerAuthConfig(creds)
-	return common.BroadcastDockerAuthConfig(dockerConfig, aws.defaultClientSet, &aws.remoteClientSets, aws.secretName)
+	for clusterName, creds := range aws.clusterCredentials {
+		dockerConfig := common.CreateDockerAuthConfig(creds)
+		err = common.BroadcastDockerAuthConfig(dockerConfig, aws.clientSets[aws.mgmtClusterName], aws.clientSets[clusterName], aws.secretName, clusterName)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func setupIRSA() error {

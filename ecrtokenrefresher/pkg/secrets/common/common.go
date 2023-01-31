@@ -55,13 +55,13 @@ func GetDefaultClientSet() (*kubernetes.Clientset, error) {
 	return clientSet, err
 }
 
-func GetRemoteClientSets(defaultClientset *kubernetes.Clientset) (secrets.RemoteClusterClientset, error) {
+func GetRemoteClientSets(defaultClientset *kubernetes.Clientset) (secrets.ClusterClientSet, error) {
 	clusterNames, err := getClusterNameFromNamespaces(defaultClientset)
 	if err != nil {
 		return nil, err
 	}
 
-	remoteClientSets := make(secrets.RemoteClusterClientset)
+	remoteClientSets := make(secrets.ClusterClientSet)
 	for _, clusterName := range clusterNames {
 		secretName := clusterName + "-kubeconfig"
 		kubeconfigSecret, err := k8s.GetSecret(defaultClientset, secretName, constants.EksaSystemNamespace)
@@ -125,29 +125,26 @@ func CreateDockerAuthConfig(creds []*secrets.Credential) *dockerConfig {
 	return &config
 }
 
-func BroadcastDockerAuthConfig(dockerConfig *dockerConfig, defaultClientSets kubernetes.Interface, remoteClientSets *secrets.RemoteClusterClientset, secretName string) error {
+func BroadcastDockerAuthConfig(dockerConfig *dockerConfig, defaultClientSet, remoteClientSet kubernetes.Interface, secretName, clusterName string) error {
 	configJson, err := json.Marshal(*dockerConfig)
 	if err != nil {
 		return err
 	}
-	for clusterName, clientSet := range *remoteClientSets {
-		namespaces, err := getNamespacesFromConfigMap(defaultClientSets, constants.NamespacePrefix+clusterName)
-		if err != nil {
-			utils.WarningLogger.Printf("failed to find config map for %s cluster\n", clusterName)
-			continue
-		}
-		for _, ns := range namespaces {
-			secret, _ := k8s.GetSecret(clientSet, secretName, ns)
-			if secret == nil {
-				_, err = k8s.CreateSecret(clientSet, secretName, ns, map[string][]byte{corev1.DockerConfigJsonKey: configJson})
-				if err != nil {
-					utils.WarningLogger.Printf("failed to create %s in %s namespace\n", secretName, ns)
-				}
-			} else {
-				_, err = k8s.UpdateSecret(clientSet, ns, secret, map[string][]byte{corev1.DockerConfigJsonKey: configJson})
-				if err != nil {
-					utils.WarningLogger.Printf("failed to update %s in %s namespace\n", secretName, ns)
-				}
+	namespaces, err := getNamespacesFromConfigMap(defaultClientSet, constants.NamespacePrefix+clusterName)
+	if err != nil {
+		return fmt.Errorf("failed to find config map for cluster %s", clusterName)
+	}
+	for _, ns := range namespaces {
+		secret, _ := k8s.GetSecret(remoteClientSet, secretName, ns)
+		if secret == nil {
+			_, err = k8s.CreateSecret(remoteClientSet, secretName, ns, map[string][]byte{corev1.DockerConfigJsonKey: configJson})
+			if err != nil {
+				utils.WarningLogger.Printf("failed to create %s in %s namespace\n", secretName, ns)
+			}
+		} else {
+			_, err = k8s.UpdateSecret(remoteClientSet, ns, secret, map[string][]byte{corev1.DockerConfigJsonKey: configJson})
+			if err != nil {
+				utils.WarningLogger.Printf("failed to update %s in %s namespace\n", secretName, ns)
 			}
 		}
 	}
@@ -164,7 +161,6 @@ func getNamespacesFromConfigMap(clientSet kubernetes.Interface, namespace string
 	for ns := range cm.Data {
 		values = append(values, ns)
 	}
-	values = append(values, constants.PackagesNamespace)
 
 	return values, err
 }

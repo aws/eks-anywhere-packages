@@ -126,26 +126,6 @@ spec:
               secretKeyRef:
                 name: aws-secret
                 key: REGION
-          - name: REGISTRY_MIRROR_ENDPOINT
-            valueFrom:
-              secretKeyRef:
-                name: registry-mirror-secret
-                key: ENDPOINT
-          - name: REGISTRY_MIRROR_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: registry-mirror-secret
-                key: USERNAME
-          - name: REGISTRY_MIRROR_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: registry-mirror-secret
-                key: PASSWORD
-          - name: REGISTRY_MIRROR_CACERTCONTENT
-            valueFrom:
-              secretKeyRef:
-                name: registry-mirror-secret
-                key: CACERTCONTENT
           - name: HTTP_PROXY
             value: {{ .Values.proxy.HTTP_PROXY | quote}}
           - name: HTTPS_PROXY
