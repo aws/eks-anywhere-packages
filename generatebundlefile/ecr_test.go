@@ -192,31 +192,43 @@ func TestShaExistsInRepository(t *testing.T) {
 func TestTagFromSha(t *testing.T) {
 	client := newMockRegistryClient(nil)
 	tests := []struct {
-		client         *mockRegistryClient
-		testName       string
-		testRepository string
-		testDigest     string
-		checkVersion   string
-		wantErr        bool
+		client           *mockRegistryClient
+		testName         string
+		testRepository   string
+		testDigest       string
+		testSubstringTag string
+		checkVersion     string
+		wantErr          bool
 	}{
 		{
-			testName:       "Test empty Repository",
-			testRepository: "",
-			testDigest:     "sha256:0526725a65691944e831add6b247b25a93b8eeb1033dddadeaa089e95b021172",
-			wantErr:        true,
+			testName:         "Test empty Repository",
+			testRepository:   "",
+			testDigest:       "sha256:0526725a65691944e831add6b247b25a93b8eeb1033dddadeaa089e95b021172",
+			testSubstringTag: "",
+			wantErr:          true,
 		},
 		{
-			testName:       "Test empty Version",
-			testRepository: "hello-eks-anywhere",
-			testDigest:     "",
-			wantErr:        true,
+			testName:         "Test empty Version",
+			testRepository:   "hello-eks-anywhere",
+			testDigest:       "",
+			testSubstringTag: "",
+			wantErr:          true,
 		},
 		{
-			testName:       "Test valid Repository and Version",
-			testRepository: "hello-eks-anywhere",
-			testDigest:     "sha256:0526725a65691944e831add6b247b25a93b8eeb1033dddadeaa089e95b021172",
-			checkVersion:   "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea660",
-			wantErr:        false,
+			testName:         "Test valid Repository and Version",
+			testRepository:   "hello-eks-anywhere",
+			testDigest:       "sha256:0526725a65691944e831add6b247b25a93b8eeb1033dddadeaa089e95b021172",
+			testSubstringTag: "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea660",
+			checkVersion:     "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea660",
+			wantErr:          false,
+		},
+		{
+			testName:         "Test valid Repository and substring Version",
+			testRepository:   "hello-eks-anywhere",
+			testDigest:       "sha256:0526725a65691944e831add6b247b25a93b8eeb1033dddadeaa089e95b021172",
+			testSubstringTag: "v0.1.1",
+			checkVersion:     "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea660",
+			wantErr:          false,
 		},
 	}
 	//images.Digest, err = ecrClient.tagFromSha(images.Repository, images.Digest)
@@ -227,7 +239,7 @@ func TestTagFromSha(t *testing.T) {
 					registryClient: client,
 				},
 			}
-			got, err := clients.ecrClient.tagFromSha(tc.testRepository, tc.testDigest)
+			got, err := clients.ecrClient.tagFromSha(tc.testRepository, tc.testDigest, tc.checkVersion)
 			if (err != nil) != tc.wantErr {
 				tt.Fatalf("tagFromSha() error = %v, wantErr %v", err, tc.wantErr)
 			}
