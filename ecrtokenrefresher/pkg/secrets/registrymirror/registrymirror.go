@@ -100,7 +100,7 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 		}
 		data[caKey] = []byte(creds[0].CA)
 		data[configKey] = configJson
-		if creds[0].Insecure == base64.StdEncoding.EncodeToString([]byte("false")) {
+		if creds[0].Insecure == base64.StdEncoding.EncodeToString([]byte("true")) {
 			data[insecureKey] = []byte(creds[0].Insecure)
 		}
 	}
