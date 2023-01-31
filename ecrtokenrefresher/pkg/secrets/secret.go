@@ -7,6 +7,7 @@ type Credential struct {
 	Username string
 	Password string
 	CA       string
+	Insecure string
 }
 
 type (

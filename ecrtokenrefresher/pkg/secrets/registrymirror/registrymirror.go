@@ -1,6 +1,7 @@
 package registrymirror
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"path"
 
@@ -14,10 +15,11 @@ import (
 )
 
 const (
-	endpointKey = "REGISTRY_MIRROR_ENDPOINT"
-	usernameKey = "REGISTRY_MIRROR_USERNAME"
-	passwordKey = "REGISTRY_MIRROR_PASSWORD"
-	caKey       = "REGISTRY_MIRROR_CACERTCONTENT"
+	endpointKey = "ENDPOINT"
+	usernameKey = "USERNAME"
+	passwordKey = "PASSWORD"
+	caKey       = "CACERTCONTENT"
+	insecureKey = "INSECURE"
 	credName    = "registry-mirror-cred"
 	secretName  = "registry-mirror-secret"
 )
@@ -59,6 +61,7 @@ func (mirror *RegistryMirrorSecret) GetClusterCredentials(clientSets secrets.Clu
 				Username: string(secret.Data[usernameKey]),
 				Password: string(secret.Data[passwordKey]),
 				CA:       string(secret.Data[caKey]),
+				Insecure: string(secret.Data[insecureKey]),
 			}
 			if credential.Registry != "" && credential.Username != "" && credential.Password != "" {
 				clusterCredentials[clusterName] = []*secrets.Credential{credential}
@@ -83,11 +86,13 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 		}
 		caKey := "ca.crt"
 		configKey := "config.json"
+		insecureKey := "insecure"
 		if clusterName == mirror.mgmtClusterName {
 			data[corev1.DockerConfigJsonKey] = configJson
 		} else {
 			caKey = path.Join(clusterName, caKey)
 			configKey = path.Join(clusterName, configKey)
+			insecureKey = path.Join(clusterName, insecureKey)
 			err = common.BroadcastDockerAuthConfig(dockerConfig, defaultClientSet, mirror.clientSets[clusterName], mirror.credName, clusterName)
 			if err != nil {
 				return err
@@ -95,6 +100,9 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 		}
 		data[caKey] = []byte(creds[0].CA)
 		data[configKey] = configJson
+		if creds[0].Insecure == base64.StdEncoding.EncodeToString([]byte("false")) {
+			data[insecureKey] = []byte(creds[0].Insecure)
+		}
 	}
 	// create a registry mirror secret for package controller pod to mount
 	secret, _ := k8s.GetSecret(defaultClientSet, credName, constants.PackagesNamespace)
