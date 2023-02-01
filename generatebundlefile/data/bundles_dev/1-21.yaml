@@ -44,7 +44,7 @@ packages:
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.6.1-eks-1-21-19-latest
+            - name: 0.6.2-eks-1-21-latest
   - org: metallb
     projects:
       - name: metallb
