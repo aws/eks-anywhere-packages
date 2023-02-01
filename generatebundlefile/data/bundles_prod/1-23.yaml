@@ -75,5 +75,5 @@ packages:
         repository: prometheus/charts/prometheus
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 2.39.1-a5a5cc31867fdec4da73f95483e6893cf424f80f
+            - name: 2.41.0-b53c8be243a6cc3ac2553de24ab9f726d9b851ca
 
