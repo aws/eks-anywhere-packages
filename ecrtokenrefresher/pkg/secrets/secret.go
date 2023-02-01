@@ -20,4 +20,5 @@ type Secret interface {
 	IsActive() bool
 	GetClusterCredentials(clientSets ClusterClientSet) (ClusterCredential, error)
 	BroadcastCredentials() error
+	GetName() string
 }

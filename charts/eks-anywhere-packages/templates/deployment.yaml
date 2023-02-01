@@ -126,6 +126,8 @@ spec:
               secretKeyRef:
                 name: aws-secret
                 key: REGION
+          - name: CLUSTER_NAME
+            value: {{ .Values.clusterName }}
           - name: HTTP_PROXY
             value: {{ .Values.proxy.HTTP_PROXY | quote}}
           - name: HTTPS_PROXY

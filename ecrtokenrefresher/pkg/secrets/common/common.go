@@ -2,7 +2,6 @@ package common
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -125,14 +124,11 @@ func CreateDockerAuthConfig(creds []*secrets.Credential) *dockerConfig {
 	return &config
 }
 
-func BroadcastDockerAuthConfig(dockerConfig *dockerConfig, defaultClientSet, remoteClientSet kubernetes.Interface, secretName, clusterName string) error {
-	configJson, err := json.Marshal(*dockerConfig)
-	if err != nil {
-		return err
-	}
+func BroadcastDockerAuthConfig(configJson []byte, defaultClientSet, remoteClientSet kubernetes.Interface, secretName, clusterName string) {
 	namespaces, err := getNamespacesFromConfigMap(defaultClientSet, constants.NamespacePrefix+clusterName)
 	if err != nil {
-		return fmt.Errorf("failed to find config map for cluster %s", clusterName)
+		utils.WarningLogger.Printf("failed to find config map for cluster %s\n", clusterName)
+		return
 	}
 	for _, ns := range namespaces {
 		secret, _ := k8s.GetSecret(remoteClientSet, secretName, ns)
@@ -148,7 +144,6 @@ func BroadcastDockerAuthConfig(dockerConfig *dockerConfig, defaultClientSet, rem
 			}
 		}
 	}
-	return nil
 }
 
 func getNamespacesFromConfigMap(clientSet kubernetes.Interface, namespace string) ([]string, error) {

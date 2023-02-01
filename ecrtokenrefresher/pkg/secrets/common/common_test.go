@@ -83,8 +83,7 @@ func TestBroadcastDockerAuthConfig(t *testing.T) {
 		remoteClientSets := secrets.ClusterClientSet{
 			clusterName: fake.NewSimpleClientset(),
 		}
-		err := BroadcastDockerAuthConfig(&dockerConfig, defaultClientSet, remoteClientSets[clusterName], secretName, clusterName)
-		assert.NoError(t, err)
+		BroadcastDockerAuthConfig(configJson, defaultClientSet, remoteClientSets[clusterName], secretName, clusterName)
 
 		for _, ns := range []string{"ns1", "ns2"} {
 			secret, err := k8s.GetSecret(remoteClientSets[clusterName], secretName, ns)
@@ -97,8 +96,7 @@ func TestBroadcastDockerAuthConfig(t *testing.T) {
 		remoteClientSets := secrets.ClusterClientSet{
 			clusterName: fake.NewSimpleClientset(secret),
 		}
-		err := BroadcastDockerAuthConfig(&dockerConfig, defaultClientSet, remoteClientSets[clusterName], secretName, clusterName)
-		assert.NoError(t, err)
+		BroadcastDockerAuthConfig(configJson, defaultClientSet, remoteClientSets[clusterName], secretName, clusterName)
 
 		secret, err := k8s.GetSecret(remoteClientSets[clusterName], secretName, "ns1")
 		assert.NoError(t, err)

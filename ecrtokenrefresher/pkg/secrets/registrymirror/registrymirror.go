@@ -1,7 +1,6 @@
 package registrymirror
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"path"
 
@@ -46,6 +45,10 @@ func (mirror *RegistryMirrorSecret) IsActive() bool {
 	return len(mirror.clusterCredentials) > 0
 }
 
+func (mirror *RegistryMirrorSecret) GetName() string {
+	return "registry-mirror-secret"
+}
+
 func (mirror *RegistryMirrorSecret) GetClusterCredentials(clientSets secrets.ClusterClientSet) (secrets.ClusterCredential, error) {
 	clusterCredentials := make(secrets.ClusterCredential)
 	for clusterName, clientSet := range clientSets {
@@ -84,6 +87,8 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 		if err != nil {
 			return err
 		}
+		common.BroadcastDockerAuthConfig(configJson, defaultClientSet, mirror.clientSets[clusterName], mirror.credName, clusterName)
+
 		caKey := "ca.crt"
 		configKey := "config.json"
 		insecureKey := "insecure"
@@ -93,14 +98,10 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 			caKey = path.Join(clusterName, caKey)
 			configKey = path.Join(clusterName, configKey)
 			insecureKey = path.Join(clusterName, insecureKey)
-			err = common.BroadcastDockerAuthConfig(dockerConfig, defaultClientSet, mirror.clientSets[clusterName], mirror.credName, clusterName)
-			if err != nil {
-				return err
-			}
 		}
 		data[caKey] = []byte(creds[0].CA)
 		data[configKey] = configJson
-		if creds[0].Insecure == base64.StdEncoding.EncodeToString([]byte("true")) {
+		if creds[0].Insecure == "true" {
 			data[insecureKey] = []byte(creds[0].Insecure)
 		}
 	}

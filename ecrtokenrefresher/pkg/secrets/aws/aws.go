@@ -2,6 +2,7 @@ package aws
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -72,6 +73,10 @@ func (aws *AwsSecret) IsActive() bool {
 		return false
 	}
 	return true
+}
+
+func (aws *AwsSecret) GetName() string {
+	return "aws-secret"
 }
 
 func (aws *AwsSecret) GetClusterCredentials(clientSets secrets.ClusterClientSet) (secrets.ClusterCredential, error) {
@@ -147,10 +152,11 @@ func (aws *AwsSecret) BroadcastCredentials() error {
 	}
 	for clusterName, creds := range aws.clusterCredentials {
 		dockerConfig := common.CreateDockerAuthConfig(creds)
-		err = common.BroadcastDockerAuthConfig(dockerConfig, aws.clientSets[aws.mgmtClusterName], aws.clientSets[clusterName], aws.secretName, clusterName)
+		configJson, err := json.Marshal(dockerConfig)
 		if err != nil {
 			return err
 		}
+		common.BroadcastDockerAuthConfig(configJson, aws.clientSets[aws.mgmtClusterName], aws.clientSets[clusterName], aws.secretName, clusterName)
 	}
 	return nil
 }

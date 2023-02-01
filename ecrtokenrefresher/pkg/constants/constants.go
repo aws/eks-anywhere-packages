@@ -5,5 +5,5 @@ const (
 	EksaSystemNamespace   = "eksa-system"
 	PackagesNamespace     = "eksa-packages"
 	NamespacePrefix       = PackagesNamespace + "-"
-	DefaultClusterNameKey = "clusterName"
+	DefaultClusterNameKey = "CLUSTER_NAME"
 )

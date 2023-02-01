@@ -52,6 +52,8 @@ func main() {
 			if err != nil {
 				utils.ErrorLogger.Println(err)
 			}
+		} else {
+			utils.InfoLogger.Println(secret.GetName() + " is inactive")
 		}
 	}
 
