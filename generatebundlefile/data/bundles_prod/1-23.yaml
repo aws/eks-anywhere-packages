@@ -30,7 +30,7 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 9.21.0-1.23-5516c0368ff74d14c328d61fe374da9787ecf437
+            - name: 9.21.0-1.23-ea4ec7997935eb144292ac473e23ad28d194b128-release-0.14-helm
   - org: harbor
     projects:
       - name: harbor
