@@ -30,7 +30,7 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 9.21.0-1.21-56810429df35d3ec6ddd5b83ce409f1f33d76c1b-latest-helm
+            - name: 9.21.0-1.21-ea4ec7997935eb144292ac473e23ad28d194b128-release-0.14-helm
   - org: harbor
     projects:
       - name: harbor
