@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
 	"oras.land/oras-go/v2/registry/remote/auth"
@@ -9,6 +10,11 @@ import (
 // DockerCredentialStore for Docker registry credentials, like ~/.docker/config.json.
 type DockerCredentialStore struct {
 	configFile *configfile.ConfigFile
+}
+
+// CredentialsConfigLoad load credentials from directory.
+func CredentialsConfigLoad() (*configfile.ConfigFile, error) {
+	return config.Load(registryConfigPath)
 }
 
 // NewDockerCredentialStore creates a DockerCredentialStore.

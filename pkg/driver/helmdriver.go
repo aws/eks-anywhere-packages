@@ -2,12 +2,10 @@ package driver
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
 	"reflect"
-	"strconv"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -20,11 +18,11 @@ import (
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
+	packagesRegistry "github.com/aws/eks-anywhere-packages/pkg/registry"
 )
 
 const (
 	varHelmUpgradeMaxHistory = 2
-	insecureEnvVar           = "REGISTRY_INSECURE"
 )
 
 // helmDriver implements PackageDriver to install packages from Helm charts.
@@ -37,10 +35,6 @@ type helmDriver struct {
 }
 
 var _ PackageDriver = (*helmDriver)(nil)
-
-var (
-	caFile = "/tmp/config/registry/ca.crt"
-)
 
 func NewHelm(log logr.Logger, secretAuth auth.Authenticator, tcc auth.TargetClusterClient) *helmDriver {
 	return &helmDriver{
@@ -62,17 +56,8 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 
 	d.settings = cli.New()
 
-	insecureVal := decodeToString(os.Getenv(insecureEnvVar))
-	insecure, err := strconv.ParseBool(insecureVal)
-	// if insecure is empty, default to false.
-	if err != nil {
-		insecure = false
-	}
-
-	// Check that the caFile has content before using.
-	if _, err = os.Stat(caFile); err != nil {
-		caFile = ""
-	}
+	insecure := packagesRegistry.GetRegistryInsecure(clusterName)
+	caFile := packagesRegistry.GetClusterCertificateFileName(clusterName)
 	client, err := newRegistryClient("", "", caFile, insecure, d.settings)
 	if err != nil {
 		return fmt.Errorf("creating registry client for helm driver: %w", err)
@@ -300,12 +285,4 @@ func newRegistryClientWithTLS(certFile, keyFile, caFile string, insecureSkipTLSv
 		return nil, err
 	}
 	return registryClient, nil
-}
-
-func decodeToString(val string) string {
-	data, err := base64.StdEncoding.DecodeString(val)
-	if err != nil {
-		return ""
-	}
-	return string(data)
 }
