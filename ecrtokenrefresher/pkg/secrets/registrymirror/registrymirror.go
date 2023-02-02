@@ -46,7 +46,7 @@ func (mirror *RegistryMirrorSecret) IsActive() bool {
 }
 
 func (mirror *RegistryMirrorSecret) GetName() string {
-	return "registry-mirror-secret"
+	return mirror.credName
 }
 
 func (mirror *RegistryMirrorSecret) GetClusterCredentials(clientSets secrets.ClusterClientSet) (secrets.ClusterCredential, error) {

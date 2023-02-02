@@ -76,7 +76,7 @@ func (aws *AwsSecret) IsActive() bool {
 }
 
 func (aws *AwsSecret) GetName() string {
-	return "aws-secret"
+	return aws.secretName
 }
 
 func (aws *AwsSecret) GetClusterCredentials(clientSets secrets.ClusterClientSet) (secrets.ClusterCredential, error) {
