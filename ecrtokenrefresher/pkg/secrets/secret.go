@@ -6,13 +6,19 @@ type Credential struct {
 	Registry string
 	Username string
 	Password string
+	CA       string
+	Insecure string
 }
 
-type RemoteClusterClientset map[string]kubernetes.Interface
+type (
+	ClusterClientSet  map[string]kubernetes.Interface
+	ClusterCredential map[string][]*Credential
+)
 
 type Secret interface {
-	Init(defaultClientSet *kubernetes.Clientset, remoteClientSets RemoteClusterClientset) error
+	Init(mgmtClusterName string, clientSets ClusterClientSet) error
 	IsActive() bool
-	GetCredentials() ([]*Credential, error)
+	GetClusterCredentials(clientSets ClusterClientSet) (ClusterCredential, error)
 	BroadcastCredentials() error
+	GetName() string
 }

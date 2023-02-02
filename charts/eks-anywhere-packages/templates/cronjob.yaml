@@ -26,6 +26,8 @@ spec:
               env:
                 - name: ECR_TOKEN_SECRET_NAME
                   value: ecr-token
+                - name: CLUSTER_NAME
+                  value: {{.Values.clusterName}}
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
                     secretKeyRef:
