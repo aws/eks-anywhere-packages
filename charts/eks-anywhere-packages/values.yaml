@@ -111,9 +111,6 @@ cronjob:
   # -- ECR refresher digest
   digest: "{{ecr-token-refresher}}"
   suspend: false
-#  Additional Variables for Config Map for namespace
-nsconfigmap:
-  name: ns-secret-map
 # Secrets
 registryMirrorSecret:
   endpoint: ""
