@@ -1,3 +1,4 @@
 .spec.packages[].source.registry
 .spec.packages[].source.repository
 .spec.minControllerVersion
+.spec.packages[].source.versions[]?[.images[]?[.tag]]
