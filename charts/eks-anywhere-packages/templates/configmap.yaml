@@ -23,19 +23,4 @@ data:
     leaderElection:
       leaderElect: true
       resourceName: 6ef7a950.eks.amazonaws.com
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{.Values.nsconfigmap.name}}
-  namespace: {{ .Values.namespace }}
-  labels:
-    {{- include "eks-anywhere-packages.labels" . | nindent 4 }}
-  {{- with .Values.additionalAnnotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-data:
-  {{ .Values.namespace }}: {{ include "eks-anywhere-packages.fullname" . }}
-  emissary-system: emissary-ingress
 {{- end }}
