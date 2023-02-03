@@ -8,15 +8,12 @@ spec:
   packages:
     - name: hello-eks-anywhere
       source:
+        registry: public.ecr.aws/l0g8r8j6
         repository: hello-eks-anywhere
         versions:
-        - digest: sha256:bf6d89f6fe25ae782b62f131f8306904c603e638edae7d4e4d83da0045bc1604
-          images:
-          - digest: sha256:0d21da192be638a44fba3d34237e3f39f0161bec39e9ca33c0c435e0d74102ea
-            repository: hello-eks-anywhere
-            tag: v0.1.2
-          name: 0.1.2-a6847010915747a9fc8a412b233a2b1ee608ae76
-          schema: H4sIAOtaT2MAA51Ry27CMBC85yusqMfGoRy5oaqnXir4gsXZJAbHttYboRTx7zWOQagc+rjO7LzsUyFE+aSbciXKntmHVV33aIyr8BAqsNOxR0LpQR2gwyAjKmGAT2fhGKRyQx1UjwPIfXC2fE5uM3LveCGrfOioqxuCluvlYrmoXpbZYRazZoNJ+lAiH0w+8W63R8Uz5sl5JNYYInOKSMSCG0nhBjsdmKYbfucQcW275JDwBlsYDV8oP+6MVhIVyTizfmiR74Mi7VnH4VGzTYGCcqJoHYn8bLJMmvMsvW38S6N1enPx9r4V65+avDrLoC2SSEnf0sO4+0+BzTinayumuFQ0wKDQMtIvelwzr1WKXKeEptGXczAf93/YgglYnIsv0Gdet54CAAA=
+          - name: 0.1.1-6d0e566362d03a00f41d75524d21de5ddb95fd1d
+            digest: sha256:b2f1efe2f2bf126992ddcba03c353dc1106113c924c49553a9da7366f1653d2a
+            schema: H4sIAIux/mIAA51Ry27CMBC85yusqMfGoRy5oaqnXir4gsXZJAbHttYboRTx7zWOQagc+rjO7LzsUyFE+aSbciXKntmHVV33aIyr8BAqsNOxR0LpQR2gwyAjKmGAT2fhGKRyQx1UjwPIfXC2fE5uM3LveCGrfOioqxuCluvlYrmoXpbZYRazZoNJ+lAiH0w+8W63R8Uz5sl5JNYYInOKSMSCG0nhBjsdmKYbfucQcW275JDwBlsYDV8oP+6MVhIVyTizfmiR74Mi7VnH4VGzTYGCcqJoHYn8bLJMmvMsvW38S6N1enPx9r4V65+avDrLoC2SSEnf0sO4+0+BzTinayumuFQ0wKDQMtIvelwzr1WKXKeEptGXczAf93/YgglYnIsv0Gdet54CAAA=
     - name: flux
       source:
         registry: public.ecr.aws/l0g8r8j6

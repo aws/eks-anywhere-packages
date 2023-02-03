@@ -40,7 +40,6 @@ var (
 		".metadata.uid",
 		".metadata.resourceVersion",
 		".spec.minControllerVersion",
-		".spec.packages[].source.versions[]?[.images[]?[.tag]]",
 	}
 	GojqTemplate = template.Must(template.New("gojq_query").Funcs(
 		template.FuncMap{
