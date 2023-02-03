@@ -1,0 +1,12 @@
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: PackageBundleController
+metadata:
+  name: ${CLUSTER_NAME}
+  namespace: eksa-packages
+spec:
+  activeBundle: ${BUNDLE}
+  upgradeCheckInterval: 24h
+  upgradeCheckShortInterval: 5m
+  defaultRegistry: public.ecr.aws/l0g8r8j6
+  defaultImageRegistry: public.ecr.aws/l0g8r8j6
+  privateRegistry: 857151390494.dkr.ecr.us-west-2.amazonaws.com

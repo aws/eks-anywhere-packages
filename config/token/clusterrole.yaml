@@ -1,0 +1,89 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: eks-anywhere-packages-manager-role
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - packages.eks.amazonaws.com
+  resources:
+  - packagebundlecontrollers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - packages.eks.amazonaws.com
+  resources:
+  - packagebundlecontrollers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - packages.eks.amazonaws.com
+  resources:
+  - packagebundlecontrollers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - packages.eks.amazonaws.com
+  resources:
+  - packagebundles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - packages.eks.amazonaws.com
+  resources:
+  - packagebundles/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - packages.eks.amazonaws.com
+  resources:
+  - packagebundles/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - packages.eks.amazonaws.com
+  resources:
+  - packages
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - packages.eks.amazonaws.com
+  resources:
+  - packages/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - packages.eks.amazonaws.com
+  resources:
+  - packages/status
+  verbs:
+  - get
+  - patch
+  - update

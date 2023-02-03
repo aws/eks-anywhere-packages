@@ -10,3 +10,5 @@ cover.out
 /kubetest-plugins/bin
 /generatebundlefile/vendor
 /.ignore
+config/packagebundlecontroller/bundle.yaml
+config/packagebundlecontroller/pbc.yaml

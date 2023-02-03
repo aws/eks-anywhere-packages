@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cron-ecr-renew
+  namespace: eksa-packages
+spec:
+  concurrencyPolicy: Allow
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - env:
+            - name: ECR_TOKEN_SECRET_NAME
+              value: ecr-token
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  key: AWS_ACCESS_KEY_ID
+                  name: aws-secret
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: AWS_SECRET_ACCESS_KEY
+                  name: aws-secret
+            - name: AWS_REGION
+              valueFrom:
+                secretKeyRef:
+                  key: REGION
+                  name: aws-secret
+            - name: HTTP_PROXY
+            - name: HTTPS_PROXY
+            - name: NO_PROXY
+            image: public.ecr.aws/l0g8r8j6/ecr-token-refresher:v0.0.0-f214683ead9b2ba32459d268ce9151f991375c6f
+            imagePullPolicy: IfNotPresent
+            name: ecr-refresher
+          restartPolicy: OnFailure
+          securityContext: {}
+          serviceAccount: eks-anywhere-packages-serviceaccount
+          serviceAccountName: eks-anywhere-packages-serviceaccount
+          terminationGracePeriodSeconds: 30
+  schedule: 0 */5 * * *
+  successfulJobsHistoryLimit: 3
+  suspend: false

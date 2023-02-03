@@ -38,3 +38,18 @@ Create a cluster with EKS Anywhere and set and export with KUBECONFIG.
 1. Delete a package installation:
 
         kubectl delete package package-sample
+
+
+### Testing the Controller with the Dev Bundle
+
+1. Install the CRDs and Token Refresher:
+
+        make install
+
+2. Create the Dev Bundle and PBC:
+
+        make dev-bundle-install
+
+3. Run the controller:
+   
+        make run ENABLE_WEBHOOKS=false CLUSTER_NAME=<YOUR_CLUSTER_NAME>

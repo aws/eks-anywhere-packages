@@ -133,13 +133,29 @@ helm-package: kustomize ## Build helm chart into tar file
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
 	kubectl get namespace eksa-packages || kubectl create namespace eksa-packages
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
-	kubectl create secret -n eksa-packages generic aws-secret --from-literal=REGION=$(EKSA_AWS_REGION) --from-literal=ID=$(EKSA_AWS_ACCESS_KEY_ID) --from-literal=SECRET=$(EKSA_AWS_SECRET_ACCESS_KEY)
+	$(call ndef,EKSA_AWS_ACCESS_KEY_ID)
+	$(call ndef,EKSA_AWS_SECRET_ACCESS_KEY)
+	kubectl create secret -n eksa-packages generic aws-secret --from-literal=REGION=$(EKSA_AWS_REGION) --from-literal=AWS_ACCESS_KEY_ID=$(EKSA_AWS_ACCESS_KEY_ID) --from-literal=AWS_SECRET_ACCESS_KEY=$(EKSA_AWS_SECRET_ACCESS_KEY) || true
+	kubectl apply -f config/token/
+	kubectl get cronjob -n eksa-packages cron-ecr-renew -o yaml | yq e '.spec.suspend |= false' - | kubectl apply -f -
+	kubectl create job -n eksa-packages --from=cronjob/cron-ecr-renew run-it-now
+
+## Experimental will install the correct Dev Bundle, and PBC configuration locally for development.
+## Requires jq, oras, yq, envsubst, kubectl
+dev-bundle-install:
+	export VERSION=$(shell kubectl version -o json | jq .serverVersion.minor) && \
+	oras pull public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1-$$VERSION-latest --output config/packagebundlecontroller && \
+	export BUNDLE=$(shell cat config/packagebundlecontroller/bundle.yaml | yq .metadata.name) && \
+	export CLUSTER_NAME=$(shell kubectl config view --minify -o jsonpath='{.clusters[].name}') && \
+	envsubst < config/packagebundlecontroller/pbc.yaml.tmp >> config/packagebundlecontroller/pbc.yaml && \
+	kubectl apply -f config/packagebundlecontroller/bundle.yaml && kubectl apply -f config/packagebundlecontroller/pbc.yaml
 
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config.
 	kubectl delete packages -n eksa-packages $(kubectl get packages -n eksa-packages --no-headers -o custom-columns=":metadata.name") && sleep 5 || true
 	helm delete eks-anywhere-packages || true
 	$(KUSTOMIZE) build config/crd | kubectl delete -f - || true
 	kubectl delete namespace eksa-packages || true
+	kubectl delete -f config/token/ || true
 
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
@@ -190,3 +206,5 @@ presubmit: vet generate manifests build helm/package test # targets for presubmi
 
 %.yaml.signed: %.yaml
 	pkg/signature/testdata/sign_file.sh $?
+
+ndef = $(if $(value $(1)),,$(error $(1) not set))
