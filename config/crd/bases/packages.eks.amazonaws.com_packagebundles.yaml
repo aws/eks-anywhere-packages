@@ -92,9 +92,6 @@ spec:
                                       description: Repository within the Registry
                                         where the package is found.
                                       type: string
-                                    tag:
-                                      description: Tag version of this image.
-                                      type: string
                                   required:
                                   - digest
                                   - repository
@@ -189,9 +186,6 @@ spec:
                                         repository:
                                           description: Repository within the Registry
                                             where the package is found.
-                                          type: string
-                                        tag:
-                                          description: Tag version of this image.
                                           type: string
                                       required:
                                       - digest
