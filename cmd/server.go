@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -23,6 +24,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
@@ -59,7 +61,19 @@ func init() {
 
 func server() error {
 	ctrl.SetLogger(packageLog)
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	config := ctrl.GetConfigOrDie()
+	// Upping the defaults of 20/30 to 75/150 when flowcontrol filter is not enabled.
+	config.QPS = 75.0
+	config.Burst = 150
+	enabled, err := flowcontrol.IsEnabled(context.Background(), config)
+	if err == nil && enabled {
+		// Checks if the Kubernetes apiserver has PriorityAndFairness flow control filter enabled
+		// A negative QPS and Burst indicates that the client should not have a rate limiter.
+		// Ref: https://github.com/kubernetes/kubernetes/blob/v1.24.0/staging/src/k8s.io/client-go/rest/config.go#L354-L364
+		config.QPS = -1
+		config.Burst = -1
+	}
+	mgr, err := ctrl.NewManager(config, ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     serverCommandContext.metricsAddr,
 		Port:                   9443,
