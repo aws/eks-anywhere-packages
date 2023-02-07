@@ -22,8 +22,8 @@ require (
 	github.com/pkg/errors v0.9.1
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.10.3
-	k8s.io/apimachinery v0.25.2
-	sigs.k8s.io/controller-runtime v0.11.1
+	k8s.io/apimachinery v0.25.3
+	sigs.k8s.io/controller-runtime v0.13.0
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -66,6 +66,7 @@ require (
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
+	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
@@ -123,7 +124,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
-	github.com/prometheus/client_golang v1.12.1 // indirect
+	github.com/prometheus/client_golang v1.12.2 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
@@ -163,16 +164,16 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.25.2 // indirect
-	k8s.io/apiextensions-apiserver v0.25.2 // indirect
-	k8s.io/apiserver v0.25.2 // indirect
-	k8s.io/cli-runtime v0.25.2 // indirect
-	k8s.io/client-go v0.25.2 // indirect
-	k8s.io/component-base v0.25.2 // indirect
+	k8s.io/api v0.25.3 // indirect
+	k8s.io/apiextensions-apiserver v0.25.3 // indirect
+	k8s.io/apiserver v0.25.3 // indirect
+	k8s.io/cli-runtime v0.25.3 // indirect
+	k8s.io/client-go v0.25.3 // indirect
+	k8s.io/component-base v0.25.3 // indirect
 	k8s.io/klog/v2 v2.70.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220803162953-67bda5d908f1 // indirect
-	k8s.io/kubectl v0.25.2 // indirect
-	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed // indirect
+	k8s.io/kubectl v0.25.3 // indirect
+	k8s.io/utils v0.0.0-20220823124924-e9cbc92d1a73 // indirect
 	oras.land/oras-go v1.2.0 // indirect
 	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
 	sigs.k8s.io/kustomize/api v0.12.1 // indirect
