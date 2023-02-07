@@ -180,9 +180,16 @@ rm -rf $$TMP_DIR ;\
 endef
 
 ## Generate mocks
-.PHONY: mocks
-mocks: mockgen
+mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go
 	PATH=$(BIN_DIR):$(PATH) go generate ./...
+
+controllers/mocks/client.go: go.mod
+	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
+		$(MOCKGEN) -destination=controllers/mocks/client.go -package=mocks "sigs.k8s.io/controller-runtime/pkg/client" Client,StatusWriter
+controllers/mocks/manager.go: go.mod
+	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
+		$(MOCKGEN) -destination=controllers/mocks/manager.go -package=mocks "sigs.k8s.io/controller-runtime/pkg/manager" Manager
+
 
 .PHONY: presubmit
 presubmit: vet generate manifests build helm/package test # targets for presubmit
