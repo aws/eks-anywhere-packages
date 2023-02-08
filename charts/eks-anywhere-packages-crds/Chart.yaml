@@ -1,0 +1,8 @@
+apiVersion: v2
+appVersion: 0.0.1
+description: CRDs for eks-anywhere-packages
+name: eks-anywhere-packages-crds
+sources:
+- https://github.com/aws/eks-anywhere-packages/
+type: application
+version: 0.0.1
