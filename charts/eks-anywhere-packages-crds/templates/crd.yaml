@@ -1,0 +1,573 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.11.1
+  creationTimestamp: null
+  name: packagebundlecontrollers.packages.eks.amazonaws.com
+spec:
+  group: packages.eks.amazonaws.com
+  names:
+    kind: PackageBundleController
+    listKind: PackageBundleControllerList
+    plural: packagebundlecontrollers
+    shortNames:
+    - pbc
+    singular: packagebundlecontroller
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.activeBundle
+      name: ActiveBundle
+      type: string
+    - jsonPath: .status.state
+      name: State
+      type: string
+    - jsonPath: .status.detail
+      name: Detail
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: PackageBundleController is the Schema for the packagebundlecontroller
+          API.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PackageBundleControllerSpec defines the desired state of
+              PackageBundleController.
+            properties:
+              activeBundle:
+                description: ActiveBundle is name of the bundle from which packages
+                  should be sourced.
+                type: string
+              bundleRepository:
+                default: eks-anywhere-packages-bundles
+                description: Repository portion of an OCI address to the bundle
+                type: string
+              createNamespace:
+                default: false
+                description: Allow target namespace creation by the controller
+                type: boolean
+              defaultImageRegistry:
+                default: 783794618700.dkr.ecr.us-west-2.amazonaws.com
+                description: DefaultImageRegistry for pulling images
+                type: string
+              defaultRegistry:
+                default: public.ecr.aws/eks-anywhere
+                description: DefaultRegistry for pulling helm charts and the bundle
+                type: string
+              logLevel:
+                description: LogLevel controls the verbosity of logging in the controller.
+                format: int32
+                type: integer
+              privateRegistry:
+                description: PrivateRegistry is the registry being used for all images,
+                  charts and bundles
+                type: string
+              upgradeCheckInterval:
+                default: 24h
+                description: "UpgradeCheckInterval is the time between upgrade checks.
+                  \n The format is that of time's ParseDuration."
+                type: string
+              upgradeCheckShortInterval:
+                default: 1h
+                description: "UpgradeCheckShortInterval time between upgrade checks
+                  if there is a problem. \n The format is that of time's ParseDuration."
+                type: string
+            type: object
+          status:
+            description: PackageBundleControllerStatus defines the observed state
+              of PackageBundleController.
+            properties:
+              detail:
+                description: Detail of the state.
+                type: string
+              spec:
+                description: Spec previous settings
+                properties:
+                  activeBundle:
+                    description: ActiveBundle is name of the bundle from which packages
+                      should be sourced.
+                    type: string
+                  bundleRepository:
+                    default: eks-anywhere-packages-bundles
+                    description: Repository portion of an OCI address to the bundle
+                    type: string
+                  createNamespace:
+                    default: false
+                    description: Allow target namespace creation by the controller
+                    type: boolean
+                  defaultImageRegistry:
+                    default: 783794618700.dkr.ecr.us-west-2.amazonaws.com
+                    description: DefaultImageRegistry for pulling images
+                    type: string
+                  defaultRegistry:
+                    default: public.ecr.aws/eks-anywhere
+                    description: DefaultRegistry for pulling helm charts and the bundle
+                    type: string
+                  logLevel:
+                    description: LogLevel controls the verbosity of logging in the
+                      controller.
+                    format: int32
+                    type: integer
+                  privateRegistry:
+                    description: PrivateRegistry is the registry being used for all
+                      images, charts and bundles
+                    type: string
+                  upgradeCheckInterval:
+                    default: 24h
+                    description: "UpgradeCheckInterval is the time between upgrade
+                      checks. \n The format is that of time's ParseDuration."
+                    type: string
+                  upgradeCheckShortInterval:
+                    default: 1h
+                    description: "UpgradeCheckShortInterval time between upgrade checks
+                      if there is a problem. \n The format is that of time's ParseDuration."
+                    type: string
+                type: object
+              state:
+                description: State of the bundle controller.
+                enum:
+                - ignored
+                - active
+                - disconnected
+                - upgrade available
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: $(CERTIFICATE_NAMESPACE)/$(CERTIFICATE_NAME)
+    controller-gen.kubebuilder.io/version: v0.11.1
+  name: packagebundles.packages.eks.amazonaws.com
+spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: webhook-service
+          namespace: system
+          path: /convert
+      conversionReviewVersions:
+      - v1
+  group: packages.eks.amazonaws.com
+  names:
+    kind: PackageBundle
+    listKind: PackageBundleList
+    plural: packagebundles
+    singular: packagebundle
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.state
+      name: State
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: PackageBundle is the Schema for the packagebundle API.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PackageBundleSpec defines the desired state of PackageBundle.
+            properties:
+              minControllerVersion:
+                description: Minimum required packages controller version
+                type: string
+              packages:
+                description: Packages supported by this bundle.
+                items:
+                  description: BundlePackage specifies a package within a bundle.
+                  properties:
+                    name:
+                      description: Name of the package.
+                      type: string
+                    source:
+                      description: Source location for the package (probably a helm
+                        chart).
+                      properties:
+                        registry:
+                          description: Registry in which the package is found.
+                          type: string
+                        repository:
+                          description: Repository within the Registry where the package
+                            is found.
+                          type: string
+                        versions:
+                          description: Versions of the package supported by this bundle.
+                          items:
+                            description: SourceVersion describes a version of a package
+                              within a repository.
+                            properties:
+                              dependencies:
+                                description: Dependencies to be installed before the
+                                  package
+                                items:
+                                  type: string
+                                type: array
+                              digest:
+                                description: Digest is a checksum value identifying
+                                  the version of the package and its contents.
+                                type: string
+                              images:
+                                description: Images is a list of images used by this
+                                  version of the package.
+                                items:
+                                  description: VersionImages is an image used by a
+                                    version of a package.
+                                  properties:
+                                    digest:
+                                      description: Digest is a checksum value identifying
+                                        the version of the package and its contents.
+                                      type: string
+                                    repository:
+                                      description: Repository within the Registry
+                                        where the package is found.
+                                      type: string
+                                  required:
+                                  - digest
+                                  - repository
+                                  type: object
+                                type: array
+                              name:
+                                description: Name is a human-friendly description
+                                  of the version, e.g. "v1.0".
+                                type: string
+                              schema:
+                                description: Schema is a base64 encoded, gzipped json
+                                  schema used to validate package configurations.
+                                type: string
+                            required:
+                            - digest
+                            - name
+                            type: object
+                          minItems: 1
+                          type: array
+                      required:
+                      - repository
+                      - versions
+                      type: object
+                    workloadonly:
+                      description: WorkloadOnly specifies if the package should be
+                        installed only on the workload cluster
+                      type: boolean
+                  required:
+                  - source
+                  type: object
+                type: array
+            required:
+            - packages
+            type: object
+          status:
+            description: PackageBundleStatus defines the observed state of PackageBundle.
+            properties:
+              spec:
+                description: PackageBundleSpec defines the desired state of PackageBundle.
+                properties:
+                  minControllerVersion:
+                    description: Minimum required packages controller version
+                    type: string
+                  packages:
+                    description: Packages supported by this bundle.
+                    items:
+                      description: BundlePackage specifies a package within a bundle.
+                      properties:
+                        name:
+                          description: Name of the package.
+                          type: string
+                        source:
+                          description: Source location for the package (probably a
+                            helm chart).
+                          properties:
+                            registry:
+                              description: Registry in which the package is found.
+                              type: string
+                            repository:
+                              description: Repository within the Registry where the
+                                package is found.
+                              type: string
+                            versions:
+                              description: Versions of the package supported by this
+                                bundle.
+                              items:
+                                description: SourceVersion describes a version of
+                                  a package within a repository.
+                                properties:
+                                  dependencies:
+                                    description: Dependencies to be installed before
+                                      the package
+                                    items:
+                                      type: string
+                                    type: array
+                                  digest:
+                                    description: Digest is a checksum value identifying
+                                      the version of the package and its contents.
+                                    type: string
+                                  images:
+                                    description: Images is a list of images used by
+                                      this version of the package.
+                                    items:
+                                      description: VersionImages is an image used
+                                        by a version of a package.
+                                      properties:
+                                        digest:
+                                          description: Digest is a checksum value
+                                            identifying the version of the package
+                                            and its contents.
+                                          type: string
+                                        repository:
+                                          description: Repository within the Registry
+                                            where the package is found.
+                                          type: string
+                                      required:
+                                      - digest
+                                      - repository
+                                      type: object
+                                    type: array
+                                  name:
+                                    description: Name is a human-friendly description
+                                      of the version, e.g. "v1.0".
+                                    type: string
+                                  schema:
+                                    description: Schema is a base64 encoded, gzipped
+                                      json schema used to validate package configurations.
+                                    type: string
+                                required:
+                                - digest
+                                - name
+                                type: object
+                              minItems: 1
+                              type: array
+                          required:
+                          - repository
+                          - versions
+                          type: object
+                        workloadonly:
+                          description: WorkloadOnly specifies if the package should
+                            be installed only on the workload cluster
+                          type: boolean
+                      required:
+                      - source
+                      type: object
+                    type: array
+                required:
+                - packages
+                type: object
+              state:
+                description: PackageBundleStateEnum defines the observed state of
+                  PackageBundle.
+                enum:
+                - available
+                - ignored
+                - invalid
+                - controller upgrade required
+                type: string
+            required:
+            - state
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.11.1
+  creationTimestamp: null
+  name: packages.packages.eks.amazonaws.com
+spec:
+  group: packages.eks.amazonaws.com
+  names:
+    kind: Package
+    listKind: PackageList
+    plural: packages
+    singular: package
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.packageName
+      name: Package
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    - jsonPath: .status.state
+      name: State
+      type: string
+    - jsonPath: .status.currentVersion
+      name: CurrentVersion
+      type: string
+    - jsonPath: .status.targetVersion
+      name: TargetVersion
+      type: string
+    - jsonPath: .status.detail
+      name: Detail
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Package is the Schema for the package API.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PackageSpec defines the desired state of an package.
+            properties:
+              config:
+                description: Config for the package.
+                type: string
+              packageName:
+                description: PackageName is the name of the package as specified in
+                  the bundle.
+                type: string
+              packageVersion:
+                description: PackageVersion is a human-friendly version name or sha256
+                  checksum for the package, as specified in the bundle.
+                type: string
+              targetNamespace:
+                description: TargetNamespace defines where package resources will
+                  be deployed.
+                type: string
+            required:
+            - packageName
+            type: object
+          status:
+            description: PackageStatus defines the observed state of Package.
+            properties:
+              currentVersion:
+                description: Version currently installed.
+                type: string
+              detail:
+                description: Detail of the state.
+                type: string
+              source:
+                description: Source associated with the installation.
+                properties:
+                  digest:
+                    description: Digest is a checksum value identifying the version
+                      of the package and its contents.
+                    type: string
+                  registry:
+                    description: Registry in which the package is found.
+                    type: string
+                  repository:
+                    description: Repository within the Registry where the package
+                      is found.
+                    type: string
+                  version:
+                    description: Versions of the package supported.
+                    type: string
+                required:
+                - digest
+                - registry
+                - repository
+                - version
+                type: object
+              spec:
+                description: Spec previous settings
+                properties:
+                  config:
+                    description: Config for the package.
+                    type: string
+                  packageName:
+                    description: PackageName is the name of the package as specified
+                      in the bundle.
+                    type: string
+                  packageVersion:
+                    description: PackageVersion is a human-friendly version name or
+                      sha256 checksum for the package, as specified in the bundle.
+                    type: string
+                  targetNamespace:
+                    description: TargetNamespace defines where package resources will
+                      be deployed.
+                    type: string
+                required:
+                - packageName
+                type: object
+              state:
+                description: State of the installation.
+                enum:
+                - initializing
+                - installing
+                - installing dependencies
+                - installed
+                - updating
+                - uninstalling
+                - unknown
+                type: string
+              targetVersion:
+                description: Version to be installed.
+                type: string
+              upgradesAvailable:
+                description: UpgradesAvailable indicates upgraded versions in the
+                  bundle.
+                items:
+                  description: PackageAvailableUpgrade details the package's available
+                    upgrade versions.
+                  properties:
+                    tag:
+                      description: Tag is a specific version number or sha256 checksum
+                        for the package upgrade.
+                      type: string
+                    version:
+                      description: Version is a human-friendly version name for the
+                        package upgrade.
+                      type: string
+                  required:
+                  - tag
+                  - version
+                  type: object
+                type: array
+            required:
+            - currentVersion
+            - source
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
