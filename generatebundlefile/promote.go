@@ -173,12 +173,13 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 	// --promote --copy-images
 	var destination string
 	if copyImages {
+		accountID := c.activeAccountID()
 		for _, images := range helmRequiresImages.Spec.Images {
 			checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)
 			// This is going to run a copy if only 1 check passes because there are scenarios where the correct SHA exists, but the tag is not in sync.
 			// Copy with the correct image SHA, but a new tag will just write a new tag to ECR so it's safe to run.
 			if checkSha && checkTag {
-				BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s @ %s", c.stsClientRelease.AccountID, images.Repository, images.Tag, images.Digest))
+				BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s @ %s", accountID, images.Repository, images.Tag, images.Digest))
 				continue
 			} else {
 				BundleLog.Info("Image Digest, and Tag dont exist in destination location...... copy to", "Location", fmt.Sprintf("%s/%s sha:%s", images.Repository, images.Tag, images.Digest))
@@ -190,7 +191,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 					BundleLog.Error(err, "Unable to find Tag from Digest")
 				}
 				BundleLog.Info("Moving images to private ECR in artifact account")
-				source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, images.Repository, images.Tag)
+				source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", accountID, images.Repository, images.Tag)
 				if c.ecrClientRelease != nil {
 					destination = fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClientRelease.AccountID, images.Repository, images.Tag)
 				} else {
@@ -269,4 +270,17 @@ func (c *SDKClients) CheckDestinationECR(images Image, version string) (bool, bo
 		return false, false, err
 	}
 	return checkSha, checkTag, nil
+}
+
+func (c *SDKClients) activeAccountID() string {
+	if c.stsClientRelease != nil && c.stsClient != nil {
+		return c.stsClientRelease.AccountID
+	}
+	if c.stsClientRelease != nil {
+		return c.stsClientRelease.AccountID
+	}
+	if c.stsClient != nil {
+		return c.stsClient.AccountID
+	}
+	return ""
 }
