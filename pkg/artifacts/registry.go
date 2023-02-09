@@ -34,11 +34,13 @@ func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
 		p.log.Info("problem getting certificate file", "error", err.Error())
 	}
 
+	var store *registry.DockerCredentialStore
 	configFile, err := registry.CredentialsConfigLoad()
 	if err != nil {
-		return nil, err
+		p.log.Info("problem getting credential file", "error", err.Error())
+	} else {
+		store = registry.NewDockerCredentialStore(configFile)
 	}
-	store := registry.NewDockerCredentialStore(configFile)
 
 	sc := registry.NewStorageContext(art.Registry, store, certificates, false)
 	remoteRegistry, err := remote.NewRegistry(art.Registry)

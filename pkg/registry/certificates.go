@@ -19,7 +19,7 @@ func GetManagementClusterCertificate() (certificates *x509.CertPool, err error) 
 }
 
 func GetRegistryInsecure(clusterName string) bool {
-	caFile := path.Join(registryConfigPath, clusterName + "_" + insecureFile)
+	caFile := path.Join(registryConfigPath, clusterName+"_"+insecureFile)
 	if _, err := os.Stat(caFile); err != nil {
 		return false
 	}
@@ -27,7 +27,7 @@ func GetRegistryInsecure(clusterName string) bool {
 }
 
 func GetClusterCertificateFileName(clusterName string) string {
-	caFile := path.Join(registryConfigPath, clusterName + "_" + certFile)
+	caFile := path.Join(registryConfigPath, clusterName+"_"+certFile)
 	if _, err := os.Stat(caFile); err != nil {
 		return ""
 	}
