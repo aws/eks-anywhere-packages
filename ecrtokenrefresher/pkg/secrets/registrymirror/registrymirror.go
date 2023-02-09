@@ -2,7 +2,6 @@ package registrymirror
 
 import (
 	"encoding/json"
-	"path"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -89,20 +88,13 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 		}
 		common.BroadcastDockerAuthConfig(configJson, defaultClientSet, mirror.clientSets[clusterName], mirror.credName, clusterName)
 
-		caKey := "ca.crt"
-		configKey := "config.json"
-		insecureKey := "insecure"
 		if clusterName == mirror.mgmtClusterName {
 			data[corev1.DockerConfigJsonKey] = configJson
-		} else {
-			caKey = path.Join(clusterName, caKey)
-			configKey = path.Join(clusterName, configKey)
-			insecureKey = path.Join(clusterName, insecureKey)
 		}
-		data[caKey] = []byte(creds[0].CA)
-		data[configKey] = configJson
+		data[clusterName+"_ca.crt"] = []byte(creds[0].CA)
+		data["config.json"] = configJson
 		if creds[0].Insecure == "true" {
-			data[insecureKey] = []byte(creds[0].Insecure)
+			data[clusterName+"_insecure"] = []byte(creds[0].Insecure)
 		}
 	}
 	// create a registry mirror secret for package controller pod to mount

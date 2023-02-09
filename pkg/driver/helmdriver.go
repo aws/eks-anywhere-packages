@@ -248,7 +248,7 @@ func (d *helmDriver) IsConfigChanged(_ context.Context, name string, values map[
 }
 
 func newRegistryClient(certFile, keyFile, caFile string, insecureSkipTLSverify bool, settings *cli.EnvSettings) (*registry.Client, error) {
-	if certFile != "" && keyFile != "" || caFile != "" || insecureSkipTLSverify {
+	if certFile != "" && keyFile != "" || caFile != "" || !insecureSkipTLSverify {
 		registryClient, err := newRegistryClientWithTLS(certFile, keyFile, caFile, insecureSkipTLSverify, settings)
 		if err != nil {
 			return nil, err
