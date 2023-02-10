@@ -54,9 +54,13 @@ function push () {
     local version=${1?:no version specified}
     cd "${BASE_DIRECTORY}/generatebundlefile/output-${version}"
     awsAuth "$REPO" | "$ORAS_BIN" login "$REPO" --username AWS --password-stdin
-    "$ORAS_BIN" pull "${REPO}:v${version}-latest" -o ${version}
-    removeBundleMetadata ${version}/bundle.yaml
     removeBundleMetadata bundle.yaml
+    if "$ORAS_BIN" pull "${REPO}:v${version}-latest" -o ${version}; then
+        removeBundleMetadata ${version}/bundle.yaml
+    else
+        mkdir -p ${version} && touch ${version}/bundle.yaml.stripped
+    fi
+
     if (git diff --no-index --quiet -- ${version}/bundle.yaml.stripped bundle.yaml.stripped) then
         echo "bundle contents are identical skipping bundle push for ${version}"
     else
