@@ -35,16 +35,16 @@ func (m *MockPuller) EXPECT() *MockPullerMockRecorder {
 }
 
 // Pull mocks base method.
-func (m *MockPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
+func (m *MockPuller) Pull(ctx context.Context, ref, clusterName string) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Pull", ctx, ref)
+	ret := m.ctrl.Call(m, "Pull", ctx, ref, clusterName)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Pull indicates an expected call of Pull.
-func (mr *MockPullerMockRecorder) Pull(ctx, ref interface{}) *gomock.Call {
+func (mr *MockPullerMockRecorder) Pull(ctx, ref, clusterName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Pull", reflect.TypeOf((*MockPuller)(nil).Pull), ctx, ref)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Pull", reflect.TypeOf((*MockPuller)(nil).Pull), ctx, ref, clusterName)
 }

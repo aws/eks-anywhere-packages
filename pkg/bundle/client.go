@@ -125,7 +125,7 @@ func (bc *managerClient) GetBundle(ctx context.Context, name string) (namedBundl
 }
 
 func (bc *managerClient) GetBundleList(ctx context.Context) (bundles []api.PackageBundle, err error) {
-	var allBundles = &api.PackageBundleList{}
+	allBundles := &api.PackageBundleList{}
 	err = bc.Client.List(ctx, allBundles, &client.ListOptions{Namespace: api.PackageNamespace})
 	if err != nil {
 		return nil, fmt.Errorf("listing package bundles: %s", err)

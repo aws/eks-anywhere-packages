@@ -3,6 +3,8 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/go-logr/logr"
 	"golang.org/x/mod/semver"
@@ -111,7 +113,17 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		return nil
 	}
 
-	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleURI(), info.Major, info.Minor)
+	if err := m.targetClient.Initialize(ctx, os.Getenv("CLUSTER_NAME")); err != nil {
+		m.log.Error(err, "failed to intialize cluster client of management cluster")
+	}
+	config, _ := m.targetClient.ToRESTConfig()
+	auth, _ := authenticator.NewECRSecret(config)
+	if err := auth.AddSecretToAllNamespace(ctx); err != nil {
+		m.log.Error(err, "failed to Update Secret in all namespaces")
+	} else {
+		time.Sleep(3 * time.Second)
+	}
+	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleURI(), info.Major, info.Minor, pbc.Name)
 	if err != nil {
 		m.log.Error(err, "Unable to get latest bundle")
 		if pbc.Status.State == api.BundleControllerStateActive || pbc.Status.State == "" {
@@ -156,10 +168,9 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		}
 
 		if len(pbc.Spec.ActiveBundle) > 0 {
-
 			if !m.hasBundleNamed(allBundles, pbc.Spec.ActiveBundle) {
 
-				activeBundle, err := m.registryClient.DownloadBundle(ctx, pbc.GetActiveBundleURI())
+				activeBundle, err := m.registryClient.DownloadBundle(ctx, pbc.GetActiveBundleURI(), pbc.Name)
 				if err != nil {
 					m.log.Error(err, "Active bundle download failed", "bundle", pbc.Spec.ActiveBundle)
 					return nil

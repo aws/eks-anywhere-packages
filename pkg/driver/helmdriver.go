@@ -73,7 +73,8 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 }
 
 func (d *helmDriver) Install(ctx context.Context,
-	name string, namespace string, createNamespace bool, source api.PackageOCISource, values map[string]interface{}) error {
+	name string, namespace string, createNamespace bool, source api.PackageOCISource, values map[string]interface{},
+) error {
 	var err error
 	install := action.NewInstall(d.cfg)
 	install.Version = source.Version
@@ -171,7 +172,8 @@ func (d *helmDriver) getChart(install *action.Install, source api.PackageOCISour
 }
 
 func (d *helmDriver) createRelease(ctx context.Context,
-	install *action.Install, helmChart *chart.Chart, values map[string]interface{}) error {
+	install *action.Install, helmChart *chart.Chart, values map[string]interface{},
+) error {
 	_, err := install.RunWithContext(ctx, helmChart, values)
 	if err != nil {
 		return fmt.Errorf("installing helm chart %s: %w", install.ReleaseName, err)
@@ -190,8 +192,8 @@ func helmChartURLIsPrefixed(url string) bool {
 
 // upgradeRelease instructs helm to upgrade a release.
 func (d *helmDriver) upgradeRelease(ctx context.Context, name string,
-	helmChart *chart.Chart, values map[string]interface{}) (err error) {
-
+	helmChart *chart.Chart, values map[string]interface{},
+) (err error) {
 	// upgrade unless changes in the values are detected. For POC, run helm
 	// every time and rely on its idempotency.
 	upgrade := action.NewUpgrade(d.cfg)
@@ -248,7 +250,7 @@ func (d *helmDriver) IsConfigChanged(_ context.Context, name string, values map[
 }
 
 func newRegistryClient(certFile, keyFile, caFile string, insecureSkipTLSverify bool, settings *cli.EnvSettings) (*registry.Client, error) {
-	if certFile != "" && keyFile != "" || caFile != "" || insecureSkipTLSverify {
+	if certFile != "" && keyFile != "" || caFile != "" || !insecureSkipTLSverify {
 		registryClient, err := newRegistryClientWithTLS(certFile, keyFile, caFile, insecureSkipTLSverify, settings)
 		if err != nil {
 			return nil, err
