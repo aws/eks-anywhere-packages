@@ -147,7 +147,7 @@ func doAndReturnBundleList(source *api.PackageBundleList) func(context.Context, 
 	}
 }
 
-func doAndReturnBundle(_ context.Context, nn types.NamespacedName, theBundle *api.PackageBundle) error {
+func doAndReturnBundle(_ context.Context, nn types.NamespacedName, theBundle *api.PackageBundle, _ ...client.GetOption) error {
 	theBundle.Name = nn.Name
 	return nil
 }

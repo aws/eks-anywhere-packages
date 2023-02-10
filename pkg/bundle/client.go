@@ -213,7 +213,7 @@ func (bc *managerClient) CreateBundle(ctx context.Context, bundle *api.PackageBu
 }
 
 func (bc *managerClient) SaveStatus(ctx context.Context, object client.Object) error {
-	return bc.Client.Status().Update(ctx, object, &client.UpdateOptions{})
+	return bc.Client.Status().Update(ctx, object, &client.SubResourceUpdateOptions{})
 }
 
 func (bc *managerClient) Save(ctx context.Context, object client.Object) error {

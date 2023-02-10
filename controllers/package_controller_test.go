@@ -13,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	ctrlmocks "github.com/aws/eks-anywhere-packages/controllers/mocks"
@@ -226,7 +227,6 @@ func TestReconcile(t *testing.T) {
 		assert.EqualError(t, err, "status update test error")
 		expected := time.Duration(0)
 		assert.Equal(t, expected, got.RequeueAfter)
-
 	})
 
 	t.Run("Packages without version hold upgrade to latest", func(t *testing.T) {
@@ -273,7 +273,6 @@ func TestReconcile(t *testing.T) {
 		assert.NoError(t, err)
 		expected = time.Duration(0)
 		assert.Equal(t, expected, got.RequeueAfter)
-
 	})
 }
 
@@ -382,12 +381,14 @@ func (tf *testFixtures) newReconciler() *PackageReconciler {
 	}
 }
 
-type getFnPkg func(context.Context, types.NamespacedName, *api.Package) error
+type getFnPkg func(context.Context, types.NamespacedName, *api.Package, ...client.GetOption) error
 
 func (tf *testFixtures) mockGetFnPkg() (getFnPkg, *api.Package) {
 	pkg := tf.mockPackage()
 	return func(ctx context.Context, name types.NamespacedName,
-		target *api.Package) error {
+		target *api.Package,
+		_ ...client.GetOption,
+	) error {
 		pkg.DeepCopyInto(target)
 		return nil
 	}, pkg
