@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
 )
@@ -36,8 +37,8 @@ users:
 
 func TestTargetClusterClient_Init(t *testing.T) {
 	ctx := context.Background()
-	setKubeConfigSecret := func(src *corev1.Secret) func(_ context.Context, _ types.NamespacedName, kc *corev1.Secret) error {
-		return func(ctx context.Context, name types.NamespacedName, target *corev1.Secret) error {
+	setKubeConfigSecret := func(src *corev1.Secret) func(_ context.Context, _ types.NamespacedName, kc *corev1.Secret, _ ...client.GetOption) error {
+		return func(ctx context.Context, name types.NamespacedName, target *corev1.Secret, _ ...client.GetOption) error {
 			src.DeepCopyInto(target)
 			return nil
 		}

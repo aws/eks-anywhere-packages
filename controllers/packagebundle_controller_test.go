@@ -42,8 +42,8 @@ func GivenBundle() *api.PackageBundle {
 	}
 }
 
-func doAndReturnBundle(src *api.PackageBundle) func(ctx context.Context, name types.NamespacedName, pb *api.PackageBundle) error {
-	return func(ctx context.Context, name types.NamespacedName, target *api.PackageBundle) error {
+func doAndReturnBundle(src *api.PackageBundle) func(ctx context.Context, name types.NamespacedName, pb *api.PackageBundle, _ ...client.GetOption) error {
+	return func(ctx context.Context, name types.NamespacedName, target *api.PackageBundle, _ ...client.GetOption) error {
 		src.DeepCopyInto(target)
 		return nil
 	}
@@ -131,7 +131,8 @@ func TestPackageBundleReconciler_mapBundleReconcileRequests(t *testing.T) {
 	mockClient.EXPECT().
 		List(ctx, gomock.Any(), gomock.Any()).
 		DoAndReturn(func(ctx context.Context, bundles *api.PackageBundleList,
-			_ ...*client.ListOptions) error {
+			_ ...*client.ListOptions,
+		) error {
 			bundles.Items = []api.PackageBundle{*bundleOne, *bundleTwo}
 			return nil
 		})
@@ -141,5 +142,4 @@ func TestPackageBundleReconciler_mapBundleReconcileRequests(t *testing.T) {
 	requests := sut.mapBundleReconcileRequests(&api.PackageBundleController{})
 
 	assert.Equal(t, 2, len(requests))
-
 }
