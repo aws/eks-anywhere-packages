@@ -50,13 +50,14 @@ func (mirror *RegistryMirrorSecret) GetName() string {
 
 func (mirror *RegistryMirrorSecret) GetClusterCredentials(clientSets secrets.ClusterClientSet) (secrets.ClusterCredential, error) {
 	clusterCredentials := make(secrets.ClusterCredential)
-	for clusterName, clientSet := range clientSets {
+	defaultClientSet := mirror.clientSets[mirror.mgmtClusterName]
+	for clusterName := range clientSets {
 		utils.InfoLogger.Printf("fetching registry mirror auth data for cluster %s...\n", clusterName)
 		namespace := constants.PackagesNamespace
 		if clusterName != mirror.mgmtClusterName {
 			namespace = constants.NamespacePrefix + clusterName
 		}
-		secret, err := k8s.GetSecret(clientSet, secretName, namespace)
+		secret, err := k8s.GetSecret(defaultClientSet, secretName, namespace)
 		if err == nil {
 			credential := &secrets.Credential{
 				Registry: string(secret.Data[endpointKey]),
@@ -67,8 +68,10 @@ func (mirror *RegistryMirrorSecret) GetClusterCredentials(clientSets secrets.Clu
 			}
 			if credential.Registry != "" && credential.Username != "" && credential.Password != "" {
 				clusterCredentials[clusterName] = []*secrets.Credential{credential}
+				utils.InfoLogger.Println("success.")
+			} else {
+				utils.InfoLogger.Println("empty credential.")
 			}
-			utils.InfoLogger.Println("success.")
 		} else {
 			utils.ErrorLogger.Println(err)
 			return nil, err
@@ -98,6 +101,12 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 		}
 	}
 	// create a registry mirror secret for package controller pod to mount
+	if _, ok := data[corev1.DockerConfigJsonKey]; !ok {
+		configJson, _ := json.Marshal(common.CreateDockerAuthConfig([]*secrets.Credential{{
+			Registry: "", Username: "", Password: "", CA: "", Insecure: "",
+		}}))
+		data[corev1.DockerConfigJsonKey] = configJson
+	}
 	secret, _ := k8s.GetSecret(defaultClientSet, credName, constants.PackagesNamespace)
 	if secret == nil {
 		_, err := k8s.CreateSecret(defaultClientSet, credName, constants.PackagesNamespace, data)

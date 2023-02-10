@@ -23,13 +23,13 @@ func NewRegistryPuller(logger logr.Logger) *RegistryPuller {
 	}
 }
 
-func (p *RegistryPuller) Pull(ctx context.Context, ref string) ([]byte, error) {
+func (p *RegistryPuller) Pull(ctx context.Context, ref string, clusterName string) ([]byte, error) {
 	art, err := registry.ParseArtifactFromURI(ref)
 	if err != nil {
 		return nil, err
 	}
 
-	certificates, err := registry.GetManagementClusterCertificate()
+	certificates, err := registry.GetClusterCertificate(clusterName)
 	if err != nil {
 		p.log.Info("problem getting certificate file", "error", err.Error())
 	}

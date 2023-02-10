@@ -15,10 +15,10 @@ import (
 
 type RegistryClient interface {
 	// LatestBundle pulls the bundle tagged with "latest" from the bundle source.
-	LatestBundle(ctx context.Context, baseRef string, kubeMajor string, kubeMinor string) (*api.PackageBundle, error)
+	LatestBundle(ctx context.Context, baseRef string, kubeMajor string, kubeMinor string, clusterName string) (*api.PackageBundle, error)
 
 	// DownloadBundle downloads the bundle with a given tag.
-	DownloadBundle(ctx context.Context, ref string) (
+	DownloadBundle(ctx context.Context, ref string, clusterName string) (
 		*api.PackageBundle, error)
 }
 
@@ -39,14 +39,14 @@ var _ RegistryClient = (*registryClient)(nil)
 // It returns an error if the bundle it retrieves is empty. This is because an
 // empty file would be successfully parsed and a Zero-value PackageBundle
 // returned, which is not acceptable.
-func (rc *registryClient) LatestBundle(ctx context.Context, baseRef string, kubeMajor string, kubeMinor string) (*api.PackageBundle, error) {
+func (rc *registryClient) LatestBundle(ctx context.Context, baseRef string, kubeMajor string, kubeMinor string, clusterName string) (*api.PackageBundle, error) {
 	tag := "latest"
 	ref := fmt.Sprintf("%s:v%s-%s-%s", baseRef, kubeMajor, kubeMinor, tag)
-	return rc.DownloadBundle(ctx, ref)
+	return rc.DownloadBundle(ctx, ref, clusterName)
 }
 
-func (rc *registryClient) DownloadBundle(ctx context.Context, ref string) (*api.PackageBundle, error) {
-	data, err := rc.puller.Pull(ctx, ref)
+func (rc *registryClient) DownloadBundle(ctx context.Context, ref string, clusterName string) (*api.PackageBundle, error) {
+	data, err := rc.puller.Pull(ctx, ref, clusterName)
 	if err != nil {
 		return nil, fmt.Errorf("pulling package bundle: %s", err)
 	}

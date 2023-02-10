@@ -14,10 +14,6 @@ const (
 	insecureFile       = "insecure"
 )
 
-func GetManagementClusterCertificate() (certificates *x509.CertPool, err error) {
-	return GetClusterCertificate(os.Getenv("CLUSTER_NAME"))
-}
-
 func GetRegistryInsecure(clusterName string) bool {
 	caFile := path.Join(registryConfigPath, clusterName+"_"+insecureFile)
 	if _, err := os.Stat(caFile); err != nil {
