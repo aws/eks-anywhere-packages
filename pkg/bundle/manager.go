@@ -120,8 +120,9 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 	auth, _ := authenticator.NewECRSecret(config)
 	if err := auth.AddSecretToAllNamespace(ctx); err != nil {
 		m.log.Error(err, "failed to Update Secret in all namespaces")
+	} else {
+		time.Sleep(3 * time.Second)
 	}
-	time.Sleep(3 * time.Second)
 	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleURI(), info.Major, info.Minor, pbc.Name)
 	if err != nil {
 		m.log.Error(err, "Unable to get latest bundle")
