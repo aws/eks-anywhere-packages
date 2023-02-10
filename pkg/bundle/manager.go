@@ -6,11 +6,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-logr/logr"
+	"golang.org/x/mod/semver"
+
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/authenticator"
 	"github.com/aws/eks-anywhere-packages/pkg/config"
-	"github.com/go-logr/logr"
-	"golang.org/x/mod/semver"
 )
 
 //go:generate mockgen -source manager.go -destination=mocks/manager.go -package=mocks Manager
@@ -112,10 +113,14 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		return nil
 	}
 
-	m.targetClient.Initialize(ctx, os.Getenv("CLUSTER_NAME"))
+	if err := m.targetClient.Initialize(ctx, os.Getenv("CLUSTER_NAME")); err != nil {
+		m.log.Error(err, "failed to intialize cluster client of management cluster")
+	}
 	config, _ := m.targetClient.ToRESTConfig()
 	auth, _ := authenticator.NewECRSecret(config)
-	auth.AddSecretToAllNamespace(ctx)
+	if err := auth.AddSecretToAllNamespace(ctx); err != nil {
+		m.log.Error(err, "failed to Update Secret in all namespaces")
+	}
 	time.Sleep(3 * time.Second)
 	latestBundle, err := m.registryClient.LatestBundle(ctx, pbc.GetBundleURI(), info.Major, info.Minor, pbc.Name)
 	if err != nil {
