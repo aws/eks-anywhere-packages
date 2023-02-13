@@ -274,7 +274,7 @@ func (c *SDKClients) CheckDestinationECR(images Image, version string) (bool, bo
 
 func (c *SDKClients) activeAccountID() string {
 	if c.stsClientRelease != nil && c.stsClient != nil {
-		return c.stsClientRelease.AccountID
+		return c.stsClient.AccountID
 	}
 	if c.stsClientRelease != nil {
 		return c.stsClientRelease.AccountID
