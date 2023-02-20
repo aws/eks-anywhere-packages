@@ -8,7 +8,7 @@ packages:
         repository: eks-anywhere-packages
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: v0.2.30-eks-a-v0.0.0-dev-release-0.14-build.206
+            - name: 0.2.30-eks-a-v0.0.0-dev-release-0.14-build.206
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
