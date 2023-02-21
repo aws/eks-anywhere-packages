@@ -1,0 +1,17 @@
+apiVersion: kubelet.config.k8s.io/v1alpha1
+kind: CredentialProviderConfig
+providers:
+  - name: ecr-credential-provider
+    matchImages:
+      - "*.dkr.ecr.*.amazonaws.com"
+    defaultCacheDuration: "30m"
+    apiVersion: credentialprovider.kubelet.k8s.io/v1alpha1
+    env:
+      - name: AWS_PROFILE
+        value: eksa-packages
+      - name: AWS_CONFIG_FILE
+        value: /eksa-packages/aws-creds
+      - name: PATH
+        value: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/eksa-packages
+      - name: HOME
+        value: /eksa-packages/

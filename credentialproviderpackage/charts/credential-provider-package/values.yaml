@@ -1,0 +1,62 @@
+# Default values for credential-provider.
+# This is a YAML-formatted file.
+
+replicaCount: 1
+# -- sourceRegistry for all container images in chart.
+sourceRegistry: public.ecr.aws/eks-anywhere
+defaultNamespace: eksa-packages
+
+image:
+  repository: "credential-provider-package"
+  tag: "{{credential-provider-package-tag}}"
+  digest: sha256:320e4bdbe1cf0ccc4a594c84acc339cf4d652c40d84b5313f79ae68b9493db85
+  pullPolicy: IfNotPresent
+
+# application values
+secretName: aws-cred
+imagePatterns: ""
+defaultCacheDuration: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
