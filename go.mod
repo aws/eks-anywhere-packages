@@ -1,6 +1,6 @@
 module github.com/aws/eks-anywhere-packages
 
-go 1.18
+go 1.19
 
 require (
 	github.com/docker/cli v20.10.17+incompatible
