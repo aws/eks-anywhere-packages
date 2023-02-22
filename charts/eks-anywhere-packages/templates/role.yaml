@@ -45,3 +45,25 @@ rules:
   - create
   - patch
 {{- end }}
+{{- if .Values.workloadOnly }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "eks-anywhere-packages.fullname" . }}-manager-role
+  namespace: {{ .Values.namespace }}-{{ .Values.clusterName }}
+  labels:
+    {{- include "eks-anywhere-packages.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - secrets
+  verbs:
+  - delete
+{{- end }}
