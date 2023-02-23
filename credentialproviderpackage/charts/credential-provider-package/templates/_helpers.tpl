@@ -80,7 +80,7 @@ Function to figure out os name
 {{- if contains "Bottlerocket" .status.nodeInfo.osImage -}}
 {{- printf "bottlerocket" -}}
 {{- else if contains "Amazon Linux" .status.nodeInfo.osImage -}}
-{{- printf "docker" -}}
+{{- printf "amazonlinux" -}}
 {{- else -}}
 {{- printf "other" -}}
 {{- end }}

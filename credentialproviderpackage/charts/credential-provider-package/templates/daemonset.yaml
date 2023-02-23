@@ -62,7 +62,7 @@ spec:
         - name: socket
           hostPath:
             path: /run/api.sock
-        {{- else if eq $os "docker"}}
+        {{- else if eq $os "amazonlinux"}}
         - name: kubelet-extra-args
           hostPath:
             path: /etc/default/kubelet

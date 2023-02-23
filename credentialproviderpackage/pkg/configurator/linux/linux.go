@@ -211,11 +211,11 @@ func (c *linuxOS) updateKubeletArguments(line string) string {
 		}
 		args += val
 
+		val, err = copyBinaries()
+		if err != nil {
+			utils.ErrorLogger.Printf("Error coping binaries %v\n", err)
+		}
 		if !strings.Contains(line, "image-credential-provider-bin-dir") {
-			val, err = copyBinaries()
-			if err != nil {
-				utils.ErrorLogger.Printf("Error coping binaries %v\n", err)
-			}
 			args += val
 		}
 	}

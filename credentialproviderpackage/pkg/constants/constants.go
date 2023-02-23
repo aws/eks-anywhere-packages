@@ -29,7 +29,7 @@ const (
 type OSType string
 
 const (
-	Docker       OSType = "docker"
+	AmazonLinux  OSType = "amazonlinux"
 	Ubuntu              = "ubuntu"
 	Redhat              = "redhat"
 	BottleRocket        = "bottlerocket"
