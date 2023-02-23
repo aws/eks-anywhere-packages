@@ -37,7 +37,7 @@ func NewLinuxConfigurator() *linuxOS {
 	}
 }
 
-func (c *linuxOS) Initialize(_ string, config constants.CredentialProviderConfigOptions) {
+func (c *linuxOS) Initialize(config constants.CredentialProviderConfigOptions) {
 	c.config = config
 }
 

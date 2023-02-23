@@ -38,8 +38,8 @@ func Test_bottleRocket_CommitChanges(t *testing.T) {
 			fields: fields{
 				client: http.Client{},
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        constants.ImagePattern,
-					DefaultCacheDuration: constants.CacheDuration,
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
 				},
 			},
 			wantErr: false,
@@ -53,8 +53,8 @@ func Test_bottleRocket_CommitChanges(t *testing.T) {
 			fields: fields{
 				client: http.Client{},
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        constants.ImagePattern,
-					DefaultCacheDuration: constants.CacheDuration,
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
 				},
 			},
 			wantErr: true,
@@ -209,8 +209,8 @@ func Test_bottleRocket_UpdateCredentialProvider(t *testing.T) {
 			fields: fields{
 				client: http.Client{},
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        constants.ImagePattern,
-					DefaultCacheDuration: constants.CacheDuration,
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
 				},
 			},
 			patchResponse: response{
@@ -225,7 +225,7 @@ func Test_bottleRocket_UpdateCredentialProvider(t *testing.T) {
 			fields: fields{
 				client: http.Client{},
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        "123456789.dkr.ecr.test-region.amazonaws.com",
+					ImagePatterns:        []string{"123456789.dkr.ecr.test-region.amazonaws.com"},
 					DefaultCacheDuration: "24h",
 				},
 			},
@@ -237,12 +237,28 @@ func Test_bottleRocket_UpdateCredentialProvider(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "multiple match images for credential provider",
+			fields: fields{
+				client: http.Client{},
+				config: constants.CredentialProviderConfigOptions{
+					ImagePatterns:        []string{"123456789.dkr.ecr.test-region.amazonaws.com", "987654321.dkr.ecr.test-region.amazonaws.com"},
+					DefaultCacheDuration: "24h",
+				},
+			},
+			patchResponse: response{
+				statusCode:   http.StatusNoContent,
+				expectedBody: []byte("{\"kubernetes\":{\"credential-providers\":{\"ecr-credential-provider\":{\"cache-duration\":\"24h\",\"enabled\":true,\"image-patterns\":[\"123456789.dkr.ecr.test-region.amazonaws.com\",\"987654321.dkr.ecr.test-region.amazonaws.com\"]}}}}"),
+				responseMsg:  "",
+			},
+			wantErr: false,
+		},
+		{
 			name: "failed credential provider update",
 			fields: fields{
 				client: http.Client{},
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        constants.ImagePattern,
-					DefaultCacheDuration: constants.CacheDuration,
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
 				},
 			},
 			patchResponse: response{
@@ -305,16 +321,16 @@ func Test_bottleRocket_Initialize(t *testing.T) {
 			args: args{
 				socketPath: "/test/path.sock",
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        constants.ImagePattern,
-					DefaultCacheDuration: constants.CacheDuration,
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := NewBottleRocketConfigurator()
-			b.Initialize(tt.args.socketPath, tt.args.config)
+			b := NewBottleRocketConfigurator(tt.args.socketPath)
+			b.Initialize(tt.args.config)
 			assert.Equal(t, tt.baseUrl, b.baseURL)
 			assert.Equal(t, tt.args.config, b.config)
 			assert.NotNil(t, b.client)

@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: {{ include "credential-provider.fullname" . }}
   namespace: {{ .Release.Namespace | default .Values.defaultNamespace | quote }}
@@ -49,10 +49,14 @@ spec:
           env:
             - name: OS_TYPE
               value: {{ template "template.getOSName" }}
+            - name: MATCH_IMAGES
+              value: '{{ join "," .Values.application.matchImages }}'
+            - name: DEFAULT_CACHE_DURATION
+              value: {{.Values.application.defaultCacheDuration}}
       volumes:
         - name: aws-creds
           secret:
-            secretName: {{.Values.secretName}}
+            secretName: {{.Values.application.secretName}}
             optional: false
         {{- if eq $os "bottlerocket" }}
         - name: socket

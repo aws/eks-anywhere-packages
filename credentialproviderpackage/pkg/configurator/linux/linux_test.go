@@ -39,13 +39,31 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 				extraArgsPath: dir,
 				basePath:      dir,
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        constants.ImagePattern,
-					DefaultCacheDuration: constants.CacheDuration,
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
 				},
 			},
 			args:             args{line: ""},
 			outputConfigPath: dir + "/" + constants.CredProviderFile,
 			configWantPath:   "testdata/expected-config.yaml",
+			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
+				"--image-credential-provider-config=%s%s", dir, constants.CredProviderFile),
+		},
+		{
+			name: "test multiple match patterns",
+			fields: fields{
+				profile:       "eksa-packages",
+				extraArgsPath: dir,
+				basePath:      dir,
+				config: constants.CredentialProviderConfigOptions{
+					ImagePatterns: []string{"1234567.dkr.ecr.us-east-1.amazonaws.com",
+						"7654321.dkr.ecr.us-west-2.amazonaws.com"},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
+				},
+			},
+			args:             args{line: ""},
+			outputConfigPath: dir + "/" + constants.CredProviderFile,
+			configWantPath:   "testdata/expected-config-multiple-patterns.yaml",
 			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
 				"--image-credential-provider-config=%s%s", dir, constants.CredProviderFile),
 		},
@@ -56,8 +74,8 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 				extraArgsPath: dir,
 				basePath:      dir,
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        constants.ImagePattern,
-					DefaultCacheDuration: constants.CacheDuration,
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
 				},
 			},
 			args:             args{line: " --feature-gates=KubeletCredentialProviders=true"},
@@ -72,8 +90,8 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 				extraArgsPath: dir,
 				basePath:      dir,
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        constants.ImagePattern,
-					DefaultCacheDuration: constants.CacheDuration,
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
 				},
 			},
 			args:             args{line: " --feature-gates=KubeletCredentialProviders=false --image-credential-provider-config=blah"},
@@ -127,8 +145,8 @@ func Test_linuxOS_UpdateAWSCredentials(t *testing.T) {
 				extraArgsPath: dir,
 				basePath:      dir,
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        constants.ImagePattern,
-					DefaultCacheDuration: constants.CacheDuration,
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
 				},
 			},
 			args: args{
@@ -183,7 +201,6 @@ func Test_linuxOS_Initialize(t *testing.T) {
 		config        constants.CredentialProviderConfigOptions
 	}
 	type args struct {
-		in0    string
 		config constants.CredentialProviderConfigOptions
 	}
 	tests := []struct {
@@ -194,10 +211,9 @@ func Test_linuxOS_Initialize(t *testing.T) {
 		{
 			name: "simple initialization",
 			args: args{
-				in0: "",
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        constants.ImagePattern,
-					DefaultCacheDuration: constants.CacheDuration,
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
 				},
 			},
 		},
@@ -205,7 +221,7 @@ func Test_linuxOS_Initialize(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := NewLinuxConfigurator()
-			c.Initialize(tt.args.in0, tt.args.config)
+			c.Initialize(tt.args.config)
 			assert.Equal(t, c.config, tt.args.config)
 		})
 	}

@@ -20,7 +20,7 @@ import (
 func checkErrAndLog(err error, logger *log.Logger) {
 	if err != nil {
 		logger.Println(err)
-		os.Exit(0)
+		os.Exit(1)
 	}
 }
 
@@ -31,24 +31,24 @@ func main() {
 	osType := strings.ToLower(os.Getenv("OS_TYPE"))
 	if osType == "" {
 		utils.ErrorLogger.Println("Missing Environment Variable OS")
-		os.Exit(0)
+		os.Exit(1)
 	}
 	config := createCredentialProviderConfigOptions()
 	if osType == constants.BottleRocket {
 		socket, err := os.Stat(constants.SocketPath)
 		checkErrAndLog(err, utils.ErrorLogger)
 		if socket.Mode().Type() == fs.ModeSocket {
-			configurator = bottlerocket.NewBottleRocketConfigurator()
-			configurator.Initialize(constants.SocketPath, config)
+			configurator = bottlerocket.NewBottleRocketConfigurator(constants.SocketPath)
+
 		} else {
 			utils.ErrorLogger.Printf("Unexpected type %s expected socket\n", socket.Mode().Type())
-			os.Exit(0)
+			os.Exit(1)
 		}
 	} else {
 		configurator = linux.NewLinuxConfigurator()
-		configurator.Initialize("", config)
 	}
 
+	configurator.Initialize(config)
 	err := configurator.UpdateAWSCredentials(constants.CredSrcPath, constants.Profile)
 	checkErrAndLog(err, utils.ErrorLogger)
 	utils.InfoLogger.Println("Aws credentials configured")
@@ -103,13 +103,15 @@ func main() {
 }
 
 func createCredentialProviderConfigOptions() constants.CredentialProviderConfigOptions {
-	imagePatterns := os.Getenv("IMAGE_PATTERNS")
-	if imagePatterns == "" {
-		imagePatterns = constants.ImagePattern
+	imagePatternsValues := os.Getenv("MATCH_IMAGES")
+	if imagePatternsValues == "" {
+		imagePatternsValues = constants.DefaultImagePattern
 	}
+	imagePatterns := strings.Split(imagePatternsValues, ",")
+
 	defaultCacheDuration := os.Getenv("DEFAULT_CACHE_DURATION")
 	if defaultCacheDuration == "" {
-		defaultCacheDuration = constants.CacheDuration
+		defaultCacheDuration = constants.DefaultCacheDuration
 	}
 
 	return constants.CredentialProviderConfigOptions{

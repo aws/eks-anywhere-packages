@@ -9,13 +9,14 @@ defaultNamespace: eksa-packages
 image:
   repository: "credential-provider-package"
   tag: "{{credential-provider-package-tag}}"
-  digest: sha256:320e4bdbe1cf0ccc4a594c84acc339cf4d652c40d84b5313f79ae68b9493db85
+  digest: "{{credential-provider-package-digest}}"
   pullPolicy: IfNotPresent
 
 # application values
-secretName: aws-cred
-imagePatterns: ""
-defaultCacheDuration: ""
+application:
+  secretName: aws-cred
+  matchImages: []
+  defaultCacheDuration: ""
 
 imagePullSecrets: []
 nameOverride: ""

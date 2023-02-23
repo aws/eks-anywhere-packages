@@ -46,20 +46,21 @@ type kubernetes struct {
 
 var _ configurator.Configurator = (*bottleRocket)(nil)
 
-func NewBottleRocketConfigurator() *bottleRocket {
-	return &bottleRocket{}
-}
-
-func (b *bottleRocket) Initialize(socketPath string, config constants.CredentialProviderConfigOptions) {
-	b.baseURL = "http://localhost/"
-	b.config = config
-	b.client = http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", socketPath)
+func NewBottleRocketConfigurator(socketPath string) *bottleRocket {
+	return &bottleRocket{
+		client: http.Client{
+			Transport: &http.Transport{
+				DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+					return net.Dial("unix", socketPath)
+				},
 			},
 		},
 	}
+}
+
+func (b *bottleRocket) Initialize(config constants.CredentialProviderConfigOptions) {
+	b.baseURL = "http://localhost/"
+	b.config = config
 }
 
 func (b *bottleRocket) UpdateAWSCredentials(path string, profile string) error {
@@ -156,7 +157,7 @@ func createCredentialProviderPayload(config constants.CredentialProviderConfigOp
 			credentialProviders{
 				ecrCredentialProvider{
 					Enabled:       true,
-					ImagePatterns: []string{config.ImagePatterns},
+					ImagePatterns: config.ImagePatterns,
 					CacheDuration: config.DefaultCacheDuration,
 				},
 			},

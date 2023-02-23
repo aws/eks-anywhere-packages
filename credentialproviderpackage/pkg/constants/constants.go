@@ -2,9 +2,9 @@ package constants
 
 const (
 	// Credential Provider constants
-	ImagePattern     = "*.dkr.ecr.*.amazonaws.com"
-	CacheDuration    = "30m"
-	CredProviderFile = "credential-provider-config.yaml"
+	DefaultImagePattern  = "*.dkr.ecr.*.amazonaws.com"
+	DefaultCacheDuration = "30m"
+	CredProviderFile     = "credential-provider-config.yaml"
 
 	// Aws Credentials
 	CredSrcPath   = "/secrets/aws-creds/config"
@@ -36,6 +36,6 @@ const (
 )
 
 type CredentialProviderConfigOptions struct {
-	ImagePatterns        string
+	ImagePatterns        []string
 	DefaultCacheDuration string
 }
