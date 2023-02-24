@@ -1,0 +1,12 @@
+# -- The namespace to deploy the resources into.
+namespace: eksa-packages
+serviceAccount:
+  # -- The name of the ServiceAccount to use.
+  name: "eks-anywhere-packages-serviceaccount"
+controller:
+  # -- Controller repository name.
+  repository: "eks-anywhere-packages"
+  # -- Controller image tag
+  tag: "{{eks-anywhere-packages-tag}}"
+  # -- Controller image digest
+  digest: "{{eks-anywhere-packages}}"

@@ -1,0 +1,22 @@
+{{- if not .Values.workloadOnly }}
+{{-  $namespace := printf "%s-%s" "eksa-packages" .Values.clusterName -}}
+{{- if not (lookup "packages.eks.amazonaws.com/v1alpha1" "Package" "eksa-packages-main" "eks-anywhere-packages") }}
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: Package
+metadata:
+  annotations:
+    "helm.sh/resource-policy": keep
+  name: eks-anywhere-packages
+  namespace: {{ $namespace }}
+spec:
+  packageName: eks-anywhere-packages
+  targetNamespace: eksa-packages
+  config: |
+    {{- with .Values }}
+    {{- $controller := pick .controller "env" }}
+    {{- $newValues := pick . "proxy" "sourceRegistry" "clusterName" "privateRegistry" "imagePullPolicy" "defaultRegistry" "defaultImageRegistry" }}
+    {{- $_ := set $newValues "controller" $controller }}
+    {{- toYaml $newValues | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}

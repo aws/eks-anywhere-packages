@@ -1,0 +1,2 @@
+# -- The namespace to deploy the resources into.
+namespace: eksa-packages
