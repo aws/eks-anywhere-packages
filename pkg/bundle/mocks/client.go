@@ -64,20 +64,6 @@ func (mr *MockClientMockRecorder) CreateClusterConfigMap(ctx, clusterName interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateClusterConfigMap", reflect.TypeOf((*MockClient)(nil).CreateClusterConfigMap), ctx, clusterName)
 }
 
-// CreateClusterNamespace mocks base method.
-func (m *MockClient) CreateClusterNamespace(ctx context.Context, clusterName string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateClusterNamespace", ctx, clusterName)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateClusterNamespace indicates an expected call of CreateClusterNamespace.
-func (mr *MockClientMockRecorder) CreateClusterNamespace(ctx, clusterName interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateClusterNamespace", reflect.TypeOf((*MockClient)(nil).CreateClusterNamespace), ctx, clusterName)
-}
-
 // CreatePackage mocks base method.
 func (m *MockClient) CreatePackage(ctx context.Context, pkg *v1alpha1.Package) error {
 	m.ctrl.T.Helper()
