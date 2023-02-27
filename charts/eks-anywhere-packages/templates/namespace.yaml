@@ -1,17 +1,37 @@
+# If workloadOnly is true, the eksa-packages namespace isn't used and already
+# exists.
 {{- if not .Values.workloadOnly }}
+{{ $namespace := "eksa-packages" }}
+# If the release namespace is set, it is expected that either --create-namespace
+# is specified or the namespace exists
+{{- if not (eq .Release.Namespace $namespace) }}
+{{ $lookedup := lookup "v1" "Namespace" "" $namespace }}
+{{ $missing := not $lookedup }}
+{{ $managed := false }}
+{{- if $lookedup }}
+# Check if the namespace is managed by helm. If so, we must render it or it will
+# be deleted.
+{{ $managed = eq (index $lookedup.metadata.annotations "meta.helm.sh/release-name") "eks-anywhere-packages" }}
+{{- end }}
+{{- if (or $missing $managed) }}
 apiVersion: v1
 kind: Namespace
 metadata:
   annotations:
+    # Add the keep annotation so we can remove the namespace from the chart and
+    # rely on --create-namespace
     "helm.sh/resource-policy": keep
-  creationTimestamp: null
-  name: eksa-packages
+  name: {{ $namespace }}
 ---
-{{ end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{ $pkgnamespace := (printf "%s-%s" "eksa-packages" .Values.clusterName) }}
 apiVersion: v1
 kind: Namespace
 metadata:
   annotations:
     "helm.sh/resource-policy": keep
-  creationTimestamp: null
-  name: eksa-packages-{{ .Values.clusterName }}
+  name: {{ $pkgnamespace }}
+
