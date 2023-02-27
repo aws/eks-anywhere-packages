@@ -171,9 +171,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
-		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
-		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
@@ -191,9 +189,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
-		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
-		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1-21-1002", pbc.Name).Return(&allBundles[0], nil)
 		bc.EXPECT().CreateBundle(ctx, gomock.Any()).Return(nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil) // update available
@@ -214,9 +210,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
-		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
-		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1-21-1002", pbc.Name).Return(&allBundles[0], fmt.Errorf("boom"))
 
 		err := bm.ProcessBundleController(ctx, pbc)
@@ -235,9 +229,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
-		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
-		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		rc.EXPECT().DownloadBundle(ctx, "public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1-21-1002", pbc.Name).Return(&allBundles[0], nil)
 		bc.EXPECT().CreateBundle(ctx, gomock.Any()).Return(fmt.Errorf("boom"))
 
@@ -324,33 +316,13 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
-		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
-		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(nil)
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.NoError(t, err)
 		assert.Equal(t, api.BundleControllerStateUpgradeAvailable, pbc.Status.State)
-	})
-
-	t.Run("active to ns error", func(t *testing.T) {
-		tcc, rc, bc, bm := givenBundleManager(t)
-		pbc := givenPackageBundleController()
-		latestBundle := givenBundle()
-		latestBundle.Name = testNextBundleName
-		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
-		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
-		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
-		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
-		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(fmt.Errorf("boom"))
-
-		err := bm.ProcessBundleController(ctx, pbc)
-
-		assert.EqualError(t, err, "creating namespace for cluster01: boom")
 	})
 
 	t.Run("active to cm error", func(t *testing.T) {
@@ -364,32 +336,11 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
-		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(fmt.Errorf("boom"))
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.EqualError(t, err, "creating configmap for cluster01: boom")
-	})
-
-	t.Run("workload create cluster error", func(t *testing.T) {
-		tcc, rc, bc, bm := givenBundleManager(t)
-		pbc := givenPackageBundleController()
-		latestBundle := givenBundle()
-		latestBundle.Name = testNextBundleName
-		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
-		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
-		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
-		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
-		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
-		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
-		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
-		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(fmt.Errorf("boom"))
-
-		err := bm.ProcessBundleController(ctx, pbc)
-
-		assert.EqualError(t, err, "creating workload cluster namespace eksa-packages for cluster01: boom")
 	})
 
 	t.Run("active to upgradeAvailable error", func(t *testing.T) {
@@ -403,9 +354,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
-		bc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
-		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		bc.EXPECT().SaveStatus(ctx, pbc).Return(fmt.Errorf("oops"))
 
 		err := bm.ProcessBundleController(ctx, pbc)

@@ -1,10 +1,17 @@
-{{ $namespace := ternary "eksa-packages" (printf "%s-%s" "eksa-packages" .Values.clusterName) .Values.workloadOnly }}
-{{- if not (lookup "v1" "Namespace" "" $namespace ) }}
+{{- if not .Values.workloadOnly }}
 apiVersion: v1
 kind: Namespace
 metadata:
   annotations:
     "helm.sh/resource-policy": keep
   creationTimestamp: null
-  name: {{ $namespace }}
-{{- end }}
+  name: eksa-packages
+---
+{{ end }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    "helm.sh/resource-policy": keep
+  creationTimestamp: null
+  name: eksa-packages-{{ .Values.clusterName }}

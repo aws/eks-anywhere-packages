@@ -33,9 +33,6 @@ type Client interface {
 	// CreateBundle add a new bundle custom resource
 	CreateBundle(ctx context.Context, bundle *api.PackageBundle) error
 
-	// CreateClusterNamespace based on cluster name
-	CreateClusterNamespace(ctx context.Context, clusterName string) error
-
 	// CreateClusterConfigMap based on cluster name
 	CreateClusterConfigMap(ctx context.Context, clusterName string) error
 
