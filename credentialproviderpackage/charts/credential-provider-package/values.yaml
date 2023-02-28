@@ -17,6 +17,7 @@ application:
   secretName: aws-cred
   matchImages: []
   defaultCacheDuration: ""
+  profile: ""
 
 imagePullSecrets: []
 nameOverride: ""

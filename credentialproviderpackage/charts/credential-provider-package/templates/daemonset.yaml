@@ -49,6 +49,8 @@ spec:
           env:
             - name: OS_TYPE
               value: {{ template "template.getOSName" }}
+            - name: AWS_PROFILE
+              value: {{.Values.application.profile}}
             - name: MATCH_IMAGES
               value: '{{ join "," .Values.application.matchImages }}'
             - name: DEFAULT_CACHE_DURATION

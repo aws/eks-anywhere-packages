@@ -33,6 +33,10 @@ func main() {
 		utils.ErrorLogger.Println("Missing Environment Variable OS")
 		os.Exit(1)
 	}
+	profile := os.Getenv("AWS_PROFILE")
+	if profile == "" {
+		profile = constants.Profile
+	}
 	config := createCredentialProviderConfigOptions()
 	if osType == constants.BottleRocket {
 		socket, err := os.Stat(constants.SocketPath)
@@ -49,11 +53,11 @@ func main() {
 	}
 
 	configurator.Initialize(config)
-	err := configurator.UpdateAWSCredentials(constants.CredSrcPath, constants.Profile)
+	err := configurator.UpdateAWSCredentials(constants.CredSrcPath, profile)
 	checkErrAndLog(err, utils.ErrorLogger)
 	utils.InfoLogger.Println("Aws credentials configured")
 
-	err = configurator.UpdateCredentialProvider(constants.Profile)
+	err = configurator.UpdateCredentialProvider(profile)
 	checkErrAndLog(err, utils.ErrorLogger)
 	utils.InfoLogger.Println("Credential Provider Configured")
 
@@ -79,7 +83,7 @@ func main() {
 				}
 				if event.Has(fsnotify.Create) {
 					if event.Name == constants.CredWatchData {
-						err = configurator.UpdateAWSCredentials(constants.CredSrcPath, constants.Profile)
+						err = configurator.UpdateAWSCredentials(constants.CredSrcPath, profile)
 						checkErrAndLog(err, utils.ErrorLogger)
 						utils.InfoLogger.Println("Aws credentials successfully changed")
 					}
