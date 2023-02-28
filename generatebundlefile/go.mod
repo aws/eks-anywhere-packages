@@ -2,11 +2,7 @@ module github.com/aws/eks-anywhere-packages/generatebundlefile
 
 go 1.19
 
-replace (
-	github.com/aws/eks-anywhere-packages => ../
-	github.com/containerd/containerd => github.com/containerd/containerd v1.6.6
-	github.com/docker/distribution => github.com/docker/distribution v2.8.0-beta.1+incompatible
-)
+replace github.com/aws/eks-anywhere-packages => ../
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.17.2
