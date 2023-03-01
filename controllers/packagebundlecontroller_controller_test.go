@@ -58,9 +58,9 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 	}
 
 	setMockPBC := func(src *api.PackageBundleController) func(ctx context.Context,
-		name types.NamespacedName, pbc *api.PackageBundleController) error {
+		name types.NamespacedName, pbc *api.PackageBundleController, _ ...client.GetOption) error {
 		return func(ctx context.Context, name types.NamespacedName,
-			target *api.PackageBundleController) error {
+			target *api.PackageBundleController, _ ...client.GetOption) error {
 			src.DeepCopyInto(target)
 			return nil
 		}
@@ -121,7 +121,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockClient.EXPECT().Status().Return(mockStatusClient)
 		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, pbc *api.PackageBundleController,
-				opts *client.UpdateOptions) error {
+				opts *client.SubResourceUpdateOptions) error {
 				assert.Equal(t, pbc.Status.State, api.BundleControllerStateIgnored)
 				return nil
 			})

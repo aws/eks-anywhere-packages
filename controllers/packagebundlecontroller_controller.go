@@ -116,7 +116,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 		if pbc.Status.State != api.BundleControllerStateIgnored {
 			pbc.Status.State = api.BundleControllerStateIgnored
 			r.Log.V(6).Info("update", "PackageBundleController", pbc.Name, "state", pbc.Status.State)
-			err = r.Client.Status().Update(ctx, pbc, &client.UpdateOptions{})
+			err = r.Client.Status().Update(ctx, pbc, &client.SubResourceUpdateOptions{})
 			if err != nil {
 				r.Log.Error(err, "updating ignored status")
 				return withoutRequeue(result), nil
