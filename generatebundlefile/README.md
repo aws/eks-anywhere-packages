@@ -86,8 +86,8 @@ Currently the following formats can be used as input files each of the following
 #### Private Registry
 
 ```yaml
-name: "v1-21-1001"
-kubernetesVersion: "1.21"
+name: "v1-22-1001"
+kubernetesVersion: "1.22"
 packages:
   - org: aws-containers
     projects:
@@ -101,8 +101,8 @@ packages:
 #### Public Registry
 
 ```yaml
-name: "v1-21-1001"
-kubernetesVersion: "1.21"
+name: "v1-22-1001"
+kubernetesVersion: "1.22"
 packages:
   - org: aws-containers
     projects:
@@ -118,8 +118,8 @@ packages:
 The "latest" tag will tell the program to use a timestamp lookup, and find the most recently pushed helm chart for information, even if that helm chart doesn't have the latest tag.
 
 ```yaml
-name: "v1-21-1001"
-kubernetesVersion: "1.21"
+name: "v1-22-1001"
+kubernetesVersion: "1.22"
 packages:
   - org: aws-containers
     projects:
@@ -133,8 +133,8 @@ packages:
 #### Named Version
 
 ```yaml
-name: "v1-21-1001"
-kubernetesVersion: "1.21"
+name: "v1-22-1001"
+kubernetesVersion: "1.22"
 packages:
   - org: aws-containers
     projects:
@@ -148,8 +148,8 @@ packages:
 #### Multiple Versions
 
 ```yaml
-name: "v1-21-1001"
-kubernetesVersion: "1.21"
+name: "v1-22-1001"
+kubernetesVersion: "1.22"
 packages:
   - org: aws-containers
     projects:
@@ -164,8 +164,8 @@ packages:
 #### Mixed Format (Latest + Named)
 
 ```yaml
-name: "v1-21-1001"
-kubernetesVersion: "1.21"
+name: "v1-22-1001"
+kubernetesVersion: "1.22"
 packages:
   - org: aws-containers
     projects:

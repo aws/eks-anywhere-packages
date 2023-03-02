@@ -1,6 +1,6 @@
 # This file is only used to determine which Helm charts to move from Dev to Prod during a release.
-name: "v1-21-1001"
-kubernetesVersion: "1.21"
+name: "v1-22-1001"
+kubernetesVersion: "1.22"
 packages:
   - org: cluster-autoscaler
     projects:
@@ -30,10 +30,3 @@ packages:
         registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 9.21.0-1.22-latest
-  - org: cluster-autoscaler
-    projects:
-      - name: cluster-autoscaler
-        repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
-        versions:
-            - name: 9.21.0-1.21-latest
