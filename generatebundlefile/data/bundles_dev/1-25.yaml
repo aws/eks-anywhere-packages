@@ -9,6 +9,21 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: latest
+      - name: eks-anywhere-packages
+        repository: eks-anywhere-packages
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
+      - name: eks-anywhere-packages-crds
+        repository: eks-anywhere-packages-crds
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
+      - name: eks-anywhere-packages-crds-migrations
+        repository: eks-anywhere-packages-crds
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
   - org: aws-observability
     projects:
       - name: adot
