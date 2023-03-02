@@ -1,6 +1,6 @@
 # This file is only used to determine which Helm charts to move from Dev to Prod during a release.
-name: "v1-21-1001"
-kubernetesVersion: "1.21"
+name: "v1-22-1001"
+kubernetesVersion: "1.22"
 packages:
   - org: metrics-server
     projects:
@@ -30,10 +30,3 @@ packages:
         registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.6.2-eks-1-22-latest
-  - org: metrics-server
-    projects:
-      - name: metrics-server
-        repository: metrics-server/charts/metrics-server
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
-        versions:
-            - name: 0.6.2-eks-1-21-latest

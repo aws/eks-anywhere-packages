@@ -1,6 +1,6 @@
 # This file is only used to determine which Helm charts to move from Dev to Prod during a release.
-name: "v1-21-1001"
-kubernetesVersion: "1.21"
+name: "v1-22-1001"
+kubernetesVersion: "1.22"
 packages:
   - org: aws-containers
     projects:
@@ -30,7 +30,6 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 9.21.0-1.21-ea4ec7997935eb144292ac473e23ad28d194b128-release-0.14-helm
             - name: 9.21.0-1.22-ea4ec7997935eb144292ac473e23ad28d194b128-release-0.14-helm
             - name: 9.21.0-1.23-ea4ec7997935eb144292ac473e23ad28d194b128-release-0.14-helm
             - name: 9.21.0-1.24-ea4ec7997935eb144292ac473e23ad28d194b128
@@ -62,7 +61,6 @@ packages:
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.6.1-eks-1-21-18-c94ed410f56421659f554f13b4af7a877da72bc1
             - name: 0.6.1-eks-1-22-11-c94ed410f56421659f554f13b4af7a877da72bc1
             - name: 0.6.1-eks-1-23-6-c94ed410f56421659f554f13b4af7a877da72bc1
             - name: 0.6.1-eks-1-24-1-c94ed410f56421659f554f13b4af7a877da72bc1

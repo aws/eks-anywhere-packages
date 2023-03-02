@@ -71,13 +71,13 @@ if [ ! -x "${ORAS_BIN}" ]; then
     make oras-install
 fi
 
-for version in 1-21 1-22 1-23 1-24 1-25; do
+for version in 1-22 1-23 1-24 1-25; do
     generate ${version} "prod"
 done
 
 export AWS_PROFILE=prod
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
-for version in 1-21 1-22 1-23 1-24 1-25; do
+for version in 1-22 1-23 1-24 1-25; do
     push ${version}
 done
