@@ -20,7 +20,7 @@ type bottleRocket struct {
 	config  constants.CredentialProviderConfigOptions
 }
 
-type AwsCred struct {
+type awsCred struct {
 	Aws Aws `json:"aws"`
 }
 type Aws struct {
@@ -142,7 +142,7 @@ func createCredentialsPayload(content string, profile string) ([]byte, error) {
 		Profile: profile,
 	}
 
-	creds := AwsCred{Aws: aws}
+	creds := awsCred{Aws: aws}
 
 	payload, err := json.Marshal(creds)
 	if err != nil {

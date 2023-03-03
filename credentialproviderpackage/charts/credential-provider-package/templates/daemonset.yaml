@@ -48,7 +48,7 @@ spec:
             {{- end}}
           env:
             - name: OS_TYPE
-              value: {{ template "template.getOSName" }}
+              value: {{ $os }}
             - name: AWS_PROFILE
               value: {{.Values.application.profile}}
             - name: MATCH_IMAGES

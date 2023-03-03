@@ -2,13 +2,11 @@ package main
 
 import (
 	_ "embed"
+	"github.com/fsnotify/fsnotify"
 	"io/fs"
 	"log"
 	"os"
 	"strings"
-	"time"
-
-	"github.com/fsnotify/fsnotify"
 
 	cfg "credential-provider/pkg/configurator"
 	"credential-provider/pkg/configurator/bottlerocket"
@@ -19,18 +17,16 @@ import (
 
 func checkErrAndLog(err error, logger *log.Logger) {
 	if err != nil {
-		logger.Println(err)
+		logger.Fatal(err)
 		os.Exit(1)
 	}
 }
 
 func main() {
-	utils.InfoLogger.Println("Running at " + time.Now().UTC().String())
-
 	var configurator cfg.Configurator
 	osType := strings.ToLower(os.Getenv("OS_TYPE"))
 	if osType == "" {
-		utils.ErrorLogger.Println("Missing Environment Variable OS")
+		utils.ErrorLogger.Println("Missing Environment Variable OS_TYPE")
 		os.Exit(1)
 	}
 	profile := os.Getenv("AWS_PROFILE")
@@ -40,13 +36,14 @@ func main() {
 	config := createCredentialProviderConfigOptions()
 	if osType == constants.BottleRocket {
 		socket, err := os.Stat(constants.SocketPath)
-		checkErrAndLog(err, utils.ErrorLogger)
+		if err != nil {
+			utils.ErrorLogger.Fatal(err)
+		}
 		if socket.Mode().Type() == fs.ModeSocket {
 			configurator = bottlerocket.NewBottleRocketConfigurator(constants.SocketPath)
 
 		} else {
-			utils.ErrorLogger.Printf("Unexpected type %s expected socket\n", socket.Mode().Type())
-			os.Exit(1)
+			utils.ErrorLogger.Fatalf("Unexpected type %s expected socket\n", socket.Mode().Type())
 		}
 	} else {
 		configurator = linux.NewLinuxConfigurator()
@@ -54,22 +51,28 @@ func main() {
 
 	configurator.Initialize(config)
 	err := configurator.UpdateAWSCredentials(constants.CredSrcPath, profile)
-	checkErrAndLog(err, utils.ErrorLogger)
+	if err != nil {
+		utils.ErrorLogger.Fatal(err)
+	}
 	utils.InfoLogger.Println("Aws credentials configured")
 
 	err = configurator.UpdateCredentialProvider(profile)
-	checkErrAndLog(err, utils.ErrorLogger)
+	if err != nil {
+		utils.ErrorLogger.Fatal(err)
+	}
 	utils.InfoLogger.Println("Credential Provider Configured")
 
 	err = configurator.CommitChanges()
-	checkErrAndLog(err, utils.ErrorLogger)
+	if err != nil {
+		utils.ErrorLogger.Fatal(err)
+	}
 
 	utils.InfoLogger.Println("Kubelet Restarted")
 
 	// Creating watcher for credentials
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		utils.ErrorLogger.Fatal(err)
 	}
 	defer watcher.Close()
 

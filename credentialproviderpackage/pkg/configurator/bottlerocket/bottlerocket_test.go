@@ -2,10 +2,13 @@ package bottlerocket
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -83,6 +86,17 @@ func Test_bottleRocket_CommitChanges(t *testing.T) {
 }
 
 func Test_bottleRocket_UpdateAWSCredentials(t *testing.T) {
+	file, err := os.Open("testdata/testcreds")
+	if err != nil {
+		t.Errorf("Failed to open testcreds")
+	}
+	content, err := io.ReadAll(file)
+	if err != nil {
+		t.Errorf("Failed to read testcreds")
+	}
+	encodedSecret := base64.StdEncoding.EncodeToString(content)
+	expectedBody := fmt.Sprintf("{\"aws\":{\"config\":\"%s\",\"profile\":\"eksa-packages\",\"region\":\"\"}}", encodedSecret)
+
 	type fields struct {
 		client  http.Client
 		baseURL string
@@ -92,7 +106,6 @@ func Test_bottleRocket_UpdateAWSCredentials(t *testing.T) {
 		path    string
 		profile string
 	}
-
 	tests := []struct {
 		name           string
 		fields         fields
@@ -113,7 +126,7 @@ func Test_bottleRocket_UpdateAWSCredentials(t *testing.T) {
 			},
 			patchResponse: response{
 				statusCode:   http.StatusNoContent,
-				expectedBody: []byte("{\"aws\":{\"config\":\"W3Byb2ZpbGUgZWtzYS1wYWNrYWdlc10KYXdzX2FjY2Vzc19rZXlfaWQ9QUtJQUlPU0ZPRE5ON0VYQU1QTEUKYXdzX3NlY3JldF9hY2Nlc3Nfa2V5PXdKYWxyWFV0bkZFTUkvSzdNREVORy9iUHhSZmlDWUVYQU1QTEVLRVk=\",\"profile\":\"eksa-packages\",\"region\":\"\"}}"),
+				expectedBody: []byte(expectedBody),
 				responseMsg:  "",
 			},
 			commitResponse: response{
@@ -134,7 +147,7 @@ func Test_bottleRocket_UpdateAWSCredentials(t *testing.T) {
 			},
 			patchResponse: response{
 				statusCode:   http.StatusNoContent,
-				expectedBody: []byte("{\"aws\":{\"config\":\"W3Byb2ZpbGUgZWtzYS1wYWNrYWdlc10KYXdzX2FjY2Vzc19rZXlfaWQ9QUtJQUlPU0ZPRE5ON0VYQU1QTEUKYXdzX3NlY3JldF9hY2Nlc3Nfa2V5PXdKYWxyWFV0bkZFTUkvSzdNREVORy9iUHhSZmlDWUVYQU1QTEVLRVk=\",\"profile\":\"eksa-packages\",\"region\":\"\"}}"),
+				expectedBody: []byte(expectedBody),
 				responseMsg:  "",
 			},
 			commitResponse: response{
@@ -155,7 +168,7 @@ func Test_bottleRocket_UpdateAWSCredentials(t *testing.T) {
 			},
 			patchResponse: response{
 				statusCode:   http.StatusNotFound,
-				expectedBody: []byte("{\"aws\":{\"config\":\"W3Byb2ZpbGUgZWtzYS1wYWNrYWdlc10KYXdzX2FjY2Vzc19rZXlfaWQ9QUtJQUlPU0ZPRE5ON0VYQU1QTEUKYXdzX3NlY3JldF9hY2Nlc3Nfa2V5PXdKYWxyWFV0bkZFTUkvSzdNREVORy9iUHhSZmlDWUVYQU1QTEVLRVk=\",\"profile\":\"eksa-packages\",\"region\":\"\"}}"),
+				expectedBody: []byte(expectedBody),
 				responseMsg:  "",
 			},
 			commitResponse: response{
