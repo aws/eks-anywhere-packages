@@ -13,8 +13,8 @@ import (
 
 	"credential-provider/pkg/configurator"
 	"credential-provider/pkg/constants"
+	"credential-provider/pkg/log"
 	"credential-provider/pkg/templater"
-	"credential-provider/pkg/utils"
 )
 
 //go:embed templates/credential-provider-config.yaml
@@ -207,13 +207,13 @@ func (c *linuxOS) updateKubeletArguments(line string) string {
 	if !strings.Contains(line, "image-credential-provider-config") {
 		val, err := c.createConfig()
 		if err != nil {
-			utils.ErrorLogger.Printf("Error creating configuration %v", err)
+			log.ErrorLogger.Printf("Error creating configuration %v", err)
 		}
 		args += val
 
 		val, err = copyBinaries()
 		if err != nil {
-			utils.ErrorLogger.Printf("Error coping binaries %v\n", err)
+			log.ErrorLogger.Printf("Error coping binaries %v\n", err)
 		}
 		if !strings.Contains(line, "image-credential-provider-bin-dir") {
 			args += val

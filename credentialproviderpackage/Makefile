@@ -2,7 +2,7 @@ SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
 REPO_ROOT=$(shell git rev-parse --show-toplevel)/credentialproviderpackage
-GOLANG_VERSION?="1.18"
+GOLANG_VERSION?="1.19"
 #GO ?= $(shell source $(REPO_ROOT)/scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
 GO = go
 
