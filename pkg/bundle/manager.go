@@ -150,6 +150,10 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 	}
 	latestBundleIsCurrentBundle := latestBundle.Name == pbc.Spec.ActiveBundle
 
+	if pbc.Spec.ActiveBundle == "" {
+		pbc.Status.State = ""
+	}
+
 	switch pbc.Status.State {
 	case api.BundleControllerStateActive:
 		err = m.bundleClient.CreateClusterConfigMap(ctx, pbc.Name)
