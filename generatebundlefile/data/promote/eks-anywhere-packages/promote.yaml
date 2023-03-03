@@ -4,14 +4,14 @@ kubernetesVersion: "1.23"
 packages:
   - org: aws 
     projects:
-      - name: eks-anywhere-crds
-        repository: eks-anywhere-crds
+      - name: eks-anywhere-packages-crds
+        repository: eks-anywhere-packages-crds
         registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: latest
 
-      - name: eks-anywhere-migrations
-        repository: eks-anywhere-migrations
+      - name: eks-anywhere-packages-migrations
+        repository: eks-anywhere-packages-migrations
         registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: latest
