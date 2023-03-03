@@ -19,7 +19,7 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: latest
-      - name: eks-anywhere-packages-crds-migrations
+      - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-crds
         registry: public.ecr.aws/l0g8r8j6
         versions:
