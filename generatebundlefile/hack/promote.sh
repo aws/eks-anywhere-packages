@@ -34,11 +34,14 @@ aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 h
 cd "${BASE_DIRECTORY}/generatebundlefile"
 
 if [[ -n "${PROMOTE_FILE}" ]]; then
-    ./bin/generatebundlefile  \
-        --promote ${HELM_REPO} --input ${PROMOTE_FILE}
-elif [[ -n "${PROMOTE_TAG}" ]]; then
-    ./bin/generatebundlefile  \
-        --promote ${HELM_REPO} --tag ${PROMOTE_TAG} --copy-images
+    if [[ "${HELM_REPO}" == "eks-anywhere-packages" ]]; then
+        # We need to copy the images for the packages helm chart, but no other packages.
+        ./bin/generatebundlefile  \
+            --promote ${HELM_REPO} --input ${PROMOTE_FILE} --copy-images
+    else
+        ./bin/generatebundlefile  \
+            --promote ${HELM_REPO} --input ${PROMOTE_FILE}
+    fi
 else
     ./bin/generatebundlefile  \
         --promote ${HELM_REPO}
