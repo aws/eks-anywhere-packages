@@ -17,7 +17,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -127,8 +126,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 
 	err = r.bundleManager.ProcessBundleController(ctx, pbc)
 	if err != nil {
-		if strings.Contains(err.Error(), "connect: connection refused") &&
-			!r.webhookInitialized {
+		if !r.webhookInitialized {
 			r.Log.Info("delaying reconciliation until webhook is initialized")
 			result.RequeueAfter = webhookInitializationRequeueInterval
 			return result, nil
