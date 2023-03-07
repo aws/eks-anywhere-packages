@@ -23,7 +23,7 @@ func (config *Package) ExpectedKind() string {
 	return PackageKind
 }
 
-func NewPackage(packageName string, name, namespace string) Package {
+func NewPackage(packageName string, name, namespace string, config string) Package {
 	return Package{
 		TypeMeta: metav1.TypeMeta{
 			Kind: PackageKind,
@@ -34,6 +34,7 @@ func NewPackage(packageName string, name, namespace string) Package {
 		},
 		Spec: PackageSpec{
 			PackageName: packageName,
+			Config:      config,
 		},
 	}
 }

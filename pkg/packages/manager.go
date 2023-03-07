@@ -86,7 +86,12 @@ func processInstallingDependencies(mc *ManagerContext) bool {
 	mc.Log.Info("Installing dependencies", "chart", mc.Source)
 	dependencies, err := mc.Bundle.GetDependencies(mc.Version)
 	if err != nil {
-		mc.Package.Status.Detail = fmt.Sprintf("invalid package bundle. (%s@%s bundle: %s)", mc.Package.Name, mc.Version, mc.Bundle.Name)
+		mc.Package.Status.Detail = fmt.Sprintf(
+			"invalid package bundle. (%s@%s bundle: %s)",
+			mc.Package.Name,
+			mc.Version,
+			mc.Bundle.Name,
+		)
 		mc.Log.Info(mc.Package.Status.Detail)
 		mc.RequeueAfter = retryLong
 		return true
@@ -112,7 +117,7 @@ func processInstallingDependencies(mc *ManagerContext) bool {
 				pkgsNotReady = append(pkgsNotReady, *pkg)
 			}
 		} else {
-			p := api.NewPackage(dep.Name, dep.Name, mc.Package.Namespace)
+			p := api.NewPackage(dep.Name, dep.Name, mc.Package.Namespace, mc.Package.Spec.Config)
 			p.Spec.TargetNamespace = mc.Package.Spec.TargetNamespace
 			pkgsNotReady = append(pkgsNotReady, p)
 			err := mc.ManagerClient.CreatePackage(mc.Ctx, &p)
@@ -300,7 +305,17 @@ func (m manager) Process(mc *ManagerContext) bool {
 	stateFunc := m.getState(mc.Package.Status.State)
 	result := stateFunc(mc)
 	if result {
-		mc.Log.Info("Updating", "namespace", mc.Package.Namespace, "name", mc.Package.Name, "state", mc.Package.Status.State, "chart", mc.Package.Status.Source)
+		mc.Log.Info(
+			"Updating",
+			"namespace",
+			mc.Package.Namespace,
+			"name",
+			mc.Package.Name,
+			"state",
+			mc.Package.Status.State,
+			"chart",
+			mc.Package.Status.Source,
+		)
 	}
 	return result
 }
