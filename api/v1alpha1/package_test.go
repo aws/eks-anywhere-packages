@@ -51,21 +51,21 @@ notactuallyyaml
 }
 
 func TestPackage_GetClusterName(t *testing.T) {
-	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie")
+	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie", "")
 	assert.Equal(t, "maggie", sut.GetClusterName())
 	sut.Namespace = "eksa-packages"
 	assert.Equal(t, "", sut.GetClusterName())
 }
 
 func TestPackage_IsOldNamespace(t *testing.T) {
-	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie")
+	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie", "")
 	assert.False(t, sut.IsOldNamespace())
 	sut.Namespace = "eksa-packages"
 	assert.True(t, sut.IsOldNamespace())
 }
 
 func TestPackage_IsValidNamespace(t *testing.T) {
-	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie")
+	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie", "")
 	assert.True(t, sut.IsValidNamespace())
 	sut.Namespace = "eksa-packages"
 	assert.True(t, sut.IsValidNamespace())
@@ -75,7 +75,7 @@ func TestPackage_IsValidNamespace(t *testing.T) {
 
 func TestPackage_IsInstalledOnWorkload(t *testing.T) {
 	t.Setenv("CLUSTER_NAME", "maggie")
-	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie")
+	sut := api.NewPackage("hello-eks-anywhere", "my-hello", "eksa-packages-maggie", "")
 	assert.False(t, sut.IsInstalledOnWorkload())
 	sut.Namespace = "eksa-packages"
 	assert.True(t, sut.IsInstalledOnWorkload())

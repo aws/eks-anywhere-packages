@@ -232,7 +232,7 @@ func TestManagerLifecycle(t *testing.T) {
 		mc.Package.Status.State = api.StateInstallingDependencies
 		mc.Version = mc.Bundle.Spec.Packages[0].Source.Versions[0]
 		mockClient.EXPECT().List(mc.Ctx, gomock.AssignableToTypeOf(&api.PackageList{}), gomock.Eq(client.InNamespace(mc.Package.Namespace))).SetArg(1, api.PackageList{})
-		expectedDepPkg := api.NewPackage("test-dep", "test-dep", mc.Package.Namespace)
+		expectedDepPkg := api.NewPackage("test-dep", "test-dep", mc.Package.Namespace, mc.Package.Spec.Config)
 		mockClient.EXPECT().Create(mc.Ctx, gomock.Eq(&expectedDepPkg)).Return(nil)
 		result := sut.Process(mc)
 		assert.True(t, result)
@@ -243,7 +243,7 @@ func TestManagerLifecycle(t *testing.T) {
 		mc, mockClient := givenMocksWithClient(t)
 		mc.Package.Status.State = api.StateInstallingDependencies
 		mc.Version = mc.Bundle.Spec.Packages[0].Source.Versions[0]
-		installedPkg := api.NewPackage("test-dep", "test-dep", mc.Package.Namespace)
+		installedPkg := api.NewPackage("test-dep", "test-dep", mc.Package.Namespace, mc.Package.Spec.Config)
 		installedPkg.Status.State = api.StateInstalled
 		mockClient.EXPECT().List(mc.Ctx, gomock.AssignableToTypeOf(&api.PackageList{}), gomock.Eq(client.InNamespace(mc.Package.Namespace))).SetArg(1, api.PackageList{
 			Items: []api.Package{
@@ -279,7 +279,7 @@ func TestManagerLifecycle(t *testing.T) {
 		mc, mockClient := givenMocksWithClient(t)
 		mc.Package.Status.State = api.StateInstallingDependencies
 		mc.Version = mc.Bundle.Spec.Packages[0].Source.Versions[0]
-		installedPkg := api.NewPackage("test-dep", "test-dep", mc.Package.Namespace)
+		installedPkg := api.NewPackage("test-dep", "test-dep", mc.Package.Namespace, mc.Package.Spec.Config)
 		installedPkg.Status.State = api.StateInstalling
 		mockClient.EXPECT().List(mc.Ctx, gomock.AssignableToTypeOf(&api.PackageList{}), gomock.Eq(client.InNamespace(mc.Package.Namespace))).SetArg(1, api.PackageList{
 			Items: []api.Package{
