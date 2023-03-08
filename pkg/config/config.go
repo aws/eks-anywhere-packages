@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var (
+const (
 	DEVELOPMENT = "development"
 	HEAD        = "HEAD"
 	EPOCH       = "0"

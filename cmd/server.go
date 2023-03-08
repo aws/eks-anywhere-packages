@@ -30,6 +30,7 @@ import (
 
 	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/controllers"
+	pkgConfig "github.com/aws/eks-anywhere-packages/pkg/config"
 	"github.com/aws/eks-anywhere-packages/pkg/webhook"
 )
 
@@ -66,6 +67,7 @@ func server() error {
 	config.QPS = 75.0
 	config.Burst = 150
 	enabled, err := flowcontrol.IsEnabled(context.Background(), config)
+	packageLog.Info("Starting package controller", "config", pkgConfig.GetGlobalConfig())
 	if err == nil && enabled {
 		// Checks if the Kubernetes apiserver has PriorityAndFairness flow control filter enabled
 		// A negative QPS and Burst indicates that the client should not have a rate limiter.
