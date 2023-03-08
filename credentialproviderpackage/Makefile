@@ -1,10 +1,10 @@
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
-REPO_ROOT=$(shell git rev-parse --show-toplevel)/credentialproviderpackage
+REPO_ROOT=$(shell git rev-parse --show-toplevel)
+PROJECT_ROOT=$(REPO_ROOT)/credentialproviderpackage
 GOLANG_VERSION?="1.19"
-#GO ?= $(shell source $(REPO_ROOT)/scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
-GO = go
+GO ?= $(shell source $(REPO_ROOT)/scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -26,9 +26,9 @@ clean: ## Clean output directory, and the built binary
 ##@ Build
 
 build: ## Build Binary
-	mkdir -p $(REPO_ROOT)/bin
+	mkdir -p $(PROJECT_ROOT)/bin
 	$(GO) mod tidy -compat=$(GOLANG_VERSION)
-	$(GO) build -o $(REPO_ROOT)/bin/aws-credential-provider $(REPO_ROOT)/cmd/aws-credential-provider/*.go
+	$(GO) build -o $(PROJECT_ROOT)/bin/aws-credential-provider $(PROJECT_ROOT)/cmd/aws-credential-provider/*.go
 
 build-linux:
 	[ -d bin ] || mkdir bin
