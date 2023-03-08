@@ -79,10 +79,7 @@ func (c *linuxOS) UpdateCredentialProvider(_ string) error {
 
 	out := strings.Join(lines, "\n")
 	err = ioutil.WriteFile(c.extraArgsPath, []byte(out), 0644)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (c *linuxOS) CommitChanges() error {
@@ -91,18 +88,12 @@ func (c *linuxOS) CommitChanges() error {
 		return err
 	}
 	err = killProcess(process)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func killProcess(process ps.Process) error {
 	err := syscall.Kill(process.Pid(), syscall.SIGHUP)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func findKubeletProcess() (ps.Process, error) {

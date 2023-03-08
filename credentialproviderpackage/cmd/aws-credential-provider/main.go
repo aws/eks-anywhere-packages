@@ -2,10 +2,11 @@ package main
 
 import (
 	_ "embed"
-	"github.com/fsnotify/fsnotify"
 	"io/fs"
 	"os"
 	"strings"
+
+	"github.com/fsnotify/fsnotify"
 
 	cfg "credential-provider/pkg/configurator"
 	"credential-provider/pkg/configurator/bottlerocket"
