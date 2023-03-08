@@ -19,25 +19,3 @@ subjects:
     name: {{ .Values.serviceAccount.name }}
     namespace: {{ .Values.namespace }}
 {{- end }}
-{{- if .Values.workloadOnly }}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: {{ include "eks-anywhere-packages.fullname" . }}-manager-rolebinding
-  namespace: {{ .Values.namespace }}-{{ .Values.clusterName }}
-  labels:
-    {{- include "eks-anywhere-packages.labels" . | nindent 4 }}
-  {{- with .Values.additionalAnnotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: {{ include "eks-anywhere-packages.fullname" . }}-manager-role
-subjects:
-  - kind: ServiceAccount
-    name: eksa-controller-manager
-    namespace: eksa-system
-{{- end }}
