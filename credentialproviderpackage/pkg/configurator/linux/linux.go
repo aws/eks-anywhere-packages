@@ -152,24 +152,24 @@ func copyWithPermissons(srcpath, dstpath string, permission os.FileMode) (err er
 func copyBinaries() (string, error) {
 	srcPath := constants.BinPath + constants.ECRCredProviderBinary
 	dstPath := constants.BasePath + constants.ECRCredProviderBinary
-	err := copyWithPermissons(srcPath, dstPath, 0744)
+	err := copyWithPermissons(srcPath, dstPath, 0700)
 	if err != nil {
 		return "", err
 	}
 
-	err = os.Chmod(dstPath, 0744)
+	err = os.Chmod(dstPath, 0700)
 	if err != nil {
 		return "", err
 	}
 
 	srcPath = constants.BinPath + constants.IAMRolesSigningBinary
 	dstPath = constants.BasePath + constants.IAMRolesSigningBinary
-	err = copyWithPermissons(srcPath, dstPath, 0744)
+	err = copyWithPermissons(srcPath, dstPath, 0700)
 	if err != nil {
 		return "", err
 	}
 
-	err = os.Chmod(dstPath, 0744)
+	err = os.Chmod(dstPath, 0700)
 	if err != nil {
 		return "", err
 	}
@@ -191,7 +191,7 @@ func (c *linuxOS) createConfig() (string, error) {
 	if err != nil {
 		return "", nil
 	}
-	err = ioutil.WriteFile(dstPath, bytes, 0644)
+	err = ioutil.WriteFile(dstPath, bytes, 0600)
 	if err != nil {
 		return "", err
 	}

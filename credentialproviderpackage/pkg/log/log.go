@@ -12,7 +12,7 @@ var (
 )
 
 func init() {
-	InfoLogger = log.New(os.Stdout, "INFO: ", log.Ltime|log.Lshortfile)
-	WarningLogger = log.New(os.Stderr, "WARNING: ", log.Ltime|log.Lshortfile)
-	ErrorLogger = log.New(os.Stderr, "ERROR: ", log.Ltime|log.Lshortfile)
+	InfoLogger = log.New(os.Stdout, "INFO: ", log.Lshortfile)
+	WarningLogger = log.New(os.Stderr, "WARNING: ", log.Lshortfile)
+	ErrorLogger = log.New(os.Stderr, "ERROR: ", log.Lshortfile)
 }
