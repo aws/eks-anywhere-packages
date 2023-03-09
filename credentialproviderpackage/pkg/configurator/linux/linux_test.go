@@ -44,10 +44,10 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 				},
 			},
 			args:             args{line: ""},
-			outputConfigPath: dir + "/" + constants.CredProviderFile,
+			outputConfigPath: dir + "/" + credProviderFile,
 			configWantPath:   "testdata/expected-config.yaml",
 			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
-				"--image-credential-provider-config=%s%s", dir, constants.CredProviderFile),
+				"--image-credential-provider-config=%s%s", dir, credProviderFile),
 		},
 		{
 			name: "test multiple match patterns",
@@ -62,10 +62,10 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 				},
 			},
 			args:             args{line: ""},
-			outputConfigPath: dir + "/" + constants.CredProviderFile,
+			outputConfigPath: dir + "/" + credProviderFile,
 			configWantPath:   "testdata/expected-config-multiple-patterns.yaml",
 			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
-				"--image-credential-provider-config=%s%s", dir, constants.CredProviderFile),
+				"--image-credential-provider-config=%s%s", dir, credProviderFile),
 		},
 		{
 			name: "skip credential provider if already provided",
@@ -79,9 +79,9 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 				},
 			},
 			args:             args{line: " --feature-gates=KubeletCredentialProviders=true"},
-			outputConfigPath: dir + "/" + constants.CredProviderFile,
+			outputConfigPath: dir + "/" + credProviderFile,
 			configWantPath:   "testdata/expected-config.yaml",
-			want:             fmt.Sprintf(" --image-credential-provider-config=%s%s", dir, constants.CredProviderFile),
+			want:             fmt.Sprintf(" --image-credential-provider-config=%s%s", dir, credProviderFile),
 		},
 		{
 			name: "skip both cred provider and feature gate if provided",
@@ -95,7 +95,7 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 				},
 			},
 			args:             args{line: " --feature-gates=KubeletCredentialProviders=false --image-credential-provider-config=blah"},
-			outputConfigPath: dir + "/" + constants.CredProviderFile,
+			outputConfigPath: dir + "/" + credProviderFile,
 			configWantPath:   "",
 			want:             "",
 		},
@@ -158,7 +158,7 @@ func Test_linuxOS_UpdateAWSCredentials(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			dstFile := tt.fields.basePath + constants.CredOutFile
+			dstFile := tt.fields.basePath + credOutFile
 			c := &linuxOS{
 				profile:       tt.fields.profile,
 				extraArgsPath: tt.fields.extraArgsPath,

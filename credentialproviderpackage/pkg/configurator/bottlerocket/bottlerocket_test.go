@@ -320,8 +320,7 @@ func validatePatchRequest(w http.ResponseWriter, r *http.Request, t *testing.T, 
 
 func Test_bottleRocket_Initialize(t *testing.T) {
 	type args struct {
-		socketPath string
-		config     constants.CredentialProviderConfigOptions
+		config constants.CredentialProviderConfigOptions
 	}
 	tests := []struct {
 		name    string
@@ -332,7 +331,6 @@ func Test_bottleRocket_Initialize(t *testing.T) {
 			name:    "simple initialization",
 			baseUrl: "http://localhost/",
 			args: args{
-				socketPath: "/test/path.sock",
 				config: constants.CredentialProviderConfigOptions{
 					ImagePatterns:        []string{constants.DefaultImagePattern},
 					DefaultCacheDuration: constants.DefaultCacheDuration,
@@ -342,7 +340,7 @@ func Test_bottleRocket_Initialize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := NewBottleRocketConfigurator(tt.args.socketPath)
+			b := &bottleRocket{}
 			b.Initialize(tt.args.config)
 			assert.Equal(t, tt.baseUrl, b.baseURL)
 			assert.Equal(t, tt.args.config, b.config)

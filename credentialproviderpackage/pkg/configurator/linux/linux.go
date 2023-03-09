@@ -20,6 +20,18 @@ import (
 //go:embed templates/credential-provider-config.yaml
 var credProviderTemplate string
 
+const (
+	binPath          = "/eksa-binaries/"
+	basePath         = "/eksa-packages/"
+	credOutFile      = "aws-creds"
+	mountedExtraArgs = "/node-files/kubelet-extra-args"
+	credProviderFile = "credential-provider-config.yaml"
+
+	// Binaries
+	ecrCredProviderBinary = "ecr-credential-provider"
+	iamRolesSigningBinary = "aws_signing_helper"
+)
+
 type linuxOS struct {
 	profile       string
 	extraArgsPath string
@@ -32,8 +44,8 @@ var _ configurator.Configurator = (*linuxOS)(nil)
 func NewLinuxConfigurator() *linuxOS {
 	return &linuxOS{
 		profile:       "",
-		extraArgsPath: constants.MountedExtraArgs,
-		basePath:      constants.BasePath,
+		extraArgsPath: mountedExtraArgs,
+		basePath:      basePath,
 	}
 }
 
@@ -43,7 +55,7 @@ func (c *linuxOS) Initialize(config constants.CredentialProviderConfigOptions) {
 
 func (c *linuxOS) UpdateAWSCredentials(sourcePath string, profile string) error {
 	c.profile = profile
-	dstPath := c.basePath + constants.CredOutFile
+	dstPath := c.basePath + credOutFile
 
 	err := copyWithPermissons(sourcePath, dstPath, 0600)
 	return err
@@ -141,8 +153,8 @@ func copyWithPermissons(srcpath, dstpath string, permission os.FileMode) (err er
 }
 
 func copyBinaries() (string, error) {
-	srcPath := constants.BinPath + constants.ECRCredProviderBinary
-	dstPath := constants.BasePath + constants.ECRCredProviderBinary
+	srcPath := binPath + ecrCredProviderBinary
+	dstPath := basePath + ecrCredProviderBinary
 	err := copyWithPermissons(srcPath, dstPath, 0700)
 	if err != nil {
 		return "", err
@@ -153,8 +165,8 @@ func copyBinaries() (string, error) {
 		return "", err
 	}
 
-	srcPath = constants.BinPath + constants.IAMRolesSigningBinary
-	dstPath = constants.BasePath + constants.IAMRolesSigningBinary
+	srcPath = binPath + iamRolesSigningBinary
+	dstPath = basePath + iamRolesSigningBinary
 	err = copyWithPermissons(srcPath, dstPath, 0700)
 	if err != nil {
 		return "", err
@@ -164,19 +176,19 @@ func copyBinaries() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf(" --image-credential-provider-bin-dir=%s", constants.BasePath), nil
+	return fmt.Sprintf(" --image-credential-provider-bin-dir=%s", basePath), nil
 }
 
 func (c *linuxOS) createConfig() (string, error) {
 	values := map[string]interface{}{
 		"profile":       c.profile,
-		"config":        constants.BasePath + constants.CredOutFile,
-		"home":          constants.BasePath,
+		"config":        basePath + credOutFile,
+		"home":          basePath,
 		"imagePattern":  c.config.ImagePatterns,
 		"cacheDuration": c.config.DefaultCacheDuration,
 	}
 
-	dstPath := c.basePath + constants.CredProviderFile
+	dstPath := c.basePath + credProviderFile
 
 	bytes, err := templater.Execute(credProviderTemplate, values)
 	if err != nil {

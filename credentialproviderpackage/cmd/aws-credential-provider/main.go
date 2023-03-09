@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "embed"
-	"io/fs"
 	"os"
 	"strings"
 
@@ -15,8 +14,20 @@ import (
 	"credential-provider/pkg/log"
 )
 
+const (
+	bottleRocket = "bottlerocket"
+	socketPath   = "/run/api.sock"
+
+	// Aws Credentials
+	credSrcPath   = "/secrets/aws-creds/config"
+	awsProfile    = "eksa-packages"
+	credWatchData = "/secrets/aws-creds/..data"
+	credWatchPath = "/secrets/aws-creds/"
+)
+
 func main() {
 	var configurator cfg.Configurator
+	var err error
 	osType := strings.ToLower(os.Getenv("OS_TYPE"))
 	if osType == "" {
 		log.ErrorLogger.Println("Missing Environment Variable OS_TYPE")
@@ -24,26 +35,20 @@ func main() {
 	}
 	profile := os.Getenv("AWS_PROFILE")
 	if profile == "" {
-		profile = constants.Profile
+		profile = awsProfile
 	}
 	config := createCredentialProviderConfigOptions()
-	if osType == constants.BottleRocket {
-		socket, err := os.Stat(constants.SocketPath)
+	if osType == bottleRocket {
+		configurator, err = bottlerocket.NewBottleRocketConfigurator(socketPath)
 		if err != nil {
 			log.ErrorLogger.Fatal(err)
-		}
-		if socket.Mode().Type() == fs.ModeSocket {
-			configurator = bottlerocket.NewBottleRocketConfigurator(constants.SocketPath)
-
-		} else {
-			log.ErrorLogger.Fatalf("Unexpected type %s expected socket\n", socket.Mode().Type())
 		}
 	} else {
 		configurator = linux.NewLinuxConfigurator()
 	}
 
 	configurator.Initialize(config)
-	err := configurator.UpdateAWSCredentials(constants.CredSrcPath, profile)
+	err = configurator.UpdateAWSCredentials(credSrcPath, profile)
 	if err != nil {
 		log.ErrorLogger.Fatal(err)
 	}
@@ -78,8 +83,8 @@ func main() {
 					return
 				}
 				if event.Has(fsnotify.Create) {
-					if event.Name == constants.CredWatchData {
-						err = configurator.UpdateAWSCredentials(constants.CredSrcPath, profile)
+					if event.Name == credWatchData {
+						err = configurator.UpdateAWSCredentials(credSrcPath, profile)
 						if err != nil {
 							log.ErrorLogger.Fatal(err)
 						}
@@ -95,7 +100,7 @@ func main() {
 		}
 	}()
 
-	err = watcher.Add(constants.CredWatchPath)
+	err = watcher.Add(credWatchPath)
 	if err != nil {
 		log.ErrorLogger.Fatal(err)
 	}

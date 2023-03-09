@@ -6,9 +6,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 
 	"credential-provider/pkg/configurator"
 	"credential-provider/pkg/constants"
@@ -21,9 +23,9 @@ type bottleRocket struct {
 }
 
 type awsCred struct {
-	Aws Aws `json:"aws"`
+	Aws aws `json:"aws"`
 }
-type Aws struct {
+type aws struct {
 	Config  string `json:"config"`
 	Profile string `json:"profile"`
 	Region  string `json:"region"`
@@ -46,7 +48,14 @@ type kubernetes struct {
 
 var _ configurator.Configurator = (*bottleRocket)(nil)
 
-func NewBottleRocketConfigurator(socketPath string) *bottleRocket {
+func NewBottleRocketConfigurator(socketPath string) (*bottleRocket, error) {
+	socket, err := os.Stat(socketPath)
+	if err != nil {
+		return nil, err
+	}
+	if socket.Mode().Type() != fs.ModeSocket {
+		return nil, fmt.Errorf("Unexpected type %s expected socket\n", socket.Mode().Type())
+	}
 	return &bottleRocket{
 		client: http.Client{
 			Transport: &http.Transport{
@@ -55,7 +64,7 @@ func NewBottleRocketConfigurator(socketPath string) *bottleRocket {
 				},
 			},
 		},
-	}
+	}, nil
 }
 
 func (b *bottleRocket) Initialize(config constants.CredentialProviderConfigOptions) {
@@ -137,7 +146,7 @@ func (b *bottleRocket) sendSettingsSetRequest(payload []byte) error {
 }
 
 func createCredentialsPayload(content string, profile string) ([]byte, error) {
-	aws := Aws{
+	aws := aws{
 		Config:  content,
 		Profile: profile,
 	}
