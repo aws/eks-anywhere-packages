@@ -63,6 +63,10 @@ type Input struct {
 	Packages          []Org  `json:"packages,omitempty"`
 	Name              string `json:"name,omitempty"`
 	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// Minimum required packages controller version
+	MinVersion string `json:"minControllerVersion"`
 }
 
 // Org object containing the input file gitHub org and repo locations
