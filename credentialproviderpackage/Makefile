@@ -32,7 +32,7 @@ build: ## Build Binary
 
 build-linux:
 	[ -d bin ] || mkdir bin
-	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(MAKE) build
+	env CGO_ENABLED=0 GOOS=linux $(MAKE) build
 
 run:
 	$(GO) run .
