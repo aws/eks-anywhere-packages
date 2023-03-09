@@ -150,6 +150,9 @@ func (c *SDKClients) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, st
 		version := strings.Split(Input.KubernetesVersion, ".")
 		name = fmt.Sprintf("v1-%s-%s", version[1], name)
 	}
+	if Input.MinVersion != "" {
+		packageBundleSpec.MinVersion = Input.MinVersion
+	}
 	for _, org := range Input.Packages {
 		for _, project := range org.Projects {
 			bundlePkg, err := c.NewPackageFromInput(project)

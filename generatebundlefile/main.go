@@ -13,7 +13,6 @@ import (
 	cloudwatchtypes "github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
-	"gopkg.in/yaml.v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
@@ -206,7 +205,7 @@ func cmdRegion(opts *Options) error {
 		}
 	}
 
-	//Creating AWS Clients with profile
+	// Creating AWS Clients with profile
 	Profile := "default"
 	val, ok := os.LookupEnv("AWS_PROFILE")
 	if ok {
@@ -429,7 +428,9 @@ func cmdGenerate(opts *Options) error {
 			}
 			dockerReleaseStruct = &DockerAuth{
 				Auths: map[string]DockerAuthRegistry{
-					fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): {clients.ecrPublicClient.AuthConfig},
+					fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): {
+						clients.ecrPublicClient.AuthConfig,
+					},
 					"public.ecr.aws": {clients.ecrPublicClientRelease.AuthConfig},
 				},
 			}
@@ -484,8 +485,12 @@ func cmdGenerate(opts *Options) error {
 			}
 			dockerReleaseStruct = &DockerAuth{
 				Auths: map[string]DockerAuthRegistry{
-					fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion):        {clients.ecrClient.AuthConfig},
-					fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClientRelease.AccountID, ecrRegion): {clients.ecrClientRelease.AuthConfig},
+					fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): {
+						clients.ecrClient.AuthConfig,
+					},
+					fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClientRelease.AccountID, ecrRegion): {
+						clients.ecrClientRelease.AuthConfig,
+					},
 				},
 			}
 			dockerAuth, err = NewAuthFile(dockerReleaseStruct)
@@ -516,29 +521,15 @@ func cmdGenerate(opts *Options) error {
 			return nil
 		}
 
+		bundle.Annotations[FullExcludesAnnotation] = Excludes
 		signature, err := GetBundleSignature(context.Background(), bundle, opts.key)
 		if err != nil {
 			BundleLog.Error(err, "Unable to sign bundle with kms key")
 			os.Exit(1)
 		}
+		bundle.Annotations[FullSignatureAnnotation] = signature
 
-		//Remove excludes before generating YAML so that registry + repository remains
-		bundle.ObjectMeta.Annotations[FullExcludesAnnotation] = ""
-		_, yml, err := sig.GetDigest(bundle, sig.EksaDomain)
-		if err != nil {
-			BundleLog.Error(err, "Unable to retrieve and generate Digest from manifest")
-			os.Exit(1)
-		}
-		manifest := make(map[interface{}]interface{})
-		err = yaml.Unmarshal(yml, &manifest)
-		if err != nil {
-			BundleLog.Error(err, "Unable to marshal manifest into yaml bytes")
-			os.Exit(1)
-		}
-		anno := manifest["metadata"].(map[interface{}]interface{})["annotations"].(map[interface{}]interface{})
-		anno[FullSignatureAnnotation] = signature
-		anno[FullExcludesAnnotation] = Excludes
-		yml, err = yaml.Marshal(manifest)
+		yml, err := serializeBundle(bundle)
 		if err != nil {
 			BundleLog.Error(err, "marshaling bundle YAML: %w", err)
 			os.Exit(1)

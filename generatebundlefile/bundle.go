@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -11,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
+	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
@@ -29,6 +31,7 @@ var (
 		FullExcludesAnnotation: Excludes,
 	}
 )
+var generatedMetadataFields = []string{"creationTimestamp", "generation", "managedFields", "uid", "resourceVersion"}
 
 type BundleGenerateOpt func(config *BundleGenerate)
 
@@ -163,4 +166,22 @@ func GetBundleSignature(ctx context.Context, bundle *api.PackageBundle, key stri
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(out.Signature), nil
+}
+
+func serializeBundle(bundle *api.PackageBundle) ([]byte, error) {
+	out, err := json.Marshal(bundle)
+	if err != nil {
+		return nil, err
+	}
+	raw := make(map[string]interface{})
+	err = json.Unmarshal(out, &raw)
+	if err != nil {
+		return nil, err
+	}
+	delete(raw, "status")
+	meta := raw["metadata"].(map[string]interface{})
+	for _, f := range generatedMetadataFields {
+		delete(meta, f)
+	}
+	return yaml.Marshal(raw)
 }
