@@ -37,7 +37,7 @@ packages:
         repository: harbor/harbor-helm
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 2.5.1-ee7e5a6898b6c35668a1c5789aa0d654fad6c913
+            - name: 2.7.1-839681797fdcb1bede297c99601c9b5a3753253a
   - org: metallb
     projects:
       - name: metallb
