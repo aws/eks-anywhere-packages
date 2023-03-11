@@ -39,7 +39,7 @@ type activeBundleValidator struct {
 }
 
 func InitPackageBundleControllerValidator(mgr ctrl.Manager) error {
-	tcc := authenticator.NewTargetClusterClient(mgr.GetConfig(), mgr.GetClient())
+	tcc := authenticator.NewTargetClusterClient(mgr.GetLogger(), mgr.GetConfig(), mgr.GetClient())
 	mgr.GetWebhookServer().
 		Register("/validate-packages-eks-amazonaws-com-v1alpha1-packagebundlecontroller",
 			&webhook.Admission{Handler: &activeBundleValidator{

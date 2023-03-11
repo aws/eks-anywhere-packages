@@ -161,6 +161,11 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 			return fmt.Errorf("creating configmap for %s: %s", pbc.Name, err)
 		}
 
+		err = m.targetClient.CreateClusterNamespace(ctx, pbc.GetName())
+		if err != nil {
+			return fmt.Errorf("creating workload cluster namespace eksa-packages for %s: %s", pbc.Name, err)
+		}
+
 		if len(pbc.Spec.ActiveBundle) > 0 {
 			if !m.hasBundleNamed(allBundles, pbc.Spec.ActiveBundle) {
 

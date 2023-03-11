@@ -80,7 +80,7 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 		return err
 	}
 
-	tcc := auth.NewTargetClusterClient(cfg, mgr.GetClient())
+	tcc := auth.NewTargetClusterClient(log, cfg, mgr.GetClient())
 	helmDriver := driver.NewHelm(log, secretAuth, tcc)
 
 	puller := artifacts.NewRegistryPuller(log)

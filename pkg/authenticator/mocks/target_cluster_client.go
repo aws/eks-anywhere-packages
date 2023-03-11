@@ -39,6 +39,20 @@ func (m *MockTargetClusterClient) EXPECT() *MockTargetClusterClientMockRecorder 
 	return m.recorder
 }
 
+// CheckNamespace mocks base method.
+func (m *MockTargetClusterClient) CheckNamespace(ctx context.Context, namespace string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckNamespace", ctx, namespace)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// CheckNamespace indicates an expected call of CheckNamespace.
+func (mr *MockTargetClusterClientMockRecorder) CheckNamespace(ctx, namespace interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckNamespace", reflect.TypeOf((*MockTargetClusterClient)(nil).CheckNamespace), ctx, namespace)
+}
+
 // CreateClusterNamespace mocks base method.
 func (m *MockTargetClusterClient) CreateClusterNamespace(ctx context.Context, clusterName string) error {
 	m.ctrl.T.Helper()

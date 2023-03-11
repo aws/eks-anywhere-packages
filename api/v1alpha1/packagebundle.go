@@ -5,7 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"path"
 	"strconv"
 	"strings"
@@ -212,7 +212,7 @@ func (bp *BundlePackage) GetJsonSchema(pkgVersion *SourceVersion) ([]byte, error
 		return nil, fmt.Errorf("error when uncompressing configurations %v", err)
 	}
 
-	output, err := ioutil.ReadAll(gzreader)
+	output, err := io.ReadAll(gzreader)
 	if err != nil {
 		return nil, fmt.Errorf("error reading configurations %v", err)
 	}
