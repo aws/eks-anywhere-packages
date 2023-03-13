@@ -36,4 +36,17 @@ subjects:
   - kind: ServiceAccount
     name: {{ .Values.serviceAccount.name }}
     namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: eksa-curated-packages-manager-clusterrolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: eksa-curated-packages-manager
+subjects:
+- kind: ServiceAccount
+  name: eksa-controller-manager
+  namespace: eksa-system
 {{- end }}
