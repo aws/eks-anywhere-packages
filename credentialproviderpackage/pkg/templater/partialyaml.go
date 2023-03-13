@@ -2,7 +2,6 @@ package templater
 
 import (
 	"reflect"
-	"strings"
 
 	"sigs.k8s.io/yaml"
 )
@@ -25,7 +24,6 @@ func (p PartialYaml) ToYaml() (string, error) {
 		return "", err
 	}
 	s := string(b)
-	s = strings.TrimSuffix(s, "\n")
 
 	return s, nil
 }
