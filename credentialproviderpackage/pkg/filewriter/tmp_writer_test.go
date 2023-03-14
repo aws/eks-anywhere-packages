@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"credential-provider/pkg/filewriter"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/filewriter"
 )
 
 func TestTmpWriterWriteValid(t *testing.T) {

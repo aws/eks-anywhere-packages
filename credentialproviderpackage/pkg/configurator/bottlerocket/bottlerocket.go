@@ -12,8 +12,8 @@ import (
 	"net/http"
 	"os"
 
-	"credential-provider/pkg/configurator"
-	"credential-provider/pkg/constants"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/configurator"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/constants"
 )
 
 type bottleRocket struct {

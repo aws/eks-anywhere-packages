@@ -1,4 +1,4 @@
-module credential-provider
+module github.com/aws/eks-anywhere-packages/credentialproviderpackage
 
 go 1.19
 

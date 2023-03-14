@@ -11,10 +11,10 @@ import (
 
 	ps "github.com/mitchellh/go-ps"
 
-	"credential-provider/pkg/configurator"
-	"credential-provider/pkg/constants"
-	"credential-provider/pkg/log"
-	"credential-provider/pkg/templater"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/configurator"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/constants"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/log"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/templater"
 )
 
 //go:embed templates/credential-provider-config.yaml

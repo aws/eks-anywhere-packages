@@ -1,6 +1,6 @@
 package configurator
 
-import "credential-provider/pkg/constants"
+import "github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/constants"
 
 type Configurator interface {
 	// Initialize Handles node specific configuration depending on OS

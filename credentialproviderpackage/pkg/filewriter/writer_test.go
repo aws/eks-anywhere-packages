@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"credential-provider/internal/test"
-	"credential-provider/pkg/filewriter"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/internal/test"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/filewriter"
 )
 
 func TestWriterWriteValid(t *testing.T) {

@@ -7,11 +7,11 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
-	cfg "credential-provider/pkg/configurator"
-	"credential-provider/pkg/configurator/bottlerocket"
-	"credential-provider/pkg/configurator/linux"
-	"credential-provider/pkg/constants"
-	"credential-provider/pkg/log"
+	cfg "github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/configurator"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/configurator/bottlerocket"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/configurator/linux"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/constants"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/log"
 )
 
 const (

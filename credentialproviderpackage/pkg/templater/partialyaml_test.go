@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"credential-provider/internal/test"
-	"credential-provider/pkg/templater"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/internal/test"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/templater"
 )
 
 func TestPartialYamlAddIfNotZero(t *testing.T) {
