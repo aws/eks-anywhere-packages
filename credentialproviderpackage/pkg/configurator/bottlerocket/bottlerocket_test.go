@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"credential-provider/pkg/constants"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/constants"
 )
 
 type response struct {

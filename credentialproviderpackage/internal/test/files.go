@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"testing"
 
-	"credential-provider/pkg/filewriter"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/filewriter"
 )
 
 var UpdateGoldenFiles = flag.Bool("update", false, "update golden files")

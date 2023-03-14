@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"credential-provider/internal/test"
-	"credential-provider/pkg/filewriter"
-	"credential-provider/pkg/templater"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/internal/test"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/filewriter"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/templater"
 )
 
 func TestTemplaterWriteToFileSuccess(t *testing.T) {

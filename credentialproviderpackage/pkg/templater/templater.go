@@ -6,7 +6,7 @@ import (
 	"strings"
 	"text/template"
 
-	"credential-provider/pkg/filewriter"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/filewriter"
 )
 
 type Templater struct {

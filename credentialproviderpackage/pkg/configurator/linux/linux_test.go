@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"credential-provider/internal/test"
-	"credential-provider/pkg/constants"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/internal/test"
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/constants"
 )
 
 func Test_linuxOS_updateKubeletArguments(t *testing.T) {
