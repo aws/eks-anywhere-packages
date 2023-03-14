@@ -1,0 +1,7 @@
+apiVersion: v2
+name: credential-provider-package
+description: A Helm chart for credential-provider-package, an application for configuring credentials via Kubelet Credential Provider
+type: application
+version: 0.1.0
+sources:
+  - https://github.com/aws/eks-anywhere-packages/credentialproviderpackage

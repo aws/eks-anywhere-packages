@@ -1,0 +1,46 @@
+# Default values for credential-provider.
+# This is a YAML-formatted file.
+
+# -- sourceRegistry for all container images in chart.
+sourceRegistry: public.ecr.aws/eks-anywhere
+defaultNamespace: eksa-packages
+
+image:
+  repository: "credential-provider-package"
+  tag: "{{credential-provider-package-tag}}"
+  digest: "{{credential-provider-package-digest}}"
+  pullPolicy: IfNotPresent
+
+# application values
+application:
+  secretName: aws-cred
+  matchImages: []
+  defaultCacheDuration: ""
+  profile: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "credential-provider.fullname" . }}
+  namespace: {{ .Release.Namespace | default .Values.defaultNamespace | quote }}
+  labels:
+    {{- include "credential-provider.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "credential-provider.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "credential-provider.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "credential-provider.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: credential-provider
+          image: {{ .Values.sourceRegistry }}/{{ .Values.image.repository }}@{{ .Values.image.digest }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            privileged: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: aws-creds
+              mountPath: /secrets/aws-creds
+            {{ $os := include "template.getOSName" .}}
+            {{- if eq $os "bottlerocket" }}
+            - mountPath: /run/api.sock
+              name: socket
+            {{- else}}
+            - mountPath: /node-files/kubelet-extra-args
+              name: kubelet-extra-args
+            - name: package-mounts
+              mountPath: /eksa-packages
+            {{- end}}
+          env:
+            - name: OS_TYPE
+              value: {{ $os }}
+            - name: AWS_PROFILE
+              value: {{.Values.application.profile}}
+            - name: MATCH_IMAGES
+              value: '{{ join "," .Values.application.matchImages }}'
+            - name: DEFAULT_CACHE_DURATION
+              value: {{.Values.application.defaultCacheDuration}}
+      volumes:
+        - name: aws-creds
+          secret:
+            secretName: {{.Values.application.secretName}}
+            optional: false
+        {{- if eq $os "bottlerocket" }}
+        - name: socket
+          hostPath:
+            path: /run/api.sock
+        {{- else if eq $os "amazonlinux"}}
+        - name: kubelet-extra-args
+          hostPath:
+            path: /etc/default/kubelet
+            type: FileOrCreate
+        {{- else}}
+        - name: kubelet-extra-args
+          hostPath:
+            path: /etc/sysconfig/kubelet
+            type: FileOrCreate
+        {{- end }}
+        {{- if ne $os "bottlerocket" }}
+        - name: package-mounts
+          hostPath:
+            path: /eksa-packages
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      hostPID: true

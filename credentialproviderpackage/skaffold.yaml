@@ -1,0 +1,24 @@
+apiVersion: skaffold/v3
+kind: Config
+metadata:
+  name: credential-provider
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{.EMPTY}}"
+  artifacts:
+  - image: credentialpackage
+    docker:
+      dockerfile: Dockerfile
+manifests:
+  helm:
+    releases:
+    - name: credential-provider-helm
+      chartPath: charts/credential-provider-package
+      setValueTemplates:
+        image.registry: "{{.ECR_PUBLIC_REGISTRY}}"
+        image.repository: "credentialpackage"
+        image.tag: "{{.IMAGE_DIGEST_credentialpackage}}"
+        image.digest: "{{.IMAGE_DIGEST_credentialpackage}}"
+        sourceRegistry: "{{.SKAFFOLD_DEFAULT_REPO}}"
+
