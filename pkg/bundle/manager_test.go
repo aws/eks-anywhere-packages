@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,12 +40,14 @@ func GivenBundle(state api.PackageBundleStateEnum) *api.PackageBundle {
 }
 
 func givenBundleManager(t *testing.T) (*mocks.MockTargetClusterClient, *bundleMocks.MockRegistryClient, *bundleMocks.MockClient, *bundleManager) {
-	tcc := mocks.NewMockTargetClusterClient(gomock.NewController(t))
-	rc := bundleMocks.NewMockRegistryClient(gomock.NewController(t))
-	bc := bundleMocks.NewMockClient(gomock.NewController(t))
+	logger := testr.New(t)
+	ctrl := gomock.NewController(t)
+	tcc := mocks.NewMockTargetClusterClient(ctrl)
+	rc := bundleMocks.NewMockRegistryClient(ctrl)
+	bc := bundleMocks.NewMockClient(ctrl)
 	cfg := config.GetConfig()
 	cfg.BuildInfo.Version = "v2.2.2"
-	bm := NewBundleManager(logr.Discard(), rc, bc, tcc, cfg)
+	bm := NewBundleManager(logger, rc, bc, tcc, cfg)
 	return tcc, rc, bc, bm
 }
 
@@ -169,6 +171,8 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
+
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
@@ -187,6 +191,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
@@ -208,6 +213,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
@@ -227,6 +233,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
@@ -313,6 +320,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.GetName()).Return(nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
@@ -351,6 +359,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
@@ -523,6 +532,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
 		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.GetName()).Return(nil).AnyTimes()
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
 		bc.EXPECT().CreateBundle(ctx, latestBundle).Return(nil)
@@ -561,7 +571,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		pbc.Status.State = ""
 		latestBundle := givenBundle()
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
+		tcc.EXPECT().Initialize(ctx, gomock.Any()).AnyTimes().Return(nil)
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
@@ -581,7 +591,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		latestBundle := givenBundle()
 		latestBundle.Name = testNextBundleName
 		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
-		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
+		tcc.EXPECT().Initialize(ctx, gomock.Any()).AnyTimes().Return(nil)
 		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
 		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
 		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)

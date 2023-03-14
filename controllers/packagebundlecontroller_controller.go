@@ -67,7 +67,7 @@ func RegisterPackageBundleControllerReconciler(mgr ctrl.Manager) error {
 	log := ctrl.Log.WithName(packageBundleControllerName)
 
 	bundleClient := bundle.NewManagerClient(mgr.GetClient())
-	tcc := authenticator.NewTargetClusterClient(mgr.GetConfig(), mgr.GetClient())
+	tcc := authenticator.NewTargetClusterClient(log, mgr.GetConfig(), mgr.GetClient())
 	puller := artifacts.NewRegistryPuller(log)
 	registryClient := bundle.NewRegistryClient(puller)
 	bm := bundle.NewBundleManager(log, registryClient, bundleClient, tcc, config.GetGlobalConfig())

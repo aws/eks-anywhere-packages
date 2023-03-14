@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-logr/logr/testr"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
@@ -45,8 +46,9 @@ func TestTargetClusterClient_Init(t *testing.T) {
 	}
 
 	t.Run("get kubeconfig success", func(t *testing.T) {
+		logger := testr.New(t)
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
-		sut := NewTargetClusterClient(nil, mockClient)
+		sut := NewTargetClusterClient(logger, nil, mockClient)
 		var kubeconfigSecret corev1.Secret
 		kubeconfigSecret.Data = make(map[string][]byte)
 		kubeconfigSecret.Data["value"] = []byte(actualData)
@@ -62,8 +64,9 @@ func TestTargetClusterClient_Init(t *testing.T) {
 	})
 
 	t.Run("get kubeconfig CLUSTER_NAME success", func(t *testing.T) {
+		logger := testr.New(t)
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
-		sut := NewTargetClusterClient(nil, mockClient)
+		sut := NewTargetClusterClient(logger, nil, mockClient)
 		t.Setenv("CLUSTER_NAME", "billy")
 
 		err := sut.Initialize(ctx, "billy")
@@ -71,8 +74,9 @@ func TestTargetClusterClient_Init(t *testing.T) {
 	})
 
 	t.Run("get kubeconfig failure", func(t *testing.T) {
+		logger := testr.New(t)
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
-		sut := NewTargetClusterClient(nil, mockClient)
+		sut := NewTargetClusterClient(logger, nil, mockClient)
 		nn := types.NamespacedName{
 			Namespace: "eksa-system",
 			Name:      "billy-kubeconfig",
@@ -85,8 +89,9 @@ func TestTargetClusterClient_Init(t *testing.T) {
 	})
 
 	t.Run("get kubeconfig no cluster", func(t *testing.T) {
+		logger := testr.New(t)
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
-		sut := NewTargetClusterClient(nil, mockClient)
+		sut := NewTargetClusterClient(logger, nil, mockClient)
 
 		// TODO do we need to support this case?
 		err := sut.Initialize(ctx, "")

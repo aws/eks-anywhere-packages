@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/discovery"
@@ -35,8 +37,11 @@ type TargetClusterClient interface {
 	// GetServerVersion of the target api server
 	GetServerVersion(ctx context.Context, clusterName string) (info *version.Info, err error)
 
-	// CreateClusterNamespace for the workload cluster
+	// CreateClusterNamespace for the workload cluster.
 	CreateClusterNamespace(ctx context.Context, clusterName string) (err error)
+
+	// CheckNamespace tests for the existence of a namespace.
+	CheckNamespace(ctx context.Context, namespace string) bool
 
 	// Implement RESTClientGetter
 	ToRESTConfig() (*rest.Config, error)
@@ -50,12 +55,13 @@ type targetClusterClient struct {
 	Client       client.Client
 	targetSelf   bool
 	clientConfig clientcmd.ClientConfig
+	logger       logr.Logger
 }
 
 var _ TargetClusterClient = (*targetClusterClient)(nil)
 
-func NewTargetClusterClient(config *rest.Config, client client.Client) *targetClusterClient {
-	return &targetClusterClient{Config: config, Client: client}
+func NewTargetClusterClient(logger logr.Logger, config *rest.Config, client client.Client) *targetClusterClient {
+	return &targetClusterClient{logger: logger, Config: config, Client: client}
 }
 
 func (tcc *targetClusterClient) Initialize(ctx context.Context, clusterName string) error {
@@ -170,24 +176,46 @@ func (tcc *targetClusterClient) CreateClusterNamespace(ctx context.Context, clus
 		return fmt.Errorf("creating client for %s: %s", clusterName, err)
 	}
 
-	name := api.PackageNamespace
-	key := types.NamespacedName{
-		Name: name,
-	}
-	ns := &corev1.Namespace{}
-	err = k8sClient.Get(ctx, key, ns)
-	// Nil err check here means that the namespace exists thus we can just return with no error
-	if err == nil {
-		return nil
-	}
-	if !apierrors.IsNotFound(err) {
-		return fmt.Errorf("get namespace for %s: %s", clusterName, err)
-	}
-
-	ns.Name = name
-	err = k8sClient.Create(ctx, ns)
-	if err != nil {
-		return fmt.Errorf("create namespace for %s: %s", clusterName, err)
+	if !tcc.CheckNamespace(ctx, api.PackageNamespace) {
+		err := k8sClient.Create(ctx, &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{Name: api.PackageNamespace},
+		})
+		if err != nil {
+			return fmt.Errorf("create namespace for %q: %s", clusterName, err)
+		}
 	}
 	return nil
+}
+
+// CheckNamespace tests for the existence of a namespace.
+//
+// It must only be called with an initialized target cluster client.
+func (tcc *targetClusterClient) CheckNamespace(ctx context.Context, namespace string) bool {
+	if tcc.clientConfig == nil {
+		tcc.logger.Error(fmt.Errorf("client is not initialized"), "checking namespace", "namespace", "namespace")
+		return false
+	}
+
+	restConfig, err := tcc.ToRESTConfig()
+	if err != nil {
+		tcc.logger.V(6).Error(err, "creating rest config", "namespace", namespace)
+		return false
+	}
+
+	k8sClient, err := client.New(restConfig, client.Options{})
+	if err != nil {
+		tcc.logger.V(6).Error(err, "creating k8s client", "namespace", namespace)
+		return false
+	}
+
+	nn := types.NamespacedName{Name: namespace}
+	ns := &corev1.Namespace{}
+	if err := k8sClient.Get(ctx, nn, ns); err != nil {
+		if !apierrors.IsNotFound(err) {
+			tcc.logger.V(6).Error(err, "getting namespace", "namespace", namespace)
+		}
+		return false
+	}
+
+	return true
 }
