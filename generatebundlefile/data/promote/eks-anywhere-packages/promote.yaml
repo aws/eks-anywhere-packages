@@ -22,3 +22,8 @@ packages:
         versions:
             - name: 0.0.0-latest # We want this to only promote the dev helm charts for e2e
 
+      - name: credential-provider-package
+        repository: credential-provider-package
+        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: latest
