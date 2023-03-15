@@ -25,6 +25,11 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 0.0.0-latest
+      - name: credential-provider-package
+        repository: credential-provider-package
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
   - org: aws-observability
     projects:
       - name: adot
