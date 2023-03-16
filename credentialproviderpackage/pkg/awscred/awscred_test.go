@@ -1,6 +1,7 @@
 package awscred
 
 import (
+	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -11,10 +12,13 @@ func Test_generateAwsConfigSecret(t *testing.T) {
 	testDir, _ := test.NewWriter(t)
 	dir := testDir + "/"
 	err := createTestFiles(dir)
-	wantString := "[default]\n" +
-		"aws_access_key_id=abc\n" +
-		"aws_secret_access_key=def\n" +
-		"region=us-east-3\n"
+	wantString := fmt.Sprintf(
+		`
+[default]
+aws_access_key_id=abc
+aws_secret_access_key=def
+region=us-east-3
+`)
 	if err != nil {
 		t.Errorf("Failed to create test files")
 	}

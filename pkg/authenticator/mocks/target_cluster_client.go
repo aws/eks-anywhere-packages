@@ -40,6 +40,20 @@ func (m *MockTargetClusterClient) EXPECT() *MockTargetClusterClientMockRecorder 
 	return m.recorder
 }
 
+// ApplySecret mocks base method.
+func (m *MockTargetClusterClient) ApplySecret(ctx context.Context, secret *v1.Secret) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ApplySecret", ctx, secret)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ApplySecret indicates an expected call of ApplySecret.
+func (mr *MockTargetClusterClientMockRecorder) ApplySecret(ctx, secret interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplySecret", reflect.TypeOf((*MockTargetClusterClient)(nil).ApplySecret), ctx, secret)
+}
+
 // CheckNamespace mocks base method.
 func (m *MockTargetClusterClient) CheckNamespace(ctx context.Context, namespace string) bool {
 	m.ctrl.T.Helper()
@@ -66,20 +80,6 @@ func (m *MockTargetClusterClient) CreateClusterNamespace(ctx context.Context, cl
 func (mr *MockTargetClusterClientMockRecorder) CreateClusterNamespace(ctx, clusterName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateClusterNamespace", reflect.TypeOf((*MockTargetClusterClient)(nil).CreateClusterNamespace), ctx, clusterName)
-}
-
-// CreateSecret mocks base method.
-func (m *MockTargetClusterClient) CreateSecret(ctx context.Context, secret *v1.Secret) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateSecret", ctx, secret)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateSecret indicates an expected call of CreateSecret.
-func (mr *MockTargetClusterClientMockRecorder) CreateSecret(ctx, secret interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecret", reflect.TypeOf((*MockTargetClusterClient)(nil).CreateSecret), ctx, secret)
 }
 
 // GetServerVersion mocks base method.

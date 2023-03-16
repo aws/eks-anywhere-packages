@@ -43,8 +43,8 @@ type TargetClusterClient interface {
 	// CheckNamespace tests for the existence of a namespace.
 	CheckNamespace(ctx context.Context, namespace string) bool
 
-	// CreateSecret for the workload cluster
-	CreateSecret(ctx context.Context, secret *corev1.Secret) (err error)
+	// ApplySecret for the workload cluster
+	ApplySecret(ctx context.Context, secret *corev1.Secret) (err error)
 
 	// Implement RESTClientGetter
 	ToRESTConfig() (*rest.Config, error)
@@ -223,10 +223,10 @@ func (tcc *targetClusterClient) CheckNamespace(ctx context.Context, namespace st
 	return true
 }
 
-// CreateSecret on the workload cluster
+// ApplySecret on the workload cluster
 //
 // It must only be called with an initialized target cluster client.
-func (tcc *targetClusterClient) CreateSecret(ctx context.Context, secret *corev1.Secret) error {
+func (tcc *targetClusterClient) ApplySecret(ctx context.Context, secret *corev1.Secret) error {
 	if tcc.clientConfig == nil {
 		tcc.logger.Error(fmt.Errorf("client is not initialized"), "creating secret")
 		return fmt.Errorf("client is not initialized")

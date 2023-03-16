@@ -34,10 +34,12 @@ func generateAwsConfigSecret(accessKeyPath string, secretAccessKeyPath string, r
 	region := strings.Trim(string(regionByte), "'")
 
 	awsConfig := fmt.Sprintf(
-		"[default]\n"+
-			"aws_access_key_id=%s\n"+
-			"aws_secret_access_key=%s\n"+
-			"region=%s\n", accessKey, secretAccessKey, region)
+		`
+[default]
+aws_access_key_id=%s
+aws_secret_access_key=%s
+region=%s
+`, accessKey, secretAccessKey, region)
 
 	return awsConfig, err
 }

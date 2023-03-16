@@ -56,6 +56,7 @@ spec:
             - name: DEFAULT_CACHE_DURATION
               value: {{(index .Values.credential 0).defaultCacheDuration}}
       volumes:
+        # Currently only one secret (aws-secret) is supported at this time
         - name: aws-creds
           secret:
             secretName: {{(index .Values.credential 0).secretName}}
