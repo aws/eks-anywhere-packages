@@ -7,6 +7,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
+	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/awscred"
 	cfg "github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/configurator"
 	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/configurator/bottlerocket"
 	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/configurator/linux"
@@ -19,7 +20,6 @@ const (
 	socketPath   = "/run/api.sock"
 
 	// Aws Credentials
-	credSrcPath   = "/secrets/aws-creds/config"
 	awsProfile    = "eksa-packages"
 	credWatchData = "/secrets/aws-creds/..data"
 	credWatchPath = "/secrets/aws-creds/"
@@ -32,6 +32,10 @@ func main() {
 	if osType == "" {
 		log.ErrorLogger.Println("Missing Environment Variable OS_TYPE")
 		os.Exit(1)
+	}
+	secretPath, err := awscred.GetAwsConfigPath()
+	if err != nil {
+		log.ErrorLogger.Fatal(err)
 	}
 	profile := os.Getenv("AWS_PROFILE")
 	if profile == "" {
@@ -48,7 +52,7 @@ func main() {
 	}
 
 	configurator.Initialize(config)
-	err = configurator.UpdateAWSCredentials(credSrcPath, profile)
+	err = configurator.UpdateAWSCredentials(secretPath, profile)
 	if err != nil {
 		log.ErrorLogger.Fatal(err)
 	}
@@ -84,7 +88,11 @@ func main() {
 				}
 				if event.Has(fsnotify.Create) {
 					if event.Name == credWatchData {
-						err = configurator.UpdateAWSCredentials(credSrcPath, profile)
+						secretPath, err := awscred.GetAwsConfigPath()
+						if err != nil {
+							log.ErrorLogger.Fatal(err)
+						}
+						err = configurator.UpdateAWSCredentials(secretPath, profile)
 						if err != nil {
 							log.ErrorLogger.Fatal(err)
 						}

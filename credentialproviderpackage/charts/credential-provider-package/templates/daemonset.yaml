@@ -50,15 +50,15 @@ spec:
             - name: OS_TYPE
               value: {{ $os }}
             - name: AWS_PROFILE
-              value: {{.Values.application.profile}}
+              value: {{.Values.credentialConfiguration.profile}}
             - name: MATCH_IMAGES
-              value: '{{ join "," .Values.application.matchImages }}'
+              value: '{{ join "," .Values.credentialConfiguration.matchImages }}'
             - name: DEFAULT_CACHE_DURATION
-              value: {{.Values.application.defaultCacheDuration}}
+              value: {{.Values.credentialConfiguration.defaultCacheDuration}}
       volumes:
         - name: aws-creds
           secret:
-            secretName: {{.Values.application.secretName}}
+            secretName: {{.Values.credentialConfiguration.secretName}}
             optional: false
         {{- if eq $os "bottlerocket" }}
         - name: socket
