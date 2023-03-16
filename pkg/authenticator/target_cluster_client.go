@@ -43,6 +43,9 @@ type TargetClusterClient interface {
 	// CheckNamespace tests for the existence of a namespace.
 	CheckNamespace(ctx context.Context, namespace string) bool
 
+	// CreateSecret for the workload cluster
+	CreateSecret(ctx context.Context, secret *corev1.Secret) (err error)
+
 	// Implement RESTClientGetter
 	ToRESTConfig() (*rest.Config, error)
 	ToDiscoveryClient() (discovery.CachedDiscoveryInterface, error)
@@ -218,4 +221,46 @@ func (tcc *targetClusterClient) CheckNamespace(ctx context.Context, namespace st
 	}
 
 	return true
+}
+
+// CreateSecret on the workload cluster
+//
+// It must only be called with an initialized target cluster client.
+func (tcc *targetClusterClient) CreateSecret(ctx context.Context, secret *corev1.Secret) error {
+	if tcc.clientConfig == nil {
+		tcc.logger.Error(fmt.Errorf("client is not initialized"), "creating secret")
+		return fmt.Errorf("client is not initialized")
+	}
+
+	restConfig, err := tcc.ToRESTConfig()
+	if err != nil {
+		tcc.logger.V(6).Error(err, "creating rest config")
+		return err
+	}
+
+	k8sClient, err := client.New(restConfig, client.Options{})
+	if err != nil {
+		tcc.logger.V(6).Error(err, "creating k8s client")
+		return err
+	}
+
+	newSecret := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secret.ObjectMeta.Name,
+			Namespace: secret.ObjectMeta.Namespace,
+		},
+		Data: secret.Data,
+	}
+	err = k8sClient.Create(ctx, &newSecret)
+	if err != nil {
+		if !apierrors.IsAlreadyExists(err) {
+			return fmt.Errorf("create secret for workload cluster %s", err)
+		}
+		err := k8sClient.Update(ctx, &newSecret)
+		if err != nil {
+			return fmt.Errorf("create secret for workload cluster %s", err)
+		}
+	}
+
+	return err
 }

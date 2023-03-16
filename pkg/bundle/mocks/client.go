@@ -10,6 +10,7 @@ import (
 
 	v1alpha1 "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	gomock "github.com/golang/mock/gomock"
+	v1 "k8s.io/api/core/v1"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -151,6 +152,21 @@ func (m *MockClient) GetPackageList(ctx context.Context, namespace string) (v1al
 func (mr *MockClientMockRecorder) GetPackageList(ctx, namespace interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackageList", reflect.TypeOf((*MockClient)(nil).GetPackageList), ctx, namespace)
+}
+
+// GetSecret mocks base method.
+func (m *MockClient) GetSecret(ctx context.Context, name string) (*v1.Secret, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSecret", ctx, name)
+	ret0, _ := ret[0].(*v1.Secret)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecret indicates an expected call of GetSecret.
+func (mr *MockClientMockRecorder) GetSecret(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecret", reflect.TypeOf((*MockClient)(nil).GetSecret), ctx, name)
 }
 
 // Save mocks base method.

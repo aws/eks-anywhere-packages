@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	v1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/api/meta"
 	version "k8s.io/apimachinery/pkg/version"
 	discovery "k8s.io/client-go/discovery"
@@ -65,6 +66,20 @@ func (m *MockTargetClusterClient) CreateClusterNamespace(ctx context.Context, cl
 func (mr *MockTargetClusterClientMockRecorder) CreateClusterNamespace(ctx, clusterName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateClusterNamespace", reflect.TypeOf((*MockTargetClusterClient)(nil).CreateClusterNamespace), ctx, clusterName)
+}
+
+// CreateSecret mocks base method.
+func (m *MockTargetClusterClient) CreateSecret(ctx context.Context, secret *v1.Secret) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSecret", ctx, secret)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateSecret indicates an expected call of CreateSecret.
+func (mr *MockTargetClusterClientMockRecorder) CreateSecret(ctx, secret interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecret", reflect.TypeOf((*MockTargetClusterClient)(nil).CreateSecret), ctx, secret)
 }
 
 // GetServerVersion mocks base method.
