@@ -12,11 +12,11 @@ image:
   pullPolicy: IfNotPresent
 
 # application values
-credentialConfiguration:
-  secretName: aws-secret
-  matchImages: []
-  defaultCacheDuration: "5h"
-  profile: "default"
+credential:
+  - secretName: aws-secret
+    matchImages: []
+    defaultCacheDuration: "5h"
+    profile: "default"
 
 imagePullSecrets: []
 nameOverride: ""
