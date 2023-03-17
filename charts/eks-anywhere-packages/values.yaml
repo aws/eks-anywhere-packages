@@ -110,7 +110,7 @@ cronjob:
   tag: "{{ecr-token-refresher-tag}}"
   # -- ECR refresher digest
   digest: "{{ecr-token-refresher}}"
-  suspend: false
+  suspend: true
 # Secrets
 registryMirrorSecret:
   endpoint: ""

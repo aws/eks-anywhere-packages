@@ -30,6 +30,9 @@ type Client interface {
 	// GetBundle retrieves the named bundle.
 	GetBundle(ctx context.Context, name string) (namedBundle *api.PackageBundle, err error)
 
+	// GetSecret retries the named secret
+	GetSecret(ctx context.Context, name string) (secret *v1.Secret, err error)
+
 	// CreateBundle add a new bundle custom resource
 	CreateBundle(ctx context.Context, bundle *api.PackageBundle) error
 
@@ -119,6 +122,23 @@ func (bc *managerClient) GetBundle(ctx context.Context, name string) (namedBundl
 	}
 
 	return namedBundle, nil
+}
+
+func (bc *managerClient) GetSecret(ctx context.Context, name string) (secret *v1.Secret, err error) {
+	nn := types.NamespacedName{
+		Namespace: api.PackageNamespace,
+		Name:      name,
+	}
+	secret = &v1.Secret{}
+	err = bc.Get(ctx, nn, secret)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return secret, nil
 }
 
 func (bc *managerClient) GetBundleList(ctx context.Context) (bundles []api.PackageBundle, err error) {

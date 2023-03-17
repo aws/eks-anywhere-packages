@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	v1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/api/meta"
 	version "k8s.io/apimachinery/pkg/version"
 	discovery "k8s.io/client-go/discovery"
@@ -37,6 +38,20 @@ func NewMockTargetClusterClient(ctrl *gomock.Controller) *MockTargetClusterClien
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockTargetClusterClient) EXPECT() *MockTargetClusterClientMockRecorder {
 	return m.recorder
+}
+
+// ApplySecret mocks base method.
+func (m *MockTargetClusterClient) ApplySecret(ctx context.Context, secret *v1.Secret) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ApplySecret", ctx, secret)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ApplySecret indicates an expected call of ApplySecret.
+func (mr *MockTargetClusterClientMockRecorder) ApplySecret(ctx, secret interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplySecret", reflect.TypeOf((*MockTargetClusterClient)(nil).ApplySecret), ctx, secret)
 }
 
 // CheckNamespace mocks base method.
