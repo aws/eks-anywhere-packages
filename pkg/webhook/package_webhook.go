@@ -89,6 +89,11 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 }
 
 func (v *packageValidator) isPackageValid(p *v1alpha1.Package, activeBundle *v1alpha1.PackageBundle) (bool, error) {
+	skipAnnotation := p.Annotations["skip-webhook-validation"]
+	if skipAnnotation == "true" {
+		return true, nil
+	}
+
 	packageInBundle, err := activeBundle.FindPackage(p.Spec.PackageName)
 	if err != nil {
 		return false, err

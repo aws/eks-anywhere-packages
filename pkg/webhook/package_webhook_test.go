@@ -94,4 +94,43 @@ func TestPackageValidate(t *testing.T) {
 		assert.False(t, result)
 		assert.EqualError(t, err, "package my-hello-eks-anywhere targetNamespace is immutable")
 	})
+
+	t.Run("valid package with webhook ignore", func(t *testing.T) {
+		activeBundle, err := testutil.GivenPackageBundle("../../api/testdata/bundle_one.yaml")
+		require.Nil(t, err)
+		myPackage, err := testutil.GivenPackage("../../api/testdata/package_webhook_valid_config_skip_webhook_annotation.yaml")
+		require.Nil(t, err)
+		validator := packageValidator{}
+
+		result, err := validator.isPackageValid(myPackage, activeBundle)
+
+		assert.True(t, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("invalid package with webhook ignore", func(t *testing.T) {
+		activeBundle, err := testutil.GivenPackageBundle("../../api/testdata/bundle_one.yaml")
+		require.Nil(t, err)
+		myPackage, err := testutil.GivenPackage("../../api/testdata/package_webhook_valid_config_skip_webhook_annotation.yaml")
+		require.Nil(t, err)
+		validator := packageValidator{}
+
+		result, err := validator.isPackageValid(myPackage, activeBundle)
+
+		assert.True(t, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("invalid package config type with skip annotation false", func(t *testing.T) {
+		activeBundle, err := testutil.GivenPackageBundle("../../api/testdata/bundle_one.yaml")
+		require.Nil(t, err)
+		myPackage, err := testutil.GivenPackage("../../api/testdata/package_webhook_invalid_type.yaml")
+		require.Nil(t, err)
+		validator := packageValidator{}
+
+		result, err := validator.isPackageValid(myPackage, activeBundle)
+
+		assert.False(t, result)
+		assert.EqualError(t, err, "error validating configurations - title: Invalid type. Expected: string, given: integer\n")
+	})
 }
