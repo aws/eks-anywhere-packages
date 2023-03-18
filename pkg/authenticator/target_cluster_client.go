@@ -262,5 +262,5 @@ func (tcc *targetClusterClient) ApplySecret(ctx context.Context, secret *corev1.
 		}
 	}
 
-	return err
+	return nil
 }
