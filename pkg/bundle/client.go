@@ -135,7 +135,7 @@ func (bc *managerClient) GetSecret(ctx context.Context, name string) (secret *v1
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("aws-secret error:%v", err)
 	}
 
 	return secret, nil

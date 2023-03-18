@@ -171,9 +171,11 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 			return fmt.Errorf("getting aws secret eksa-packages:%s", err)
 		}
 
-		err = m.targetClient.ApplySecret(ctx, secret)
-		if err != nil {
-			return fmt.Errorf("creating workload cluster secret aws-secret:%s", err)
+		if secret != nil {
+			err = m.targetClient.ApplySecret(ctx, secret)
+			if err != nil {
+				return fmt.Errorf("creating workload cluster secret aws-secret:%s", err)
+			}
 		}
 
 		if len(pbc.Spec.ActiveBundle) > 0 {
