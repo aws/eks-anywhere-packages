@@ -58,6 +58,10 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 			fmt.Errorf("decoding request: %w", err))
 	}
 
+	if p.Annotations["skip-webhook-validation"] == "true" {
+		return admission.Response{AdmissionResponse: admissionv1.AdmissionResponse{Allowed: true}}
+	}
+
 	clusterName := p.GetClusterName()
 	if clusterName == "" {
 		clusterName = os.Getenv("CLUSTER_NAME")
@@ -89,10 +93,6 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 }
 
 func (v *packageValidator) isPackageValid(p *v1alpha1.Package, activeBundle *v1alpha1.PackageBundle) (bool, error) {
-	if p.Annotations["skip-webhook-validation"] == "true" {
-		return true, nil
-	}
-
 	packageInBundle, err := activeBundle.FindPackage(p.Spec.PackageName)
 	if err != nil {
 		return false, err
