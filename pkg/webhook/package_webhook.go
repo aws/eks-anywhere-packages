@@ -58,7 +58,7 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 			fmt.Errorf("decoding request: %w", err))
 	}
 
-	if p.Annotations["skip-webhook-validation"] == "true" {
+	if p.Annotations["anywhere.eks.aws.com/internal"] == "true" {
 		return admission.Response{AdmissionResponse: admissionv1.AdmissionResponse{Allowed: true}}
 	}
 
