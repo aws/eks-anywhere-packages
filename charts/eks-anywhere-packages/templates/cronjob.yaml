@@ -10,6 +10,8 @@ kind: CronJob
 metadata:
   namespace: {{ .Values.namespace }}
   name: cron-ecr-renew
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   schedule: "0 */5 * * *"
   successfulJobsHistoryLimit: 3
