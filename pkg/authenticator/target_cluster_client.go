@@ -258,9 +258,9 @@ func (tcc *targetClusterClient) ApplySecret(ctx context.Context, secret *corev1.
 		}
 		err := k8sClient.Update(ctx, &newSecret)
 		if err != nil {
-			return fmt.Errorf("create secret for workload cluster %s", err)
+			return fmt.Errorf("update secret for workload cluster %s", err)
 		}
 	}
 
-	return err
+	return nil
 }
