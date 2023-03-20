@@ -87,3 +87,63 @@ Create image name
 {{- printf "/%s:%s" .repository .tag -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Function to figure out os name
+*/}}
+{{- define "template.getOSName" -}}
+{{- with first ((lookup "v1" "Node" "" "").items) -}}
+{{- if contains "Bottlerocket" .status.nodeInfo.osImage -}}
+{{- printf "bottlerocket" -}}
+{{- else if contains "Amazon Linux" .status.nodeInfo.osImage -}}
+{{- printf "docker" -}}
+{{- else -}}
+{{- printf "other" -}}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Function to figure out Bottlerocket version
+*/}}
+{{- define "template.getBRVersion" -}}
+{{- with first ((lookup "v1" "Node" "" "").items) -}}
+{{- if contains "Bottlerocket" .status.nodeInfo.osImage -}}
+{{- $parts := split " " .status.nodeInfo.osImage -}}
+{{- printf $parts._2 -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Function to figure out if to install cronjob, credential-package, or none
+*/}}
+{{- define "lookup-credential.method" -}}
+    {{- if or ((lookup "v1" "Secret" "eksa-packages" "aws-secret")) (not (eq .Values.awsSecret.secret ""))  -}}
+        {{- if not .Values.cronjob.suspend -}}
+            {{- printf "cronjob" -}}
+        {{- else -}}
+            {{- $os := include "template.getOSName" . -}}
+            {{- if eq $os "bottlerocket" -}}
+                {{- $v := include "template.getBRVersion" . -}}
+                {{- if semverCompare ">=1.25-0" .Capabilities.KubeVersion.GitVersion -}}
+                    {{- if semverCompare "<=1.12" $v -}}
+                        {{- printf "cronjob" -}}
+                    {{- else -}}
+                        {{- printf "credential-package" -}}
+                    {{- end -}}
+                {{- else -}}
+                    {{- if semverCompare "<=1.11" $v -}}
+                        {{- printf "cronjob" -}}
+                    {{- else -}}
+                        {{- printf "credential-package" -}}
+                    {{- end -}}
+                {{- end -}}
+            {{- else -}}
+                {{- printf "credential-package" -}}
+            {{- end -}}
+        {{- end -}}
+    {{- else -}}
+        {{- printf "none" -}}
+    {{- end -}}
+{{- end -}}
