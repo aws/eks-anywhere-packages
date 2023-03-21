@@ -1,6 +1,8 @@
-{{- if not .Values.workloadOnly }}
-{{-  $namespace := printf "%s-%s" "eksa-packages" .Values.clusterName -}}
-{{- if not (lookup "packages.eks.amazonaws.com/v1alpha1" "Package" "eksa-packages-main" "eks-anywhere-packages") }}
+{{- $render := include "eks-anywhere-packages.rendertype" . }}
+{{- $namespace := printf "%s-%s" "eksa-packages" .Values.clusterName -}}
+{{- $mgmtNamespace := printf "%s-%s" "eksa-packages" .Values.managementClusterName -}}
+{{- if eq $render "controller" }}
+{{- if not (lookup "packages.eks.amazonaws.com/v1alpha1" "Package" $namespace "eks-anywhere-packages") }}
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: Package
 metadata:
@@ -19,4 +21,22 @@ spec:
     {{- toYaml $newValues | nindent 4 }}
     {{- end }}
 {{- end }}
+{{ else if eq $render "package" }}
+apiVersion: packages.eks.amazonaws.com/v1alpha1
+kind: Package
+metadata:
+  annotations:
+    "helm.sh/resource-policy": keep
+  name: eks-anywhere-packages-{{ .Values.clusterName }}
+  namespace: {{ $mgmtNamespace }}
+spec:
+  packageName: eks-anywhere-packages
+  targetNamespace: {{ $namespace }}
+  config: |
+    workloadOnly: true
+    clusterName: {{ .Values.clusterName }}
+    sourceRegistry: {{ .Values.sourceRegistry }}
+    defaultRegistry: {{ .Values.defaultRegistry }}
+    defaultImageRegistry: {{ .Values.defaultImageRegistry }} 
 {{- end }}
+

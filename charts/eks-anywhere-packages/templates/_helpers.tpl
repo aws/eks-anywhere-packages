@@ -147,3 +147,18 @@ Function to figure out if to install cronjob, credential-package, or none
         {{- printf "none" -}}
     {{- end -}}
 {{- end -}}
+
+
+{{/*
+RenderType returns the type of output we need to render, either controller, workload or package.
+*/}}
+{{- define "eks-anywhere-packages.rendertype" -}}
+    {{- if and (not .Values.workloadOnly) (not .Values.workloadPackageOnly) -}}
+        {{- printf "controller" -}}
+    {{- else if .Values.workloadPackageOnly -}}
+        {{- printf "package" -}}
+    {{- else -}}
+        {{- printf "workload" -}}
+    {{- end -}}
+{{- end -}}
+

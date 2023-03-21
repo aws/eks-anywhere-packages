@@ -1,6 +1,7 @@
-# If workloadOnly is true, the eksa-packages namespace isn't used and already
+# If not seeding the controller, the eksa-packages namespace isn't used and already
 # exists.
-{{- if not .Values.workloadOnly }}
+{{- $render := include "eks-anywhere-packages.rendertype" . }}
+{{- if eq $render "controller" }}
 {{ $namespace := "eksa-packages" }}
 # If the release namespace is set, it is expected that either --create-namespace
 # is specified or the namespace exists
@@ -27,6 +28,7 @@ metadata:
 {{- end }}
 {{- end }}
 
+{{- if not (eq $render "package") }}
 {{ $pkgnamespace := (printf "%s-%s" "eksa-packages" .Values.clusterName) }}
 {{- if not (lookup "v1" "Namespace" "" $pkgnamespace ) -}}
 apiVersion: v1
@@ -35,4 +37,5 @@ metadata:
   annotations:
     "helm.sh/resource-policy": keep
   name: {{ $pkgnamespace }}
+{{- end }}
 {{- end }}

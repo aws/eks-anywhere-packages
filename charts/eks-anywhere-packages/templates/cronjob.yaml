@@ -1,3 +1,5 @@
+{{- $render := include "eks-anywhere-packages.rendertype" . }}
+{{- if or (eq $render "controller") (eq $render "workload") }}
 {{ $credtype := include "lookup-credential.method" . }}
 {{- if (eq $credtype "cronjob" ) -}}
 {{- if not (lookup "batch/v1" "CronJob" "eksa-packages" "cron-ecr-renew") -}}
@@ -73,5 +75,6 @@ spec:
                   value: {{ .Values.proxy.HTTPS_PROXY | quote}}
                 - name: NO_PROXY
                   value: {{ .Values.proxy.NO_PROXY | quote}}
+{{- end }}
 {{- end }}
 {{- end }}
