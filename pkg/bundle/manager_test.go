@@ -3,6 +3,7 @@ package bundle
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/go-logr/logr/testr"
@@ -614,6 +615,50 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 		err := bm.ProcessBundleController(ctx, pbc)
 
 		assert.EqualError(t, err, "updating cluster01 status to active: oops")
+	})
+
+	t.Run("skip applying secret when pbc is mgmt", func(t *testing.T) {
+		tcc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		_ = os.Setenv("CLUSTER_NAME", pbc.Name)
+		latestBundle := givenBundle()
+		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
+		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
+		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
+
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
+		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		_ = os.Setenv("CLUSTER_NAME", "")
+		assert.NoError(t, err)
+		assert.Equal(t, api.BundleControllerStateActive, pbc.Status.State)
+	})
+
+	t.Run("active to active skip secret when pbc", func(t *testing.T) {
+		tcc, rc, bc, bm := givenBundleManager(t)
+		pbc := givenPackageBundleController()
+		_ = os.Setenv("CLUSTER_NAME", "other-cluster-name")
+		latestBundle := givenBundle()
+		tcc.EXPECT().GetServerVersion(ctx, pbc.Name).Return(&info, nil)
+		tcc.EXPECT().Initialize(ctx, gomock.Any()).Return(nil)
+		tcc.EXPECT().ToRESTConfig().Return(&rest.Config{}, nil)
+		tcc.EXPECT().CreateClusterNamespace(ctx, pbc.Name).Return(nil)
+		tcc.EXPECT().ApplySecret(ctx, gomock.Any()).Return(nil)
+
+		rc.EXPECT().LatestBundle(ctx, testBundleRegistry+"/eks-anywhere-packages-bundles", testKubeMajor, testKubeMinor, pbc.Name).Return(latestBundle, nil)
+		bc.EXPECT().GetBundleList(ctx).Return(allBundles, nil)
+		bc.EXPECT().CreateClusterConfigMap(ctx, pbc.Name).Return(nil)
+		bc.EXPECT().GetSecret(ctx, "aws-secret").Return(&corev1.Secret{}, nil)
+
+		err := bm.ProcessBundleController(ctx, pbc)
+
+		_ = os.Setenv("CLUSTER_NAME", "")
+		assert.NoError(t, err)
+		assert.Equal(t, api.BundleControllerStateActive, pbc.Status.State)
 	})
 }
 

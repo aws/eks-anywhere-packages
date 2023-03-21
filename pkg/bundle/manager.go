@@ -166,15 +166,17 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 			return fmt.Errorf("creating workload cluster namespace eksa-packages for %s: %s", pbc.Name, err)
 		}
 
-		secret, err := m.bundleClient.GetSecret(ctx, "aws-secret")
-		if err != nil {
-			return fmt.Errorf("getting aws secret eksa-packages:%s", err)
-		}
-
-		if secret != nil {
-			err = m.targetClient.ApplySecret(ctx, secret)
+		if pbc.GetName() != os.Getenv("CLUSTER_NAME") {
+			secret, err := m.bundleClient.GetSecret(ctx, "aws-secret")
 			if err != nil {
-				return fmt.Errorf("creating workload cluster secret aws-secret:%s", err)
+				return fmt.Errorf("getting aws secret eksa-packages:%s", err)
+			}
+
+			if secret != nil {
+				err = m.targetClient.ApplySecret(ctx, secret)
+				if err != nil {
+					return fmt.Errorf("creating workload cluster secret aws-secret:%s", err)
+				}
 			}
 		}
 
