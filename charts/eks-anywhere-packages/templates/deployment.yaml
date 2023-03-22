@@ -1,4 +1,5 @@
-{{- if not .Values.workloadOnly }}
+{{- $render := include "eks-anywhere-packages.rendertype" . }}
+{{- if eq $render "controller" }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

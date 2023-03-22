@@ -22,6 +22,7 @@ defaultImageRegistry: 783794618700.dkr.ecr.us-west-2.amazonaws.com
 privateRegistry: ""
 # -- clusterName managed by a particular PBC
 clusterName: bundle-controller
+managementClusterName: ""
 # -- Image pull policy for Docker images.
 imagePullPolicy: IfNotPresent
 helmConfigHome: /tmp/config

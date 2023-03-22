@@ -1,3 +1,5 @@
+{{- $render := include "eks-anywhere-packages.rendertype" . }}
+{{- if not (eq $render "package") }}
 {{ if .Capabilities.APIVersions.Has "packagecontrollers.packages.eks.amazonaws.com/v1alpha1/{{.Values.clusterName}}" -}}
 {{- else -}}
 apiVersion: packages.eks.amazonaws.com/v1alpha1
@@ -11,4 +13,5 @@ spec:
   defaultRegistry: {{.Values.defaultRegistry}}
   defaultImageRegistry: {{.Values.defaultImageRegistry}}
   privateRegistry: {{.Values.privateRegistry}}
+{{- end -}}
 {{- end -}}
