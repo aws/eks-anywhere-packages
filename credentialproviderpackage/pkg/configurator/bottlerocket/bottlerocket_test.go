@@ -3,6 +3,7 @@ package bottlerocket
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -20,6 +21,14 @@ type response struct {
 	statusCode   int
 	expectedBody []byte
 	responseMsg  string
+}
+
+type brFakeVersion struct {
+	Os struct {
+		Fake      string `json:"fake"`
+		VariantID string `json:"variant_id"`
+		VersionID string `json:"version_id"`
+	} `json:"os"`
 }
 
 func Test_bottleRocket_CommitChanges(t *testing.T) {
@@ -340,11 +349,176 @@ func Test_bottleRocket_Initialize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &bottleRocket{}
+			b := &bottleRocket{baseURL: tt.baseUrl}
 			b.Initialize(tt.args.config)
 			assert.Equal(t, tt.baseUrl, b.baseURL)
 			assert.Equal(t, tt.args.config, b.config)
 			assert.NotNil(t, b.client)
 		})
 	}
+}
+
+func Test_bottleRocket_isSupportedBRVersion(t *testing.T) {
+	type fields struct {
+		client  http.Client
+		baseURL string
+		config  constants.CredentialProviderConfigOptions
+	}
+	tests := []struct {
+		name            string
+		fields          fields
+		wantErr         bool
+		brVersion       string
+		brVariant       string
+		statusCode      int
+		want            bool
+		emptyObject     bool
+		differentFields bool
+	}{
+		{
+			name:       "valid version",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.13.1",
+			brVariant:  "vmware-k8s-1.25",
+			statusCode: http.StatusOK,
+			wantErr:    false,
+			want:       true,
+		},
+		{
+			name:       "invalid version",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.13.0",
+			brVariant:  "vmware-k8s-1.25",
+			statusCode: http.StatusOK,
+			wantErr:    false,
+			want:       false,
+		},
+		{
+			name:       "very old invalid version",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.10.1",
+			brVariant:  "vmware-k8s-1.25",
+			statusCode: http.StatusOK,
+			wantErr:    false,
+			want:       false,
+		},
+		{
+			name:       "<1.25 k8s version with old valid version",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.11.1",
+			brVariant:  "vmware-k8s-1.24",
+			statusCode: http.StatusOK,
+			wantErr:    false,
+			want:       true,
+		},
+		{
+			name:       "<1.25 k8s version with old invalid version",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.10.1",
+			brVariant:  "vmware-k8s-1.23",
+			statusCode: http.StatusOK,
+			wantErr:    false,
+			want:       false,
+		},
+		{
+			name:       "bad response from server",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.13.1",
+			brVariant:  "vmware-k8s-1.25",
+			statusCode: http.StatusNotFound,
+			wantErr:    true,
+			want:       false,
+		},
+		{
+			name:       "missing from server",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "",
+			brVariant:  "",
+			statusCode: http.StatusNotFound,
+			wantErr:    true,
+			want:       false,
+		},
+		{
+			name:        "empty object",
+			fields:      fields{client: http.Client{}},
+			brVersion:   "",
+			brVariant:   "",
+			statusCode:  http.StatusOK,
+			wantErr:     true,
+			want:        false,
+			emptyObject: true,
+		},
+		{
+			name:            "different return fields",
+			fields:          fields{client: http.Client{}},
+			brVersion:       "",
+			brVariant:       "",
+			statusCode:      http.StatusOK,
+			wantErr:         true,
+			want:            false,
+			differentFields: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.statusCode)
+				var payload []byte
+				var err error
+				if tt.differentFields {
+					payload, err = createFakeBody(tt.brVersion, tt.brVariant)
+					if err != nil {
+						t.Errorf("Failed to marshall response %v", err)
+					}
+				}
+				if !tt.emptyObject {
+					payload, err = createGetBodyWithVersion(tt.brVersion, tt.brVariant)
+					if err != nil {
+						t.Errorf("Failed to marshall response %v", err)
+					}
+				}
+				w.Write(payload)
+				fmt.Fprintf(w, "")
+			}))
+			b := &bottleRocket{
+				client:  tt.fields.client,
+				baseURL: svr.URL + "/",
+				config:  tt.fields.config,
+			}
+
+			got, err := b.isSupportedBRVersion()
+			if err != nil {
+				if !tt.wantErr {
+					t.Errorf("Expected no error but got %v", err)
+				}
+			}
+			assert.Equalf(t, tt.want, got, "isSupportedBRVersion()")
+		})
+	}
+}
+
+func createGetBodyWithVersion(version string, variant string) ([]byte, error) {
+	brVer := brVersion{}
+	brVer.Os.VersionID = version
+	brVer.Os.VariantID = variant
+
+	payload, err := json.Marshal(brVer)
+	if err != nil {
+		return nil, err
+	}
+
+	return payload, nil
+}
+
+func createFakeBody(version string, variant string) ([]byte, error) {
+	brFake := brFakeVersion{}
+	brFake.Os.VersionID = version
+	brFake.Os.VariantID = variant
+
+	payload, err := json.Marshal(brFake)
+	if err != nil {
+		return nil, err
+	}
+
+	return payload, nil
 }
