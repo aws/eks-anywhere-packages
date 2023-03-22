@@ -3,6 +3,7 @@ package bottlerocket
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -340,11 +341,111 @@ func Test_bottleRocket_Initialize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &bottleRocket{}
+			b := &bottleRocket{baseURL: tt.baseUrl}
 			b.Initialize(tt.args.config)
 			assert.Equal(t, tt.baseUrl, b.baseURL)
 			assert.Equal(t, tt.args.config, b.config)
 			assert.NotNil(t, b.client)
 		})
 	}
+}
+
+func Test_bottleRocket_verifySupportedBRVersion(t *testing.T) {
+	type fields struct {
+		client  http.Client
+		baseURL string
+		config  constants.CredentialProviderConfigOptions
+	}
+	tests := []struct {
+		name       string
+		fields     fields
+		wantErr    bool
+		brVersion  string
+		brVariant  string
+		statusCode int
+	}{
+		{
+			name:       "valid version",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.13.1",
+			brVariant:  "vmware-k8s-1.25",
+			statusCode: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name:       "invalid version",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.13.0",
+			brVariant:  "vmware-k8s-1.25",
+			statusCode: http.StatusOK,
+			wantErr:    true,
+		},
+		{
+			name:       "very old invalid version",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.10.1",
+			brVariant:  "vmware-k8s-1.25",
+			statusCode: http.StatusOK,
+			wantErr:    true,
+		},
+		{
+			name:       "<1.25 k8s version with old valid version",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.11.1",
+			brVariant:  "vmware-k8s-1.24",
+			statusCode: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name:       "<1.25 k8s version with old invalid version",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.10.1",
+			brVariant:  "vmware-k8s-1.23",
+			statusCode: http.StatusOK,
+			wantErr:    true,
+		},
+		{
+			name:       "bad response from server",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "1.13.1",
+			brVariant:  "vmware-k8s-1.25",
+			statusCode: http.StatusNotFound,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.statusCode)
+				payload, err := createGetBodyWithVersion(tt.brVersion, tt.brVariant)
+				if err != nil {
+					t.Errorf("Failed to marshall response %v", err)
+				}
+				w.Write(payload)
+				fmt.Fprintf(w, "")
+			}))
+			b := &bottleRocket{
+				client:  tt.fields.client,
+				baseURL: svr.URL + "/",
+				config:  tt.fields.config,
+			}
+
+			if err := b.verifySupportedBRVersion(); (err != nil) != tt.wantErr {
+				t.Errorf("verifySupportedBRVersion() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func createGetBodyWithVersion(version string, variant string) ([]byte, error) {
+	brVer := brVersion{}
+	brVer.Os.VersionID = version
+	brVer.Os.VariantID = variant
+
+	payload, err := json.Marshal(brVer)
+	if err != nil {
+		return nil, err
+	}
+
+	return payload, nil
 }

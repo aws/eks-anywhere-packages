@@ -3,6 +3,7 @@ module github.com/aws/eks-anywhere-packages/credentialproviderpackage
 go 1.19
 
 require (
+	github.com/Masterminds/semver v1.5.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/google/go-cmp v0.5.9
 	github.com/mitchellh/go-ps v1.0.0

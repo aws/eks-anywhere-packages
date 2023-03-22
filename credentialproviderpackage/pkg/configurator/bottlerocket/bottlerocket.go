@@ -11,6 +11,9 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
+
+	"github.com/Masterminds/semver"
 
 	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/configurator"
 	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/constants"
@@ -46,6 +49,16 @@ type kubernetes struct {
 	CredentialProviders credentialProviders `json:"credential-providers"`
 }
 
+type brVersion struct {
+	Os struct {
+		Arch       string `json:"arch"`
+		BuildID    string `json:"build_id"`
+		PrettyName string `json:"pretty_name"`
+		VariantID  string `json:"variant_id"`
+		VersionID  string `json:"version_id"`
+	} `json:"os"`
+}
+
 var _ configurator.Configurator = (*bottleRocket)(nil)
 
 func NewBottleRocketConfigurator(socketPath string) (*bottleRocket, error) {
@@ -56,7 +69,9 @@ func NewBottleRocketConfigurator(socketPath string) (*bottleRocket, error) {
 	if socket.Mode().Type() != fs.ModeSocket {
 		return nil, fmt.Errorf("Unexpected type %s expected socket\n", socket.Mode().Type())
 	}
-	return &bottleRocket{
+
+	br := &bottleRocket{
+		baseURL: "http://localhost/",
 		client: http.Client{
 			Transport: &http.Transport{
 				DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
@@ -64,11 +79,16 @@ func NewBottleRocketConfigurator(socketPath string) (*bottleRocket, error) {
 				},
 			},
 		},
-	}, nil
+	}
+
+	err = br.verifySupportedBRVersion()
+	if err != nil {
+		return nil, fmt.Errorf("unsupported BR version %v", err)
+	}
+	return br, nil
 }
 
 func (b *bottleRocket) Initialize(config constants.CredentialProviderConfigOptions) {
-	b.baseURL = "http://localhost/"
 	b.config = config
 }
 
@@ -178,4 +198,70 @@ func createCredentialProviderPayload(config constants.CredentialProviderConfigOp
 		return nil, err
 	}
 	return payload, nil
+}
+
+func (b *bottleRocket) verifySupportedBRVersion() error {
+	allowedVersions := ">=1.11.0"
+	req, err := http.NewRequest(http.MethodGet, b.baseURL, nil)
+	if err != nil {
+		return err
+	}
+	q := req.URL.Query()
+	q.Add("prefix", "os")
+	req.URL.RawQuery = q.Encode()
+
+	respGet, err := b.client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer respGet.Body.Close()
+
+	if respGet.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed GET request: %s", respGet.Status)
+	}
+
+	valueBody, err := ioutil.ReadAll(respGet.Body)
+	if err != nil {
+		return err
+	}
+
+	osVersion := brVersion{}
+	err = json.Unmarshal(valueBody, &osVersion)
+	if err != nil {
+		return err
+	}
+
+	// Check if BR k8s version is 1.25 or greater. If so we will update allowedVersions to be >1.13.0
+	if osVersion.Os.VariantID != "" {
+		variants := strings.Split(osVersion.Os.VariantID, "-")
+		ver, err := semver.NewVersion(variants[len(variants)-1])
+		if err != nil {
+			return fmt.Errorf("%v not a valid BR variant", err)
+		}
+		c, err := semver.NewConstraint(">=1.25")
+		if err != nil {
+			return err
+		}
+		valid := c.Check(ver)
+		if valid {
+			allowedVersions = ">1.13.0"
+		}
+	}
+
+	ver, err := semver.NewVersion(osVersion.Os.VersionID)
+	if err != nil {
+		return err
+	}
+
+	c, err := semver.NewConstraint(allowedVersions)
+	if err != nil {
+		return err
+	}
+
+	valid := c.Check(ver)
+	if !valid {
+		return fmt.Errorf("%v not a supported version of BR", osVersion.Os.VersionID)
+	}
+	return nil
 }
