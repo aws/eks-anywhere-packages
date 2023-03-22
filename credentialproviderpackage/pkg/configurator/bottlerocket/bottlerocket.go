@@ -246,10 +246,6 @@ func (b *bottleRocket) isSupportedBRVersion() (bool, error) {
 	}
 
 	ver := "v" + osVersion.Os.VersionID
-
 	valid := semver.Compare(ver, allowedVersions)
-	if valid <= 0 {
-		return false, nil
-	}
-	return true, nil
+	return valid > 0, nil
 }

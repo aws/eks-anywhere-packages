@@ -23,6 +23,14 @@ type response struct {
 	responseMsg  string
 }
 
+type brFakeVersion struct {
+	Os struct {
+		Fake      string `json:"fake"`
+		VariantID string `json:"variant_id"`
+		VersionID string `json:"version_id"`
+	} `json:"os"`
+}
+
 func Test_bottleRocket_CommitChanges(t *testing.T) {
 	type fields struct {
 		client  http.Client
@@ -357,13 +365,15 @@ func Test_bottleRocket_isSupportedBRVersion(t *testing.T) {
 		config  constants.CredentialProviderConfigOptions
 	}
 	tests := []struct {
-		name       string
-		fields     fields
-		wantErr    bool
-		brVersion  string
-		brVariant  string
-		statusCode int
-		want       bool
+		name            string
+		fields          fields
+		wantErr         bool
+		brVersion       string
+		brVariant       string
+		statusCode      int
+		want            bool
+		emptyObject     bool
+		differentFields bool
 	}{
 		{
 			name:       "valid version",
@@ -428,14 +438,44 @@ func Test_bottleRocket_isSupportedBRVersion(t *testing.T) {
 			wantErr:    true,
 			want:       false,
 		},
+		{
+			name:        "empty object",
+			fields:      fields{client: http.Client{}},
+			brVersion:   "",
+			brVariant:   "",
+			statusCode:  http.StatusOK,
+			wantErr:     true,
+			want:        false,
+			emptyObject: true,
+		},
+		{
+			name:            "different return fields",
+			fields:          fields{client: http.Client{}},
+			brVersion:       "",
+			brVariant:       "",
+			statusCode:      http.StatusOK,
+			wantErr:         true,
+			want:            false,
+			differentFields: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(tt.statusCode)
-				payload, err := createGetBodyWithVersion(tt.brVersion, tt.brVariant)
-				if err != nil {
-					t.Errorf("Failed to marshall response %v", err)
+				var payload []byte
+				var err error
+				if tt.differentFields {
+					payload, err = createFakeBody(tt.brVersion, tt.brVariant)
+					if err != nil {
+						t.Errorf("Failed to marshall response %v", err)
+					}
+				}
+				if !tt.emptyObject {
+					payload, err = createGetBodyWithVersion(tt.brVersion, tt.brVariant)
+					if err != nil {
+						t.Errorf("Failed to marshall response %v", err)
+					}
 				}
 				w.Write(payload)
 				fmt.Fprintf(w, "")
@@ -463,6 +503,19 @@ func createGetBodyWithVersion(version string, variant string) ([]byte, error) {
 	brVer.Os.VariantID = variant
 
 	payload, err := json.Marshal(brVer)
+	if err != nil {
+		return nil, err
+	}
+
+	return payload, nil
+}
+
+func createFakeBody(version string, variant string) ([]byte, error) {
+	brFake := brFakeVersion{}
+	brFake.Os.VersionID = version
+	brFake.Os.VariantID = variant
+
+	payload, err := json.Marshal(brFake)
 	if err != nil {
 		return nil, err
 	}
