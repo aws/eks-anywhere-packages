@@ -350,7 +350,7 @@ func Test_bottleRocket_Initialize(t *testing.T) {
 	}
 }
 
-func Test_bottleRocket_verifySupportedBRVersion(t *testing.T) {
+func Test_bottleRocket_isSupportedBRVersion(t *testing.T) {
 	type fields struct {
 		client  http.Client
 		baseURL string
@@ -363,6 +363,7 @@ func Test_bottleRocket_verifySupportedBRVersion(t *testing.T) {
 		brVersion  string
 		brVariant  string
 		statusCode int
+		want       bool
 	}{
 		{
 			name:       "valid version",
@@ -371,6 +372,7 @@ func Test_bottleRocket_verifySupportedBRVersion(t *testing.T) {
 			brVariant:  "vmware-k8s-1.25",
 			statusCode: http.StatusOK,
 			wantErr:    false,
+			want:       true,
 		},
 		{
 			name:       "invalid version",
@@ -378,7 +380,8 @@ func Test_bottleRocket_verifySupportedBRVersion(t *testing.T) {
 			brVersion:  "1.13.0",
 			brVariant:  "vmware-k8s-1.25",
 			statusCode: http.StatusOK,
-			wantErr:    true,
+			wantErr:    false,
+			want:       false,
 		},
 		{
 			name:       "very old invalid version",
@@ -386,7 +389,8 @@ func Test_bottleRocket_verifySupportedBRVersion(t *testing.T) {
 			brVersion:  "1.10.1",
 			brVariant:  "vmware-k8s-1.25",
 			statusCode: http.StatusOK,
-			wantErr:    true,
+			wantErr:    false,
+			want:       false,
 		},
 		{
 			name:       "<1.25 k8s version with old valid version",
@@ -395,6 +399,7 @@ func Test_bottleRocket_verifySupportedBRVersion(t *testing.T) {
 			brVariant:  "vmware-k8s-1.24",
 			statusCode: http.StatusOK,
 			wantErr:    false,
+			want:       true,
 		},
 		{
 			name:       "<1.25 k8s version with old invalid version",
@@ -402,7 +407,8 @@ func Test_bottleRocket_verifySupportedBRVersion(t *testing.T) {
 			brVersion:  "1.10.1",
 			brVariant:  "vmware-k8s-1.23",
 			statusCode: http.StatusOK,
-			wantErr:    true,
+			wantErr:    false,
+			want:       false,
 		},
 		{
 			name:       "bad response from server",
@@ -411,6 +417,16 @@ func Test_bottleRocket_verifySupportedBRVersion(t *testing.T) {
 			brVariant:  "vmware-k8s-1.25",
 			statusCode: http.StatusNotFound,
 			wantErr:    true,
+			want:       false,
+		},
+		{
+			name:       "missing from server",
+			fields:     fields{client: http.Client{}},
+			brVersion:  "",
+			brVariant:  "",
+			statusCode: http.StatusNotFound,
+			wantErr:    true,
+			want:       false,
 		},
 	}
 	for _, tt := range tests {
@@ -430,9 +446,13 @@ func Test_bottleRocket_verifySupportedBRVersion(t *testing.T) {
 				config:  tt.fields.config,
 			}
 
-			if err := b.verifySupportedBRVersion(); (err != nil) != tt.wantErr {
-				t.Errorf("verifySupportedBRVersion() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := b.isSupportedBRVersion()
+			if err != nil {
+				if !tt.wantErr {
+					t.Errorf("Expected no error but got %v", err)
+				}
 			}
+			assert.Equalf(t, tt.want, got, "isSupportedBRVersion()")
 		})
 	}
 }

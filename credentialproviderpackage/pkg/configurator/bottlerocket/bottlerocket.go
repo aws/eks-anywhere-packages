@@ -13,7 +13,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Masterminds/semver"
+	"golang.org/x/mod/semver"
 
 	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/configurator"
 	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/constants"
@@ -81,8 +81,11 @@ func NewBottleRocketConfigurator(socketPath string) (*bottleRocket, error) {
 		},
 	}
 
-	err = br.verifySupportedBRVersion()
+	valid, err := br.isSupportedBRVersion()
 	if err != nil {
+		return nil, fmt.Errorf("error retrieving BR version %v", err)
+	}
+	if !valid {
 		return nil, fmt.Errorf("unsupported BR version %v", err)
 	}
 	return br, nil
@@ -200,11 +203,11 @@ func createCredentialProviderPayload(config constants.CredentialProviderConfigOp
 	return payload, nil
 }
 
-func (b *bottleRocket) verifySupportedBRVersion() error {
-	allowedVersions := ">=1.11.0"
+func (b *bottleRocket) isSupportedBRVersion() (bool, error) {
+	allowedVersions := "v1.11.0"
 	req, err := http.NewRequest(http.MethodGet, b.baseURL, nil)
 	if err != nil {
-		return err
+		return false, err
 	}
 	q := req.URL.Query()
 	q.Add("prefix", "os")
@@ -212,56 +215,41 @@ func (b *bottleRocket) verifySupportedBRVersion() error {
 
 	respGet, err := b.client.Do(req)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	defer respGet.Body.Close()
 
 	if respGet.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed GET request: %s", respGet.Status)
+		return false, fmt.Errorf("failed GET request: %s", respGet.Status)
 	}
 
 	valueBody, err := ioutil.ReadAll(respGet.Body)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	osVersion := brVersion{}
 	err = json.Unmarshal(valueBody, &osVersion)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Check if BR k8s version is 1.25 or greater. If so we will update allowedVersions to be >1.13.0
 	if osVersion.Os.VariantID != "" {
 		variants := strings.Split(osVersion.Os.VariantID, "-")
-		ver, err := semver.NewVersion(variants[len(variants)-1])
-		if err != nil {
-			return fmt.Errorf("%v not a valid BR variant", err)
-		}
-		c, err := semver.NewConstraint(">=1.25")
-		if err != nil {
-			return err
-		}
-		valid := c.Check(ver)
-		if valid {
-			allowedVersions = ">1.13.0"
+		variantSemVar := "v" + variants[len(variants)-1]
+
+		if semver.Compare(variantSemVar, "v1.25") >= 0 {
+			allowedVersions = "v1.13.0"
 		}
 	}
 
-	ver, err := semver.NewVersion(osVersion.Os.VersionID)
-	if err != nil {
-		return err
-	}
+	ver := "v" + osVersion.Os.VersionID
 
-	c, err := semver.NewConstraint(allowedVersions)
-	if err != nil {
-		return err
+	valid := semver.Compare(ver, allowedVersions)
+	if valid <= 0 {
+		return false, nil
 	}
-
-	valid := c.Check(ver)
-	if !valid {
-		return fmt.Errorf("%v not a supported version of BR", osVersion.Os.VersionID)
-	}
-	return nil
+	return true, nil
 }
