@@ -133,7 +133,7 @@ Function to figure out if to install cronjob, credential-package, or none
                         {{- printf "credential-package" -}}
                     {{- end -}}
                 {{- else -}}
-                    {{- if semverCompare "<=1.11" $v -}}
+                    {{- if semverCompare "<=1.13" $v -}}
                         {{- printf "cronjob" -}}
                     {{- else -}}
                         {{- printf "credential-package" -}}
