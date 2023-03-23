@@ -3,30 +3,32 @@ name: "v1-25-1001"
 kubernetesVersion: "1.25"
 minControllerVersion: "v0.3.2"
 packages:
-  - org: aws-containers
+  - org: aws
     projects:
-      - name: hello-eks-anywhere
-        repository: hello-eks-anywhere
-        registry: public.ecr.aws/l0g8r8j6
-        versions:
-            - name: latest
       - name: eks-anywhere-packages
         repository: eks-anywhere-packages
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.0.0-latest
+          - name: 0.0.0-latest
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.0.0-latest
+          - name: 0.0.0-latest
       - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-migrations
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.0.0-latest
+          - name: 0.0.0-latest
       - name: credential-provider-package
         repository: credential-provider-package
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+          - name: latest
+  - org: aws-containers
+    projects:
+      - name: hello-eks-anywhere
+        repository: hello-eks-anywhere
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: latest
