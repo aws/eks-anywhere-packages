@@ -9,7 +9,7 @@ packages:
         repository: eks-anywhere-packages
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.3.9-eks-a-v0.0.0-dev-build.6630
+          - name: 0.0.0-64bcce229cd820a061aaada28ec73b48e7d5ff63
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: public.ecr.aws/w9m0f3l5
