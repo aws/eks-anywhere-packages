@@ -176,3 +176,22 @@ packages:
             - name: 0.1.1-92904119e6e1bae35bf88663d0875259d42346f8
             - name: latest
 ```
+
+
+#### Public Profile with Image Copy
+
+```yaml
+name: "v1-22-1001"
+kubernetesVersion: "1.22"
+packages:
+  - org: aws-containers
+    projects:
+      - name: hello-eks-anywhere
+        copyimages: true
+        repository: hello-eks-anywhere
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+            - name: 0.1.1-92904119e6e1bae35bf88663d0875259d42346f8
+            - name: latest
+
+```

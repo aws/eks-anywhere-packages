@@ -5,6 +5,7 @@ packages:
   - org: aws
     projects:
       - name: eks-anywhere-packages
+        copyimages: true
         repository: eks-anywhere-packages
         registry: public.ecr.aws/l0g8r8j6
         versions:
@@ -20,6 +21,7 @@ packages:
         versions:
           - name: 0.3.9-latest-helm
       - name: credential-provider-package
+        copyimages: true
         repository: credential-provider-package
         registry: public.ecr.aws/l0g8r8j6
         versions:
