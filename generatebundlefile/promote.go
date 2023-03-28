@@ -190,10 +190,12 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 				if err != nil {
 					BundleLog.Error(err, "Unable to find Tag from Digest")
 				}
-				BundleLog.Info("Moving images to private ECR in artifact account")
+				BundleLog.Info("Moving container images to ECR")
 				source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", accountID, images.Repository, images.Tag)
 				if c.ecrClientRelease != nil {
 					destination = fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClientRelease.AccountID, images.Repository, images.Tag)
+				} else if c.ecrPublicClientRelease != nil {
+					destination = fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClientRelease.SourceRegistry, images.Repository, images.Tag)
 				} else {
 					destination = fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag)
 				}

@@ -137,10 +137,10 @@ func ParseInputConfig(fileName string, inputConfig *Input) error {
 	return fmt.Errorf("cluster spec file %s is invalid or does not contain kind %v", fileName, inputConfig)
 }
 
-func (c *SDKClients) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, string, error) {
+func (c *SDKClients) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, string, map[string]bool, error) {
 	packageBundleSpec := api.PackageBundleSpec{}
 	if Input.Name == "" || Input.KubernetesVersion == "" {
-		return packageBundleSpec, "", fmt.Errorf("error: Empty input field from `Name` or `KubernetesVersion`.")
+		return packageBundleSpec, "", nil, fmt.Errorf("error: Empty input field from `Name` or `KubernetesVersion`.")
 	}
 	var name string
 	name, ok := os.LookupEnv("CODEBUILD_BUILD_NUMBER")
@@ -153,15 +153,20 @@ func (c *SDKClients) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, st
 	if Input.MinVersion != "" {
 		packageBundleSpec.MinVersion = Input.MinVersion
 	}
+	copyImages := map[string]bool{}
 	for _, org := range Input.Packages {
 		for _, project := range org.Projects {
+			copyImages[project.Repository] = false
+			if project.CopyImages {
+				copyImages[project.Repository] = true
+			}
 			bundlePkg, err := c.NewPackageFromInput(project)
 			if err != nil {
 				BundleLog.Error(err, "Unable to complete NewBundleFromInput from ecr lookup failure")
-				return packageBundleSpec, "", err
+				return packageBundleSpec, "", nil, err
 			}
 			packageBundleSpec.Packages = append(packageBundleSpec.Packages, *bundlePkg)
 		}
 	}
-	return packageBundleSpec, name, nil
+	return packageBundleSpec, name, copyImages, nil
 }

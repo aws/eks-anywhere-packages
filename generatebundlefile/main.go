@@ -335,7 +335,7 @@ func cmdGenerate(opts *Options) error {
 		}
 
 		BundleLog.Info("In Progress: Populating Bundles and looking up Sha256 tags")
-		addOnBundleSpec, name, err := clients.NewBundleFromInput(Inputs)
+		addOnBundleSpec, name, copyImages, err := clients.NewBundleFromInput(Inputs)
 		if err != nil {
 			BundleLog.Error(err, "Unable to create bundle from input file")
 			os.Exit(1)
@@ -428,6 +428,9 @@ func cmdGenerate(opts *Options) error {
 			}
 			dockerReleaseStruct = &DockerAuth{
 				Auths: map[string]DockerAuthRegistry{
+					fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): {
+						clients.ecrClient.AuthConfig,
+					},
 					fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): {
 						clients.ecrPublicClient.AuthConfig,
 					},
@@ -446,7 +449,7 @@ func cmdGenerate(opts *Options) error {
 			}
 			for _, charts := range addOnBundleSpec.Packages {
 				for _, versions := range charts.Source.Versions {
-					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, false)
+					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, copyImages[charts.Source.Repository])
 					if err != nil {
 						BundleLog.Error(err, "promoting helm chart",
 							"name", charts.Source.Repository)

@@ -82,6 +82,7 @@ type Project struct {
 	Repository   string `json:"repository,omitempty"`
 	Versions     []Tag  `json:"versions,omitempty"`
 	WorkloadOnly bool   `json:"workloadonly,omitempty"`
+	CopyImages   bool   `json:"copyimages,omitempty"`
 }
 
 // Tag is the release tag
