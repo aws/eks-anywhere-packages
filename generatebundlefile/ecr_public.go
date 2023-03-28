@@ -60,15 +60,16 @@ func (c *ecrPublicClient) DescribePublic(describeInput *ecrpublic.DescribeImages
 }
 
 // GetShaForPublicInputs returns a list of an images version/sha for given inputs to lookup
-func (c *ecrPublicClient) GetShaForPublicInputs(project Project) ([]api.SourceVersion, error) {
+func (c *SDKClients) GetShaForPublicInputs(project Project) ([]api.SourceVersion, error) {
 	sourceVersion := []api.SourceVersion{}
 	for _, tag := range project.Versions {
 		if !strings.HasSuffix(tag.Name, "latest") {
 			var imagelookup []ecrpublictypes.ImageIdentifier
 			imagelookup = append(imagelookup, ecrpublictypes.ImageIdentifier{ImageTag: &tag.Name})
-			ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
+			ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
 				RepositoryName: aws.String(project.Repository),
 				ImageIds:       imagelookup,
+				RegistryId:     &c.stsClientRelease.AccountID,
 			})
 			if err != nil {
 				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
@@ -86,7 +87,7 @@ func (c *ecrPublicClient) GetShaForPublicInputs(project Project) ([]api.SourceVe
 		}
 		//
 		if tag.Name == "latest" {
-			ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
+			ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
 				RepositoryName: aws.String(project.Repository),
 			})
 			if err != nil {
@@ -108,7 +109,7 @@ func (c *ecrPublicClient) GetShaForPublicInputs(project Project) ([]api.SourceVe
 		if strings.HasSuffix(tag.Name, "-latest") {
 			regex := regexp.MustCompile(`-latest`)
 			splitVersion := regex.Split(tag.Name, -1) //extract out the version without the latest
-			ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
+			ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
 				RepositoryName: aws.String(project.Repository),
 			})
 			if err != nil {
