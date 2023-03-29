@@ -156,10 +156,7 @@ func (c *SDKClients) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, st
 	copyImages := map[string]bool{}
 	for _, org := range Input.Packages {
 		for _, project := range org.Projects {
-			copyImages[project.Repository] = false
-			if project.CopyImages {
-				copyImages[project.Repository] = true
-			}
+			copyImages[project.Repository] = project.CopyImages
 			bundlePkg, err := c.NewPackageFromInput(project)
 			if err != nil {
 				BundleLog.Error(err, "Unable to complete NewBundleFromInput from ecr lookup failure")
