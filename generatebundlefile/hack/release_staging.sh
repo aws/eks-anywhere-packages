@@ -70,10 +70,6 @@ if [ ! -x "${ORAS_BIN}" ]; then
     make oras-install
 fi
 
-for version in 1-22 1-23 1-24 1-25 1-26; do
-    generate ${version} "staging"
-done
-
 export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/configfile
 export AWS_PROFILE=packages
 
@@ -81,8 +77,13 @@ for version in 1-22 1-23 1-24 1-25 1-26; do
     regionCheck ${version}
 done
 
-export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/stagingconfigfile
 export AWS_PROFILE=staging
+export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/stagingconfigfile
+for version in 1-22 1-23 1-24 1-25 1-26; do
+    generate ${version} "staging"
+done
+
+
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
 for version in 1-22 1-23 1-24 1-25 1-26; do

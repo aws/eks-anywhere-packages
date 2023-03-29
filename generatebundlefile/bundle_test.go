@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
@@ -68,9 +69,11 @@ var testShaBundle string = "sha256:d5467083c4d175e7e9bba823e95570d28fff86a2fbccb
 var testImageMediaType string = "application/vnd.oci.image.manifest.v1+json"
 var testRegistryId string = "public.ecr.aws/eks-anywhere"
 var testRepositoryName string = "hello-eks-anywhere"
+var testAccountID string = "123456702424"
 
 func TestNewPackageFromInput(t *testing.T) {
 	client := newMockPublicRegistryClientBundle(nil)
+	stsclient := newMockSTSReleaseClient(nil)
 	tests := []struct {
 		client      *mockPublicRegistryClientBundle
 		testname    string
@@ -169,6 +172,9 @@ func TestNewPackageFromInput(t *testing.T) {
 			clients := &SDKClients{
 				ecrPublicClient: &ecrPublicClient{
 					publicRegistryClient: client,
+				},
+				stsClientRelease: &stsClient{
+					stsClientInterface: stsclient,
 				},
 			}
 			got, err := clients.NewPackageFromInput(tc.testproject)
@@ -349,4 +355,23 @@ func (r *mockPublicRegistryClientBundle) DescribeRegistries(ctx context.Context,
 
 func (r *mockPublicRegistryClientBundle) GetAuthorizationToken(ctx context.Context, params *ecrpublic.GetAuthorizationTokenInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error) {
 	panic("not implemented") // TODO: Implement
+}
+
+type mockSTSReleaseClient struct {
+	err error
+}
+
+func newMockSTSReleaseClient(err error) *mockSTSReleaseClient {
+	return &mockSTSReleaseClient{
+		err: err,
+	}
+}
+
+func (r *mockSTSReleaseClient) GetCallerIdentity(ctx context.Context, params *sts.GetCallerIdentityInput, optFns ...func(*sts.Options)) (*sts.GetCallerIdentityOutput, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+	return &sts.GetCallerIdentityOutput{
+		Account: &testAccountID,
+	}, nil
 }

@@ -8,14 +8,18 @@ import (
 )
 
 type stsClient struct {
-	*sts.Client
+	stsClientInterface
 	AccountID string
 }
 
-func NewStsClient(stsclient *sts.Client, account bool) (*stsClient, error) {
-	stsClient := &stsClient{Client: stsclient}
+type stsClientInterface interface {
+	GetCallerIdentity(ctx context.Context, params *sts.GetCallerIdentityInput, optFns ...func(*sts.Options)) (*sts.GetCallerIdentityOutput, error)
+}
+
+func NewStsClient(client stsClientInterface, account bool) (*stsClient, error) {
+	stsClient := &stsClient{stsClientInterface: client}
 	if account {
-		stslookup, err := stsClient.Client.GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
+		stslookup, err := stsClient.GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
 		if err != nil {
 			return nil, err
 		}

@@ -74,7 +74,7 @@ func (c *SDKClients) NewPackageFromInput(project Project) (*api.BundlePackage, e
 	var err error
 	// Check bundle Input registry for ECR Public Registry
 	if strings.Contains(project.Registry, "public.ecr.aws") {
-		versionList, err = c.ecrPublicClient.GetShaForPublicInputs(project)
+		versionList, err = c.GetShaForPublicInputs(project)
 		if err != nil {
 			return nil, err
 		}

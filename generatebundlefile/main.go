@@ -309,6 +309,18 @@ func cmdGenerate(opts *Options) error {
 		BundleLog.Error(err, "creating ECR client")
 		os.Exit(1)
 	}
+	// Creating AWS Clients with profile
+	Profile := "default"
+	val, ok := os.LookupEnv("AWS_PROFILE")
+	if ok {
+		Profile = val
+	}
+	BundleLog.Info("Using Env", "AWS_PROFILE", Profile)
+	clients, err = clients.GetProfileSDKConnection("sts", Profile, ecrRegion)
+	if err != nil {
+		BundleLog.Error(err, "getting profile SDK connection")
+		os.Exit(1)
+	}
 	for _, f := range files {
 		Inputs, err := ValidateInputConfig(f)
 		if err != nil {
@@ -362,6 +374,7 @@ func cmdGenerate(opts *Options) error {
 			}
 			// Check for requires.yaml in the unpacked helm chart
 			helmDest := filepath.Join(pwd, chartName, helmname)
+			defer os.RemoveAll(helmDest)
 			f, err := hasRequires(helmDest)
 			if err != nil {
 				BundleLog.Error(err, "Helm chart doesn't have requires.yaml inside")
