@@ -147,13 +147,16 @@ func GetBundleSignature(ctx context.Context, bundle *api.PackageBundle, key stri
 	if err != nil {
 		return "", err
 	}
-	cfg, err := config.LoadDefaultConfig(ctx)
+
+	confWithProfile, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-west-2"),
+		config.WithSharedConfigProfile("default"),
+	)
 	if err != nil {
 		fmt.Println("configuration error, " + err.Error())
 		os.Exit(-1)
 	}
-
-	client := kms.NewFromConfig(cfg)
+	client := kms.NewFromConfig(confWithProfile)
 
 	input := &kms.SignInput{
 		KeyId:            &key,
