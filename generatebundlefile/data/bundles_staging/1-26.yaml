@@ -79,7 +79,7 @@ packages:
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 0.6.2-eks-1-26-3-c0d72c447e98289e469a068602f127abcb7e76f6-latest-helm
+            - name: 0.6.2-eks-1-26-5-da99883b9791fb9e8a6e135513f49b636583e40a
   - org: metallb
     projects:
       - name: metallb
