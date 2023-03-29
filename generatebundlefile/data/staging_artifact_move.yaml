@@ -16,6 +16,7 @@ packages:
         versions:
           - name: 0.3.9-latest-helm
       - name: eks-anywhere-packages-migrations
+        copyimages: true
         repository: eks-anywhere-packages-migrations
         registry: public.ecr.aws/l0g8r8j6
         versions:
