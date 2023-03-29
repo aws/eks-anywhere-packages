@@ -53,12 +53,12 @@ packages:
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 3.5.1-bf70150bcdfe3a5383ec8ad9cd7eea801a0cb074	
+            - name: 3.5.1-bf70150bcdfe3a5383ec8ad9cd7eea801a0cb074
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 3.5.1-bf70150bcdfe3a5383ec8ad9cd7eea801a0cb074	
+            - name: 3.5.1-bf70150bcdfe3a5383ec8ad9cd7eea801a0cb074
   - org: harbor
     projects:
       - name: harbor
