@@ -148,7 +148,17 @@ func GetBundleSignature(ctx context.Context, bundle *api.PackageBundle, key stri
 		return "", err
 	}
 
+	// Creating AWS Clients with profile
+	ConfigFilePath := "~/.aws/config"
+	val, ok := os.LookupEnv("AWS_CONFIG_FILE")
+	if ok {
+		ConfigFilePath = val
+	}
+	BundleLog.Info("Using Config File", "AWS_CONFIG_FILE", ConfigFilePath)
 	confWithProfile, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithSharedConfigFiles(
+			[]string{ConfigFilePath},
+		),
 		config.WithRegion("us-west-2"),
 		config.WithSharedConfigProfile("default"),
 	)
