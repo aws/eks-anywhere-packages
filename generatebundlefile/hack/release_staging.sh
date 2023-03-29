@@ -20,7 +20,14 @@ set -o pipefail
 
 export LANG=C.UTF-8
 
+BASE_AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
 cat << EOF > configfile
+[default]
+region=us-west-2
+account=$BASE_AWS_ACCOUNT_ID
+output=json
+
 [profile packages]
 role_arn=$PACKAGES_ARTIFACT_DEPLOYMENT_ROLE
 region=us-west-2
@@ -47,6 +54,11 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
 
 # Release Helm Chart, and bundle to Staging account
 cat << EOF > stagingconfigfile
+[default]
+region=us-west-2
+account=$BASE_AWS_ACCOUNT_ID
+output=json
+
 [profile staging]
 role_arn=$ARTIFACT_DEPLOYMENT_ROLE
 region=us-east-1
