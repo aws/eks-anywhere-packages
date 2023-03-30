@@ -2,6 +2,31 @@
 name: "v1-22-1001"
 kubernetesVersion: "1.22"
 packages:
+  - org: aws
+    projects:
+      - name: eks-anywhere-packages
+        copyimages: true
+        repository: eks-anywhere-packages
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+          - name: 0.3.9-eks-a-33
+      - name: eks-anywhere-packages-crds
+        repository: eks-anywhere-packages-crds
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+          - name: 0.3.9-latest-helm
+      - name: eks-anywhere-packages-migrations
+        copyimages: true
+        repository: eks-anywhere-packages-migrations
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+          - name: 0.3.9-latest-helm
+      - name: credential-provider-package
+        copyimages: true
+        repository: credential-provider-package
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+          - name: 0.3.9-latest-helm
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
@@ -34,6 +59,7 @@ packages:
             - name: 9.21.0-1.23-ea4ec7997935eb144292ac473e23ad28d194b128-release-0.14-helm
             - name: 9.21.0-1.24-ea4ec7997935eb144292ac473e23ad28d194b128
             - name: 9.21.0-1.25-ea4ec7997935eb144292ac473e23ad28d194b128
+            - name: 9.21.0-1.26-c0d72c447e98289e469a068602f127abcb7e76f6
   - org: harbor
     projects:
       - name: harbor
@@ -47,24 +73,25 @@ packages:
         repository: metallb/metallb
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.13.7-7ef12656f16c2fcb655c35cafefa57aaa55bd261
+            - name: 0.13.7-f6fa2d12ab0f0a3082eab915e4afdbd421d0e99d
   - org: metallb
     projects:
       - name: metallb-crds
         repository: metallb/crds
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.13.7-7ef12656f16c2fcb655c35cafefa57aaa55bd261
+            - name: 0.13.7-f6fa2d12ab0f0a3082eab915e4afdbd421d0e99d
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.6.1-eks-1-22-11-c94ed410f56421659f554f13b4af7a877da72bc1
-            - name: 0.6.1-eks-1-23-6-c94ed410f56421659f554f13b4af7a877da72bc1
-            - name: 0.6.1-eks-1-24-1-c94ed410f56421659f554f13b4af7a877da72bc1
-            - name: 0.6.2-eks-1-25-2-56810429df35d3ec6ddd5b83ce409f1f33d76c1b
+            - name: 0.6.2-eks-1-22-23-da99883b9791fb9e8a6e135513f49b636583e40a
+            - name: 0.6.2-eks-1-23-18-da99883b9791fb9e8a6e135513f49b636583e40a
+            - name: 0.6.2-eks-1-24-13-da99883b9791fb9e8a6e135513f49b636583e40a
+            - name: 0.6.2-eks-1-25-9-da99883b9791fb9e8a6e135513f49b636583e40a
+            - name: 0.6.2-eks-1-26-5-da99883b9791fb9e8a6e135513f49b636583e40a
   - org: emissary
     projects:
       - name: emissary

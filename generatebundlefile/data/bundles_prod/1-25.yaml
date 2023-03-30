@@ -3,6 +3,28 @@ name: "v1-25-1001"
 kubernetesVersion: "1.25"
 minControllerVersion: "v0.3.2"
 packages:
+  - org: aws
+    projects:
+      - name: eks-anywhere-packages
+        repository: eks-anywhere-packages
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+          - name: 0.3.9-eks-a-33
+      - name: eks-anywhere-packages-crds
+        repository: eks-anywhere-packages-crds
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+          - name: 0.3.9-latest-helm
+      - name: eks-anywhere-packages-migrations
+        repository: eks-anywhere-packages-migrations
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+          - name: 0.3.9-latest-helm
+      - name: credential-provider-package
+        repository: credential-provider-package
+        registry: public.ecr.aws/eks-anywhere
+        versions:
+          - name: 0.3.9-latest-helm
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
@@ -57,19 +79,19 @@ packages:
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 0.6.2-eks-1-25-2-56810429df35d3ec6ddd5b83ce409f1f33d76c1b
+            - name: 0.6.2-eks-1-25-9-da99883b9791fb9e8a6e135513f49b636583e40a
   - org: metallb
     projects:
       - name: metallb
         repository: metallb/metallb
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 0.13.7-7ef12656f16c2fcb655c35cafefa57aaa55bd261
+            - name: 0.13.7-f6fa2d12ab0f0a3082eab915e4afdbd421d0e99d
       - name: metallb-crds
         repository: metallb/crds
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 0.13.7-7ef12656f16c2fcb655c35cafefa57aaa55bd261
+            - name: 0.13.7-f6fa2d12ab0f0a3082eab915e4afdbd421d0e99d
   - org: prometheus
     projects:
       - name: prometheus
