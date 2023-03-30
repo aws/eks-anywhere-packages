@@ -20,7 +20,14 @@ set -o pipefail
 
 export LANG=C.UTF-8
 
+BASE_AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
 cat << EOF > configfile
+[default]
+region=us-west-2
+account=$BASE_AWS_ACCOUNT_ID
+output=json
+
 [profile packages]
 role_arn=$PACKAGES_ARTIFACT_DEPLOYMENT_ROLE
 region=us-west-2
@@ -48,6 +55,11 @@ ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
 
 # Release Helm Chart, and bundle to Production account
 cat << EOF > prodconfigfile
+[default]
+region=us-west-2
+account=$BASE_AWS_ACCOUNT_ID
+output=json
+
 [profile prod]
 role_arn=$ARTIFACT_DEPLOYMENT_ROLE
 region=us-east-1
@@ -71,13 +83,14 @@ if [ ! -x "${ORAS_BIN}" ]; then
     make oras-install
 fi
 
-for version in 1-22 1-23 1-24 1-25; do
+export AWS_PROFILE=prod
+export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/prodconfigfile
+for version in 1-22 1-23 1-24 1-25 1-26; do
     generate ${version} "prod"
 done
 
-export AWS_PROFILE=prod
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
-for version in 1-22 1-23 1-24 1-25; do
+for version in 1-22 1-23 1-24 1-25 1-26; do
     push ${version}
 done
