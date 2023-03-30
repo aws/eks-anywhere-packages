@@ -4,12 +4,6 @@ kubernetesVersion: "1.22"
 packages:
   - org: aws
     projects:
-      # - name: eks-anywhere-packages
-      #   copyimages: true
-      #   repository: eks-anywhere-packages
-      #   registry: public.ecr.aws/l0g8r8j6
-      #   versions:
-      #     - name: 0.0.0-latest
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: public.ecr.aws/l0g8r8j6
