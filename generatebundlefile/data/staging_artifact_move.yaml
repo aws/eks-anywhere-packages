@@ -10,6 +10,7 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 0.0.0-latest  # This is only used to move images for scanning, keep as 0.0.0-latest
+            - name: 0.3.9-release-0.15-helm
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: public.ecr.aws/l0g8r8j6
