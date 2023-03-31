@@ -1,4 +1,5 @@
 # This file is only used to determine which Helm charts to move from Dev to Prod during a release.
+# These Helm Charts versions now come from Public ECR as of release 0.15
 name: "v1-22-1001"
 kubernetesVersion: "1.22"
 packages:
