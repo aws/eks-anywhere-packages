@@ -48,6 +48,7 @@ chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile
 aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
+# Move Helm Images within the bundle to Private ECR
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml \
     --private-profile ${PROFILE}
@@ -73,7 +74,7 @@ REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
 
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
-# Move Helm charts within the bundle to another account
+# Move Helm charts within the bundle to Public ECR
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml \
     --public-profile ${PROFILE}
@@ -82,16 +83,22 @@ if [ ! -x "${ORAS_BIN}" ]; then
     make oras-install
 fi
 
+# Generate Bundles from Public ECR
 export AWS_PROFILE=staging
 export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/stagingconfigfile
 for version in 1-22 1-23 1-24 1-25 1-26; do
     generate ${version} "staging"
-    regionCheck ${version}
 done
 
-
+# Push Bundles to Public ECR
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
-
 for version in 1-22 1-23 1-24 1-25 1-26; do
     push ${version}
+done
+
+# Check images from Bundle in Private ECR
+export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/configfile
+export AWS_PROFILE=packages
+for version in 1-22 1-23 1-24 1-25 1-26; do
+    regionCheck ${version}
 done
