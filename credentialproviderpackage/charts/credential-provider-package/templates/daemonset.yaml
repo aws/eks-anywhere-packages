@@ -55,6 +55,8 @@ spec:
               value: '{{ join "," (index .Values.credential 0).matchImages }}'
             - name: DEFAULT_CACHE_DURATION
               value: {{(index .Values.credential 0).defaultCacheDuration}}
+            - name: K8S_VERSION
+              value: "v{{ .Capabilities.KubeVersion.Major }}.{{ .Capabilities.KubeVersion.Minor }}"
       volumes:
         # Currently only one secret (aws-secret) is supported at this time
         - name: aws-creds

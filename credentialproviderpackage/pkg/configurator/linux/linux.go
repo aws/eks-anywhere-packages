@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	ps "github.com/mitchellh/go-ps"
+	"golang.org/x/mod/semver"
 
 	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/configurator"
 	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/pkg/constants"
@@ -180,10 +181,23 @@ func copyBinaries() (string, error) {
 }
 
 func (c *linuxOS) createConfig() (string, error) {
+	k8sVersion := os.Getenv("K8S_VERSION")
+	apiVersion := "v1"
+	if semver.Compare(k8sVersion, "v1.26") <= 0 {
+		apiVersion = "v1beta1"
+	}
+	if semver.Compare(k8sVersion, "v1.24") <= 0 {
+		apiVersion = "v1alpha1"
+	}
+	if k8sVersion == "" {
+		apiVersion = "v1"
+	}
+
 	values := map[string]interface{}{
 		"profile":       c.profile,
 		"config":        basePath + credOutFile,
 		"home":          basePath,
+		"apiVersion":    apiVersion,
 		"imagePattern":  c.config.ImagePatterns,
 		"cacheDuration": c.config.DefaultCacheDuration,
 	}
@@ -207,20 +221,22 @@ func (c *linuxOS) updateKubeletArguments(line string) string {
 		args += " --feature-gates=KubeletCredentialProviders=true"
 	}
 
+	val, err := c.createConfig()
+	if err != nil {
+		log.ErrorLogger.Printf("Error creating configuration %v", err)
+	}
+	// We want to upgrade the eksa owned configuration/binaries everytime however,
+	// we don't want to update what configuration is being pointed to in cases of a custom config
 	if !strings.Contains(line, "image-credential-provider-config") {
-		val, err := c.createConfig()
-		if err != nil {
-			log.ErrorLogger.Printf("Error creating configuration %v", err)
-		}
 		args += val
+	}
 
-		val, err = copyBinaries()
-		if err != nil {
-			log.ErrorLogger.Printf("Error coping binaries %v\n", err)
-		}
-		if !strings.Contains(line, "image-credential-provider-bin-dir") {
-			args += val
-		}
+	val, err = copyBinaries()
+	if err != nil {
+		log.ErrorLogger.Printf("Error coping binaries %v\n", err)
+	}
+	if !strings.Contains(line, "image-credential-provider-bin-dir") {
+		args += val
 	}
 	return args
 }
