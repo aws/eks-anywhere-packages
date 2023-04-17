@@ -3,7 +3,7 @@ module github.com/aws/eks-anywhere-packages
 go 1.19
 
 require (
-	github.com/docker/cli v20.10.17+incompatible
+	github.com/docker/cli v20.10.24+incompatible
 	github.com/go-logr/logr v1.2.3
 	github.com/go-logr/zapr v1.2.3
 	github.com/golang/mock v1.6.0
@@ -20,6 +20,7 @@ require (
 	// This PR: https://github.com/helm/helm/pull/11659 fixes the issue
 	// This PR merges it to main https://github.com/helm/helm/pull/11711
 	// and has not been merged to main. Adding this temporarily to fix this issue
+	// They are targeting v3.12 to merge
 	helm.sh/helm/v3 v3.9.0-rc.1.0.20221222223505-5c40996dad38
 	k8s.io/api v0.26.1
 	k8s.io/apimachinery v0.26.1
