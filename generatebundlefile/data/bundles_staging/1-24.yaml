@@ -72,7 +72,7 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 9.21.0-1.24-ea4ec7997935eb144292ac473e23ad28d194b128
+            - name: 9.21.0-1.24-cff017035760e2454afdb3ac7ee3bb48f5ab0183
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
