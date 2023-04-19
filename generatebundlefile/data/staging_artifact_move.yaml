@@ -57,11 +57,11 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 9.21.0-1.22-ea4ec7997935eb144292ac473e23ad28d194b128-release-0.14-helm
-            - name: 9.21.0-1.23-ea4ec7997935eb144292ac473e23ad28d194b128-release-0.14-helm
-            - name: 9.21.0-1.24-ea4ec7997935eb144292ac473e23ad28d194b128
-            - name: 9.21.0-1.25-ea4ec7997935eb144292ac473e23ad28d194b128
-            - name: 9.21.0-1.26-c0d72c447e98289e469a068602f127abcb7e76f6
+            - name: 9.21.0-1.22-cff017035760e2454afdb3ac7ee3bb48f5ab0183
+            - name: 9.21.0-1.23-cff017035760e2454afdb3ac7ee3bb48f5ab0183
+            - name: 9.21.0-1.24-cff017035760e2454afdb3ac7ee3bb48f5ab0183
+            - name: 9.21.0-1.25-cff017035760e2454afdb3ac7ee3bb48f5ab0183-latest-helm
+            - name: 9.21.0-1.26-cff017035760e2454afdb3ac7ee3bb48f5ab0183
   - org: harbor
     projects:
       - name: harbor
