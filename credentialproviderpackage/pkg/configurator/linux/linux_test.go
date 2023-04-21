@@ -30,6 +30,7 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 		args             args
 		outputConfigPath string
 		configWantPath   string
+		k8sVersion       string
 		want             string
 	}{
 		{
@@ -99,6 +100,60 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 			configWantPath:   "",
 			want:             "",
 		},
+		{
+			name: "test alpha api",
+			fields: fields{
+				profile:       "eksa-packages",
+				extraArgsPath: dir,
+				basePath:      dir,
+				config: constants.CredentialProviderConfigOptions{
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
+				},
+			},
+			args:             args{line: ""},
+			outputConfigPath: dir + "/" + credProviderFile,
+			configWantPath:   "testdata/expected-config-alpha.yaml",
+			k8sVersion:       "v1.24",
+			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
+				"--image-credential-provider-config=%s%s", dir, credProviderFile),
+		},
+		{
+			name: "test beta api",
+			fields: fields{
+				profile:       "eksa-packages",
+				extraArgsPath: dir,
+				basePath:      dir,
+				config: constants.CredentialProviderConfigOptions{
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
+				},
+			},
+			args:             args{line: ""},
+			outputConfigPath: dir + "/" + credProviderFile,
+			configWantPath:   "testdata/expected-config-beta.yaml",
+			k8sVersion:       "v1.26",
+			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
+				"--image-credential-provider-config=%s%s", dir, credProviderFile),
+		},
+		{
+			name: "test v1 api",
+			fields: fields{
+				profile:       "eksa-packages",
+				extraArgsPath: dir,
+				basePath:      dir,
+				config: constants.CredentialProviderConfigOptions{
+					ImagePatterns:        []string{constants.DefaultImagePattern},
+					DefaultCacheDuration: constants.DefaultCacheDuration,
+				},
+			},
+			args:             args{line: ""},
+			outputConfigPath: dir + "/" + credProviderFile,
+			configWantPath:   "testdata/expected-config.yaml",
+			k8sVersion:       "v1.27",
+			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
+				"--image-credential-provider-config=%s%s", dir, credProviderFile),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -108,6 +163,8 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 				basePath:      tt.fields.basePath,
 				config:        tt.fields.config,
 			}
+			t.Setenv("K8S_VERSION", tt.k8sVersion)
+
 			if got := c.updateKubeletArguments(tt.args.line); got != tt.want {
 				t.Errorf("updateKubeletArguments() = %v, want %v", got, tt.want)
 			}
