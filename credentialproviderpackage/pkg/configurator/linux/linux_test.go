@@ -163,11 +163,8 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 				basePath:      tt.fields.basePath,
 				config:        tt.fields.config,
 			}
-			err := os.Setenv("K8S_VERSION", tt.k8sVersion)
-			if err != nil {
-				t.Errorf("updateKubeletArguments failed to set K8S_VERSION")
-			}
-			defer os.Unsetenv("K8S_VERSION")
+			t.Setenv("K8S_VERSION", tt.k8sVersion)
+
 			if got := c.updateKubeletArguments(tt.args.line); got != tt.want {
 				t.Errorf("updateKubeletArguments() = %v, want %v", got, tt.want)
 			}
