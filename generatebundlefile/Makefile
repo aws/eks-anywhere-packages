@@ -5,7 +5,7 @@ SOURCE_CONTAINER_REGISTRY?=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 RELEASE_CONTAINER_REGISTRY?=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 BUILD_REPO_BRANCH_NAME?=main
 CLI_REPO_BRANCH_NAME?=main
-GOLANG_VERSION?="1.19"
+GOLANG_VERSION?="1.20"
 GO ?= $(shell source $(REPO_ROOT)/scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
 ECR_PUBLIC_URI?=$(shell AWS_REGION=us-east-1 && aws ecr-public describe-registries --query 'registries[*].registryUri' --output text)
 BASE_DIRECTORY=$(shell git rev-parse --show-toplevel)
