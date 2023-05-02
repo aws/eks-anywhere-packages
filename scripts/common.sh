@@ -84,7 +84,7 @@ function build::common::upload_artifacts() {
 }
 
 function build::gather_licenses() {
-  # force 1.16 since thats the version used to install go-licenses in builder-base
+  # force 1.18 since thats the version used to install go-licenses in builder-base
   build::common::use_go_version 1.18
   if ! command -v go-licenses &> /dev/null
   then
