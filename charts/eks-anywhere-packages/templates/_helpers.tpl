@@ -127,13 +127,13 @@ Function to figure out if to install cronjob, credential-package, or none
             {{- if eq $os "bottlerocket" -}}
                 {{- $v := include "template.getBRVersion" . -}}
                 {{- if semverCompare ">=1.25-0" .Capabilities.KubeVersion.GitVersion -}}
-                    {{- if semverCompare "<=1.13" $v -}}
+                    {{- if semverCompare "<=1.13.1" $v -}}
                         {{- printf "cronjob" -}}
                     {{- else -}}
                         {{- printf "credential-package" -}}
                     {{- end -}}
                 {{- else -}}
-                    {{- if semverCompare "<=1.13" $v -}}
+                    {{- if semverCompare "<=1.13.1" $v -}}
                         {{- printf "cronjob" -}}
                     {{- else -}}
                         {{- printf "credential-package" -}}
