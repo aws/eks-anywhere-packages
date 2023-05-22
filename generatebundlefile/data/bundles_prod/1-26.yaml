@@ -46,7 +46,7 @@ packages:
         repository: cert-manager/cert-manager
         registry: public.ecr.aws/eks-anywhere
         versions:
-          - name: 1.9.1-dc0c845b5f71bea6869efccd3ca3f2dd11b5c95f
+          - name: 1.11.0-62f15756a0e14958d3ca963e6541dbda0a76e364
   - org: emissary
     projects:
       - name: emissary
