@@ -38,6 +38,8 @@ type activeBundleValidator struct {
 	tcc     authenticator.TargetClusterClient
 }
 
+var _ admission.Handler = (*activeBundleValidator)(nil)
+
 func InitPackageBundleControllerValidator(mgr ctrl.Manager) error {
 	tcc := authenticator.NewTargetClusterClient(mgr.GetLogger(), mgr.GetConfig(), mgr.GetClient())
 	mgr.GetWebhookServer().
@@ -144,8 +146,6 @@ func (v *activeBundleValidator) handleInner(ctx context.Context, pbc *v1alpha1.P
 	}
 	return resp, nil
 }
-
-var _ admission.DecoderInjector = (*activeBundleValidator)(nil)
 
 // InjectDecoder injects the decoder.
 func (v *activeBundleValidator) InjectDecoder(d *admission.Decoder) error {
