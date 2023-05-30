@@ -8,9 +8,9 @@ packages:
         repository: emissary-ingress/emissary
         registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 3.5.1-latest
+            - name: 3.6.0-latest
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 3.5.1-latest
+            - name: 3.6.0-latest
