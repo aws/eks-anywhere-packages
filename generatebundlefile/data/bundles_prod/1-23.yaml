@@ -60,7 +60,7 @@ packages:
         repository: harbor/harbor-helm
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 2.7.1-839681797fdcb1bede297c99601c9b5a3753253a
+            - name: 2.7.1-1fe4a4b64ef6d646da6635a59636a3bf2d178948
   - org: metallb
     projects:
       - name: metallb
@@ -98,5 +98,5 @@ packages:
         repository: prometheus/charts/prometheus
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 2.41.0-4d06416ac5aafbba32eb07b9a170d7855be31e2b
+            - name: 2.43.0-0dfd662881d5a3a14830a9ca527908990cfb26f6
 
