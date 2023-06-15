@@ -36,7 +36,7 @@ spec:
           volumeMounts:
             - name: aws-creds
               mountPath: /secrets/aws-creds
-            {{ $os := include "template.getOSType" .}}
+            {{ $os := include "template.getOSName" .}}
             {{- if eq $os "bottlerocket" }}
             - mountPath: /run/api.sock
               name: socket
@@ -67,7 +67,7 @@ spec:
         - name: socket
           hostPath:
             path: /run/api.sock
-        {{- else if eq $os "default"}}
+        {{- else if eq $os "amazonlinux"}}
         - name: kubelet-extra-args
           hostPath:
             path: /etc/default/kubelet
