@@ -86,12 +86,12 @@ packages:
         repository: metallb/metallb
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 0.13.7-a5ed31e0a9b3c06d35d72b4b261c16d7de931765
+            - name: 0.13.7-21c206156e2f173a9471a992637eb43bf5147170
       - name: metallb-crds
         repository: metallb/crds
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 0.13.7-a5ed31e0a9b3c06d35d72b4b261c16d7de931765
+            - name: 0.13.7-21c206156e2f173a9471a992637eb43bf5147170
   - org: prometheus
     projects:
       - name: prometheus
