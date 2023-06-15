@@ -75,16 +75,14 @@ Create image name
 {{/*
 Function to figure out os name
 */}}
-{{- define "template.getOSType" -}}
+{{- define "template.getOSName" -}}
 {{- with first ((lookup "v1" "Node" "" "").items) -}}
 {{- if contains "Bottlerocket" .status.nodeInfo.osImage -}}
 {{- printf "bottlerocket" -}}
 {{- else if contains "Amazon Linux" .status.nodeInfo.osImage -}}
-{{- printf "default" -}}
-{{- else if contains "Ubuntu 22.04" .status.nodeInfo.osImage -}}
-{{- printf "default" -}}
+{{- printf "amazonlinux" -}}
 {{- else -}}
-{{- printf "sysconfig" -}}
+{{- printf "other" -}}
 {{- end }}
 {{- end }}
 {{- end }}
