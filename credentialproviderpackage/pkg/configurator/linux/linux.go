@@ -183,11 +183,12 @@ func copyBinaries() (string, error) {
 func (c *linuxOS) createConfig() (string, error) {
 	k8sVersion := os.Getenv("K8S_VERSION")
 	apiVersion := "v1"
+	//Change/Remove this after if we find v1 works for all versions.
 	if semver.Compare(k8sVersion, "v1.26") <= 0 {
-		apiVersion = "v1beta1"
+		apiVersion = "v1"
 	}
 	if semver.Compare(k8sVersion, "v1.24") <= 0 {
-		apiVersion = "v1alpha1"
+		apiVersion = "v1"
 	}
 	if k8sVersion == "" {
 		apiVersion = "v1"
