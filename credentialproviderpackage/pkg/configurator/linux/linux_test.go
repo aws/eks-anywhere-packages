@@ -101,7 +101,7 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 			want:             "",
 		},
 		{
-			name: "test alpha api",
+			name: "test v1 api 1.25",
 			fields: fields{
 				profile:       "eksa-packages",
 				extraArgsPath: dir,
@@ -113,31 +113,13 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 			},
 			args:             args{line: ""},
 			outputConfigPath: dir + "/" + credProviderFile,
-			configWantPath:   "testdata/expected-config-alpha.yaml",
-			k8sVersion:       "v1.24",
+			configWantPath:   "testdata/expected-config.yaml",
+			k8sVersion:       "v1.25",
 			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
 				"--image-credential-provider-config=%s%s", dir, credProviderFile),
 		},
 		{
-			name: "test beta api",
-			fields: fields{
-				profile:       "eksa-packages",
-				extraArgsPath: dir,
-				basePath:      dir,
-				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        []string{constants.DefaultImagePattern},
-					DefaultCacheDuration: constants.DefaultCacheDuration,
-				},
-			},
-			args:             args{line: ""},
-			outputConfigPath: dir + "/" + credProviderFile,
-			configWantPath:   "testdata/expected-config-beta.yaml",
-			k8sVersion:       "v1.26",
-			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
-				"--image-credential-provider-config=%s%s", dir, credProviderFile),
-		},
-		{
-			name: "test v1 api",
+			name: "test v1 api 1.27",
 			fields: fields{
 				profile:       "eksa-packages",
 				extraArgsPath: dir,
