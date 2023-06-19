@@ -137,7 +137,7 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 				"--image-credential-provider-config=%s%s", dir, credProviderFile),
 		},
 		{
-			name: "test v1 api",
+			name: "test v1 api 1.27",
 			fields: fields{
 				profile:       "eksa-packages",
 				extraArgsPath: dir,
