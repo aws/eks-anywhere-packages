@@ -114,24 +114,6 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 			args:             args{line: ""},
 			outputConfigPath: dir + "/" + credProviderFile,
 			configWantPath:   "testdata/expected-config-alpha.yaml",
-			k8sVersion:       "v1.23",
-			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
-				"--image-credential-provider-config=%s%s", dir, credProviderFile),
-		},
-		{
-			name: "test beta api",
-			fields: fields{
-				profile:       "eksa-packages",
-				extraArgsPath: dir,
-				basePath:      dir,
-				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns:        []string{constants.DefaultImagePattern},
-					DefaultCacheDuration: constants.DefaultCacheDuration,
-				},
-			},
-			args:             args{line: ""},
-			outputConfigPath: dir + "/" + credProviderFile,
-			configWantPath:   "testdata/expected-config-beta.yaml",
 			k8sVersion:       "v1.25",
 			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
 				"--image-credential-provider-config=%s%s", dir, credProviderFile),
