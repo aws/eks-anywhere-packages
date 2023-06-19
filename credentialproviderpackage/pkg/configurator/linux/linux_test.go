@@ -114,7 +114,7 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 			args:             args{line: ""},
 			outputConfigPath: dir + "/" + credProviderFile,
 			configWantPath:   "testdata/expected-config-alpha.yaml",
-			k8sVersion:       "v1.24",
+			k8sVersion:       "v1.23",
 			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
 				"--image-credential-provider-config=%s%s", dir, credProviderFile),
 		},
@@ -132,7 +132,7 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 			args:             args{line: ""},
 			outputConfigPath: dir + "/" + credProviderFile,
 			configWantPath:   "testdata/expected-config-beta.yaml",
-			k8sVersion:       "v1.26",
+			k8sVersion:       "v1.25",
 			want: fmt.Sprintf(" --feature-gates=KubeletCredentialProviders=true "+
 				"--image-credential-provider-config=%s%s", dir, credProviderFile),
 		},
