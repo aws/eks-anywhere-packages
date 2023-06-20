@@ -62,6 +62,7 @@ packages:
             - name: 9.21.0-1.24-cff017035760e2454afdb3ac7ee3bb48f5ab0183
             - name: 9.21.0-1.25-cff017035760e2454afdb3ac7ee3bb48f5ab0183-latest-helm
             - name: 9.21.0-1.26-cff017035760e2454afdb3ac7ee3bb48f5ab0183
+            - name: 9.21.0-1.27-a5ed31e0a9b3c06d35d72b4b261c16d7de931765
   - org: harbor
     projects:
       - name: harbor
@@ -94,6 +95,7 @@ packages:
             - name: 0.6.2-eks-1-24-13-da99883b9791fb9e8a6e135513f49b636583e40a
             - name: 0.6.2-eks-1-25-9-da99883b9791fb9e8a6e135513f49b636583e40a
             - name: 0.6.2-eks-1-26-5-da99883b9791fb9e8a6e135513f49b636583e40a
+            - name: 0.6.3-eks-1-27-4-21c206156e2f173a9471a992637eb43bf5147170
   - org: emissary
     projects:
       - name: emissary
