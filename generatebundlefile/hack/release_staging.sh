@@ -86,7 +86,7 @@ fi
 # Generate Bundles from Public ECR
 export AWS_PROFILE=staging
 export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/stagingconfigfile
-for version in 1-22 1-23 1-24 1-25 1-26; do
+for version in 1-22 1-23 1-24 1-25 1-26 1-27; do
     generate ${version} "staging"
 done
 
