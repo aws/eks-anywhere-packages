@@ -20,7 +20,7 @@ packages:
         repository: credential-provider-package
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: 0.3.9-latest-helm
+          - name: 0.3.10-43aa1ad9b82ae038dad7152eec5387f86db1c9d0
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
