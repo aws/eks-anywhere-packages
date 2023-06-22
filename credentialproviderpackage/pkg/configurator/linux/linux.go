@@ -123,6 +123,18 @@ func findKubeletProcess() (ps.Process, error) {
 	return nil, fmt.Errorf("cannot find Kubelet Process")
 }
 
+func getApiVersion() string {
+	k8sVersion := os.Getenv("K8S_VERSION")
+	apiVersion := "v1"
+	if semver.Compare(k8sVersion, "v1.25") <= 0 {
+		apiVersion = "v1alpha1"
+	}
+	if k8sVersion == "" {
+		apiVersion = "v1"
+	}
+	return apiVersion
+}
+
 func copyWithPermissons(srcpath, dstpath string, permission os.FileMode) (err error) {
 	r, err := os.Open(srcpath)
 	if err != nil {
@@ -154,7 +166,7 @@ func copyWithPermissons(srcpath, dstpath string, permission os.FileMode) (err er
 }
 
 func copyBinaries() (string, error) {
-	srcPath := binPath + ecrCredProviderBinary
+	srcPath := binPath + getApiVersion() + "/" + ecrCredProviderBinary
 	dstPath := basePath + ecrCredProviderBinary
 	err := copyWithPermissons(srcPath, dstPath, 0700)
 	if err != nil {
@@ -181,20 +193,11 @@ func copyBinaries() (string, error) {
 }
 
 func (c *linuxOS) createConfig() (string, error) {
-	k8sVersion := os.Getenv("K8S_VERSION")
-	apiVersion := "v1"
-	if semver.Compare(k8sVersion, "v1.25") <= 0 {
-		apiVersion = "v1alpha1"
-	}
-	if k8sVersion == "" {
-		apiVersion = "v1"
-	}
-
 	values := map[string]interface{}{
 		"profile":       c.profile,
 		"config":        basePath + credOutFile,
 		"home":          basePath,
-		"apiVersion":    apiVersion,
+		"apiVersion":    getApiVersion(),
 		"imagePattern":  c.config.ImagePatterns,
 		"cacheDuration": c.config.DefaultCacheDuration,
 	}
