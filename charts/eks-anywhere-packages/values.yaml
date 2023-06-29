@@ -123,4 +123,6 @@ awsSecret:
   id: ""
   secret: ""
   region: ""
+  # -- Config overrides other awsSecret fields
+  config: ""
 workloadOnly: false
