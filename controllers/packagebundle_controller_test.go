@@ -139,7 +139,7 @@ func TestPackageBundleReconciler_mapBundleReconcileRequests(t *testing.T) {
 	bm := bundleMocks.NewMockManager(gomock.NewController(t))
 	sut := NewPackageBundleReconciler(mockClient, nil, mockBundleClient, bm, nil, logr.Discard())
 
-	requests := sut.mapBundleReconcileRequests(context.Background(), &api.PackageBundleController{})
+	requests := sut.mapBundleReconcileRequests(&api.PackageBundleController{})
 
 	assert.Equal(t, 2, len(requests))
 }

@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
@@ -73,11 +74,11 @@ func RegisterPackageBundleReconciler(mgr ctrl.Manager) error {
 		For(&api.PackageBundle{}).
 		// Watch for changes in the PackageBundleController, and reconcile
 		// bundles to update state when active bundle changes.
-		Watches(&api.PackageBundleController{},
+		Watches(&source.Kind{Type: &api.PackageBundleController{}},
 			handler.EnqueueRequestsFromMapFunc(r.mapBundleReconcileRequests)).
 		// Watch for creation or deletion of other bundles, so bundles can update
 		// their states accordingly.
-		Watches(&api.PackageBundle{},
+		Watches(&source.Kind{Type: &api.PackageBundle{}},
 			handler.EnqueueRequestsFromMapFunc(r.mapBundleReconcileRequests),
 			builder.WithPredicates(predicate.Funcs{
 				CreateFunc: func(e event.CreateEvent) bool { return true },
@@ -124,9 +125,10 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 }
 
 // mapBundleReconcileRequests generates a reconcile Request for each package bundle in the system.
-func (r *PackageBundleReconciler) mapBundleReconcileRequests(ctx context.Context, _ client.Object) (
+func (r *PackageBundleReconciler) mapBundleReconcileRequests(_ client.Object) (
 	requests []reconcile.Request) {
 
+	ctx := context.Background()
 	bundles := &api.PackageBundleList{}
 	err := r.List(ctx, bundles, &client.ListOptions{Namespace: api.PackageNamespace})
 	if err != nil {
