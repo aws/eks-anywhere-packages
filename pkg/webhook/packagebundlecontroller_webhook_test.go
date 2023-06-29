@@ -124,7 +124,7 @@ func TestHandleInner(t *testing.T) {
 		require.NoError(t, err)
 		scheme := runtime.NewScheme()
 		require.NoError(t, v1alpha1.AddToScheme(scheme))
-		decoder, err := admission.NewDecoder(scheme)
+		decoder := admission.NewDecoder(scheme)
 		require.NoError(t, err)
 		v := &activeBundleValidator{
 			decoder: decoder,

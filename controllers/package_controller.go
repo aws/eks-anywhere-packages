@@ -27,7 +27,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
@@ -96,16 +95,14 @@ func RegisterPackageReconciler(mgr ctrl.Manager) (err error) {
 		managerClient,
 		log,
 	)
-
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.Package{}).
-		Watches(&source.Kind{Type: &api.PackageBundle{}},
+		Watches(&api.PackageBundle{},
 			handler.EnqueueRequestsFromMapFunc(reconciler.mapBundleChangesToPackageUpdate)).
 		Complete(reconciler)
 }
 
-func (r *PackageReconciler) mapBundleChangesToPackageUpdate(_ client.Object) (req []reconcile.Request) {
-	ctx := context.Background()
+func (r *PackageReconciler) mapBundleChangesToPackageUpdate(ctx context.Context, _ client.Object) (req []reconcile.Request) {
 	objs := &api.PackageList{}
 	err := r.List(ctx, objs, &client.ListOptions{Namespace: api.PackageNamespace})
 	if err != nil {

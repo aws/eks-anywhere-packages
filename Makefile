@@ -156,11 +156,11 @@ helm-delete:
 
 CONTROLLER_GEN = $(BIN_DIR)/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.11.1)
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.12.0)
 
 KUSTOMIZE = $(BIN_DIR)/kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.7)
+	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v5@v5.0.3)
 
 MOCKGEN = $(BIN_DIR)/mockgen
 mockgen: ## Download mockgen locally if necessary.
@@ -189,7 +189,6 @@ controllers/mocks/client.go: go.mod
 controllers/mocks/manager.go: go.mod
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
 		$(MOCKGEN) -destination=controllers/mocks/manager.go -package=mocks "sigs.k8s.io/controller-runtime/pkg/manager" Manager
-
 
 .PHONY: presubmit
 presubmit: vet generate manifests build helm/package test # targets for presubmit
