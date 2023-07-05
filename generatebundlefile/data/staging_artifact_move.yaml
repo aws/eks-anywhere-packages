@@ -93,7 +93,7 @@ packages:
             - name: 0.6.2-eks-1-24-13-da99883b9791fb9e8a6e135513f49b636583e40a
             - name: 0.6.2-eks-1-25-9-da99883b9791fb9e8a6e135513f49b636583e40a
             - name: 0.6.2-eks-1-26-5-da99883b9791fb9e8a6e135513f49b636583e40a
-            - name: 0.6.3-eks-1-27-4-f59c994336f5cb7c2681e279df6890c04571bf54-release-0.16-helm
+            - name: 0.6.3-eks-1-27-4-21c206156e2f173a9471a992637eb43bf5147170
   - org: emissary
     projects:
       - name: emissary
