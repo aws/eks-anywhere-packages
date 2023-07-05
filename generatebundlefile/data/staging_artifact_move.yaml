@@ -57,12 +57,11 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 9.21.0-1.22-cff017035760e2454afdb3ac7ee3bb48f5ab0183
-            - name: 9.21.0-1.23-cff017035760e2454afdb3ac7ee3bb48f5ab0183
-            - name: 9.21.0-1.24-cff017035760e2454afdb3ac7ee3bb48f5ab0183
-            - name: 9.21.0-1.25-cff017035760e2454afdb3ac7ee3bb48f5ab0183-latest-helm
-            - name: 9.21.0-1.26-cff017035760e2454afdb3ac7ee3bb48f5ab0183
-            - name: 9.21.0-1.27-a5ed31e0a9b3c06d35d72b4b261c16d7de931765
+            - name: 9.21.0-1.23-f9017a890ac64959308c86f341b72cdc2c3a67a4
+            - name: 9.21.0-1.24-f9017a890ac64959308c86f341b72cdc2c3a67a4
+            - name: 9.21.0-1.25-f9017a890ac64959308c86f341b72cdc2c3a67a4
+            - name: 9.21.0-1.26-f9017a890ac64959308c86f341b72cdc2c3a67a4-release-0.16-helm
+            - name: 9.21.0-1.27-f9017a890ac64959308c86f341b72cdc2c3a67a4-release-0.16-helm
   - org: harbor
     projects:
       - name: harbor
@@ -90,24 +89,23 @@ packages:
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.6.2-eks-1-22-23-da99883b9791fb9e8a6e135513f49b636583e40a
             - name: 0.6.2-eks-1-23-18-da99883b9791fb9e8a6e135513f49b636583e40a
             - name: 0.6.2-eks-1-24-13-da99883b9791fb9e8a6e135513f49b636583e40a
             - name: 0.6.2-eks-1-25-9-da99883b9791fb9e8a6e135513f49b636583e40a
             - name: 0.6.2-eks-1-26-5-da99883b9791fb9e8a6e135513f49b636583e40a
-            - name: 0.6.3-eks-1-27-4-21c206156e2f173a9471a992637eb43bf5147170
+            - name: 0.6.3-eks-1-27-4-f59c994336f5cb7c2681e279df6890c04571bf54-release-0.16-helm
   - org: emissary
     projects:
       - name: emissary
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 3.6.0-latest-helm
+            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 3.6.0-latest-helm
+            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
   - org: prometheus
     projects:
       - name: prometheus

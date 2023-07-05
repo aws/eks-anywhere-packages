@@ -86,12 +86,12 @@ packages:
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 3.6.0-latest-helm
+            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 3.6.0-latest-helm
+            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
   - org: prometheus
     projects:
       - name: prometheus

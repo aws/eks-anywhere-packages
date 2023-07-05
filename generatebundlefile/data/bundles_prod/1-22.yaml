@@ -86,12 +86,12 @@ packages:
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 3.5.1-bf70150bcdfe3a5383ec8ad9cd7eea801a0cb074
+            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: public.ecr.aws/eks-anywhere
         versions:
-            - name: 3.5.1-bf70150bcdfe3a5383ec8ad9cd7eea801a0cb074
+            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
   - org: prometheus
     projects:
       - name: prometheus
