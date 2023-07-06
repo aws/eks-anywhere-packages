@@ -24,7 +24,7 @@ packages:
         repository: credential-provider-package
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: latest
+          - name: 0.0.0-latest
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
