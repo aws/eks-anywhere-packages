@@ -53,12 +53,12 @@ packages:
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 3.6.0-latest-helm
+            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 3.6.0-latest-helm
+            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
   - org: harbor
     projects:
       - name: harbor
@@ -72,7 +72,7 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/w9m0f3l5
         versions:
-            - name: 9.21.0-1.25-cff017035760e2454afdb3ac7ee3bb48f5ab0183-latest-helm
+            - name: 9.21.0-1.25-f9017a890ac64959308c86f341b72cdc2c3a67a4
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
