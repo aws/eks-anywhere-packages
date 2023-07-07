@@ -2,5 +2,9 @@
 Create image name
 */}}
 {{- define "template.image" -}}
-{{- printf "/%s@%s" .repository .digest -}}
+{{- if eq (substr 0 7 .tag) "sha256:" -}}
+{{- printf "/%s@%s" .repository .tag -}}
+{{- else -}}
+{{- printf "/%s:%s" .repository .tag -}}
+{{- end -}}
 {{- end -}}
