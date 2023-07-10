@@ -7,6 +7,6 @@ controller:
   # -- Controller repository name.
   repository: "eks-anywhere-packages"
   # -- Controller image tag
-  tag: "{{eks-anywhere-packages-tag}}"
+  tag: "{{eks-anywhere-packages}}"
   # -- Controller image digest
   digest: "{{eks-anywhere-packages}}"
