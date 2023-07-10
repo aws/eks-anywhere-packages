@@ -118,8 +118,8 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 	}
 	config, _ := m.targetClient.ToRESTConfig()
 	auth, _ := authenticator.NewECRSecret(config)
+	// Once we've fully removed ecr-token-refresher usage from all OS we can remove the below check.
 	if err := auth.AddSecretToAllNamespace(ctx); err != nil {
-		m.log.Error(err, "failed to Update Secret in all namespaces")
 	} else {
 		time.Sleep(3 * time.Second)
 	}
