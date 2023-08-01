@@ -7,7 +7,7 @@ defaultNamespace: eksa-packages
 
 image:
   repository: "credential-provider-package"
-  tag: "{{credential-provider-package-tag}}"
+  tag: "{{credential-provider-package}}"
   digest: "{{credential-provider-package}}"
   pullPolicy: IfNotPresent
 
