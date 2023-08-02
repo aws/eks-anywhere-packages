@@ -80,7 +80,7 @@ controller:
   # -- Controller repository name.
   repository: "eks-anywhere-packages"
   # -- Controller image tag
-  tag: "{{eks-anywhere-packages}}"
+  tag: "{{eks-anywhere-packages-tag}}"
   # -- Controller image digest
   digest: "{{eks-anywhere-packages}}"
   # -- Whether to turn on Webhooks for the controller image
@@ -108,7 +108,7 @@ cronjob:
   # -- ECR refresher repository name.
   repository: "ecr-token-refresher"
   # -- ECR refresher tag
-  tag: "{{ecr-token-refresher}}"
+  tag: "{{ecr-token-refresher-tag}}"
   # -- ECR refresher digest
   digest: "{{ecr-token-refresher}}"
   suspend: true
