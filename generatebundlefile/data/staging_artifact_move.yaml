@@ -10,8 +10,7 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
             - name: 0.0.0-latest  # This is only used to move images for scanning, keep as 0.0.0-latest
-            - name: 0.3.9-release-0.15-helm
-            - name: 0.3.9-948686e3548e27e375b0ef0baaa36b1edca52931
+            - name: 0.3.11-eks-a-v0.0.0-dev-build.7458
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: public.ecr.aws/l0g8r8j6
@@ -22,7 +21,7 @@ packages:
         repository: eks-anywhere-packages-migrations
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: 0.3.9-latest-helm
+          - name: 0.3.11-fe5d9a28d9dbd4198a0d1bbe12d3b6a2470723b0
       - name: credential-provider-package
         copyimages: true
         repository: credential-provider-package
