@@ -21,7 +21,7 @@ const (
 	ecrTokenName   = "ecr-token"
 	cronJobName    = "cron-ecr-renew"
 	jobExecName    = "eksa-auth-refresher-"
-	mirrorCredName = "registry-mirror-cred"
+	MirrorCredName = "registry-mirror-cred"
 )
 
 type ecrSecret struct {
@@ -136,7 +136,7 @@ func (s *ecrSecret) GetSecretValues(ctx context.Context, namespace string) (map[
 	imagePullSecret[0] = make(map[string]string)
 	imagePullSecret[0]["name"] = ecrTokenName
 	imagePullSecret[1] = make(map[string]string)
-	imagePullSecret[1]["name"] = mirrorCredName
+	imagePullSecret[1]["name"] = MirrorCredName
 	values["imagePullSecrets"] = imagePullSecret
 
 	return values, nil
@@ -147,7 +147,6 @@ func (s *ecrSecret) cleanupPrevRuns(ctx context.Context) error {
 	deletePropagation := metav1.DeletePropagationBackground
 	jobs, err := s.clientset.BatchV1().Jobs(api.PackageNamespace).
 		List(ctx, metav1.ListOptions{LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
-
 	if err != nil {
 		return err
 	}

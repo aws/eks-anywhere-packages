@@ -10,22 +10,16 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY main.go main.go
-COPY api/ api/
-COPY controllers/ controllers/
-COPY config/ config/
 COPY pkg/ pkg/
 COPY cmd/ cmd/
 
 # Build
-RUN GOPROXY=direct CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o package-manager main.go
+RUN GOPROXY=direct CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o ecr-token-refresh ./cmd/ecr-token-refresher
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:debug-nonroot
 WORKDIR /
-COPY --from=builder /workspace/package-manager .
+COPY --from=builder /workspace/ecr-token-refresh .
 # https://github.com/GoogleContainerTools/distroless/blob/e3c79deb1c576afd2e7e77b96996e2e1abdc6937/base/base.bzl#L8
 USER 65532:65532
 
-ENTRYPOINT ["/package-manager"]
+ENTRYPOINT ["/ecr-token-refresh"]
