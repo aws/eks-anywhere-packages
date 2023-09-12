@@ -87,6 +87,7 @@ func (a *ECRCredInjector) Refresh(ctx context.Context) error {
 
 	if !IsECRRegistry(registry) {
 		a.log.Info("defaultRegistry is not ECR registry, skip injecting credential to docker config")
+		return nil
 	}
 	// update "config.json" in dockerSecret
 	return a.InjectCredential(ctx, *dockerSecret, registry, cred)
