@@ -66,12 +66,8 @@ func (mirror *RegistryMirrorSecret) GetClusterCredentials(clientSets secrets.Clu
 				CA:       string(secret.Data[caKey]),
 				Insecure: string(secret.Data[insecureKey]),
 			}
-			if credential.Registry != "" && credential.Username != "" && credential.Password != "" {
-				clusterCredentials[clusterName] = []*secrets.Credential{credential}
-				utils.InfoLogger.Println("success.")
-			} else {
-				utils.InfoLogger.Println("empty credential.")
-			}
+			clusterCredentials[clusterName] = []*secrets.Credential{credential}
+			utils.InfoLogger.Println("success.")
 		} else {
 			utils.ErrorLogger.Println(err)
 			return nil, err
@@ -94,7 +90,9 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 		if clusterName == mirror.mgmtClusterName {
 			data[corev1.DockerConfigJsonKey] = configJson
 		}
-		data[clusterName+"_ca.crt"] = []byte(creds[0].CA)
+		if len(creds[0].CA) > 0 { // when "" ca is used, no tls verification will succeed
+			data[clusterName+"_ca.crt"] = []byte(creds[0].CA)
+		}
 		data["config.json"] = configJson
 		if creds[0].Insecure == "true" {
 			data[clusterName+"_insecure"] = []byte(creds[0].Insecure)
@@ -109,11 +107,13 @@ func (mirror *RegistryMirrorSecret) BroadcastCredentials() error {
 	}
 	secret, _ := k8s.GetSecret(defaultClientSet, credName, constants.PackagesNamespace)
 	if secret == nil {
+		utils.InfoLogger.Printf("Create secret %s in namespace %s", credName, constants.PackagesNamespace)
 		_, err := k8s.CreateSecret(defaultClientSet, credName, constants.PackagesNamespace, data)
 		if err != nil {
 			return err
 		}
 	} else {
+		utils.InfoLogger.Printf("Update secret %s in namespace %s", credName, constants.PackagesNamespace)
 		_, err := k8s.UpdateSecret(defaultClientSet, constants.PackagesNamespace, secret, data)
 		if err != nil {
 			return err

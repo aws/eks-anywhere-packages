@@ -31,6 +31,7 @@ import (
 	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/controllers"
 	pkgConfig "github.com/aws/eks-anywhere-packages/pkg/config"
+	"github.com/aws/eks-anywhere-packages/pkg/registry"
 	"github.com/aws/eks-anywhere-packages/pkg/webhook"
 )
 
@@ -86,6 +87,12 @@ func server() error {
 	if err != nil {
 		return fmt.Errorf("unable to start manager: %v", err)
 	}
+
+	ecrCredAdapter, err := registry.NewECRCredInjector(rootCmd.Context(), mgr.GetClient(), packageLog)
+	if err != nil {
+		return fmt.Errorf("unable to create ecrCredAdapter: %v", err)
+	}
+	go ecrCredAdapter.Run(rootCmd.Context())
 
 	if err = controllers.RegisterPackageBundleReconciler(mgr); err != nil {
 		return fmt.Errorf("unable to register package bundle controller: %v", err)

@@ -101,6 +101,8 @@ spec:
           - mountPath: /tmp/ecr-token
             name: ecr-token
             readOnly: true
+          - name: aws-secret
+            mountPath: /tmp/aws-secret
       initContainers:
       - name: init-job
         image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.cronjob }}
@@ -145,6 +147,10 @@ spec:
         secret:
           defaultMode: 420
           secretName: ecr-token
+          optional: true
+      - name: aws-secret
+        secret:
+          secretName: aws-secret
           optional: true
       {{- with .Values.nodeSelector }}
       nodeSelector:
