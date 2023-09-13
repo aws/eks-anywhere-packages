@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	awsSecretPath = "/tmp/config/aws-secret" //#nosec G101
+	awsSecretPath = "/tmp/aws-secret" //#nosec G101
 )
 
 // ECRCredInjector is an adapter to convert ECR credential to Docker credential. Since the converted docker credential is only valid for 12 hours, this adapter is constantly running. It's responsibility is to make sure docker config in the filesystem contains ECR credential to pull bundle yaml and charts.
