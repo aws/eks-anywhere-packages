@@ -302,7 +302,7 @@ func TestBundleManager_ProcessBundleController(t *testing.T) {
 
 		err := bm.ProcessBundleController(ctx, pbc)
 
-		assert.NoError(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, api.BundleControllerStateDisconnected, pbc.Status.State)
 	})
 
