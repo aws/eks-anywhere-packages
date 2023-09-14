@@ -134,7 +134,7 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 				return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
 			}
 		}
-		return nil
+		return err
 	}
 
 	allBundles, err := m.bundleClient.GetBundleList(ctx)
