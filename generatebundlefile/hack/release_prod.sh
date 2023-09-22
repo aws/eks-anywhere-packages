@@ -85,12 +85,12 @@ fi
 
 export AWS_PROFILE=prod
 export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/prodconfigfile
-for version in 1-22 1-23 1-24 1-25 1-26 1-27; do
+for version in 1-22 1-23 1-24 1-25 1-26 1-27 1-28; do
     generate ${version} "prod"
 done
 
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
-for version in 1-22 1-23 1-24 1-25 1-26 1-27; do
+for version in 1-22 1-23 1-24 1-25 1-26 1-27 1-28; do
     push ${version}
 done

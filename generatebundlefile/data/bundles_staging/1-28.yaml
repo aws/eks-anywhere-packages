@@ -1,0 +1,102 @@
+# This info is hardcoded and comes from https://github.com/aws/eks-anywhere-build-tooling
+name: "v1-28-1001"
+kubernetesVersion: "1.28"
+minControllerVersion: "v0.3.2"
+packages:
+  - org: aws
+    projects:
+      - name: eks-anywhere-packages
+        repository: eks-anywhere-packages
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+          - name: 0.3.11-fe5d9a28d9dbd4198a0d1bbe12d3b6a2470723b0
+      - name: eks-anywhere-packages-crds
+        repository: eks-anywhere-packages-crds
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+          - name: 0.3.9-latest-helm
+      - name: eks-anywhere-packages-migrations
+        repository: eks-anywhere-packages-migrations
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+          - name: 0.3.11-fe5d9a28d9dbd4198a0d1bbe12d3b6a2470723b0
+      - name: credential-provider-package
+        repository: credential-provider-package
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+          - name: 0.3.10-43aa1ad9b82ae038dad7152eec5387f86db1c9d0
+  - org: aws-containers
+    projects:
+      - name: hello-eks-anywhere
+        repository: hello-eks-anywhere
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+            - name: 0.1.2-c014c0e09013bc7dcea65cc982712946d50ce582
+  - org: aws-observability
+    projects:
+      - name: adot
+        repository: adot/charts/aws-otel-collector
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+            - name: 0.25.0-ec883752f028661cbb3bda6083a77263226dca5a
+  - org: cert-manager
+    projects:
+      - name: cert-manager
+        workloadonly: true
+        repository: cert-manager/cert-manager
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+          - name: 1.11.0-62f15756a0e14958d3ca963e6541dbda0a76e364
+  - org: emissary
+    projects:
+      - name: emissary
+        repository: emissary-ingress/emissary
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
+      - name: emissary-crds
+        repository: emissary-ingress/crds
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
+  - org: harbor
+    projects:
+      - name: harbor
+        repository: harbor/harbor-helm
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+            - name: 2.7.1-3f95205edb1b6e80c9d424b12abd2d8ecbb57f54
+  - org: kubernetes
+    projects:
+      - name: cluster-autoscaler
+        repository: cluster-autoscaler/charts/cluster-autoscaler
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+            - name: 9.21.0-1.28-1d20d7924d68dbe35ddbd4f9881f889c9f371cd1
+  - org: kubernetes-sigs
+    projects:
+      - name: metrics-server
+        repository: metrics-server/charts/metrics-server
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+            - name: 0.6.4-eks-1-28-5-4cd98d0ea746c640d08f39ada3faa09e8ba9ee47
+  - org: metallb
+    projects:
+      - name: metallb
+        repository: metallb/metallb
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+            - name: 0.13.7-21c206156e2f173a9471a992637eb43bf5147170
+      - name: metallb-crds
+        repository: metallb/crds
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+            - name: 0.13.7-21c206156e2f173a9471a992637eb43bf5147170
+  - org: prometheus
+    projects:
+      - name: prometheus
+        repository: prometheus/charts/prometheus
+        registry: public.ecr.aws/w9m0f3l5
+        versions:
+            - name: 2.43.0-0dfd662881d5a3a14830a9ca527908990cfb26f6
+
