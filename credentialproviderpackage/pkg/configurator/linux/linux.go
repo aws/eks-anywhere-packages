@@ -217,8 +217,11 @@ func (c *linuxOS) createConfig() (string, error) {
 
 func (c *linuxOS) updateKubeletArguments(line string) string {
 	args := ""
-	if !strings.Contains(line, "KubeletCredentialProviders") {
-		args += " --feature-gates=KubeletCredentialProviders=true"
+	k8sVersion := os.Getenv("K8S_VERSION")
+	if semver.Compare(k8sVersion, "v1.26") < 0 {
+		if !strings.Contains(line, "KubeletCredentialProviders") {
+			args += " --feature-gates=KubeletCredentialProviders=true"
+		}
 	}
 
 	val, err := c.createConfig()
