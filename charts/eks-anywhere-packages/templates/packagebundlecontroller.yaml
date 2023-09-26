@@ -9,7 +9,7 @@ metadata:
   namespace: eksa-packages
 spec:
   upgradeCheckInterval: 24h
-  upgradeCheckShortInterval: 5m
+  upgradeCheckShortInterval: 10s
   defaultRegistry: {{.Values.defaultRegistry}}
   defaultImageRegistry: {{.Values.defaultImageRegistry}}
   privateRegistry: {{.Values.privateRegistry}}
