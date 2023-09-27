@@ -129,8 +129,8 @@ func (m *bundleManager) ProcessBundleController(ctx context.Context, pbc *api.Pa
 		if pbc.Status.State == api.BundleControllerStateActive || pbc.Status.State == "" {
 			pbc.Status.State = api.BundleControllerStateDisconnected
 			pbc.Status.Detail = err.Error()
-			err = m.bundleClient.SaveStatus(ctx, pbc)
-			if err != nil {
+			err2 := m.bundleClient.SaveStatus(ctx, pbc)
+			if err2 != nil {
 				return fmt.Errorf("updating %s status to %s: %s", pbc.Name, pbc.Status.State, err)
 			}
 		}
