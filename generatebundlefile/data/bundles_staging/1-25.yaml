@@ -9,7 +9,7 @@ packages:
         repository: eks-anywhere-packages
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.3.12-8862036270224f2a6b8d6ecd455b6b1fa1084619
+          - name: 0.0.0-8862036270224f2a6b8d6ecd455b6b1fa1084619
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: public.ecr.aws/w9m0f3l5
@@ -19,7 +19,7 @@ packages:
         repository: eks-anywhere-packages-migrations
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.3.12-8862036270224f2a6b8d6ecd455b6b1fa1084619
+          - name: 0.0.0-8862036270224f2a6b8d6ecd455b6b1fa1084619
       - name: credential-provider-package
         repository: credential-provider-package
         registry: public.ecr.aws/w9m0f3l5
