@@ -171,38 +171,29 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 	// This runs for flags
 	// --private-profile
 	// --promote --copy-images
-	var destination string
 	if copyImages {
 		accountID := c.activeAccountID()
-		for _, images := range helmRequiresImages.Spec.Images {
-			checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)
+		for _, image := range helmRequiresImages.Spec.Images {
+			checkSha, checkTag, err := c.CheckDestinationECR(image, image.Tag)
 			// This is going to run a copy if only 1 check passes because there are scenarios where the correct SHA exists, but the tag is not in sync.
 			// Copy with the correct image SHA, but a new tag will just write a new tag to ECR so it's safe to run.
 			if checkSha && checkTag {
-				BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s @ %s", accountID, images.Repository, images.Tag, images.Digest))
+				BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s @ %s", accountID, image.Repository, image.Tag, image.Digest))
 				continue
 			} else {
-				BundleLog.Info("Image Digest, and Tag dont exist in destination location...... copy to", "Location", fmt.Sprintf("%s/%s sha:%s", images.Repository, images.Tag, images.Digest))
+				BundleLog.Info("Image Digest, and Tag dont exist in destination location...... copy to", "Location", fmt.Sprintf("%s/%s sha:%s", image.Repository, image.Tag, image.Digest))
 				// We have cases with tag mismatch where the SHA is accurate, but the tag in the destination repo is not synced, this will sync it.
-				if images.Tag == "" {
-					images.Tag, err = c.ecrClient.tagFromSha(images.Repository, images.Digest, tag)
+				if image.Tag == "" {
+					image.Tag, err = c.ecrClient.tagFromSha(image.Repository, image.Digest, tag)
 				}
 				if err != nil {
 					BundleLog.Error(err, "Unable to find Tag from Digest")
 				}
-				BundleLog.Info("Moving container images to ECR")
-				source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", accountID, images.Repository, images.Tag)
-				if c.ecrClientRelease != nil {
-					destination = fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClientRelease.AccountID, images.Repository, images.Tag)
-				} else if c.ecrPublicClientRelease != nil {
-					destination = fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClientRelease.SourceRegistry, images.Repository, images.Tag)
-				} else {
-					destination = fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag)
-				}
-				err := copyImage(BundleLog, authFile, source, destination)
+				err = c.moveImage(image, authFile)
 				if err != nil {
-					return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
+					return err
 				}
+
 				continue
 			}
 		}
@@ -285,4 +276,30 @@ func (c *SDKClients) activeAccountID() string {
 		return c.stsClient.AccountID
 	}
 	return ""
+}
+
+func (c *SDKClients) moveImage(image Image, authFile string) error {
+	var destinationPrefix string
+	accountID := c.activeAccountID()
+	BundleLog.Info("Moving container images to ECR")
+	sourcePrefix := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s", accountID, image.Repository)
+	if c.ecrClientRelease != nil {
+		destinationPrefix = fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s", c.stsClientRelease.AccountID, image.Repository)
+	} else if c.ecrPublicClientRelease != nil {
+		destinationPrefix = fmt.Sprintf("docker://%s/%s", c.ecrPublicClientRelease.SourceRegistry, image.Repository)
+	} else {
+		destinationPrefix = fmt.Sprintf("docker://%s/%s", c.ecrPublicClient.SourceRegistry, image.Repository)
+	}
+
+	err := copyImage(BundleLog, authFile, sourcePrefix+":"+image.Tag, destinationPrefix+":"+image.Tag)
+	if err != nil {
+		return fmt.Errorf("unable to copy image tag from source to destination repo %w", err)
+	}
+
+	// when the image.Tag doesn't match image.Digest in the source ECR, we need to move the Digest directly
+	err = copyImage(BundleLog, authFile, sourcePrefix+"@"+image.Digest, destinationPrefix+"@"+image.Digest)
+	if err != nil {
+		return fmt.Errorf("unable to copy image digest from source to destination repo %w", err)
+	}
+	return nil
 }
