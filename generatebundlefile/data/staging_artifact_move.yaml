@@ -21,7 +21,7 @@ packages:
         repository: eks-anywhere-packages-migrations
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: 0.3.12-latest-helm
+          - name: 0.3.12-f9640def233d9a5b60839cf2857979366c50ee11
       - name: credential-provider-package
         copyimages: true
         repository: credential-provider-package
