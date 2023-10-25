@@ -38,17 +38,17 @@ func GetSDKClients(newBuildMode bool) (*SDKClients, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create SDK connection to STS %s", err)
 	}
-	// ECR Private Connection with us-west-2 region
-	conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
-	if err != nil {
-		return nil, fmt.Errorf("loading default AWS config: %w", err)
-	}
+
 	ecrClient := ecr.NewFromConfig(conf)
 	clients.ecrClient, err = NewECRClient(ecrClient, true)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create SDK connection to ECR %s", err)
 	}
 
+	if newBuildMode {
+		clients.stsClientRelease = clients.stsClient
+		clients.ecrClientRelease = clients.ecrClient
+	}
 	if !newBuildMode {
 		// ECR Public Connection with us-east-1 region
 		conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
