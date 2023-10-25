@@ -25,6 +25,13 @@ func main() {
 	opts := NewOptions()
 	opts.SetupLogger()
 
+	newBuildModeEnvvar := os.Getenv("NEW_BUILD_MODE")
+	if newBuildModeEnvvar == "true" {
+		opts.newBuildMode = true
+	} else {
+		opts.newBuildMode = false
+	}
+
 	if opts.generateSample {
 		outputFilename := filepath.Join(opts.outputFolder, "bundle.yaml")
 		f, err := os.OpenFile(outputFilename, os.O_WRONLY|os.O_CREATE, 0644)
@@ -120,20 +127,25 @@ func cmdPromote(opts *Options) error {
 		}
 	}
 
-	clients, err := GetSDKClients()
+	clients, err := GetSDKClients(opts.newBuildMode)
 	if err != nil {
 		return fmt.Errorf("getting SDK clients: %w", err)
 	}
-	clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
-	if err != nil {
-		return fmt.Errorf("getting registry URI: %w", err)
-	}
+	
 	dockerStruct := &DockerAuth{
 		Auths: map[string]DockerAuthRegistry{
 			fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): {clients.ecrClient.AuthConfig},
-			"public.ecr.aws": {clients.ecrPublicClient.AuthConfig},
 		},
 	}
+
+	if !opts.newBuildMode {
+		clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
+		if err != nil {
+			return fmt.Errorf("getting registry URI: %w", err)
+		}
+		dockerStruct.Auths["public.ecr.aws"] = DockerAuthRegistry{clients.ecrPublicClient.AuthConfig}
+	}
+
 	dockerAuth, err := NewAuthFile(dockerStruct)
 	if err != nil {
 		return fmt.Errorf("creating auth file: %w", err)
@@ -417,7 +429,7 @@ func cmdGenerate(opts *Options) error {
 		// push packages to private ECR.
 		if opts.publicProfile != "" {
 			BundleLog.Info("Starting release public ECR process....")
-			clients, err := GetSDKClients()
+			clients, err := GetSDKClients(opts.newBuildMode)
 			if err != nil {
 				BundleLog.Error(err, "getting sdk clients")
 				os.Exit(1)
@@ -483,7 +495,7 @@ func cmdGenerate(opts *Options) error {
 		// if o.publicProfile != "" && if o.privateProfile != "" {}
 		if opts.privateProfile != "" {
 			BundleLog.Info("Starting release to private ECR process....")
-			clients, err := GetSDKClients()
+			clients, err := GetSDKClients(opts.newBuildMode)
 			if err != nil {
 				BundleLog.Error(err, "getting SDK clients")
 				os.Exit(1)

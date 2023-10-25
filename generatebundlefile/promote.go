@@ -24,22 +24,12 @@ type SDKClients struct {
 }
 
 // GetSDKClients is used to handle the creation of different SDK clients.
-func GetSDKClients() (*SDKClients, error) {
+func GetSDKClients(newBuildMode bool) (*SDKClients, error) {
 	clients := &SDKClients{}
 	var err error
-	// ECR Public Connection with us-east-1 region
-	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
-	if err != nil {
-		return nil, fmt.Errorf("loading default AWS config: %w", err)
-	}
-	client := ecrpublic.NewFromConfig(conf)
-	clients.ecrPublicClient, err = NewECRPublicClient(client, true)
-	if err != nil {
-		return nil, fmt.Errorf("creating default public ECR client: %w", err)
-	}
 
 	// STS Connection with us-west-2 region
-	conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
+	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
 	if err != nil {
 		return nil, fmt.Errorf("loading default AWS config: %w", err)
 	}
@@ -58,6 +48,20 @@ func GetSDKClients() (*SDKClients, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create SDK connection to ECR %s", err)
 	}
+
+	if !newBuildMode {
+		// ECR Public Connection with us-east-1 region
+		conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
+		if err != nil {
+			return nil, fmt.Errorf("loading default AWS config: %w", err)
+		}
+		client := ecrpublic.NewFromConfig(conf)
+		clients.ecrPublicClient, err = NewECRPublicClient(client, true)
+		if err != nil {
+			return nil, fmt.Errorf("creating default public ECR client: %w", err)
+		}
+	}
+
 	return clients, nil
 }
 
