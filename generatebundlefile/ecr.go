@@ -72,6 +72,7 @@ func (c *ecrClient) Describe(describeInput *ecr.DescribeImagesInput) ([]ecrtypes
 // GetShaForInputs returns a list of an images version/sha for given inputs to lookup
 func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error) {
 	sourceVersion := []api.SourceVersion{}
+	BundleLog.Info("Looking up ECR for image SHA", "Repository", project.Repository)
 	for _, tag := range project.Versions {
 		if !strings.HasSuffix(tag.Name, "latest") {
 			var imagelookup []ecrtypes.ImageIdentifier
@@ -107,7 +108,7 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 				details, _ := createECRImageDetails(ImageDetailsECR{PrivateImageDetails: image})
 				images = append(images, details)
 			}
-			sha, err := getLastestImageSha(images)
+			sha, err := getLatestImageSha(images)
 			if err != nil {
 				return nil, err
 			}
@@ -130,7 +131,7 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 				images = append(images, details)
 			}
 			filteredImageDetails := ImageTagFilter(images, splitVersion[0])
-			sha, err := getLastestImageSha(filteredImageDetails)
+			sha, err := getLatestImageSha(filteredImageDetails)
 			if err != nil {
 				return nil, err
 			}
@@ -149,6 +150,7 @@ func (c *ecrClient) tagFromSha(repository, sha, substringTag string) (string, er
 	}
 	var imagelookup []ecrtypes.ImageIdentifier
 	imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageDigest: &sha})
+	BundleLog.Info("Looking up ECR for image SHA", "Repository", repository)
 	ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
 		RepositoryName: aws.String(repository),
 		ImageIds:       imagelookup,
@@ -217,6 +219,7 @@ func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string,
 	splitname := strings.Split(repoName, ":") // TODO add a regex filter
 	name := splitname[0]
 	ecrname := fmt.Sprintf("%s.dkr.ecr.us-west-2.amazonaws.com/%s", accountID, name)
+	BundleLog.Info("Looking up ECR for Helm chart", "Repository", ecrname)
 	if len(splitname) > 0 {
 		// If for promotion, we use a named tag instead of latest we do a lookup for that tag.
 		if !strings.HasSuffix(tag, "latest") {
@@ -248,7 +251,7 @@ func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string,
 				}
 				images = append(images, details)
 			}
-			version, sha, err = getLastestHelmTagandSha(images)
+			version, sha, err = getLatestHelmTagandSha(images)
 			return ecrname, version, sha, err
 		}
 		// If tag contains -latest we do timestamp lookup of any tags matching a regexp of the specified tag.
@@ -267,7 +270,7 @@ func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string,
 				images = append(images, details)
 			}
 			filteredImageDetails := ImageTagFilter(images, splitVersion[0])
-			version, sha, err = getLastestHelmTagandSha(filteredImageDetails)
+			version, sha, err = getLatestHelmTagandSha(filteredImageDetails)
 			if err != nil {
 				return "", "", "", err
 			}

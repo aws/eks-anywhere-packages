@@ -98,7 +98,7 @@ func (c *SDKClients) GetShaForPublicInputs(project Project) ([]api.SourceVersion
 				details, _ := createECRImageDetails(ImageDetailsECR{PublicImageDetails: image})
 				images = append(images, details)
 			}
-			sha, err := getLastestImageSha(images)
+			sha, err := getLatestImageSha(images)
 			if err != nil {
 				return nil, err
 			}
@@ -122,7 +122,7 @@ func (c *SDKClients) GetShaForPublicInputs(project Project) ([]api.SourceVersion
 				images = append(images, details)
 			}
 			filteredImageDetails := ImageTagFilter(images, splitVersion[0])
-			sha, err := getLastestImageSha(filteredImageDetails)
+			sha, err := getLatestImageSha(filteredImageDetails)
 			if err != nil {
 				return nil, err
 			}
@@ -242,7 +242,7 @@ func (c *SDKClients) getNameAndVersionPublic(repoName, tag, registryURI string) 
 			}
 			images = append(images, details)
 		}
-		version, sha, err = getLastestHelmTagandSha(images)
+		version, sha, err = getLatestHelmTagandSha(images)
 		if err != nil {
 			return "", "", "", err
 		}

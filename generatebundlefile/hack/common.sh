@@ -40,7 +40,7 @@ function generate () {
     file_name=${version}.yaml
     new_build_mode=${NEW_BUILD_MODE:-}
     if [ "$new_build_mode" == "true" ]; then
-        file_name=${version}-new.yaml
+        file_name=${version}-regional.yaml
     fi
 
     cd "${BASE_DIRECTORY}/generatebundlefile"
