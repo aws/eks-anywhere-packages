@@ -22,9 +22,15 @@ export LANG=C.UTF-8
 
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
-ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries \
-                 --query 'registries[*].registryUri' --output text)
-REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
+
+new_build_mode=${NEW_BUILD_MODE:-}
+if [ "$new_build_mode" == "true" ]; then
+    AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+    REGISTRY=${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
+else
+    REGISTRY=$(aws ecr-public --region us-east-1 describe-registries --query 'registries[*].registryUri' --output text)
+fi
+REPO=${REGISTRY}/eks-anywhere-packages-bundles
 ORAS_BIN=${BASE_DIRECTORY}/bin/oras
 
 if [ ! -x "${ORAS_BIN}" ]; then

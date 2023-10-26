@@ -162,8 +162,8 @@ func createECRImageDetails(images ImageDetailsECR) (ImageDetailsBothECR, error) 
 	return ImageDetailsBothECR{}, fmt.Errorf("Error no data passed to createImageDetails")
 }
 
-// getLastestHelmTagandSha Iterates list of ECR Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
-func getLastestHelmTagandSha(details []ImageDetailsBothECR) (string, string, error) {
+// getLatestHelmTagandSha Iterates list of ECR Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
+func getLatestHelmTagandSha(details []ImageDetailsBothECR) (string, string, error) {
 	var latest ImageDetailsBothECR
 	latest.ImagePushedAt = &time.Time{}
 	for _, detail := range details {
@@ -181,8 +181,8 @@ func getLastestHelmTagandSha(details []ImageDetailsBothECR) (string, string, err
 	return latest.ImageTags[0], *latest.ImageDigest, nil
 }
 
-// getLastestImageSha Iterates list of ECR Public Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
-func getLastestImageSha(details []ImageDetailsBothECR) (*api.SourceVersion, error) {
+// getLatestImageSha Iterates list of ECR Public Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
+func getLatestImageSha(details []ImageDetailsBothECR) (*api.SourceVersion, error) {
 	var latest ImageDetailsBothECR
 	latest.ImagePushedAt = &time.Time{}
 	for _, detail := range details {
