@@ -37,8 +37,14 @@ function generate () {
     local stage=$2
     local kms_key=signingPackagesKey
 
+    file_name=${version}.yaml
+    new_build_mode=${NEW_BUILD_MODE:-}
+    if [ "$new_build_mode" == "true" ]; then
+        file_name=${version}-new.yaml
+    fi
+
     cd "${BASE_DIRECTORY}/generatebundlefile"
-    ./bin/generatebundlefile --input "./data/bundles_${stage}/${version}.yaml" \
+    ./bin/generatebundlefile --input "./data/bundles_${stage}/$file_name" \
                  --key alias/${kms_key} \
                  --output "output-${version}"
 }
