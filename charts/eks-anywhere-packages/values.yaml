@@ -108,7 +108,7 @@ cronjob:
   # -- ECR refresher repository name.
   repository: "ecr-token-refresher"
   # -- ECR refresher tag
-  tag: "{{ecr-token-refresher-tag}}"
+  tag: "{{ecr-token-refresher}}"
   # -- ECR refresher digest
   digest: "{{ecr-token-refresher}}"
   suspend: true
