@@ -25,6 +25,7 @@ packages:
         registry: public.ecr.aws/eks-anywhere
         versions:
           - name: 0.3.12-f567db688066bcbb3516e4bc14662796ec920906
+  - org: aws-containers
     projects:
       - name: hello-eks-anywhere
         repository: hello-eks-anywhere
