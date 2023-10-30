@@ -23,8 +23,8 @@ export LANG=C.UTF-8
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
 
-new_build_mode=${NEW_BUILD_MODE:-}
-if [ "$new_build_mode" == "true" ]; then
+regional_build_mode=${REGIONAL_BUILD_MODE:-}
+if [ "$regional_build_mode" == "true" ]; then
     AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
     REGISTRY=${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
 else

@@ -25,11 +25,11 @@ func main() {
 	opts := NewOptions()
 	opts.SetupLogger()
 
-	newBuildModeEnvvar := os.Getenv("NEW_BUILD_MODE")
-	if newBuildModeEnvvar == "true" {
-		opts.newBuildMode = true
+	regionalBuildModeEnvvar := os.Getenv("REGIONAL_BUILD_MODE")
+	if regionalBuildModeEnvvar == "true" {
+		opts.regionalBuildMode = true
 	} else {
-		opts.newBuildMode = false
+		opts.regionalBuildMode = false
 	}
 
 	if opts.generateSample {
@@ -127,7 +127,7 @@ func cmdPromote(opts *Options) error {
 		}
 	}
 
-	clients, err := GetSDKClients(opts.newBuildMode)
+	clients, err := GetSDKClients(opts.regionalBuildMode)
 	if err != nil {
 		return fmt.Errorf("getting SDK clients: %w", err)
 	}
@@ -138,7 +138,7 @@ func cmdPromote(opts *Options) error {
 		},
 	}
 
-	if !opts.newBuildMode {
+	if !opts.regionalBuildMode {
 		clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
 		if err != nil {
 			return fmt.Errorf("getting registry URI: %w", err)
@@ -429,7 +429,7 @@ func cmdGenerate(opts *Options) error {
 		// push packages to private ECR.
 		if opts.publicProfile != "" {
 			BundleLog.Info("Starting release public ECR process....")
-			clients, err := GetSDKClients(opts.newBuildMode)
+			clients, err := GetSDKClients(opts.regionalBuildMode)
 			if err != nil {
 				BundleLog.Error(err, "getting sdk clients")
 				os.Exit(1)
@@ -495,7 +495,7 @@ func cmdGenerate(opts *Options) error {
 		// if o.publicProfile != "" && if o.privateProfile != "" {}
 		if opts.privateProfile != "" {
 			BundleLog.Info("Starting release to private ECR process....")
-			clients, err := GetSDKClients(opts.newBuildMode)
+			clients, err := GetSDKClients(opts.regionalBuildMode)
 			if err != nil {
 				BundleLog.Error(err, "getting SDK clients")
 				os.Exit(1)

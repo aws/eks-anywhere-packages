@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"os"
 	"path"
 	"strings"
 	"text/template"
@@ -18,13 +19,22 @@ import (
 )
 
 const (
-	PublicKey           = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw=="
 	DomainName          = "eksa.aws.com"
 	SignatureAnnotation = "signature"
 	ExcludesAnnotation  = "excludes"
 )
 
-var EksaDomain = Domain{Name: DomainName, Pubkey: PublicKey}
+var PublicKey string
+var EksaDomain Domain
+
+func init() {
+	if os.Getenv("REGIONAL_BUILD_MODE") == "true" {
+		PublicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELSnBPQf4H/GFb6yl6smKB9wwuKnD4goGHQYwg9+yQ1YusQNqZPn/QkVZnWCzJbZ/pksmpkno6dSzb/Hq+dBAMA=="
+	} else {
+		PublicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw=="
+	}
+	EksaDomain = Domain{Name: DomainName, Pubkey: PublicKey}
+}
 
 type GojqParams struct {
 	Excludes []string

@@ -24,7 +24,7 @@ type SDKClients struct {
 }
 
 // GetSDKClients is used to handle the creation of different SDK clients.
-func GetSDKClients(newBuildMode bool) (*SDKClients, error) {
+func GetSDKClients(regionalBuildMode bool) (*SDKClients, error) {
 	clients := &SDKClients{}
 	var err error
 
@@ -45,11 +45,11 @@ func GetSDKClients(newBuildMode bool) (*SDKClients, error) {
 		return nil, fmt.Errorf("Unable to create SDK connection to ECR %s", err)
 	}
 
-	if newBuildMode {
+	if regionalBuildMode {
 		clients.stsClientRelease = clients.stsClient
 		clients.ecrClientRelease = clients.ecrClient
 	}
-	if !newBuildMode {
+	if !regionalBuildMode {
 		// ECR Public Connection with us-east-1 region
 		conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
 		if err != nil {
