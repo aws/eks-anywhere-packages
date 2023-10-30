@@ -38,8 +38,8 @@ function generate () {
     local kms_key=signingPackagesKey
 
     file_name=${version}.yaml
-    new_build_mode=${NEW_BUILD_MODE:-}
-    if [ "$new_build_mode" == "true" ]; then
+    regional_build_mode=${REGIONAL_BUILD_MODE:-}
+    if [ "$regional_build_mode" == "true" ]; then
         file_name=${version}-regional.yaml
     fi
 

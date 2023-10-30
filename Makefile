@@ -105,7 +105,7 @@ clean: ## Clean up resources created by make targets
 ##@ Build
 
 build: go.sum generate ## Build package-manager binary.
-	$(GO) build -o $(BIN_DIR)/package-manager main.go
+	CGO_ENABLED=0 $(GO) build -o $(BIN_DIR)/package-manager main.go
 
 run: manifests generate vet ## Run a controller from your host.
 	$(GO) run ./main.go server --verbosity 9
