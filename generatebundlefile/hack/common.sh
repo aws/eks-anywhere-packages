@@ -35,7 +35,7 @@ function awsAuth () {
 function generate () {
     local version=$1
     local stage=$2
-    local kms_key=signingPackagesKey
+    local kms_key="arn:aws:kms:us-west-2:857151390494:alias/signingPackagesKey"
 
     file_name=${version}.yaml
     regional_build_mode=${REGIONAL_BUILD_MODE:-}
@@ -45,7 +45,7 @@ function generate () {
 
     cd "${BASE_DIRECTORY}/generatebundlefile"
     ./bin/generatebundlefile --input "./data/bundles_${stage}/$file_name" \
-                 --key alias/${kms_key} \
+                 --key ${kms_key} \
                  --output "output-${version}"
 }
 
