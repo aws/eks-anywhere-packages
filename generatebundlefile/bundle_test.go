@@ -64,12 +64,14 @@ func TestNewBundleGenerate(t *testing.T) {
 	}
 }
 
-var testTagBundle string = "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214"
-var testShaBundle string = "sha256:d5467083c4d175e7e9bba823e95570d28fff86a2fbccb03f5ec3093db6f039be"
-var testImageMediaType string = "application/vnd.oci.image.manifest.v1+json"
-var testRegistryId string = "public.ecr.aws/eks-anywhere"
-var testRepositoryName string = "hello-eks-anywhere"
-var testAccountID string = "123456702424"
+var (
+	testTagBundle      string = "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214"
+	testShaBundle      string = "sha256:d5467083c4d175e7e9bba823e95570d28fff86a2fbccb03f5ec3093db6f039be"
+	testImageMediaType string = "application/vnd.oci.image.manifest.v1+json"
+	testRegistryId     string = "public.ecr.aws/eks-anywhere"
+	testRepositoryName string = "hello-eks-anywhere"
+	testAccountID      string = "123456702424"
+)
 
 func TestNewPackageFromInput(t *testing.T) {
 	client := newMockPublicRegistryClientBundle(nil)

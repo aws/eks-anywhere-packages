@@ -118,7 +118,7 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 		//
 		if strings.HasSuffix(tag.Name, "-latest") {
 			regex := regexp.MustCompile(`-latest`)
-			splitVersion := regex.Split(tag.Name, -1) //extract out the version without the latest
+			splitVersion := regex.Split(tag.Name, -1) // extract out the version without the latest
 			ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
 				RepositoryName: aws.String(project.Repository),
 			})
@@ -257,7 +257,7 @@ func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string,
 		// If tag contains -latest we do timestamp lookup of any tags matching a regexp of the specified tag.
 		if strings.Contains(tag, "-latest") {
 			regex := regexp.MustCompile(`-latest`)
-			splitVersion := regex.Split(tag, -1) //extract out the version without the latest
+			splitVersion := regex.Split(tag, -1) // extract out the version without the latest
 			ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
 				RepositoryName: aws.String(repoName),
 			})

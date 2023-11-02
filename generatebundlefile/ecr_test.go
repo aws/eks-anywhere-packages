@@ -79,16 +79,16 @@ func TestSplitECRName(t *testing.T) {
 }
 
 func TestUnTarHelmChart(t *testing.T) {
-	//Construct a Valid temp Helm Chart and Targz it.
+	// Construct a Valid temp Helm Chart and Targz it.
 	var tarGZ string = "test.tgz"
-	err := os.Mkdir("hello-eks-anywhere", 0750)
+	err := os.Mkdir("hello-eks-anywhere", 0o750)
 	if err != nil {
 		t.Fatal("Error creating test dir:", err)
 	}
 	defer os.RemoveAll("hello-eks-anywhere")
 	f, err := os.Create("hello-eks-anywhere/Chart.yaml")
 	content := []byte("apiVersion: v2\nversion: 0.1.0\nappVersion: 0.1.0\nname: hello-eks-anywhere\n")
-	err = os.WriteFile("hello-eks-anywhere/Chart.yaml", content, 0644)
+	err = os.WriteFile("hello-eks-anywhere/Chart.yaml", content, 0o644)
 	if err != nil {
 		t.Fatal("Error creating test files:", err)
 	}
@@ -231,7 +231,7 @@ func TestTagFromSha(t *testing.T) {
 			wantErr:          false,
 		},
 	}
-	//images.Digest, err = ecrClient.tagFromSha(images.Repository, images.Digest)
+	// images.Digest, err = ecrClient.tagFromSha(images.Repository, images.Digest)
 	for _, tc := range tests {
 		t.Run(tc.testName, func(tt *testing.T) {
 			clients := &SDKClients{
@@ -250,7 +250,7 @@ func TestTagFromSha(t *testing.T) {
 	}
 }
 
-//Helper funcions
+// Helper funcions
 // to create the mocks "impl 'r *mockRegistryClient' registryClient"
 
 type mockPublicRegistryClient struct {
@@ -298,8 +298,10 @@ func newMockRegistryClient(err error) *mockRegistryClient {
 	}
 }
 
-var testTag1 string = "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea660"
-var testTag2 string = "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea661"
+var (
+	testTag1 string = "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea660"
+	testTag2 string = "v0.1.1-baa4ef89fe91d65d3501336d95b680f8ae2ea661"
+)
 
 func (r *mockRegistryClient) DescribeImages(ctx context.Context, params *ecr.DescribeImagesInput, optFns ...func(*ecr.Options)) (*ecr.DescribeImagesOutput, error) {
 	if r.err != nil {

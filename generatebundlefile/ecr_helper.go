@@ -81,11 +81,12 @@ func printMap[k comparable, v any](m map[k]v) {
 
 // ExecCommand runs a given command, and constructs the log/output.
 func ExecCommand(cmd *exec.Cmd) (string, error) {
-	stdout, err := cmd.Output()
+	commandOutput, err := cmd.CombinedOutput()
+	commandOutputStr := strings.TrimSpace(string(commandOutput))
 	if err != nil {
-		return string(stdout), errors.Cause(err)
+		return commandOutputStr, errors.Cause(err)
 	}
-	return string(stdout), nil
+	return commandOutputStr, nil
 }
 
 // splitECRName is a helper function where some ECR repo's are formatted with "org/repo", and for aws repos it's just "repo"
@@ -144,7 +145,7 @@ type ImageDetailsBothECR struct {
 
 func createECRImageDetails(images ImageDetailsECR) (ImageDetailsBothECR, error) {
 	t := &ImageDetailsBothECR{}
-	//Check for empty structs, if non empty copy to new common struct for ECR imagedetails.
+	// Check for empty structs, if non empty copy to new common struct for ECR imagedetails.
 	if reflect.DeepEqual(images.PublicImageDetails, ecrpublictypes.ImageDetail{}) {
 		if images.PrivateImageDetails.ImageDigest != nil && images.PrivateImageDetails.ImagePushedAt != nil && images.PrivateImageDetails.RegistryId != nil && images.PrivateImageDetails.RepositoryName != nil {
 			copier.Copy(&t, &images.PrivateImageDetails)
@@ -202,7 +203,7 @@ func getLatestImageSha(details []ImageDetailsBothECR) (*api.SourceVersion, error
 
 // copyImage will copy an OCI artifact from one registry to another registry.
 func copyImage(log logr.Logger, authFile, source, destination string) error {
-	log.Info("Running skopeo copy...", source, destination)
+	log.Info("Running skopeo copy", "Source", source, "Destination", destination)
 	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
 	stdout, err := ExecCommand(cmd)
 	fmt.Printf("%s\n", stdout)

@@ -75,7 +75,7 @@ func UnTarHelmChart(chartRef, chartPath, dest string) error {
 	_, err := os.Stat(dest)
 	if os.IsNotExist(err) {
 		if _, err := os.Stat(chartPath); err != nil {
-			if err := os.MkdirAll(chartPath, 0755); err != nil {
+			if err := os.MkdirAll(chartPath, 0o755); err != nil {
 				return errors.Wrap(err, "failed to untar (mkdir)")
 			}
 		} else {

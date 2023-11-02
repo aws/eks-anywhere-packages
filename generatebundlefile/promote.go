@@ -49,17 +49,16 @@ func GetSDKClients(regionalBuildMode bool) (*SDKClients, error) {
 		clients.stsClientRelease = clients.stsClient
 		clients.ecrClientRelease = clients.ecrClient
 	}
-	if !regionalBuildMode {
-		// ECR Public Connection with us-east-1 region
-		conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
-		if err != nil {
-			return nil, fmt.Errorf("loading default AWS config: %w", err)
-		}
-		client := ecrpublic.NewFromConfig(conf)
-		clients.ecrPublicClient, err = NewECRPublicClient(client, true)
-		if err != nil {
-			return nil, fmt.Errorf("creating default public ECR client: %w", err)
-		}
+
+	// ECR Public Connection with us-east-1 region
+	conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
+	if err != nil {
+		return nil, fmt.Errorf("loading default AWS config: %w", err)
+	}
+	client := ecrpublic.NewFromConfig(conf)
+	clients.ecrPublicClient, err = NewECRPublicClient(client, true)
+	if err != nil {
+		return nil, fmt.Errorf("creating default public ECR client: %w", err)
 	}
 
 	return clients, nil
@@ -103,7 +102,7 @@ func (c *SDKClients) GetProfileSDKConnection(service, profile, region string) (*
 }
 
 // PromoteHelmChart will take a given repository, and authFile and handle helm and image promotion for the mentioned chart.
-func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImages bool) error {
+func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImages, regionalBuildMode bool) error {
 	var name, version, sha string
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -178,14 +177,14 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 	if copyImages {
 		accountID := c.activeAccountID()
 		for _, image := range helmRequiresImages.Spec.Images {
-			checkSha, checkTag, err := c.CheckDestinationECR(image, image.Tag)
+			checkSha, checkTag, err := c.CheckDestinationECR(image, image.Tag, regionalBuildMode)
 			// This is going to run a copy if only 1 check passes because there are scenarios where the correct SHA exists, but the tag is not in sync.
 			// Copy with the correct image SHA, but a new tag will just write a new tag to ECR so it's safe to run.
 			if checkSha && checkTag {
-				BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s @ %s", accountID, image.Repository, image.Tag, image.Digest))
+				BundleLog.Info("Image Digest and Tag already exists in destination location, skipping image copy", "Destination", fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s@%s", accountID, image.Repository, image.Tag, image.Digest))
 				continue
 			} else {
-				BundleLog.Info("Image Digest, and Tag dont exist in destination location...... copy to", "Location", fmt.Sprintf("%s/%s sha:%s", image.Repository, image.Tag, image.Digest))
+				BundleLog.Info("Image Digest and Tag don't exist in destination location, copying images to destination", "Location", fmt.Sprintf("%s/%s@%s", image.Repository, image.Tag, image.Digest))
 				// We have cases with tag mismatch where the SHA is accurate, but the tag in the destination repo is not synced, this will sync it.
 				if image.Tag == "" {
 					image.Tag, err = c.ecrClient.tagFromSha(image.Repository, image.Digest, tag)
@@ -193,7 +192,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 				if err != nil {
 					BundleLog.Error(err, "Unable to find Tag from Digest")
 				}
-				err = c.moveImage(image, authFile)
+				err = c.moveImage(image, authFile, regionalBuildMode)
 				if err != nil {
 					return err
 				}
@@ -207,29 +206,29 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 	// This will move the Helm chart from Private ECR to Public ECR if it doesn't exist. This goes to either dev or prod depending on the flags passed in.
 	// This runs for flags --public-profile and --promote.
 	if c.ecrClientRelease == nil {
-		for _, images := range helmRequires.Spec.Images {
-			//Check if the Helm chart is going to Prod, or dev account.
+		for _, image := range helmRequires.Spec.Images {
+			// Check if the Helm chart is going to Prod, or dev account.
 			destinationRegistry := c.ecrPublicClient.SourceRegistry
 			if c.ecrPublicClientRelease != nil {
 				destinationRegistry = c.ecrPublicClientRelease.SourceRegistry
 			}
-			checkSha, checkTag, err := c.CheckDestinationECR(images, images.Tag)
+			checkSha, checkTag, err := c.CheckDestinationECR(image, image.Tag, regionalBuildMode)
 			if checkSha && checkTag {
-				BundleLog.Info("Digest, and Tag already exists in destination location......skipping", "Destination:", fmt.Sprintf("docker://%s/%s:%s @ %s", destinationRegistry, images.Repository, images.Tag, images.Digest))
+				BundleLog.Info("Image Digest and Tag already exist in destination location, skipping", "Destination", fmt.Sprintf("docker://%s/%s:%s@%s", destinationRegistry, image.Repository, image.Tag, image.Digest))
 				continue
 			} else {
 				if c.ecrPublicClientRelease == nil {
-					source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, images.Repository, images.Tag)
-					destination := fmt.Sprintf("docker://%s/%s:%s", destinationRegistry, images.Repository, images.Tag)
-					BundleLog.Info("Copying Helm Digest, and Tag to destination location......", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag, images.Digest))
+					source := fmt.Sprintf("docker://%s.dkr.ecr.us-west-2.amazonaws.com/%s:%s", c.stsClient.AccountID, image.Repository, image.Tag)
+					destination := fmt.Sprintf("docker://%s/%s:%s", destinationRegistry, image.Repository, image.Tag)
+					BundleLog.Info("Copying Helm Digest and Tag to destination location", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, image.Repository, image.Tag, image.Digest))
 					err = copyImage(BundleLog, authFile, source, destination)
 					if err != nil {
 						return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
 					}
 				} else {
-					source := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag)
-					destination := fmt.Sprintf("docker://%s/%s:%s", destinationRegistry, images.Repository, images.Tag)
-					BundleLog.Info("Copying Helm Digest, and Tag to destination location......", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, images.Repository, images.Tag, images.Digest))
+					source := fmt.Sprintf("docker://%s/%s:%s", c.ecrPublicClient.SourceRegistry, image.Repository, image.Tag)
+					destination := fmt.Sprintf("docker://%s/%s:%s", destinationRegistry, image.Repository, image.Tag)
+					BundleLog.Info("Copying Helm Digest and Tag to destination location", "Location", fmt.Sprintf("%s/%s:%s %s", c.ecrPublicClient.SourceRegistry, image.Repository, image.Tag, image.Digest))
 					err = copyImage(BundleLog, authFile, source, destination)
 					if err != nil {
 						return fmt.Errorf("Unable to copy image from source to destination repo %s", err)
@@ -241,7 +240,7 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 	return nil
 }
 
-func (c *SDKClients) CheckDestinationECR(images Image, version string) (bool, bool, error) {
+func (c *SDKClients) CheckDestinationECR(image Image, version string, regionalBuildMode bool) (bool, bool, error) {
 	var checkSha, checkTag bool
 	var err error
 	var check CheckECR
@@ -258,14 +257,20 @@ func (c *SDKClients) CheckDestinationECR(images Image, version string) (bool, bo
 	} else {
 		check = destination
 	}
-	checkSha, err = check.shaExistsInRepository(images.Repository, images.Digest)
+
+	if regionalBuildMode {
+		check = c.ecrPublicClient
+	}
+
+	checkSha, err = check.shaExistsInRepository(image.Repository, image.Digest)
 	if err != nil {
 		return false, false, err
 	}
-	checkTag, err = check.tagExistsInRepository(images.Repository, version)
+	checkTag, err = check.tagExistsInRepository(image.Repository, version)
 	if err != nil {
 		return false, false, err
 	}
+
 	return checkSha, checkTag, nil
 }
 
@@ -282,7 +287,7 @@ func (c *SDKClients) activeAccountID() string {
 	return ""
 }
 
-func (c *SDKClients) moveImage(image Image, authFile string) error {
+func (c *SDKClients) moveImage(image Image, authFile string, regionalBuildMode bool) error {
 	var destinationPrefix string
 	accountID := c.activeAccountID()
 	BundleLog.Info("Moving container images to ECR")
@@ -297,13 +302,30 @@ func (c *SDKClients) moveImage(image Image, authFile string) error {
 
 	err := copyImage(BundleLog, authFile, sourcePrefix+":"+image.Tag, destinationPrefix+":"+image.Tag)
 	if err != nil {
-		return fmt.Errorf("unable to copy image tag from source to destination repo %w", err)
+		return fmt.Errorf("unable to copy image tag from source to destination repo: %w", err)
 	}
 
 	// when the image.Tag doesn't match image.Digest in the source ECR, we need to move the Digest directly
 	err = copyImage(BundleLog, authFile, sourcePrefix+"@"+image.Digest, destinationPrefix+"@"+image.Digest)
 	if err != nil {
-		return fmt.Errorf("unable to copy image digest from source to destination repo %w", err)
+		return fmt.Errorf("unable to copy image digest from source to destination repo: %w", err)
 	}
+
+	if regionalBuildMode {
+		destinationPrefix = fmt.Sprintf("docker://%s/%s", c.ecrPublicClient.SourceRegistry, image.Repository)
+		BundleLog.Info(fmt.Sprintf("Promoting images to secondary ECR destination: %s/%s", c.ecrPublicClient.SourceRegistry, image.Repository))
+
+		err := copyImage(BundleLog, authFile, sourcePrefix+":"+image.Tag, destinationPrefix+":"+image.Tag)
+		if err != nil {
+			return fmt.Errorf("unable to copy image tag from source to secondary destination repo: %w", err)
+		}
+
+		// when the image.Tag doesn't match image.Digest in the source ECR, we need to move the Digest directly
+		err = copyImage(BundleLog, authFile, sourcePrefix+"@"+image.Digest, destinationPrefix+"@"+image.Digest)
+		if err != nil {
+			return fmt.Errorf("unable to copy image digest from source to secondary destination repo: %w", err)
+		}
+	}
+
 	return nil
 }
