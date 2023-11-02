@@ -34,7 +34,7 @@ func main() {
 
 	if opts.generateSample {
 		outputFilename := filepath.Join(opts.outputFolder, "bundle.yaml")
-		f, err := os.OpenFile(outputFilename, os.O_WRONLY|os.O_CREATE, 0644)
+		f, err := os.OpenFile(outputFilename, os.O_WRONLY|os.O_CREATE, 0o644)
 		if err != nil {
 			BundleLog.Error(err, fmt.Sprintf("opening output file %q", outputFilename))
 			os.Exit(1)
@@ -131,20 +131,18 @@ func cmdPromote(opts *Options) error {
 	if err != nil {
 		return fmt.Errorf("getting SDK clients: %w", err)
 	}
-	
+
 	dockerStruct := &DockerAuth{
 		Auths: map[string]DockerAuthRegistry{
 			fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, ecrRegion): {clients.ecrClient.AuthConfig},
 		},
 	}
 
-	if !opts.regionalBuildMode {
-		clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
-		if err != nil {
-			return fmt.Errorf("getting registry URI: %w", err)
-		}
-		dockerStruct.Auths["public.ecr.aws"] = DockerAuthRegistry{clients.ecrPublicClient.AuthConfig}
+	clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
+	if err != nil {
+		return fmt.Errorf("getting registry URI: %w", err)
 	}
+	dockerStruct.Auths["public.ecr.aws"] = DockerAuthRegistry{clients.ecrPublicClient.AuthConfig}
 
 	dockerAuth, err := NewAuthFile(dockerStruct)
 	if err != nil {
@@ -160,7 +158,7 @@ func cmdPromote(opts *Options) error {
 	}
 	for repoName, versions := range promoteCharts {
 		for _, version := range versions {
-			err = clients.PromoteHelmChart(repoName, dockerAuth.Authfile, version, opts.copyImages)
+			err = clients.PromoteHelmChart(repoName, dockerAuth.Authfile, version, opts.copyImages, opts.regionalBuildMode)
 			if err != nil {
 				return fmt.Errorf("promoting Helm chart: %w", err)
 			}
@@ -474,7 +472,7 @@ func cmdGenerate(opts *Options) error {
 			}
 			for _, charts := range addOnBundleSpec.Packages {
 				for _, versions := range charts.Source.Versions {
-					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, copyImages[charts.Source.Repository])
+					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, copyImages[charts.Source.Repository], opts.regionalBuildMode)
 					if err != nil {
 						BundleLog.Error(err, "promoting helm chart",
 							"name", charts.Source.Repository)
@@ -533,7 +531,7 @@ func cmdGenerate(opts *Options) error {
 			}
 			for _, charts := range addOnBundleSpec.Packages {
 				for _, versions := range charts.Source.Versions {
-					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, true)
+					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, true, opts.regionalBuildMode)
 					if err != nil {
 						BundleLog.Error(err, "promoting helm chart",
 							"name", charts.Source.Repository)

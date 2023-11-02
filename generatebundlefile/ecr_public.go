@@ -108,7 +108,7 @@ func (c *SDKClients) GetShaForPublicInputs(project Project) ([]api.SourceVersion
 		//
 		if strings.HasSuffix(tag.Name, "-latest") {
 			regex := regexp.MustCompile(`-latest`)
-			splitVersion := regex.Split(tag.Name, -1) //extract out the version without the latest
+			splitVersion := regex.Split(tag.Name, -1) // extract out the version without the latest
 			ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
 				RepositoryName: aws.String(project.Repository),
 			})

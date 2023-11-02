@@ -13,18 +13,18 @@ import (
 
 // Options represents the flag for the current plugin
 type Options struct {
-	inputFile      string
-	outputFolder   string
-	generateSample bool
-	promote        string
-	tag            string
-	copyImages     bool
-	key            string
-	publicProfile  string
-	privateProfile string
-	bundleFile     string
-	regionCheck    bool
-	regionalBuildMode   bool
+	inputFile         string
+	outputFolder      string
+	generateSample    bool
+	promote           string
+	tag               string
+	copyImages        bool
+	key               string
+	publicProfile     string
+	privateProfile    string
+	bundleFile        string
+	regionCheck       bool
+	regionalBuildMode bool
 }
 
 func (o *Options) SetupLogger() {
