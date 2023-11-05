@@ -29,6 +29,8 @@ func GetSDKClients(regionalBuildMode bool) (*SDKClients, error) {
 	var err error
 
 	// STS Connection with us-west-2 region
+	// This override ensures we don't create source clients for staging or prod accounts
+	os.Setenv("AWS_PROFILE", "default")
 	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
 	if err != nil {
 		return nil, fmt.Errorf("loading default AWS config: %w", err)
@@ -66,7 +68,7 @@ func GetSDKClients(regionalBuildMode bool) (*SDKClients, error) {
 
 func (c *SDKClients) GetProfileSDKConnection(service, profile, region string) (*SDKClients, error) {
 	if service == "" || profile == "" {
-		return nil, fmt.Errorf("empty service, or profile passed to GetProfileSDKConnection")
+		return nil, fmt.Errorf("empty service or profile passed to GetProfileSDKConnection")
 	}
 	confWithProfile, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithRegion(region),
@@ -112,16 +114,31 @@ func (c *SDKClients) PromoteHelmChart(repository, authFile, tag string, copyImag
 	// If we are not moving artifacts to the Private ECR Packages artifact account, get information from public ECR instead.
 	// The first scenario runs for flags --private-profile and --promote.
 	// The 2nd scenario runs for flags and --public-profile.
-	if c.ecrClientRelease != nil || c.ecrClient != nil {
-		name, version, sha, err = c.getNameAndVersion(repository, tag, c.stsClient.AccountID)
-		if err != nil {
-			return fmt.Errorf("Error getting name and version from helmchart %s", err)
+	if regionalBuildMode {
+		if Profile != "default" {
+			name, version, sha, err = c.getNameAndVersionPublic(repository, tag, c.stsClientRelease.AccountID)
+			if err != nil {
+				return fmt.Errorf("Error getting name and version from helm chart: %s", err)
+			}
+		} else {
+			name, version, sha, err = c.getNameAndVersion(repository, tag, c.stsClient.AccountID)
+			if err != nil {
+				return fmt.Errorf("Error getting name and version from helm chart: %s", err)
+			}
 		}
-	}
-	if c.ecrPublicClientRelease != nil {
-		name, version, sha, err = c.getNameAndVersionPublic(repository, tag, c.stsClient.AccountID)
-		if err != nil {
-			return fmt.Errorf("Error getting name and version from helmchart %s", err)
+	} else {
+		if c.ecrClientRelease != nil || c.ecrClient != nil {
+			name, version, sha, err = c.getNameAndVersion(repository, tag, c.stsClient.AccountID)
+			if err != nil {
+				return fmt.Errorf("Error getting name and version from helm chart: %s", err)
+			}
+		}
+
+		if c.ecrPublicClientRelease != nil {
+			name, version, sha, err = c.getNameAndVersionPublic(repository, tag, c.stsClient.AccountID)
+			if err != nil {
+				return fmt.Errorf("Error getting name and version from helm chart: %s", err)
+			}
 		}
 	}
 
@@ -260,6 +277,9 @@ func (c *SDKClients) CheckDestinationECR(image Image, version string, regionalBu
 
 	if regionalBuildMode {
 		check = c.ecrPublicClient
+		if c.ecrPublicClientRelease != nil {
+			check = c.ecrPublicClientRelease
+		}
 	}
 
 	checkSha, err = check.shaExistsInRepository(image.Repository, image.Digest)
@@ -312,8 +332,12 @@ func (c *SDKClients) moveImage(image Image, authFile string, regionalBuildMode b
 	}
 
 	if regionalBuildMode {
-		destinationPrefix = fmt.Sprintf("docker://%s/%s", c.ecrPublicClient.SourceRegistry, image.Repository)
-		BundleLog.Info(fmt.Sprintf("Promoting images to secondary ECR destination: %s/%s", c.ecrPublicClient.SourceRegistry, image.Repository))
+		destinationRegistryClient := c.ecrPublicClient
+		if c.ecrPublicClientRelease != nil {
+			destinationRegistryClient = c.ecrPublicClientRelease
+		}
+		destinationPrefix = fmt.Sprintf("docker://%s/%s", destinationRegistryClient.SourceRegistry, image.Repository)
+		BundleLog.Info(fmt.Sprintf("Promoting images to secondary ECR destination: %s/%s", destinationRegistryClient.SourceRegistry, image.Repository))
 
 		err := copyImage(BundleLog, authFile, sourcePrefix+":"+image.Tag, destinationPrefix+":"+image.Tag)
 		if err != nil {

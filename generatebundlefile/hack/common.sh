@@ -19,7 +19,7 @@
 #    . <path-to-this-file>/common.sh
 
 # awsAuth echoes an AWS ECR password
-function awsAuth () {
+function orasLogin () {
     local repo=${1?:no repo specified}
     local awsCmd="ecr"
     local region="--region=us-west-2"
@@ -29,7 +29,14 @@ function awsAuth () {
         region="--region=us-east-1"
     fi
 
-    aws "$awsCmd" "$region" "--profile=${PROFILE:-}" get-login-password
+    regional_build_mode=${REGIONAL_BUILD_MODE:-}
+    if [[ "$regional_build_mode" == "true" ]]; then
+        profile=default
+    else
+        profile=${PROFILE:-}
+    fi
+    export AWS_PROFILE=$profile
+    aws "$awsCmd" "$region" get-login-password | "$ORAS_BIN" login "$repo" --username AWS --password-stdin
 }
 
 function generate () {
@@ -59,7 +66,7 @@ function regionCheck () {
 function push () {
     local version=${1?:no version specified}
     cd "${BASE_DIRECTORY}/generatebundlefile/output-${version}"
-    awsAuth "$REPO" | "$ORAS_BIN" login "$REPO" --username AWS --password-stdin
+    orasLogin "$REPO"
     removeBundleMetadata bundle.yaml
     if "$ORAS_BIN" pull "${REPO}:v${version}-latest" -o ${version}; then
         removeBundleMetadata ${version}/bundle.yaml
