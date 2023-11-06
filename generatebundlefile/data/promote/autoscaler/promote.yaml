@@ -37,17 +37,3 @@ packages:
         registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 9.21.0-1.24-latest
-  - org: cluster-autoscaler
-    projects:
-      - name: cluster-autoscaler
-        repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
-        versions:
-            - name: 9.21.0-1.23-latest
-  - org: cluster-autoscaler
-    projects:
-      - name: cluster-autoscaler
-        repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
-        versions:
-            - name: 9.21.0-1.22-latest
