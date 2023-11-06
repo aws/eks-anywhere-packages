@@ -21,6 +21,8 @@ import (
 
 var BundleLog = ctrl.Log.WithName("BundleGenerator")
 
+var Profile = "default"
+
 func main() {
 	opts := NewOptions()
 	opts.SetupLogger()
@@ -51,13 +53,15 @@ func main() {
 		return
 	}
 
-	if opts.promote != "" {
+	if opts.promote != "" || opts.inputFile != "" {
 		err := cmdPromote(opts)
 		if err != nil {
 			BundleLog.Error(err, "promoting curated package")
 			os.Exit(1)
 		}
-		return
+		if !opts.regionalBuildMode {
+			return
+		}
 	}
 
 	if opts.regionCheck {
@@ -138,11 +142,31 @@ func cmdPromote(opts *Options) error {
 		},
 	}
 
+	Profile := "default"
+	val, ok := os.LookupEnv("AWS_PROFILE")
+	if ok {
+		Profile = val
+	}
+	if opts.regionalBuildMode && Profile != "default" {
+		clients, err = clients.GetProfileSDKConnection("ecrpublic", Profile, ecrPublicRegion)
+		if err != nil {
+			BundleLog.Error(err, "Unable create SDK Client connections")
+			os.Exit(1)
+		}
+
+		clients.ecrPublicClientRelease.SourceRegistry, err = clients.ecrPublicClientRelease.GetRegistryURI()
+		if err != nil {
+			BundleLog.Error(err, "Unable create find Public ECR URI for destination account")
+			os.Exit(1)
+		}
+		dockerStruct.Auths["public.ecr.aws"] = DockerAuthRegistry{clients.ecrPublicClientRelease.AuthConfig}
+	}
+
 	clients.ecrPublicClient.SourceRegistry, err = clients.ecrPublicClient.GetRegistryURI()
 	if err != nil {
 		return fmt.Errorf("getting registry URI: %w", err)
 	}
-	dockerStruct.Auths["public.ecr.aws"] = DockerAuthRegistry{clients.ecrPublicClient.AuthConfig}
+	dockerStruct.Auths["public.ecr.aws/%s"] = DockerAuthRegistry{clients.ecrPublicClient.AuthConfig}
 
 	dockerAuth, err := NewAuthFile(dockerStruct)
 	if err != nil {
@@ -341,6 +365,9 @@ func cmdGenerate(opts *Options) error {
 		// Create Authfile for Helm Driver
 		dockerReleaseStruct := &DockerAuth{
 			Auths: map[string]DockerAuthRegistry{
+				fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClientRelease.AccountID, ecrRegion): {
+					clients.ecrClient.AuthConfig,
+				},
 				fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): {clients.ecrPublicClient.AuthConfig},
 			},
 		}

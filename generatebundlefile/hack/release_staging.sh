@@ -21,8 +21,17 @@ set -o pipefail
 export LANG=C.UTF-8
 
 BASE_AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 
-cat << EOF > configfile
+. "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
+ORAS_BIN=${BASE_DIRECTORY}/bin/oras
+
+make build
+chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile
+
+regional_build_mode=${REGIONAL_BUILD_MODE:-}
+if [[ "$regional_build_mode" != "true" ]]; then
+    cat << EOF > configfile
 [default]
 region=us-west-2
 account=$BASE_AWS_ACCOUNT_ID
@@ -34,24 +43,19 @@ region=us-west-2
 credential_source=EcsContainer
 EOF
 
-# Release Package Images to Packages Artifact account
-BASE_DIRECTORY=$(git rev-parse --show-toplevel)
-export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/configfile
-export PROFILE=packages
-AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-. "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
-ORAS_BIN=${BASE_DIRECTORY}/bin/oras
+    # Release Package Images to Packages Artifact account
+    export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/configfile
+    export PROFILE=packages
+    AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
-make build
-chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile
+    aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
+    aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
-aws ecr get-login-password --region us-west-2 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
-aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
-
-# Move Helm Images within the bundle to Private ECR
-${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml \
-    --private-profile ${PROFILE}
+    # Move Helm Images within the bundle to Private ECR
+    ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
+        --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml \
+        --private-profile ${PROFILE}
+fi
 
 # Release Helm Chart, and bundle to Staging account
 cat << EOF > stagingconfigfile
@@ -69,14 +73,21 @@ EOF
 export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/stagingconfigfile
 export PROFILE=staging
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
-ECR_PUBLIC=$(aws ecr-public --region us-east-1 describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
-REPO=${ECR_PUBLIC}/eks-anywhere-packages-bundles
 
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 
+if [ "$regional_build_mode" == "true" ]; then
+    file_name=staging_artifact_move-regional.yaml
+    REGISTRY=${BASE_AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
+else
+    file_name=staging_artifact_move.yaml
+    REGISTRY=$(aws ecr-public --region us-east-1 describe-registries --profile ${PROFILE} --query 'registries[*].registryUri' --output text)
+fi
+REPO=${REGISTRY}/eks-anywhere-packages-bundles
+
 # Move Helm charts within the bundle to Public ECR
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
-    --input ${BASE_DIRECTORY}/generatebundlefile/data/staging_artifact_move.yaml \
+    --input ${BASE_DIRECTORY}/generatebundlefile/data/${file_name} \
     --public-profile ${PROFILE}
 
 if [ ! -x "${ORAS_BIN}" ]; then
@@ -97,8 +108,10 @@ for version in 1-24 1-25 1-26 1-27 1-28; do
 done
 
 # Check images from Bundle in Private ECR
-export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/configfile
-export AWS_PROFILE=packages
-for version in 1-24 1-25 1-26 1-27 1-28; do
-    regionCheck ${version}
-done
+if [[ "$regional_build_mode" != "true" ]]; then
+    export AWS_CONFIG_FILE=${BASE_DIRECTORY}/generatebundlefile/configfile
+    export AWS_PROFILE=packages
+    for version in 1-24 1-25 1-26 1-27 1-28; do
+        regionCheck ${version}
+    done
+fi

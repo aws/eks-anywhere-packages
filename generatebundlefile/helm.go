@@ -45,6 +45,7 @@ func NewHelm(log logr.Logger, authfile string) (*helmDriver, error) {
 
 // PullHelmChart will take in a a remote Helm URI and attempt to pull down the chart if it exists.
 func (d *helmDriver) PullHelmChart(name, version string) (string, error) {
+	BundleLog.Info("Pulling Helm chart", "URI", name, "version", version)
 	if name == "" || version == "" {
 		return "", fmt.Errorf("empty input for PullHelmChart, check flags")
 	}

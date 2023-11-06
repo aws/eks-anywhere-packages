@@ -47,7 +47,7 @@ func (c *ecrPublicClient) DescribePublic(describeInput *ecrpublic.DescribeImages
 	var images []ecrpublictypes.ImageDetail
 	resp, err := c.DescribeImages(context.TODO(), describeInput)
 	if err != nil {
-		return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
+		return nil, fmt.Errorf("unable to complete DescribeImagesRequest to ECR public: %s", err)
 	}
 	images = append(images, resp.ImageDetails...)
 	if resp.NextToken != nil {
@@ -72,7 +72,7 @@ func (c *SDKClients) GetShaForPublicInputs(project Project) ([]api.SourceVersion
 				RegistryId:     &c.stsClientRelease.AccountID,
 			})
 			if err != nil {
-				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
+				return nil, fmt.Errorf("unable to complete DescribeImagesRequest to ECR public: %s", err)
 			}
 			for _, images := range ImageDetails {
 				if *images.ImageManifestMediaType != "application/vnd.oci.image.manifest.v1+json" || len(images.ImageTags) == 0 {
@@ -91,7 +91,7 @@ func (c *SDKClients) GetShaForPublicInputs(project Project) ([]api.SourceVersion
 				RepositoryName: aws.String(project.Repository),
 			})
 			if err != nil {
-				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
+				return nil, fmt.Errorf("unable to complete DescribeImagesRequest to ECR public: %s", err)
 			}
 			var images []ImageDetailsBothECR
 			for _, image := range ImageDetails {
@@ -113,7 +113,7 @@ func (c *SDKClients) GetShaForPublicInputs(project Project) ([]api.SourceVersion
 				RepositoryName: aws.String(project.Repository),
 			})
 			if err != nil {
-				return nil, fmt.Errorf("error: Unable to complete DescribeImagesRequest to ECR public. %s", err)
+				return nil, fmt.Errorf("unable to complete DescribeImagesRequest to ECR public: %s", err)
 			}
 
 			var images []ImageDetailsBothECR
