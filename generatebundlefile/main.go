@@ -53,14 +53,13 @@ func main() {
 		return
 	}
 
-	if opts.promote != "" || opts.inputFile != "" {
+	// Run promotion operation if promote flag is provided or if running
+	// in regional build mode
+	if opts.promote != "" || opts.regionalBuildMode {
 		err := cmdPromote(opts)
 		if err != nil {
 			BundleLog.Error(err, "promoting curated package")
 			os.Exit(1)
-		}
-		if !opts.regionalBuildMode {
-			return
 		}
 	}
 
