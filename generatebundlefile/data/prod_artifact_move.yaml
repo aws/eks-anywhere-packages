@@ -9,38 +9,38 @@ packages:
         repository: eks-anywhere-packages
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: 0.3.12-f567db688066bcbb3516e4bc14662796ec920906
+          - name: 0.3.13-f13ac7d95b585105a84ab407eee13a0324d16a11
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: 0.3.12-f567db688066bcbb3516e4bc14662796ec920906
+          - name: 0.3.13-f13ac7d95b585105a84ab407eee13a0324d16a11
       - name: eks-anywhere-packages-migrations
         copyimages: true
         repository: eks-anywhere-packages-migrations
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: 0.3.12-latest-helm
+          - name: 0.3.13-f13ac7d95b585105a84ab407eee13a0324d16a11
       - name: credential-provider-package
         copyimages: true
         repository: credential-provider-package
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: 0.3.12-f567db688066bcbb3516e4bc14662796ec920906
+          - name: 0.3.13-f13ac7d95b585105a84ab407eee13a0324d16a11
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
         repository: hello-eks-anywhere
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.1.2-c014c0e09013bc7dcea65cc982712946d50ce582
+          - name: 0.1.2-c014c0e09013bc7dcea65cc982712946d50ce582
   - org: aws-observability
     projects:
       - name: adot
         repository: adot/charts/aws-otel-collector
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.25.0-ec883752f028661cbb3bda6083a77263226dca5a
+          - name: 0.25.0-ec883752f028661cbb3bda6083a77263226dca5a
   - org: cert-manager
     projects:
       - name: cert-manager
@@ -55,61 +55,61 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 9.21.0-1.23-f9017a890ac64959308c86f341b72cdc2c3a67a4
-            - name: 9.21.0-1.24-f9017a890ac64959308c86f341b72cdc2c3a67a4
-            - name: 9.21.0-1.25-f9017a890ac64959308c86f341b72cdc2c3a67a4
-            - name: 9.21.0-1.26-f9017a890ac64959308c86f341b72cdc2c3a67a4-release-0.16-helm
-            - name: 9.21.0-1.27-f9017a890ac64959308c86f341b72cdc2c3a67a4-release-0.16-helm
-            - name: 9.21.0-1.28-f70bcf2d1cd0d76011744ac3bf6e757c0fe8fe37
+          - name: 9.21.0-1.23-f9017a890ac64959308c86f341b72cdc2c3a67a4
+          - name: 9.21.0-1.24-f9017a890ac64959308c86f341b72cdc2c3a67a4
+          - name: 9.21.0-1.25-f9017a890ac64959308c86f341b72cdc2c3a67a4
+          - name: 9.21.0-1.26-f9017a890ac64959308c86f341b72cdc2c3a67a4-release-0.16-helm
+          - name: 9.21.0-1.27-f9017a890ac64959308c86f341b72cdc2c3a67a4-release-0.16-helm
+          - name: 9.21.0-1.28-f70bcf2d1cd0d76011744ac3bf6e757c0fe8fe37
   - org: harbor
     projects:
       - name: harbor
         repository: harbor/harbor-helm
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 2.7.1-3f95205edb1b6e80c9d424b12abd2d8ecbb57f54
+          - name: 2.7.1-3f95205edb1b6e80c9d424b12abd2d8ecbb57f54
   - org: metallb
     projects:
       - name: metallb
         repository: metallb/metallb
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.13.7-21c206156e2f173a9471a992637eb43bf5147170
+          - name: 0.13.7-21c206156e2f173a9471a992637eb43bf5147170
   - org: metallb
     projects:
       - name: metallb-crds
         repository: metallb/crds
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.13.7-21c206156e2f173a9471a992637eb43bf5147170
+          - name: 0.13.7-21c206156e2f173a9471a992637eb43bf5147170
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.6.2-eks-1-23-18-da99883b9791fb9e8a6e135513f49b636583e40a
-            - name: 0.6.2-eks-1-24-13-da99883b9791fb9e8a6e135513f49b636583e40a
-            - name: 0.6.2-eks-1-25-9-da99883b9791fb9e8a6e135513f49b636583e40a
-            - name: 0.6.2-eks-1-26-5-da99883b9791fb9e8a6e135513f49b636583e40a
-            - name: 0.6.3-eks-1-27-4-21c206156e2f173a9471a992637eb43bf5147170
-            - name: 0.6.4-eks-1-28-5-f2dc3c9bf04f185c4d14d443688c88418aa33dfc
+          - name: 0.6.2-eks-1-23-18-da99883b9791fb9e8a6e135513f49b636583e40a
+          - name: 0.6.2-eks-1-24-13-da99883b9791fb9e8a6e135513f49b636583e40a
+          - name: 0.6.2-eks-1-25-9-da99883b9791fb9e8a6e135513f49b636583e40a
+          - name: 0.6.2-eks-1-26-5-da99883b9791fb9e8a6e135513f49b636583e40a
+          - name: 0.6.3-eks-1-27-4-21c206156e2f173a9471a992637eb43bf5147170
+          - name: 0.6.4-eks-1-28-5-f2dc3c9bf04f185c4d14d443688c88418aa33dfc
   - org: emissary
     projects:
       - name: emissary
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
+          - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
+          - name: 3.6.0-5fcc28fee80347ff96ab4d4f9fcf1c88b71b7f0a
   - org: prometheus
     projects:
       - name: prometheus
         repository: prometheus/charts/prometheus
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 2.43.0-0dfd662881d5a3a14830a9ca527908990cfb26f6
+          - name: 2.43.0-0dfd662881d5a3a14830a9ca527908990cfb26f6
