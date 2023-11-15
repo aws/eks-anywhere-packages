@@ -61,6 +61,9 @@ func main() {
 			BundleLog.Error(err, "promoting curated package")
 			os.Exit(1)
 		}
+		if !opts.regionalBuildMode {
+			return
+		}
 	}
 
 	if opts.regionCheck {
