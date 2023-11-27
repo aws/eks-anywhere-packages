@@ -33,7 +33,7 @@ function orasLogin () {
     if [[ "$regional_build_mode" == "true" ]]; then
         profile=default
     else
-        profile=${PROFILE:-}
+        profile=${PROFILE:-default}
     fi
     export AWS_PROFILE=$profile
     aws "$awsCmd" "$region" get-login-password | "$ORAS_BIN" login "$repo" --username AWS --password-stdin
