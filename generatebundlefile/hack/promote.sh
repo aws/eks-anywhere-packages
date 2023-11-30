@@ -33,16 +33,19 @@ aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 h
 
 cd "${BASE_DIRECTORY}/generatebundlefile"
 
+KMS_KEY="arn:aws:kms:us-west-2:857151390494:alias/signingPackagesKey"
+
 if [[ -n "${PROMOTE_FILE}" ]]; then
     if [[ "${HELM_REPO}" == "eks-anywhere-packages" ]]; then
         # We need to copy the images for the packages helm chart, but no other packages.
         ./bin/generatebundlefile  \
-            --promote ${HELM_REPO} --input ${PROMOTE_FILE} --copy-images
+            --promote ${HELM_REPO} --input ${PROMOTE_FILE} --copy-images --key ${KMS_KEY}
     else
         ./bin/generatebundlefile  \
-            --promote ${HELM_REPO} --input ${PROMOTE_FILE}
+            --promote ${HELM_REPO} --input ${PROMOTE_FILE} --key ${KMS_KEY}
     fi
 else
     ./bin/generatebundlefile  \
-        --promote ${HELM_REPO}
+        --promote ${HELM_REPO} --key ${KMS_KEY}
+
 fi

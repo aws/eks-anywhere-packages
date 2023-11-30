@@ -168,7 +168,7 @@ func cmdPromote(opts *Options) error {
 	if err != nil {
 		return fmt.Errorf("getting registry URI: %w", err)
 	}
-	dockerStruct.Auths["public.ecr.aws/%s"] = DockerAuthRegistry{clients.ecrPublicClient.AuthConfig}
+	dockerStruct.Auths["public.ecr.aws"] = DockerAuthRegistry{clients.ecrPublicClient.AuthConfig}
 
 	dockerAuth, err := NewAuthFile(dockerStruct)
 	if err != nil {
@@ -577,6 +577,7 @@ func cmdGenerate(opts *Options) error {
 		}
 
 		bundle.Annotations[FullExcludesAnnotation] = Excludes
+		BundleLog.Info("Generating bundle signature", "key", opts.key)
 		signature, err := GetBundleSignature(context.Background(), bundle, opts.key)
 		if err != nil {
 			BundleLog.Error(err, "Unable to sign bundle with kms key")
