@@ -55,7 +55,7 @@ func main() {
 
 	// Run promotion operation if promote flag is provided or if running
 	// in regional build mode
-	if opts.promote != "" || opts.regionalBuildMode {
+	if opts.promote != "" {
 		err := cmdPromote(opts)
 		if err != nil {
 			BundleLog.Error(err, "promoting curated package")
