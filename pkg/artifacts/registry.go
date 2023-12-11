@@ -42,7 +42,8 @@ func (p *RegistryPuller) Pull(ctx context.Context, ref string, clusterName strin
 		store = registry.NewDockerCredentialStore(configFile)
 	}
 
-	sc := registry.NewStorageContext(art.Registry, store, certificates, false)
+	insecure := registry.GetRegistryInsecure(clusterName)
+	sc := registry.NewStorageContext(art.Registry, store, certificates, insecure)
 	remoteRegistry, err := remote.NewRegistry(art.Registry)
 	if err != nil {
 		return nil, err

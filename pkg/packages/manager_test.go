@@ -129,12 +129,12 @@ func givenMockDriver(t *testing.T) *mocks.MockPackageDriver {
 	return mocks.NewMockPackageDriver(gomockController)
 }
 
-func givenMocksWithClient(t *testing.T) (*ManagerContext, *cMock.MockClient) {
-	mc, _ := givenMocks(t)
+func givenMocksWithClient(t *testing.T) (*ManagerContext, *mocks.MockPackageDriver, *cMock.MockClient) {
+	mc, mockDriver := givenMocks(t)
 	mockClient := givenMockClient(t)
 	managerClient := bundle.NewManagerClient(mockClient)
 	mc.ManagerClient = managerClient
-	return mc, mockClient
+	return mc, mockDriver, mockClient
 }
 
 func givenMocks(t *testing.T) (*ManagerContext, *mocks.MockPackageDriver) {
@@ -228,7 +228,7 @@ func TestManagerLifecycle(t *testing.T) {
 	})
 
 	t.Run("installing with dependency causes dependency package to be created", func(t *testing.T) {
-		mc, mockClient := givenMocksWithClient(t)
+		mc, _, mockClient := givenMocksWithClient(t)
 		mc.Package.Status.State = api.StateInstallingDependencies
 		mc.Version = mc.Bundle.Spec.Packages[0].Source.Versions[0]
 		mockClient.EXPECT().List(mc.Ctx, gomock.AssignableToTypeOf(&api.PackageList{}), gomock.Eq(client.InNamespace(mc.Package.Namespace))).SetArg(1, api.PackageList{})
@@ -240,7 +240,7 @@ func TestManagerLifecycle(t *testing.T) {
 	})
 
 	t.Run("installing succeeds if dependencies are installed", func(t *testing.T) {
-		mc, mockClient := givenMocksWithClient(t)
+		mc, _, mockClient := givenMocksWithClient(t)
 		mc.Package.Status.State = api.StateInstallingDependencies
 		mc.Version = mc.Bundle.Spec.Packages[0].Source.Versions[0]
 		installedPkg := api.NewPackage("test-dep", "test-dep", mc.Package.Namespace, mc.Package.Spec.Config)
@@ -256,7 +256,7 @@ func TestManagerLifecycle(t *testing.T) {
 	})
 
 	t.Run("installing dependencies fails if the bundle is wrong", func(t *testing.T) {
-		mc, _ := givenMocksWithClient(t)
+		mc, _, _ := givenMocksWithClient(t)
 		mc.Package.Status.State = api.StateInstallingDependencies
 		mc.Version = mc.Bundle.Spec.Packages[0].Source.Versions[0]
 		mc.Version.Dependencies = []string{"bad-dep"}
@@ -266,7 +266,7 @@ func TestManagerLifecycle(t *testing.T) {
 	})
 
 	t.Run("installing dependencies fails if the client fails", func(t *testing.T) {
-		mc, mockClient := givenMocksWithClient(t)
+		mc, _, mockClient := givenMocksWithClient(t)
 		mc.Package.Status.State = api.StateInstallingDependencies
 		mc.Version = mc.Bundle.Spec.Packages[0].Source.Versions[0]
 		mockClient.EXPECT().List(mc.Ctx, gomock.AssignableToTypeOf(&api.PackageList{}), gomock.Eq(client.InNamespace(mc.Package.Namespace))).SetArg(1, api.PackageList{}).Return(errors.New("Failed!"))
@@ -276,7 +276,7 @@ func TestManagerLifecycle(t *testing.T) {
 	})
 
 	t.Run("installing waits if dependencies are installing and clears the Details field once installing", func(t *testing.T) {
-		mc, mockClient := givenMocksWithClient(t)
+		mc, _, mockClient := givenMocksWithClient(t)
 		mc.Package.Status.State = api.StateInstallingDependencies
 		mc.Version = mc.Bundle.Spec.Packages[0].Source.Versions[0]
 		installedPkg := api.NewPackage("test-dep", "test-dep", mc.Package.Namespace, mc.Package.Spec.Config)
@@ -303,55 +303,69 @@ func TestManagerLifecycle(t *testing.T) {
 	})
 
 	t.Run("installing installs", func(t *testing.T) {
-		mc, mockDriver := givenMocks(t)
+		mc, mockDriver, mockClient := givenMocksWithClient(t)
 		mc.Package.Status.State = api.StateInstalling
 		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
 		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, false, mc.Source, gomock.Any()).Return(nil)
+		mockClient.EXPECT().Get(mc.Ctx, gomock.Any(), gomock.Any()).Return(nil)
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 60*time.Second, "")
 	})
 
 	t.Run("installing in deprecated namespace", func(t *testing.T) {
-		mc, mockDriver := givenMocks(t)
+		mc, mockDriver, mockClient := givenMocksWithClient(t)
 		mc.Package.Status.State = api.StateInstalling
 		mc.Package.Namespace = "eksa-packages"
 		t.Setenv("CLUSTER_NAME", "franky")
 		mockDriver.EXPECT().Initialize(mc.Ctx, "").Return(nil)
 		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, false, mc.Source, gomock.Any()).Return(nil)
+		mockClient.EXPECT().Get(mc.Ctx, gomock.Any(), gomock.Any()).Return(nil)
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 60*time.Second, "Deprecated package namespace. Move to eksa-packages-franky")
 	})
 
 	t.Run("installing with namespace creation enabled creates the namespace", func(t *testing.T) {
-		mc, mockDriver := givenMocks(t)
+		mc, mockDriver, mockClient := givenMocksWithClient(t)
 		mc.PBC.Spec.CreateNamespace = true
 		mc.Package.Status.State = api.StateInstalling
 		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
 		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, true, mc.Source, gomock.Any()).Return(nil)
+		mockClient.EXPECT().Get(mc.Ctx, gomock.Any(), gomock.Any()).Return(nil)
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalled, expectedSource, 60*time.Second, "")
 	})
 
 	t.Run("installing initialize fails", func(t *testing.T) {
-		mc, mockDriver := givenMocks(t)
+		mc, mockDriver, mockClient := givenMocksWithClient(t)
 		mc.Package.Status.State = api.StateInstalling
 		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(fmt.Errorf("boom"))
+		mockClient.EXPECT().Get(mc.Ctx, gomock.Any(), gomock.Any()).Return(nil)
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalling, expectedSource, 60*time.Second, "boom")
 	})
 
 	t.Run("installing install fails", func(t *testing.T) {
-		mc, mockDriver := givenMocks(t)
+		mc, mockDriver, mockClient := givenMocksWithClient(t)
 		mc.Package.Status.State = api.StateInstalling
 		mockDriver.EXPECT().Initialize(mc.Ctx, clusterName).Return(nil)
 		mockDriver.EXPECT().Install(mc.Ctx, mc.Package.Name, mc.Package.Spec.TargetNamespace, false, mc.Source, gomock.Any()).Return(fmt.Errorf("boom"))
+		mockClient.EXPECT().Get(mc.Ctx, gomock.Any(), gomock.Any()).Return(nil)
 		result := sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalling, expectedSource, 60*time.Second, "boom")
+	})
+
+	t.Run("installing install fails get secret", func(t *testing.T) {
+		mc, _, mockClient := givenMocksWithClient(t)
+		mc.Package.Status.State = api.StateInstalling
+		mockClient.EXPECT().Get(mc.Ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("boom"))
+		result := sut.Process(mc)
+		assert.True(t, result)
+		thenManagerContext(t, mc, api.StateInstalling, expectedSource, 60*time.Second, "aws-secret error:boom")
 	})
 
 	t.Run("installed upgrade triggered", func(t *testing.T) {
