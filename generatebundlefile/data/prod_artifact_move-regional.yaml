@@ -67,7 +67,7 @@ packages:
         repository: harbor/harbor-helm
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 2.7.1-93dbb0e58f98edc2cf246127109c680c0d7fec5c
+            - name: 2.9.1-b42d4365dd463719ae87d661100a24a2456f7ebe
   - org: metallb
     projects:
       - name: metallb

@@ -65,7 +65,7 @@ packages:
         repository: harbor/harbor-helm
         registry: public.ecr.aws/eks-anywhere
         versions:
-          - name: 2.7.1-3f95205edb1b6e80c9d424b12abd2d8ecbb57f54
+          - name: 2.9.1-b42d4365dd463719ae87d661100a24a2456f7ebe
   - org: kubernetes
     projects:
       - name: cluster-autoscaler
