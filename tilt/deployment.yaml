@@ -1,0 +1,160 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    meta.helm.sh/release-name: eks-anywhere-packages
+    meta.helm.sh/release-namespace: eksa-packages
+  labels:
+    app.kubernetes.io/instance: eks-anywhere-packages
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: eks-anywhere-packages
+    # app.kubernetes.io/version: v0.0.0-be347fd9eef0cabfc4204b43832dfe95206e0a17
+    # helm.sh/chart: eks-anywhere-packages-0.0.0-be347fd9eef0cabfc4204b43832dfe95206
+  name: eks-anywhere-packages
+  namespace: eksa-packages
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - server
+        - --verbosity=6
+        - --health-probe-bind-address=:8081
+        - --metrics-bind-address=127.0.0.1:8080
+        - --leader-elect
+        command:
+        - /package-manager
+        env:
+        - name: ENABLE_WEBHOOKS
+          value: "true"
+        - name: EKSA_PUBLIC_KEY
+          value: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw==
+        - name: HTTP_PROXY
+        - name: HTTPS_PROXY
+        - name: NO_PROXY
+        - name: CLUSTER_NAME
+          value: eksa-test-a1fbec0
+        - name: HELM_CONFIG_HOME
+          value: /tmp/config
+        image: packages-controller
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: 8081
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: controller
+        ports:
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /readyz
+            port: 8081
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 750m
+            memory: 450Mi
+          requests:
+            cpu: 100m
+            memory: 50Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
+        - mountPath: /tmp/config/registry
+          name: registry-mirror
+          readOnly: true
+        - mountPath: /tmp/ecr-token
+          name: ecr-token
+          readOnly: true
+        - mountPath: /tmp/aws-secret
+          name: aws-secret
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - env:
+        - name: ECR_TOKEN_SECRET_NAME
+          value: ecr-token
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: AWS_ACCESS_KEY_ID
+              name: aws-secret
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: AWS_SECRET_ACCESS_KEY
+              name: aws-secret
+        - name: AWS_REGION
+          valueFrom:
+            secretKeyRef:
+              key: REGION
+              name: aws-secret
+        - name: CLUSTER_NAME
+          value: eksa-test-a1fbec0
+        - name: HTTP_PROXY
+        - name: HTTPS_PROXY
+        - name: NO_PROXY
+        image: public.ecr.aws/l0g8r8j6/ecr-token-refresher:v0.0.0-be347fd9eef0cabfc4204b43832dfe95206e0a17
+        imagePullPolicy: IfNotPresent
+        name: init-job
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      nodeSelector:
+        kubernetes.io/os: linux
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        runAsNonRoot: true
+      serviceAccount: eks-anywhere-packages-serviceaccount
+      serviceAccountName: eks-anywhere-packages-serviceaccount
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: webhook-server-cert
+      - name: registry-mirror
+        secret:
+          defaultMode: 420
+          optional: true
+          secretName: registry-mirror-cred
+      - name: ecr-token
+        secret:
+          defaultMode: 420
+          optional: true
+          secretName: ecr-token
+      - name: aws-secret
+        secret:
+          defaultMode: 420
+          optional: true
+          secretName: aws-secret

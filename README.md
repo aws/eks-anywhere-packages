@@ -25,6 +25,26 @@ Please read our [CONTRIBUTING](CONTRIBUTING.md) guide before making a pull reque
 
 The dependencies which make up EKS Anywhere Curated Packages are defined and built via the [build-tooling](https://github.com/aws/eks-anywhere-build-tooling) repo.
 
+### Local Development
+
+Local development can be done using [tilt](https://tilt.dev/).
+
+#### Setup
+- install tilt binary on your machine following [instructions](https://docs.tilt.dev/)
+- install and configure [amazon-ecr-credential-helper](https://github.com/awslabs/amazon-ecr-credential-helper)
+- set REGISTRY and KUBERNETES_CONTEXTS env var:
+```
+export REGISTRY='public.ecr.aws/<your-public-ecr-registry-id>'
+export KUBERNETES_CONTEXTS=$(kubectl config current-context)
+```
+
+If running tilt on a remote host, you can port-forward tilt's web UI by forwarding over ssh:
+```
+ssh -v -L 10350:localhost:10350 <remote-host>
+```
+
+After running `tilt up`, tilt's UI should now be available at `localhost:10350` on your local machine.
+
 ## Security
 
 If you discover a potential security issue in this project, or think you may
