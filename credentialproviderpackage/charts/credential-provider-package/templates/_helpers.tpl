@@ -81,8 +81,6 @@ Function to figure out os name
 {{- printf "bottlerocket" -}}
 {{- else if contains "Amazon Linux" .status.nodeInfo.osImage -}}
 {{- printf "default" -}}
-{{- else if contains "Ubuntu 22.04" .status.nodeInfo.osImage -}}
-{{- printf "default" -}}
 {{- else -}}
 {{- printf "sysconfig" -}}
 {{- end }}
