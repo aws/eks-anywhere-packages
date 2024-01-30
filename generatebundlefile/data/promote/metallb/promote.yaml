@@ -8,11 +8,11 @@ packages:
         repository: metallb/crds
         registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.13.7-latest
+            - name: 0.13.12-latest
   - org: metallb 
     projects:
       - name: metallb
         repository: metallb/metallb
         registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.13.7-latest
+            - name: 0.13.12-latest
