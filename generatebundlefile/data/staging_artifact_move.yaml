@@ -49,7 +49,7 @@ packages:
         repository: cert-manager/cert-manager
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: 1.11.0-62f15756a0e14958d3ca963e6541dbda0a76e364
+          - name: 1.13.2-68d9da87f6125ae1523db22ddb50196c9f16d017
   - org: kubernetes
     projects:
       - name: cluster-autoscaler
