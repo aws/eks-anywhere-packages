@@ -46,7 +46,7 @@ packages:
         repository: cert-manager/cert-manager
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 1.13.2-68d9da87f6125ae1523db22ddb50196c9f16d017
+          - name: 1.13.2-828e7d186ded23e54f6bd95a5ce1319150f7e325
   - org: emissary
     projects:
       - name: emissary
