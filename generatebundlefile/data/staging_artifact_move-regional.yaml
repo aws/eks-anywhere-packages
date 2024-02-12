@@ -74,14 +74,14 @@ packages:
         repository: metallb/metallb
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.13.12-0752a435927aeedcb6e5a1555689250a040dbd46
+            - name: 0.13.12-828e7d186ded23e54f6bd95a5ce1319150f7e325
   - org: metallb
     projects:
       - name: metallb-crds
         repository: metallb/crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.13.12-0752a435927aeedcb6e5a1555689250a040dbd46
+            - name: 0.13.12-828e7d186ded23e54f6bd95a5ce1319150f7e325
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
