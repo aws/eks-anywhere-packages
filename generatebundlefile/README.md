@@ -45,7 +45,7 @@ This will output a sample bundle file to ./output.
 ### Public Promotion to another Account
 
 ```sh
-generatebundlefile --private-profile "profile-name" --input data/sample_input.yaml
+generatebundlefile --public-profile "profile-name" --input data/sample_input.yaml
 ```
 
 This command will move **Only** the helm chart from the listed input files to the target **public** ECR in another account.
