@@ -61,6 +61,7 @@ func (c *ecrPublicClient) DescribePublic(describeInput *ecrpublic.DescribeImages
 
 // GetShaForPublicInputs returns a list of an images version/sha for given inputs to lookup
 func (c *SDKClients) GetShaForPublicInputs(project Project) ([]api.SourceVersion, error) {
+	BundleLog.Info("Looking up ECR Public for image SHA", "Repository", project.Repository)
 	sourceVersion := []api.SourceVersion{}
 	for _, tag := range project.Versions {
 		if !strings.HasSuffix(tag.Name, "latest") {
