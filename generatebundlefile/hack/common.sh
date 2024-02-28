@@ -29,7 +29,15 @@ function orasLogin () {
         region="--region=us-east-1"
     fi
 
-    aws "$awsCmd" "$region" --profile=${PROFILE:-} get-login-password | "$ORAS_BIN" login "$repo" --username AWS --password-stdin
+    regional_build_mode=${REGIONAL_BUILD_MODE:-}
+    if [[ "$regional_build_mode" == "true" ]]; then
+        profile=default
+    else
+        profile=${PROFILE:-}
+    fi
+    export AWS_PROFILE=$profile
+
+    aws "$awsCmd" "$region" --profile=$profile get-login-password | "$ORAS_BIN" login "$repo" --username AWS --password-stdin
 }
 
 function generate () {
