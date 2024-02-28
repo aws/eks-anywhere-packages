@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -12,6 +15,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
+	"golang.org/x/exp/slices"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
@@ -204,8 +208,123 @@ func getLatestImageSha(details []ImageDetailsBothECR) (*api.SourceVersion, error
 // copyImage will copy an OCI artifact from one registry to another registry.
 func copyImage(log logr.Logger, authFile, source, destination string) error {
 	log.Info("Running skopeo copy", "Source", source, "Destination", destination)
-	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, destination, "-f", "oci", "--all")
+
+	log.Info("Copying source image to local directory")
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	tempImageDir := filepath.Join(currentDir, "temp-image-dir")
+	defer os.RemoveAll(tempImageDir)
+
+	cmd := exec.Command("skopeo", "copy", "--authfile", authFile, source, fmt.Sprintf("dir://%s", tempImageDir), "-f", "oci", "--all")
 	stdout, err := ExecCommand(cmd)
+	fmt.Printf("%s\n", stdout)
+	if err != nil {
+		return err
+	}
+
+	registryRegex, err := regexp.Compile("[0-9]{12}.dkr.ecr..*.amazonaws.com")
+	if err != nil {
+		return err
+	}
+	sourceRegistry := registryRegex.FindString(source)
+	sourceRepository := strings.Split(strings.ReplaceAll(source, fmt.Sprintf("%s/", sourceRegistry), ""), ":")[0]
+	sourceTag := strings.Split(strings.ReplaceAll(source, fmt.Sprintf("%s/", sourceRegistry), ""), ":")[1]
+	
+	log.Info("Getting source registry authorization token")
+	cmd = exec.Command("bash", "-c", fmt.Sprintf("cat %s | jq -r '.auths[\"%s\"].auth'", authFile, sourceRegistry))
+	stdout, err = ExecCommand(cmd)
+	if err != nil {
+		return err
+	}
+	sourceRegistryAuthToken := stdout
+	fmt.Println(sourceRegistryAuthToken)
+
+	log.Info("Getting updated manifest contents")
+	cmd = exec.Command("bash", "-c", fmt.Sprintf("curl -sH \"Authorization: Basic %s\" https://%s/v2/%s/manifests/%s | jq 'del(.manifests[] | select(.platform.architecture == \"unknown\"))'", sourceRegistryAuthToken, sourceRegistry, sourceRepository, sourceTag))
+	stdout, err = ExecCommand(cmd)
+	fmt.Println(stdout)
+	fmt.Println(err)
+	if err != nil {
+		return err
+	}
+	updatedManifestContents := stdout
+
+	log.Info("Updating manifest list contents to remove all non-image artifacts")
+	err = os.WriteFile(filepath.Join(tempImageDir, "manifest.json"), []byte(updatedManifestContents), 0o644)
+	if err != nil {
+		return err
+	}
+
+	log.Info("Removing manifest JSON files for all non-image artifacts")
+	log.Info("Getting non-image artifact digests")
+	cmd = exec.Command("bash", "-c", fmt.Sprintf("curl -sH \"Authorization: Basic %s\" https://%s/v2/%s/manifests/%s | jq '.manifests[] | select(.platform.architecture == \"unknown\").digest'", sourceRegistryAuthToken, sourceRegistry, sourceRepository, sourceTag))
+	stdout, err = ExecCommand(cmd)
+	if err != nil {
+		return err
+	}
+	nonImageDigests := strings.Split(stdout, "\n")
+	for _, digest := range nonImageDigests {
+		trimmedDigest := strings.TrimPrefix(digest, "sha256:")
+		manifestFile := filepath.Join(tempImageDir, fmt.Sprintf("%s.manifest.json", trimmedDigest))
+		err = os.Remove(manifestFile)
+		if err != nil {
+			return err
+		}
+	}
+
+	log.Info("Removing compressed layer files for all non-image artifacts")
+	compressedFilesToRetain := []string{}
+	log.Info("Getting image artifact digests")
+	cmd = exec.Command("bash", "-c", fmt.Sprintf("curl -sH \"Authorization: Basic %s\" https://%s/v2/%s/manifests/%s | jq '.manifests[] | select(.platform.architecture != \"unknown\").digest'", sourceRegistryAuthToken, sourceRegistry, sourceRepository, sourceTag))
+	stdout, err = ExecCommand(cmd)
+	if err != nil {
+		return err
+	}
+	imageDigests := strings.Split(stdout, "\n")
+	for _, digest := range imageDigests {
+		trimmedDigest := strings.TrimPrefix(digest, "sha256:")
+		manifestFile := filepath.Join(tempImageDir, fmt.Sprintf("%s.manifest.json", trimmedDigest))
+		log.Info("Getting config digest for image")
+		cmd = exec.Command("bash", "-c", fmt.Sprintf("cat %s | jq -r '.config.digest'", manifestFile, sourceRegistry))
+		stdout, err = ExecCommand(cmd)
+		if err != nil {
+			return err
+		}
+		compressedFilesToRetain = append(compressedFilesToRetain, stdout)
+
+		log.Info("Getting layer digests for image")
+		cmd = exec.Command("bash", "-c", fmt.Sprintf("cat %s | jq -r '.layers[].digest'", manifestFile, sourceRegistry))
+		stdout, err = ExecCommand(cmd)
+		if err != nil {
+			return err
+		}
+		layerDigests := strings.Split(stdout, "\n")
+		for _, digest := range layerDigests {
+			if !slices.Contains(compressedFilesToRetain, digest) {
+				compressedFilesToRetain = append(compressedFilesToRetain, digest)
+			}
+		}
+	}
+
+	tempImageDirFiles, err := os.ReadDir(tempImageDir)
+	if err != nil {
+		return err
+	}
+	for _, file := range tempImageDirFiles {
+		if !slices.Contains(compressedFilesToRetain, fmt.Sprintf("sha256:%s", file.Name())) {
+			err = os.Remove(file.Name())
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+
+	log.Info("Copying image from local directory to destination")
+	cmd = exec.Command("skopeo", "copy", "--authfile", authFile, fmt.Sprintf("dir://%s", tempImageDir), destination, "-f", "oci", "--all")
+	stdout, err = ExecCommand(cmd)
 	fmt.Printf("%s\n", stdout)
 	if err != nil {
 		return err
