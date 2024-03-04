@@ -35,7 +35,6 @@ function orasLogin () {
     else
         profile=${PROFILE:-}
     fi
-    export AWS_PROFILE=$profile
 
     aws "$awsCmd" "$region" --profile=$profile get-login-password | "$ORAS_BIN" login "$repo" --username AWS --password-stdin
 }
