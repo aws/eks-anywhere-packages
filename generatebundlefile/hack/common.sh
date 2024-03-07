@@ -32,6 +32,7 @@ function orasLogin () {
     regional_build_mode=${REGIONAL_BUILD_MODE:-}
     if [[ "$regional_build_mode" == "true" ]]; then
         profile=default
+        export AWS_PROFILE=$profile
     else
         profile=${PROFILE:-}
     fi
