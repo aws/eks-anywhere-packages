@@ -12,7 +12,7 @@ GOLANG_VERSION?="1.20"
 GO ?= $(shell source ./scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
+ifeq (,$(shell $(GO) env GOBIN))
 GOBIN=$(shell $(GO) env GOPATH)/bin
 else
 GOBIN=$(shell $(GO) env GOBIN)
@@ -63,7 +63,7 @@ run-gofmt: ## Run gofmt against code.
 
 .PHONY: run-gci
 run-gci: $(GOBIN)/gci ## Run gci against code.
-	$(LS_FILES_CMD) | xargs $(GOBIN)/gci write --skip-generated -s standard,default -s "prefix($(shell go list -m))"
+	$(LS_FILES_CMD) | xargs $(GOBIN)/gci write --skip-generated -s standard,default -s "prefix($(shell $(GO) list -m))"
 
 .PHONY: lint
 lint: $(GOLANGCI_LINT) ## Run golangci-lint
@@ -181,7 +181,7 @@ endef
 
 ## Generate mocks
 mocks: mockgen controllers/mocks/client.go controllers/mocks/manager.go
-	PATH=$(BIN_DIR):$(PATH) go generate ./...
+	PATH=$(BIN_DIR):$(PATH) $(GO) generate ./...
 
 controllers/mocks/client.go: go.mod
 	PATH=$(shell $(GO) env GOROOT)/bin:$$PATH \
