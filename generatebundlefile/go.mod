@@ -16,6 +16,7 @@ require (
 	github.com/go-logr/logr v1.2.3
 	github.com/jinzhu/copier v0.3.5
 	github.com/pkg/errors v0.9.1
+	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.11.1
 	k8s.io/apimachinery v0.26.1

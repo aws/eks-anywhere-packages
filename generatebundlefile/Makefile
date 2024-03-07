@@ -22,10 +22,10 @@ endif
 IMG ?= controller:latest
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
+ifeq (,$(shell $(GO) env GOBIN))
+GOBIN=$(shell $(GO) env GOPATH)/bin
 else
-GOBIN=$(shell go env GOBIN)
+GOBIN=$(shell $(GO) env GOBIN)
 endif
 
 SHELL = /usr/bin/env bash -o pipefail

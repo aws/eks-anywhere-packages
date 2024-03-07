@@ -6,6 +6,9 @@
                         "067575901363.dkr.ecr.us-west-2.amazonaws.com": [{"type": "insecureAcceptAnything"}],
                         "646717423341.dkr.ecr.us-west-2.amazonaws.com": [{"type": "insecureAcceptAnything"}],
                         "public.ecr.aws": [{"type": "insecureAcceptAnything"}]
+                },
+                "dir": {
+                        "": [{"type": "insecureAcceptAnything"}]
                 }
         }
 }
