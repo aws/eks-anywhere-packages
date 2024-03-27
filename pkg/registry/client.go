@@ -95,7 +95,7 @@ func (or *OCIRegistryClient) FetchBlob(ctx context.Context, srcStorage orasregis
 }
 
 // CopyGraph copy manifest and all blobs to destination.
-func (or *OCIRegistryClient) CopyGraph(ctx context.Context, srcStorage orasregistry.Repository, dstStorage orasregistry.Repository, desc ocispec.Descriptor) error {
+func (or *OCIRegistryClient) CopyGraph(ctx context.Context, srcStorage, dstStorage orasregistry.Repository, desc ocispec.Descriptor) error {
 	extendedCopyOptions := oras.DefaultExtendedCopyOptions
 	return oras.CopyGraph(ctx, srcStorage, dstStorage, desc, extendedCopyOptions.CopyGraphOptions)
 }

@@ -7,7 +7,7 @@ type Configurator interface {
 	Initialize(config constants.CredentialProviderConfigOptions)
 
 	// UpdateAWSCredentials Handles AWS Credential Setup
-	UpdateAWSCredentials(sourcePath string, profile string) error
+	UpdateAWSCredentials(sourcePath, profile string) error
 
 	// UpdateCredentialProvider Handles Credential Provider Setup
 	UpdateCredentialProvider(profile string) error

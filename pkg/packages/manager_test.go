@@ -19,17 +19,19 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/driver/mocks"
 )
 
-const packageName = "packageName"
-const packageInstance = "packageInstance"
-const packageBundleName = "testPackageBundle"
-const clusterName = "clusterName"
-const originalConfiguration = `
+const (
+	packageName           = "packageName"
+	packageInstance       = "packageInstance"
+	packageBundleName     = "testPackageBundle"
+	clusterName           = "clusterName"
+	originalConfiguration = `
 make: willys
 models:
   mb: "41"
   cj2a:
     year: "45"
 `
+)
 const newConfiguration = `
 make: willys
 models:
@@ -299,7 +301,6 @@ func TestManagerLifecycle(t *testing.T) {
 		result = sut.Process(mc)
 		assert.True(t, result)
 		thenManagerContext(t, mc, api.StateInstalling, api.PackageOCISource{}, retryLong, "")
-
 	})
 
 	t.Run("installing installs", func(t *testing.T) {

@@ -58,7 +58,7 @@ func (s *ecrSecret) Initialize(clusterName string) error {
 	return nil
 }
 
-func (s *ecrSecret) AddToConfigMap(ctx context.Context, name string, namespace string) error {
+func (s *ecrSecret) AddToConfigMap(ctx context.Context, name, namespace string) error {
 	cm, err := s.clientset.CoreV1().ConfigMaps(s.targetCluster).
 		Get(ctx, ConfigMapName, metav1.GetOptions{})
 	if err != nil {
@@ -107,7 +107,7 @@ func (s *ecrSecret) AddSecretToAllNamespace(ctx context.Context) error {
 	return err
 }
 
-func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name string, namespace string) error {
+func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name, namespace string) error {
 	cm, err := s.clientset.CoreV1().ConfigMaps(s.targetCluster).
 		Get(ctx, ConfigMapName, metav1.GetOptions{})
 	if err != nil {

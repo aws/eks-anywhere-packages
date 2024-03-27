@@ -19,7 +19,7 @@ func GetSecret(clientSet kubernetes.Interface, name, namespace string) (*corev1.
 	return secret, nil
 }
 
-func CreateSecret(clientSet kubernetes.Interface, name string, namespace string, data map[string][]byte) (*corev1.Secret, error) {
+func CreateSecret(clientSet kubernetes.Interface, name, namespace string, data map[string][]byte) (*corev1.Secret, error) {
 	object := metav1.ObjectMeta{
 		Name:      name,
 		Namespace: namespace,

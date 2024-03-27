@@ -154,7 +154,6 @@ func TestValidateSignature(t *testing.T) {
 		assert.True(t, valid, "The signature should be valid")
 		assert.Nil(t, err, "No error, the signature is simply invalid")
 	})
-
 }
 
 func TestMetadata(t *testing.T) {

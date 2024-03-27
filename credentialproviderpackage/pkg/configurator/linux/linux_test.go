@@ -57,8 +57,10 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 				extraArgsPath: dir,
 				basePath:      dir,
 				config: constants.CredentialProviderConfigOptions{
-					ImagePatterns: []string{"1234567.dkr.ecr.us-east-1.amazonaws.com",
-						"7654321.dkr.ecr.us-west-2.amazonaws.com"},
+					ImagePatterns: []string{
+						"1234567.dkr.ecr.us-east-1.amazonaws.com",
+						"7654321.dkr.ecr.us-west-2.amazonaws.com",
+					},
 					DefaultCacheDuration: constants.DefaultCacheDuration,
 				},
 			},
@@ -153,7 +155,6 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 			if tt.configWantPath != "" {
 				test.AssertFilesEquals(t, tt.outputConfigPath, tt.configWantPath)
 			}
-
 		})
 	}
 }
@@ -211,7 +212,7 @@ func Test_linuxOS_UpdateAWSCredentials(t *testing.T) {
 			if err != nil {
 				t.Errorf("Failed to open destination file")
 			}
-			if info.Mode().Perm() != os.FileMode(0600) {
+			if info.Mode().Perm() != os.FileMode(0o600) {
 				t.Errorf("Credential file not saved with correct permission")
 			}
 

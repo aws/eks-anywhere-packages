@@ -53,8 +53,8 @@ type PackageBundleControllerReconciler struct {
 
 func NewPackageBundleControllerReconciler(client client.Client,
 	scheme *runtime.Scheme, bundleManager bundle.Manager,
-	log logr.Logger) *PackageBundleControllerReconciler {
-
+	log logr.Logger,
+) *PackageBundleControllerReconciler {
 	return &PackageBundleControllerReconciler{
 		Client:        client,
 		Scheme:        scheme,

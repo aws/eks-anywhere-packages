@@ -107,7 +107,7 @@ func createTestFiles(baseDir string) error {
 	}
 
 	for filePath, data := range writeMap {
-		err := ioutil.WriteFile(baseDir+filePath, []byte(data), 0600)
+		err := ioutil.WriteFile(baseDir+filePath, []byte(data), 0o600)
 		if err != nil {
 			return err
 		}

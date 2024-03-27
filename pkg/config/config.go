@@ -13,9 +13,11 @@ const (
 
 var config Config
 
-var version = DEVELOPMENT
-var gitHash = HEAD
-var buildTime = EPOCH
+var (
+	version   = DEVELOPMENT
+	gitHash   = HEAD
+	buildTime = EPOCH
+)
 
 type Config struct {
 	BuildInfo BuildInfo
