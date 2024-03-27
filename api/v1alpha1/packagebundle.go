@@ -58,7 +58,7 @@ func (config *PackageBundle) FindVersion(pkg BundlePackage, pkgVersion string) (
 	return ret, fmt.Errorf("package version not found in bundle (%s): %s @ %s", config.Name, pkg.Name, pkgVersion)
 }
 
-func (config *PackageBundle) FindOCISourceByName(pkgName string, pkgVersion string) (retSource PackageOCISource, err error) {
+func (config *PackageBundle) FindOCISourceByName(pkgName, pkgVersion string) (retSource PackageOCISource, err error) {
 	pkg, err := config.FindPackage(pkgName)
 	if err != nil {
 		return retSource, err
@@ -107,7 +107,7 @@ func (b BundlesByVersion) Swap(i, j int) {
 
 // getMajorMinorBuild returns the Kubernetes major version, Kubernetes minor
 // version, and bundle build version.
-func (config *PackageBundle) getMajorMinorBuild() (major int, minor int, build int, err error) {
+func (config *PackageBundle) getMajorMinorBuild() (major, minor, build int, err error) {
 	s := strings.Split(config.Name, "-")
 	s = append(s, "", "", "")
 	s[0] = strings.TrimPrefix(s[0], "v")
@@ -133,7 +133,7 @@ func (config *PackageBundle) getMajorMinorBuild() (major int, minor int, build i
 // getMajorMinorFromString returns the Kubernetes major and minor version.
 //
 // It returns 0, 0 for empty string.
-func getMajorMinorFromString(kubeVersion string) (major int, minor int) {
+func getMajorMinorFromString(kubeVersion string) (major, minor int) {
 	s := strings.Split(kubeVersion, "-")
 	s = append(s, "", "", "")
 	s[0] = strings.TrimPrefix(s[0], "v")

@@ -73,7 +73,7 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 }
 
 func (d *helmDriver) Install(ctx context.Context,
-	name string, namespace string, createNamespace bool, source api.PackageOCISource, values map[string]interface{},
+	name, namespace string, createNamespace bool, source api.PackageOCISource, values map[string]interface{},
 ) error {
 	var err error
 	install := action.NewInstall(d.cfg)

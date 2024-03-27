@@ -16,7 +16,7 @@ const (
 	createConfigPath          = "/config"
 )
 
-func generateAwsConfigSecret(accessKeyPath string, secretAccessKeyPath string, regionPath string) (string, error) {
+func generateAwsConfigSecret(accessKeyPath, secretAccessKeyPath, regionPath string) (string, error) {
 	accessKeyByte, err := ioutil.ReadFile(accessKeyPath)
 	if err != nil {
 		return "", err
@@ -49,7 +49,7 @@ func GetAwsConfigPath() (string, error) {
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			awsConfig, err := generateAwsConfigSecret(accessKeySecretPath, secretAccessKeySecretPath, regionSecretPath)
-			err = ioutil.WriteFile(createConfigPath, []byte(awsConfig), 0400)
+			err = ioutil.WriteFile(createConfigPath, []byte(awsConfig), 0o400)
 			return createConfigPath, err
 		}
 	}

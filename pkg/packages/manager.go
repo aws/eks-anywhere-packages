@@ -48,7 +48,7 @@ func NewManagerContext(ctx context.Context, log logr.Logger, packageDriver drive
 	}
 }
 
-func (mc *ManagerContext) SetUninstalling(namespace string, name string) {
+func (mc *ManagerContext) SetUninstalling(namespace, name string) {
 	mc.Package.Namespace = namespace
 	mc.Package.Name = name
 	mc.Package.Status.State = api.StateUninstalling

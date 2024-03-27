@@ -12,7 +12,7 @@ import (
 const TestBundleName = "v1-21-1003"
 
 func TestPackageBundleController_IsValid(t *testing.T) {
-	givenBundleController := func(name string, namespace string) *api.PackageBundleController {
+	givenBundleController := func(name, namespace string) *api.PackageBundleController {
 		return &api.PackageBundleController{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,

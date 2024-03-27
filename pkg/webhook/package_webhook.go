@@ -68,7 +68,6 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 	}
 
 	activeBundle, err := v.BundleClient.GetActiveBundle(ctx, clusterName)
-
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, fmt.Errorf("getting PackageBundle: %v", err))
 	}

@@ -24,8 +24,10 @@ const (
 	ExcludesAnnotation  = "excludes"
 )
 
-var PublicKey string
-var EksaDomain Domain
+var (
+	PublicKey  string
+	EksaDomain Domain
+)
 
 func init() {
 	if os.Getenv("REGIONAL_BUILD_MODE") == "true" {

@@ -54,11 +54,11 @@ func (c *linuxOS) Initialize(config constants.CredentialProviderConfigOptions) {
 	c.config = config
 }
 
-func (c *linuxOS) UpdateAWSCredentials(sourcePath string, profile string) error {
+func (c *linuxOS) UpdateAWSCredentials(sourcePath, profile string) error {
 	c.profile = profile
 	dstPath := c.basePath + credOutFile
 
-	err := copyWithPermissons(sourcePath, dstPath, 0600)
+	err := copyWithPermissons(sourcePath, dstPath, 0o600)
 	return err
 }
 
@@ -91,7 +91,7 @@ func (c *linuxOS) UpdateCredentialProvider(_ string) error {
 	}
 
 	out := strings.Join(lines, "\n")
-	err = ioutil.WriteFile(c.extraArgsPath, []byte(out), 0644)
+	err = ioutil.WriteFile(c.extraArgsPath, []byte(out), 0o644)
 	return err
 }
 
@@ -168,24 +168,24 @@ func copyWithPermissons(srcpath, dstpath string, permission os.FileMode) (err er
 func copyBinaries() (string, error) {
 	srcPath := binPath + getApiVersion() + "/" + ecrCredProviderBinary
 	dstPath := basePath + ecrCredProviderBinary
-	err := copyWithPermissons(srcPath, dstPath, 0700)
+	err := copyWithPermissons(srcPath, dstPath, 0o700)
 	if err != nil {
 		return "", err
 	}
 
-	err = os.Chmod(dstPath, 0700)
+	err = os.Chmod(dstPath, 0o700)
 	if err != nil {
 		return "", err
 	}
 
 	srcPath = binPath + iamRolesSigningBinary
 	dstPath = basePath + iamRolesSigningBinary
-	err = copyWithPermissons(srcPath, dstPath, 0700)
+	err = copyWithPermissons(srcPath, dstPath, 0o700)
 	if err != nil {
 		return "", err
 	}
 
-	err = os.Chmod(dstPath, 0700)
+	err = os.Chmod(dstPath, 0o700)
 	if err != nil {
 		return "", err
 	}
@@ -208,7 +208,7 @@ func (c *linuxOS) createConfig() (string, error) {
 	if err != nil {
 		return "", nil
 	}
-	err = ioutil.WriteFile(dstPath, bytes, 0600)
+	err = ioutil.WriteFile(dstPath, bytes, 0o600)
 	if err != nil {
 		return "", err
 	}

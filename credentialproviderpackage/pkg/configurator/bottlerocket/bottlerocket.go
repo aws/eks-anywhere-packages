@@ -95,7 +95,7 @@ func (b *bottleRocket) Initialize(config constants.CredentialProviderConfigOptio
 	b.config = config
 }
 
-func (b *bottleRocket) UpdateAWSCredentials(path string, profile string) error {
+func (b *bottleRocket) UpdateAWSCredentials(path, profile string) error {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
@@ -165,10 +165,9 @@ func (b *bottleRocket) sendSettingsSetRequest(payload []byte) error {
 	}
 
 	return nil
-
 }
 
-func createCredentialsPayload(content string, profile string) ([]byte, error) {
+func createCredentialsPayload(content, profile string) ([]byte, error) {
 	aws := aws{
 		Config:  content,
 		Profile: profile,

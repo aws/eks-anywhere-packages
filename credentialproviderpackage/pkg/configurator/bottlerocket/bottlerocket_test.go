@@ -497,7 +497,7 @@ func Test_bottleRocket_isSupportedBRVersion(t *testing.T) {
 	}
 }
 
-func createGetBodyWithVersion(version string, variant string) ([]byte, error) {
+func createGetBodyWithVersion(version, variant string) ([]byte, error) {
 	brVer := brVersion{}
 	brVer.Os.VersionID = version
 	brVer.Os.VariantID = variant
@@ -510,7 +510,7 @@ func createGetBodyWithVersion(version string, variant string) ([]byte, error) {
 	return payload, nil
 }
 
-func createFakeBody(version string, variant string) ([]byte, error) {
+func createFakeBody(version, variant string) ([]byte, error) {
 	brFake := brFakeVersion{}
 	brFake.Os.VersionID = version
 	brFake.Os.VariantID = variant

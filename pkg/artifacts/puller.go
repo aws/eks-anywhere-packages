@@ -8,5 +8,5 @@ import "context"
 // storage services.
 type Puller interface {
 	// Pull the artifact at the given reference.
-	Pull(ctx context.Context, ref string, clusterName string) ([]byte, error)
+	Pull(ctx context.Context, ref, clusterName string) ([]byte, error)
 }

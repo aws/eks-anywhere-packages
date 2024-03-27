@@ -16,7 +16,8 @@ func TestCSSetContentsInit(t *testing.T) {
 	set := NewCSSet("one,three,two")
 	n := struct{}{}
 	assert.ObjectsAreEqual(map[string]struct{}{
-		"one": n, "two": n, "three": n},
+		"one": n, "two": n, "three": n,
+	},
 		set.set)
 }
 

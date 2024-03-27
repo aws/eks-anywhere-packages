@@ -110,9 +110,7 @@ func TestPackageBundle_Find(t *testing.T) {
 }
 
 func TestGetMajorMinorFromString(t *testing.T) {
-
 	t.Run("Parse from default Kubernetes version name", func(t *testing.T) {
-
 		targetVersion := "v1-21-1"
 		major, minor := getMajorMinorFromString(targetVersion)
 
@@ -121,8 +119,8 @@ func TestGetMajorMinorFromString(t *testing.T) {
 	})
 
 	t.Run("Parse from Kubernetes version name without patch number", func(
-		t *testing.T) {
-
+		t *testing.T,
+	) {
 		targetVersion := "v1-21"
 		major, minor := getMajorMinorFromString(targetVersion)
 
@@ -131,8 +129,8 @@ func TestGetMajorMinorFromString(t *testing.T) {
 	})
 
 	t.Run("Parse from Kubernetes version name without v perfix", func(
-		t *testing.T) {
-
+		t *testing.T,
+	) {
 		targetVersion := "1-21-1"
 		major, minor := getMajorMinorFromString(targetVersion)
 
@@ -141,7 +139,6 @@ func TestGetMajorMinorFromString(t *testing.T) {
 	})
 
 	t.Run("Parse from empty Kubernetes version name", func(t *testing.T) {
-
 		targetVersion := ""
 		major, minor := getMajorMinorFromString(targetVersion)
 
@@ -151,12 +148,12 @@ func TestGetMajorMinorFromString(t *testing.T) {
 }
 
 func TestKubeVersionMatches(t *testing.T) {
-
 	bundle := PackageBundle{ObjectMeta: metav1.ObjectMeta{
-		Name: "v1-21-1001"}}
+		Name: "v1-21-1001",
+	}}
 
 	t.Run("Kubernetes version matches", func(t *testing.T) {
-		var targetVersion = &version.Info{Major: "1", Minor: "21"}
+		targetVersion := &version.Info{Major: "1", Minor: "21"}
 
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
@@ -165,7 +162,7 @@ func TestKubeVersionMatches(t *testing.T) {
 	})
 
 	t.Run("Kubernetes major version doesn't match", func(t *testing.T) {
-		var targetVersion = &version.Info{Major: "2", Minor: "21"}
+		targetVersion := &version.Info{Major: "2", Minor: "21"}
 
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
@@ -174,7 +171,7 @@ func TestKubeVersionMatches(t *testing.T) {
 	})
 
 	t.Run("Kubernetes minor version doesn't match", func(t *testing.T) {
-		var targetVersion = &version.Info{Major: "1", Minor: "22"}
+		targetVersion := &version.Info{Major: "1", Minor: "22"}
 
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
@@ -184,8 +181,9 @@ func TestKubeVersionMatches(t *testing.T) {
 
 	t.Run("bogus major", func(t *testing.T) {
 		bundle := PackageBundle{ObjectMeta: metav1.ObjectMeta{
-			Name: "vx-21-1001"}}
-		var targetVersion = &version.Info{Major: "1", Minor: "21"}
+			Name: "vx-21-1001",
+		}}
+		targetVersion := &version.Info{Major: "1", Minor: "21"}
 
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
@@ -195,8 +193,9 @@ func TestKubeVersionMatches(t *testing.T) {
 
 	t.Run("bogus minor", func(t *testing.T) {
 		bundle := PackageBundle{ObjectMeta: metav1.ObjectMeta{
-			Name: "v1-x-1001"}}
-		var targetVersion = &version.Info{Major: "1", Minor: "21"}
+			Name: "v1-x-1001",
+		}}
+		targetVersion := &version.Info{Major: "1", Minor: "21"}
 
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
@@ -206,8 +205,9 @@ func TestKubeVersionMatches(t *testing.T) {
 
 	t.Run("bogus build", func(t *testing.T) {
 		bundle := PackageBundle{ObjectMeta: metav1.ObjectMeta{
-			Name: "v1-21-x"}}
-		var targetVersion = &version.Info{Major: "1", Minor: "21"}
+			Name: "v1-21-x",
+		}}
+		targetVersion := &version.Info{Major: "1", Minor: "21"}
 
 		result, err := bundle.KubeVersionMatches(targetVersion)
 
@@ -412,7 +412,6 @@ func TestGetPackageFromBundle(t *testing.T) {
 	}
 
 	t.Run("Get Package from bundle succeeds", func(t *testing.T) {
-
 		bundle := givenBundle(
 			[]SourceVersion{
 				{
@@ -429,7 +428,6 @@ func TestGetPackageFromBundle(t *testing.T) {
 	})
 
 	t.Run("Get Package from bundle fails", func(t *testing.T) {
-
 		bundle := givenBundle(
 			[]SourceVersion{
 				{
@@ -462,7 +460,6 @@ func TestGetJsonSchemFromBundlePackage(t *testing.T) {
 	}
 
 	t.Run("Get json schema from bundle succeeds", func(t *testing.T) {
-
 		bundle := givenBundle(
 			[]SourceVersion{
 				{

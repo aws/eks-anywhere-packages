@@ -10,7 +10,6 @@ import (
 )
 
 func TestPackageValidate(t *testing.T) {
-
 	t.Run("valid package", func(t *testing.T) {
 		activeBundle, err := testutil.GivenPackageBundle("../../api/testdata/bundle_one.yaml")
 		require.Nil(t, err)
