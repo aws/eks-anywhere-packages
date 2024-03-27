@@ -27,6 +27,8 @@ import (
 	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	ctrlmetricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	ctrlwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/controllers"
@@ -77,9 +79,13 @@ func server() error {
 		config.Burst = -1
 	}
 	mgr, err := ctrl.NewManager(config, ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     serverCommandContext.metricsAddr,
-		Port:                   9443,
+		Scheme: scheme,
+		Metrics: ctrlmetricsserver.Options{
+			BindAddress: serverCommandContext.metricsAddr,
+		},
+		WebhookServer: ctrlwebhook.NewServer(ctrlwebhook.Options{
+			Port: 9443,
+		}),
 		HealthProbeBindAddress: serverCommandContext.probeAddr,
 		LeaderElection:         serverCommandContext.enableLeaderElection,
 		LeaderElectionID:       "6ef7a950.eks.amazonaws.com",
