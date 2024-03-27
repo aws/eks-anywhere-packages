@@ -124,7 +124,7 @@ func TestHandleInner(t *testing.T) {
 		require.NoError(t, err)
 		scheme := runtime.NewScheme()
 		require.NoError(t, v1alpha1.AddToScheme(scheme))
-		decoder, err := admission.NewDecoder(scheme)
+		decoder := admission.NewDecoder(scheme)
 		require.NoError(t, err)
 		v := &activeBundleValidator{
 			decoder: decoder,
@@ -178,8 +178,7 @@ type fakeClient struct {
 	client.WithWatch
 }
 
-//var _ client.WithWatch = (*fakeClient)(nil)
-
+// var _ client.WithWatch = (*fakeClient)(nil)
 func newFakeClient(scheme *runtime.Scheme) *fakeClient {
 	fake := clientfake.NewClientBuilder().WithScheme(scheme).Build()
 	return &fakeClient{
@@ -188,8 +187,8 @@ func newFakeClient(scheme *runtime.Scheme) *fakeClient {
 }
 
 func (c *fakeClient) List(ctx context.Context,
-	obj client.ObjectList, opts ...client.ListOption) error {
-
+	obj client.ObjectList, opts ...client.ListOption,
+) error {
 	log.Printf("list has been called")
 	return fmt.Errorf("testing error")
 }

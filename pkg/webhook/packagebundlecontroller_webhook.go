@@ -51,7 +51,6 @@ func InitPackageBundleControllerValidator(mgr ctrl.Manager) error {
 }
 
 func (v *activeBundleValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
-
 	pbc := &v1alpha1.PackageBundleController{}
 	err := v.decoder.Decode(req, pbc)
 	if err != nil {
@@ -75,8 +74,8 @@ func (v *activeBundleValidator) Handle(ctx context.Context, req admission.Reques
 }
 
 func (v *activeBundleValidator) handleInner(ctx context.Context, pbc *v1alpha1.PackageBundleController, bundles *v1alpha1.PackageBundleList) (
-	*admission.Response, error) {
-
+	*admission.Response, error,
+) {
 	if pbc.Spec.ActiveBundle == "" {
 		resp := &admission.Response{
 			AdmissionResponse: admissionv1.AdmissionResponse{
@@ -144,8 +143,6 @@ func (v *activeBundleValidator) handleInner(ctx context.Context, pbc *v1alpha1.P
 	}
 	return resp, nil
 }
-
-var _ admission.DecoderInjector = (*activeBundleValidator)(nil)
 
 // InjectDecoder injects the decoder.
 func (v *activeBundleValidator) InjectDecoder(d *admission.Decoder) error {

@@ -28,7 +28,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/pkg/artifacts"
@@ -50,8 +49,8 @@ type PackageBundleReconciler struct {
 }
 
 func NewPackageBundleReconciler(client client.Client, scheme *runtime.Scheme,
-	bundleClient bundle.Client, bundleManager bundle.Manager, registryClient bundle.RegistryClient, log logr.Logger) *PackageBundleReconciler {
-
+	bundleClient bundle.Client, bundleManager bundle.Manager, registryClient bundle.RegistryClient, log logr.Logger,
+) *PackageBundleReconciler {
 	return &(PackageBundleReconciler{
 		Client:         client,
 		Scheme:         scheme,
@@ -74,11 +73,11 @@ func RegisterPackageBundleReconciler(mgr ctrl.Manager) error {
 		For(&api.PackageBundle{}).
 		// Watch for changes in the PackageBundleController, and reconcile
 		// bundles to update state when active bundle changes.
-		Watches(&source.Kind{Type: &api.PackageBundleController{}},
+		Watches(&api.PackageBundleController{},
 			handler.EnqueueRequestsFromMapFunc(r.mapBundleReconcileRequests)).
 		// Watch for creation or deletion of other bundles, so bundles can update
 		// their states accordingly.
-		Watches(&source.Kind{Type: &api.PackageBundle{}},
+		Watches(&api.PackageBundle{},
 			handler.EnqueueRequestsFromMapFunc(r.mapBundleReconcileRequests),
 			builder.WithPredicates(predicate.Funcs{
 				CreateFunc: func(e event.CreateEvent) bool { return true },
@@ -125,9 +124,9 @@ func (r *PackageBundleReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 }
 
 // mapBundleReconcileRequests generates a reconcile Request for each package bundle in the system.
-func (r *PackageBundleReconciler) mapBundleReconcileRequests(_ client.Object) (
-	requests []reconcile.Request) {
-
+func (r *PackageBundleReconciler) mapBundleReconcileRequests(_ context.Context, _ client.Object) (
+	requests []reconcile.Request,
+) {
 	ctx := context.Background()
 	bundles := &api.PackageBundleList{}
 	err := r.List(ctx, bundles, &client.ListOptions{Namespace: api.PackageNamespace})
