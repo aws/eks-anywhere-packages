@@ -24,6 +24,7 @@ function orasLogin () {
     local awsCmd="ecr"
     local region="--region=us-west-2"
 
+    registry=$(echo $repo | cut -d'/' -f1)
     if [[ $repo =~ "public.ecr.aws" ]]; then
         awsCmd="ecr-public"
         region="--region=us-east-1"
@@ -36,8 +37,7 @@ function orasLogin () {
     else
         profile=${PROFILE:-}
     fi
-
-    aws "$awsCmd" "$region" --profile=$profile get-login-password | "$ORAS_BIN" login "$repo" --username AWS --password-stdin
+    aws "$awsCmd" "$region" --profile=$profile get-login-password | oras login "$registry" --username AWS --password-stdin
 }
 
 function generate () {
@@ -67,19 +67,32 @@ function regionCheck () {
 function push () {
     local version=${1?:no version specified}
     cd "${BASE_DIRECTORY}/generatebundlefile/output-${version}"
-    orasLogin "$REPO"
     removeBundleMetadata bundle.yaml
-    if "$ORAS_BIN" pull "${REPO}:v${version}-latest" -o ${version}; then
+    if oras pull "${REPO}:v${version}-latest" -o ${version}; then
         removeBundleMetadata ${version}/bundle.yaml
     else
         mkdir -p ${version} && touch ${version}/bundle.yaml.stripped
     fi
 
+    local awsCmd="ecr"
+    local region="--region=us-west-2"
+    if [[ $REPO =~ "public.ecr.aws" ]]; then
+        awsCmd="ecr-public"
+        region="--region=us-east-1"
+    fi
+    regional_build_mode=${REGIONAL_BUILD_MODE:-}
+    if [[ "$regional_build_mode" == "true" ]]; then
+        profile=default
+        export AWS_PROFILE=$profile
+    else
+        profile=${PROFILE:-}
+    fi
+
     if (git diff --no-index --quiet -- ${version}/bundle.yaml.stripped bundle.yaml.stripped) then
         echo "bundle contents are identical skipping bundle push for ${version}"
     else
-        "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-        "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
+        aws "$awsCmd" "$region" --profile=$profile get-login-password | oras push --username AWS --password-stdin "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
+        aws "$awsCmd" "$region" --profile=$profile get-login-password | oras push --username AWS --password-stdin "${REPO}:v${version}-latest" bundle.yaml
     fi
 }
 

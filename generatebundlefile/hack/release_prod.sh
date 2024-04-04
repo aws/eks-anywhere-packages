@@ -25,7 +25,6 @@ BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 export CODEBUILD_BUILD_NUMBER=$(($CODEBUILD_BUILD_NUMBER+110))
 
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
-ORAS_BIN=${BASE_DIRECTORY}/bin/oras
 
 make build
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile
@@ -90,10 +89,6 @@ REPO=${REGISTRY}/eks-anywhere-packages-bundles
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/${file_name} \
     --public-profile ${PROFILE}
-
-if [ ! -x "${ORAS_BIN}" ]; then
-    make oras-install
-fi
 
 # Generate Bundles from Public ECR
 export AWS_PROFILE=prod
