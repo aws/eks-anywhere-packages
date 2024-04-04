@@ -24,7 +24,6 @@ BASE_AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
 
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
-ORAS_BIN=${BASE_DIRECTORY}/bin/oras
 
 make build
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile
@@ -89,10 +88,6 @@ REPO=${REGISTRY}/eks-anywhere-packages-bundles
 ${BASE_DIRECTORY}/generatebundlefile/bin/generatebundlefile  \
     --input ${BASE_DIRECTORY}/generatebundlefile/data/${file_name} \
     --public-profile ${PROFILE}
-
-if [ ! -x "${ORAS_BIN}" ]; then
-    make oras-install
-fi
 
 # Generate Bundles from Public ECR
 export AWS_PROFILE=staging

@@ -18,12 +18,13 @@
 # functions, source this file, e.g.:
 #    . <path-to-this-file>/common.sh
 
-# awsAuth echoes an AWS ECR password
-function orasLogin () {
+# skopeoLogin authenticates the Skopeo command with an ECR or ECR Public registry
+function skopeoLogin () {
     local repo=${1?:no repo specified}
     local awsCmd="ecr"
     local region="--region=us-west-2"
 
+    registry=$(echo $repo | cut -d'/' -f1)
     if [[ $repo =~ "public.ecr.aws" ]]; then
         awsCmd="ecr-public"
         region="--region=us-east-1"
@@ -37,7 +38,7 @@ function orasLogin () {
         profile=${PROFILE:-}
     fi
 
-    aws "$awsCmd" "$region" --profile=$profile get-login-password | "$ORAS_BIN" login "$repo" --username AWS --password-stdin
+    aws "$awsCmd" "$region" --profile=$profile get-login-password | skopeo login "$registry" --username AWS --password-stdin
 }
 
 function generate () {
@@ -67,24 +68,30 @@ function regionCheck () {
 function push () {
     local version=${1?:no version specified}
     cd "${BASE_DIRECTORY}/generatebundlefile/output-${version}"
-    orasLogin "$REPO"
-    removeBundleMetadata bundle.yaml
-    if "$ORAS_BIN" pull "${REPO}:v${version}-latest" -o ${version}; then
-        removeBundleMetadata ${version}/bundle.yaml
-    else
-        mkdir -p ${version} && touch ${version}/bundle.yaml.stripped
+    bundle_sha256sum=$(sha256sum bundle.yaml | awk '{print $1}')
+    skopeoLogin "$REPO"
+    
+    current_latest_bundle_sha256sum=""
+    if skopeo copy docker://"${REPO}:v${version}-latest" dir://$PWD/skopeo-old-${version}; then
+        current_latest_bundle_sha256sum="$(cat $PWD/skopeo-old-${version}/manifest.json | jq -r '.layers[0].digest')"
     fi
 
-    if (git diff --no-index --quiet -- ${version}/bundle.yaml.stripped bundle.yaml.stripped) then
-        echo "bundle contents are identical skipping bundle push for ${version}"
+    if [[ "sha256:$bundle_sha256sum" = "$current_latest_bundle_sha256sum" ]]; then
+        echo "Bundle contents are identical, skipping bundle push for ${version}"
     else
-        "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-        "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
+        echo "Pushing bundle to $REPO"
+        mkdir -p $PWD/skopeo-new-${version}
+        cp bundle.yaml skopeo-new-${version}/$bundle_sha256sum
+        empty_json_sha256sum=$(echo -n '{}' | sha256sum | awk '{print $1}')
+        echo -n '{}' > skopeo-new-${version}/$empty_json_sha256sum
+        echo "Directory Transport Version: 1.1" > skopeo-new-${version}/version
+        bundle_size=$(cat bundle.yaml | wc -c | awk '{print $1}')
+        jq -nc \
+            --arg config_digest "$empty_json_sha256sum" \
+            --arg bundle_digest "$bundle_sha256sum" \
+            --arg bundle_size $bundle_size \
+            '{"schemaVersion":2,"config":{"mediaType":"application/vnd.unknown.config.v1+json","digest":"sha256:\($config_digest)","size":2},"layers":[{"mediaType":"application/vnd.oci.image.layer.v1.tar","digest":"sha256:\($bundle_digest)","size":$bundle_size|tonumber,"annotations":{"org.opencontainers.image.title":"bundle.yaml"}}]}' | tr -d '\n' > skopeo-new-${version}/manifest.json
+        skopeo copy dir://$PWD/skopeo-new-${version} docker://"${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" -f oci --all
+        skopeo copy dir://$PWD/skopeo-new-${version} docker://"${REPO}:v${version}-latest" -f oci --all
     fi
-}
-
-function removeBundleMetadata () {
-    local bundle=${1?:no bundle specified}
-    yq 'del(.metadata.name)' ${bundle} > ${bundle}.strippedname
-    yq 'del(.metadata.annotations)' ${bundle}.strippedname > ${bundle}.stripped
 }

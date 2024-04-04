@@ -31,11 +31,6 @@ else
     REGISTRY=$(aws ecr-public --region us-east-1 describe-registries --query 'registries[*].registryUri' --output text)
 fi
 REPO=${REGISTRY}/eks-anywhere-packages-bundles
-ORAS_BIN=${BASE_DIRECTORY}/bin/oras
-
-if [ ! -x "${ORAS_BIN}" ]; then
-    make oras-install
-fi
 
 make build
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin

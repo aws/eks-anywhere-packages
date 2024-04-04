@@ -60,28 +60,3 @@ test:
 
 .PHONY: presubmit
 presubmit: build test # lint is run via github action
-
-## ORAS Make commands
-ORAS_VERSION := "0.12.0"
-ifeq ($(OS),Windows_NT)
-        # no op
-else
-	UNAME_S := $(shell uname -s)
-	UNAME_M := $(shell uname -m)
-	ifeq ($(UNAME_S),Linux)
-		ifeq ($(UNAME_M),x86_64)
-			ORAS_OSARCH := "linux_amd64"
-		endif
-	endif
-	ifeq ($(UNAME_S),Darwin)
-		ifeq ($(UNAME_M),x86_64)
-			ORAS_OSARCH := "darwin_amd64"
-		endif
-	endif
-endif
-
-.PHONY: oras-install
-oras-install:
-	mkdir -p $(REPO_ROOT)/bin
-	curl -L -s https://github.com/oras-project/oras/releases/download/v$(ORAS_VERSION)/oras_$(ORAS_VERSION)_$(ORAS_OSARCH).tar.gz \
-		| tar zx -C $(REPO_ROOT)/bin oras
