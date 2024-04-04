@@ -43,9 +43,10 @@ func InitPackageBundleControllerValidator(mgr ctrl.Manager) error {
 	mgr.GetWebhookServer().
 		Register("/validate-packages-eks-amazonaws-com-v1alpha1-packagebundlecontroller",
 			&webhook.Admission{Handler: &activeBundleValidator{
-				Client: mgr.GetClient(),
-				Config: mgr.GetConfig(),
-				tcc:    tcc,
+				Client:  mgr.GetClient(),
+				Config:  mgr.GetConfig(),
+				tcc:     tcc,
+				decoder: admission.NewDecoder(mgr.GetScheme()),
 			}})
 	return nil
 }
@@ -142,10 +143,4 @@ func (v *activeBundleValidator) handleInner(ctx context.Context, pbc *v1alpha1.P
 		},
 	}
 	return resp, nil
-}
-
-// InjectDecoder injects the decoder.
-func (v *activeBundleValidator) InjectDecoder(d *admission.Decoder) error {
-	v.decoder = d
-	return nil
 }

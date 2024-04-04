@@ -46,6 +46,7 @@ func InitPackageValidator(mgr ctrl.Manager) error {
 			&webhook.Admission{Handler: &packageValidator{
 				Client:       mgr.GetClient(),
 				BundleClient: bundle.NewManagerClient(mgr.GetClient()),
+				decoder:      admission.NewDecoder(mgr.GetScheme()),
 			}})
 	return nil
 }
@@ -156,10 +157,4 @@ func validatePackage(p *v1alpha1.Package, jsonSchema []byte) (*gojsonschema.Resu
 	configToValidate := gojsonschema.NewStringLoader(packageConfigString)
 
 	return schema.Validate(configToValidate)
-}
-
-// InjectDecoder injects the decoder.
-func (v *packageValidator) InjectDecoder(d *admission.Decoder) error {
-	v.decoder = d
-	return nil
 }
