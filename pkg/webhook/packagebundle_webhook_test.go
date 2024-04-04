@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	"github.com/aws/eks-anywhere-packages/controllers/mocks"
@@ -19,6 +20,7 @@ func TestBundleValidate(t *testing.T) {
 	mockManager := mocks.NewMockManager(gomock.NewController(t))
 	mockManager.EXPECT().GetClient().Return(nil)
 	mockManager.EXPECT().GetLogger().Return(logr.Discard())
+	mockManager.EXPECT().GetScheme().Return(runtime.NewScheme())
 	sut := NewPackageBundleValidator(mockManager)
 
 	t.Run("missing signature", func(t *testing.T) {

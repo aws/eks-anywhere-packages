@@ -31,14 +31,14 @@ models:
   cj2a:
     year: "45"
 `
-)
-const newConfiguration = `
+	newConfiguration = `
 make: willys
 models:
   mc: "49"
   cj3a:
     year: "49"
 `
+)
 
 type PackageOCISource = api.PackageOCISource
 

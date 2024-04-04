@@ -51,6 +51,7 @@ func NewPackageBundleValidator(mgr ctrl.Manager) packageBundleValidator {
 		Client:       client,
 		BundleClient: bundle.NewManagerClient(client),
 		log:          mgr.GetLogger().WithName("webhook"),
+		decoder:      admission.NewDecoder(mgr.GetScheme()),
 	}
 }
 
@@ -108,11 +109,5 @@ func (v *packageBundleValidator) isPackageBundleValid(pb *v1alpha1.PackageBundle
 		v.log.Info("Invalid signature", "Error", err, "Digest", base64.StdEncoding.EncodeToString(digest[:]), "Manifest", string(yml))
 		return fmt.Errorf("The signature is invalid for the configured public key: " + domain.Pubkey)
 	}
-	return nil
-}
-
-// InjectDecoder injects the decoder.
-func (v *packageBundleValidator) InjectDecoder(d *admission.Decoder) error {
-	v.decoder = d
 	return nil
 }
