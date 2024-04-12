@@ -25,7 +25,8 @@ const (
 	retryLong      = time.Duration(60) * time.Second
 	retryVeryLong  = time.Duration(180) * time.Second
 	sourceRegistry = "sourceRegistry"
-	secretName     = "registryMirrorSecret"
+	registrySecret = "registryMirrorSecret"
+	secretName     = "registry-mirror-secret"
 )
 
 type ManagerContext struct {
@@ -150,13 +151,15 @@ func processInstalling(mc *ManagerContext) bool {
 		return true
 	}
 	values[sourceRegistry] = mc.getImageRegistry(values)
-	registryMirrorSecret, err := mc.ManagerClient.GetSecret(mc.Ctx, "registry-mirror-secret")
+	registryMirrorSecret, err := mc.ManagerClient.GetSecret(mc.Ctx, secretName)
 	if err != nil {
 		mc.Package.Status.Detail = err.Error()
 		mc.Log.Error(err, "Install failed")
 		return true
 	}
-	values[secretName] = registryMirrorSecret.Data
+	if registryMirrorSecret != nil {
+		values[registrySecret] = registryMirrorSecret.Data
+	}
 	if mc.Source.Registry == "" {
 		mc.Source.Registry = mc.PBC.GetDefaultRegistry()
 	}
