@@ -53,3 +53,10 @@ func TestPackageBundleController_GetActiveBundleURI(t *testing.T) {
 	sut := GivenPackageBundleController()
 	assert.Equal(t, "public.ecr.aws/l0g8r8j6/eks-anywhere-packages-bundles:v1-21-1003", sut.GetActiveBundleURI())
 }
+
+func TestPackageBundleController_IsDefaultRegistryDefault(t *testing.T) {
+	sut := GivenPackageBundleController()
+	assert.Equal(t, false, sut.IsDefaultRegistryDefault())
+	sut.Spec.DefaultRegistry = "public.ecr.aws/eks-anywhere"
+	assert.Equal(t, true, sut.IsDefaultRegistryDefault())
+}

@@ -37,3 +37,8 @@ func (config *PackageBundleController) GetBundleURI() (uri string) {
 func (config *PackageBundleController) GetActiveBundleURI() (uri string) {
 	return config.GetBundleURI() + ":" + config.Spec.ActiveBundle
 }
+
+// IsDefaultRegistryDefault checks if the PBC DefaultRegistry is public.ecr.aws/eks-anywhere
+func (config *PackageBundleController) IsDefaultRegistryDefault() bool {
+	return config.GetDefaultRegistry() == defaultRegistry
+}
