@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"testing"
@@ -8,6 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -21,6 +23,7 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	bundleMocks "github.com/aws/eks-anywhere-packages/pkg/bundle/mocks"
 	"github.com/aws/eks-anywhere-packages/pkg/config"
+	"github.com/aws/eks-anywhere-packages/pkg/registry"
 )
 
 const testBundleName = "v1.21-1001"
@@ -78,8 +81,9 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			DoAndReturn(setMockPBC(&pbc))
 		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
 		mockBundleManager.EXPECT().ProcessBundleController(ctx, &pbc).Return(nil)
+		ci := registry.NewCertInjector(mockClient, logr.Discard())
 
-		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
+		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager, ci,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
 		assert.NoError(t, err)
@@ -97,8 +101,9 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			DoAndReturn(setMockPBC(&pbc))
 		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
 		mockBundleManager.EXPECT().ProcessBundleController(ctx, &pbc).Return(fmt.Errorf("oops"))
+		ci := registry.NewCertInjector(mockClient, logr.Discard())
 
-		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager,
+		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager, ci,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
 		assert.NoError(t, err)
@@ -127,8 +132,9 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 				assert.Equal(t, pbc.Status.State, api.BundleControllerStateIgnored)
 				return nil
 			})
+		ci := registry.NewCertInjector(mockClient, logr.Discard())
 
-		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
+		r := NewPackageBundleControllerReconciler(mockClient, nil, bm, ci,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: ignoredController})
 		assert.NoError(t, err)
@@ -151,8 +157,9 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockStatusClient := mocks.NewMockStatusWriter(gomock.NewController(t))
 		mockClient.EXPECT().Status().Return(mockStatusClient)
 		mockStatusClient.EXPECT().Update(ctx, gomock.Any(), gomock.Any()).Return(fmt.Errorf("oops"))
+		ci := registry.NewCertInjector(mockClient, logr.Discard())
 
-		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
+		r := NewPackageBundleControllerReconciler(mockClient, nil, bm, ci,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: ignoredController})
 		assert.NoError(t, err)
@@ -173,8 +180,9 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		}
 		mockClient.EXPECT().Get(ctx, ignoredController, gomock.Any()).
 			DoAndReturn(setMockPBC(&pbc))
+		ci := registry.NewCertInjector(mockClient, logr.Discard())
 
-		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
+		r := NewPackageBundleControllerReconciler(mockClient, nil, bm, ci,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: ignoredController})
 		assert.NoError(t, err)
@@ -194,8 +202,9 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		notFoundError := errors.NewNotFound(groupResource, req.Name)
 		mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
 			Return(notFoundError)
+		ci := registry.NewCertInjector(mockClient, logr.Discard())
 
-		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
+		r := NewPackageBundleControllerReconciler(mockClient, nil, bm, ci,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
 		assert.NoError(t, err)
@@ -209,11 +218,58 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 		mockClient := mocks.NewMockClient(gomock.NewController(t))
 		mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
 			Return(fmt.Errorf("oops"))
-
-		r := NewPackageBundleControllerReconciler(mockClient, nil, bm,
+		ci := registry.NewCertInjector(mockClient, logr.Discard())
+		r := NewPackageBundleControllerReconciler(mockClient, nil, bm, ci,
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
 		assert.EqualError(t, err, "retrieving package bundle controller: oops")
+		assert.True(t, result.Requeue)
+	})
+
+	t.Run("package bundle controller with non default image registry with cert update", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+		mockClient := mocks.NewMockClient(gomock.NewController(t))
+		pbc := givenPackageBundleController()
+		pbc.Spec.DefaultRegistry = "1.2.3.4:443/ecr-public/eks-anywhere"
+		regSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "registry-mirror-secret",
+				Namespace: "eksa-packages-eksa-packages-cluster01",
+			},
+			Data: map[string][]byte{
+				"CACERTCONTENT": bytes.NewBufferString("AAA").Bytes(),
+			},
+		}
+		regCredSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "registry-mirror-cred",
+				Namespace: api.PackageNamespace,
+			},
+			Data: make(map[string][]byte),
+		}
+		returnRegSec := &corev1.Secret{}
+		mockClient.EXPECT().Get(ctx, req.NamespacedName, gomock.Any()).
+			DoAndReturn(setMockPBC(&pbc))
+		mockClient.EXPECT().Get(ctx, types.NamespacedName{Name: regSecret.Name, Namespace: regSecret.Namespace}, returnRegSec).
+			DoAndReturn(func(ctx context.Context, name types.NamespacedName, s *corev1.Secret, _ ...client.GetOption) error {
+				regSecret.DeepCopyInto(s)
+				return nil
+			})
+		mockClient.EXPECT().Get(ctx, types.NamespacedName{Name: regCredSecret.Name, Namespace: regCredSecret.Namespace}, returnRegSec).
+			DoAndReturn(func(ctx context.Context, name types.NamespacedName, s *corev1.Secret, _ ...client.GetOption) error {
+				regCredSecret.DeepCopyInto(s)
+				return nil
+			})
+		mockClient.EXPECT().Update(ctx, gomock.AssignableToTypeOf(&corev1.Secret{}), gomock.Any()).Return(nil)
+		mockBundleManager := bundleMocks.NewMockManager(gomock.NewController(t))
+		mockBundleManager.EXPECT().ProcessBundleController(ctx, &pbc).Return(nil)
+		ci := registry.NewCertInjector(mockClient, logr.Discard())
+
+		r := NewPackageBundleControllerReconciler(mockClient, nil, mockBundleManager, ci,
+			logr.Discard())
+		result, err := r.Reconcile(ctx, req)
+		assert.NoError(t, err)
 		assert.True(t, result.Requeue)
 	})
 }

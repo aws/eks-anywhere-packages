@@ -29,6 +29,7 @@ import (
 	"github.com/aws/eks-anywhere-packages/pkg/authenticator"
 	"github.com/aws/eks-anywhere-packages/pkg/bundle"
 	"github.com/aws/eks-anywhere-packages/pkg/config"
+	"github.com/aws/eks-anywhere-packages/pkg/registry"
 )
 
 //go:generate mockgen -destination=mocks/client.go -package=mocks sigs.k8s.io/controller-runtime/pkg/client Client,StatusWriter
@@ -49,16 +50,21 @@ type PackageBundleControllerReconciler struct {
 	// webhookInitialized allows for faster requeues when the webhook isn't
 	// yet online.
 	webhookInitialized bool
+	certInjector       *registry.CertInjector
 }
 
-func NewPackageBundleControllerReconciler(client client.Client,
-	scheme *runtime.Scheme, bundleManager bundle.Manager,
+func NewPackageBundleControllerReconciler(
+	client client.Client,
+	scheme *runtime.Scheme,
+	bundleManager bundle.Manager,
+	certInjector *registry.CertInjector,
 	log logr.Logger,
 ) *PackageBundleControllerReconciler {
 	return &PackageBundleControllerReconciler{
 		Client:        client,
 		Scheme:        scheme,
 		bundleManager: bundleManager,
+		certInjector:  certInjector,
 		Log:           log,
 	}
 }
@@ -71,8 +77,9 @@ func RegisterPackageBundleControllerReconciler(mgr ctrl.Manager) error {
 	puller := artifacts.NewRegistryPuller(log)
 	registryClient := bundle.NewRegistryClient(puller)
 	bm := bundle.NewBundleManager(log, registryClient, bundleClient, tcc, config.GetGlobalConfig())
+	ci := registry.NewCertInjector(mgr.GetClient(), log)
 	reconciler := NewPackageBundleControllerReconciler(mgr.GetClient(),
-		mgr.GetScheme(), bm, log)
+		mgr.GetScheme(), bm, ci, log)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.PackageBundleController{}).
 		Complete(reconciler)
@@ -122,6 +129,12 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 			}
 		}
 		return withoutRequeue(result), nil
+	}
+
+	if !pbc.IsDefaultRegistryDefault() {
+		if err := r.certInjector.UpdateIfNeeded(ctx, pbc.Name); err != nil {
+			return result, fmt.Errorf("ensuring registry CA cert updated: %v", err)
+		}
 	}
 
 	err = r.bundleManager.ProcessBundleController(ctx, pbc)
