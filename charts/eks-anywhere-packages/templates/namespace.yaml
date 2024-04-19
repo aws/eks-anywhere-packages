@@ -28,7 +28,6 @@ metadata:
 {{- end }}
 {{- end }}
 
-{{- if not (eq $render "package") }}
 {{ $pkgnamespace := (printf "%s-%s" "eksa-packages" .Values.clusterName) }}
 {{- if not (lookup "v1" "Namespace" "" $pkgnamespace ) -}}
 apiVersion: v1
@@ -37,5 +36,4 @@ metadata:
   annotations:
     "helm.sh/resource-policy": keep
   name: {{ $pkgnamespace }}
-{{- end }}
 {{- end }}
