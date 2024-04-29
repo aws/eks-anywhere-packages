@@ -76,7 +76,7 @@ func (ci *CertInjector) fetchCertContent(ctx context.Context, clusterName string
 
 	if err := ci.k8sClient.Get(ctx, nn, registryMirrorSecret); err != nil {
 		if apierrors.IsNotFound(err) {
-			ci.log.Info("Registry mirror secret not found: %v", err)
+			ci.log.Info("Registry mirror secret not found", "error", err)
 			return nil, nil
 		}
 		return nil, fmt.Errorf("getting secret %s: %s", nn.String(), err)
