@@ -9,22 +9,22 @@ packages:
         repository: eks-anywhere-packages
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.4.3-7ef56de1ffc05263d47ac713e81a10ddd5901cb4
+          - name: 0.4.3-a8009c93800d27ff66e09116ae9d78e90afd56c2
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.4.3-7ef56de1ffc05263d47ac713e81a10ddd5901cb4
+          - name: 0.4.3-a8009c93800d27ff66e09116ae9d78e90afd56c2
       - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-migrations
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.4.3-7ef56de1ffc05263d47ac713e81a10ddd5901cb4
+          - name: 0.4.3-a8009c93800d27ff66e09116ae9d78e90afd56c2
       - name: credential-provider-package
         repository: credential-provider-package
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.4.3-7ef56de1ffc05263d47ac713e81a10ddd5901cb4
+          - name: 0.4.3-a8009c93800d27ff66e09116ae9d78e90afd56c2
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
