@@ -113,11 +113,20 @@ func CreateDockerAuthConfig(creds []*secrets.Credential) *dockerConfig {
 	config := dockerConfig{Auths: make(map[string]*dockerAuth)}
 
 	for _, cred := range creds {
+		username := cred.Username
+		password := cred.Password
+		if username == "" {
+			username = "username"
+		}
+		if password == "" {
+			password = "password"
+		}
+
 		config.Auths[cred.Registry] = &dockerAuth{
-			Username: cred.Username,
-			Password: cred.Password,
+			Username: username,
+			Password: password,
 			Email:    defaultEmail,
-			Auth:     base64.StdEncoding.EncodeToString([]byte(cred.Username + ":" + cred.Password)),
+			Auth:     base64.StdEncoding.EncodeToString([]byte(username + ":" + password)),
 		}
 	}
 
