@@ -1,0 +1,101 @@
+# This info is hardcoded and comes from https://github.com/aws/eks-anywhere-build-tooling
+name: "v1-30-1001"
+kubernetesVersion: "1.30"
+minControllerVersion: "v0.3.2"
+packages:
+  - org: aws
+    projects:
+      - name: eks-anywhere-packages
+        repository: eks-anywhere-packages
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+          - name: 0.0.0-latest
+      - name: eks-anywhere-packages-crds
+        repository: eks-anywhere-packages-crds
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+          - name: 0.0.0-latest
+      - name: eks-anywhere-packages-migrations
+        repository: eks-anywhere-packages-migrations
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+          - name: 0.0.0-latest
+      - name: credential-provider-package
+        repository: credential-provider-package
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+          - name: 0.0.0-latest
+  - org: aws-containers
+    projects:
+      - name: hello-eks-anywhere
+        repository: hello-eks-anywhere
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
+  - org: aws-observability
+    projects:
+      - name: adot
+        repository: adot/charts/aws-otel-collector
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
+  - org: cert-manager
+    projects:
+      - name: cert-manager
+        workloadonly: true
+        repository: cert-manager/cert-manager
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+          - name: latest
+  - org: harbor
+    projects:
+      - name: harbor
+        repository: harbor/harbor-helm
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
+  - org: kubernetes
+    projects:
+      - name: cluster-autoscaler
+        repository: cluster-autoscaler/charts/cluster-autoscaler
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: 9.34.0-1.29-latest
+  - org: kubernetes-sigs
+    projects:
+      - name: metrics-server
+        repository: metrics-server/charts/metrics-server
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: 0.7.0-eks-1-29-latest
+  - org: metallb
+    projects:
+      - name: metallb
+        repository: metallb/metallb
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
+      - name: metallb-crds
+        repository: metallb/crds
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
+  - org: emissary
+    projects:
+      - name: emissary
+        repository: emissary-ingress/emissary
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
+      - name: emissary-crds
+        repository: emissary-ingress/crds
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
+  - org: prometheus
+    projects:
+      - name: prometheus
+        repository: prometheus/charts/prometheus
+        registry: public.ecr.aws/l0g8r8j6
+        versions:
+            - name: latest
