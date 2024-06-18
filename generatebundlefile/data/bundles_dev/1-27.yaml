@@ -60,14 +60,14 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 9.34.0-1.27-latest
+            - name: 9.37.0-1.27-latest
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/l0g8r8j6
         versions:
-            - name: 0.7.0-eks-1-27-latest
+            - name: 0.7.1-eks-1-27-latest
   - org: metallb
     projects:
       - name: metallb
