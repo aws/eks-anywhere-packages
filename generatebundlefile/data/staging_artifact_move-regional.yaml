@@ -10,24 +10,24 @@ packages:
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.0.0-latest  # This is only used to move images for scanning, keep as 0.0.0-latest
-            - name: v0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
+            - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: v0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
+          - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
       - name: eks-anywhere-packages-migrations
         copyimages: true
         repository: eks-anywhere-packages-migrations
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: v0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
+          - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
       - name: credential-provider-package
         copyimages: true
         repository: credential-provider-package
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: v0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
+          - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
