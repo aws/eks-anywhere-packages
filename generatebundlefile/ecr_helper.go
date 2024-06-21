@@ -186,7 +186,16 @@ func getLatestHelmTagandSha(details []ImageDetailsBothECR) (string, string, erro
 	if reflect.DeepEqual(latest, ImageDetailsBothECR{}) {
 		return "", "", fmt.Errorf("error no images found")
 	}
-	return latest.ImageTags[0], *latest.ImageDigest, nil
+
+	var imageTag string
+	imageTagRegex := regexp.MustCompile(`^\d+\.\d+\.\d+.*[0-9a-f]{40}$`)
+	for _, tag := range latest.ImageTags {
+		if imageTagRegex.MatchString(tag) {
+			imageTag = tag
+			break
+		}
+	}
+	return imageTag, *latest.ImageDigest, nil
 }
 
 // getLatestImageSha Iterates list of ECR Public Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
