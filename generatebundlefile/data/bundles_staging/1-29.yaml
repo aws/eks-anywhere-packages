@@ -9,22 +9,22 @@ packages:
         repository: eks-anywhere-packages
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.4.3-b3aebd18d7ccfee138e40d8e037a684a8f135e6f
+          - name: 0.4.3-451cb0d2fd416176540b65be9e46b4cfc0db99f0
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.4.3-b3aebd18d7ccfee138e40d8e037a684a8f135e6f
+          - name: 0.4.3-451cb0d2fd416176540b65be9e46b4cfc0db99f0
       - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-migrations
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.4.3-b3aebd18d7ccfee138e40d8e037a684a8f135e6f
+          - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
       - name: credential-provider-package
         repository: credential-provider-package
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.4.3-b3aebd18d7ccfee138e40d8e037a684a8f135e6f
+          - name: 0.4.3-451cb0d2fd416176540b65be9e46b4cfc0db99f0
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
@@ -53,7 +53,7 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 9.37.0-1.29-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
+          - name: 9.37.0-1.29-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e-latest-helm
   - org: harbor
     projects:
       - name: harbor
@@ -88,7 +88,7 @@ packages:
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 3.9.1-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
+          - name: 3.9.1-latest-helm
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: public.ecr.aws/w9m0f3l5
