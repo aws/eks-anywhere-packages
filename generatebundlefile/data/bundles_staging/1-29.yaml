@@ -88,7 +88,7 @@ packages:
         repository: emissary-ingress/emissary
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 3.9.1-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
+          - name: 3.9.1-latest-helm
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: public.ecr.aws/w9m0f3l5
