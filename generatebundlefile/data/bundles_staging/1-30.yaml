@@ -81,7 +81,7 @@ packages:
         repository: metrics-server/charts/metrics-server
         registry: public.ecr.aws/w9m0f3l5
         versions:
-          - name: 0.7.1-eks-1-30-7-fe14b98f98132123f478eaf6e65bba4a29bf488b
+          - name: 0.7.1-eks-1-30-7-fe14b98f98132123f478eaf6e65bba4a29bf488b-latest-helm
   - org: emissary
     projects:
       - name: emissary
