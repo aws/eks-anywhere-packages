@@ -9,12 +9,12 @@ packages:
         repository: eks-anywhere-packages
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
+          - name: 0.4.3-451cb0d2fd416176540b65be9e46b4cfc0db99f0
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
+          - name: 0.4.3-451cb0d2fd416176540b65be9e46b4cfc0db99f0
       - name: eks-anywhere-packages-migrations
         copyimages: true
         repository: eks-anywhere-packages-migrations
@@ -26,7 +26,7 @@ packages:
         repository: credential-provider-package
         registry: public.ecr.aws/l0g8r8j6
         versions:
-          - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
+          - name: 0.4.3-451cb0d2fd416176540b65be9e46b4cfc0db99f0
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
@@ -56,9 +56,9 @@ packages:
         registry: public.ecr.aws/l0g8r8j6
         versions:
           - name: 9.37.0-1.26-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
-          - name: 9.37.0-1.27-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
-          - name: 9.37.0-1.28-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
-          - name: 9.37.0-1.29-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
+          - name: 9.37.0-1.27-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e-latest-helm
+          - name: 9.37.0-1.28-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e-latest-helm
+          - name: 9.37.0-1.29-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e-latest-helm
           - name: 9.37.0-1.30-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
   - org: harbor
     projects:
