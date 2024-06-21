@@ -127,7 +127,9 @@ func cmdPromote(opts *Options) error {
 			delete(promoteCharts, opts.promote) // Clear the promote map to pull values only from file
 			for _, p := range Inputs.Packages {
 				for _, project := range p.Projects {
-					promoteCharts[project.Repository] = append(promoteCharts[project.Repository], project.Versions[0].Name)
+					for _, version := range project.Versions {
+						promoteCharts[project.Repository] = append(promoteCharts[project.Repository], version.Name)
+					}
 				}
 			}
 		}
