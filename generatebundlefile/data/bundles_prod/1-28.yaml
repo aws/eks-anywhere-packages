@@ -46,7 +46,7 @@ packages:
         repository: cert-manager/cert-manager
         registry: public.ecr.aws/eks-anywhere
         versions:
-          - name: 1.14.5-b3aebd18d7ccfee138e40d8e037a684a8f135e6f
+          - name: 1.14.5-e88962cabe4c34a5e332e490bd7d2c1c263ce9fb
   - org: kubernetes
     projects:
       - name: cluster-autoscaler
