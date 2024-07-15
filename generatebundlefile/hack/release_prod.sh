@@ -105,5 +105,5 @@ done
 # Push Bundles to Public ECR
 aws ecr-public get-login-password --region us-east-1 | HELM_EXPERIMENTAL_OCI=1 helm registry login --username AWS --password-stdin public.ecr.aws
 for version in 1-26 1-27 1-28 1-29 1-30; do
-    push ${version}
+    push ${version} "prod"
 done

@@ -64,10 +64,36 @@ function regionCheck () {
 
 function push () {
     local version=${1?:no version specified}
+    local stage=${2?:no version specified}
     cd "${BASE_DIRECTORY}/generatebundlefile/output-${version}"
     orasLogin "$REPO"
     removeBundleMetadata bundle.yaml
-    if "$ORAS_BIN" pull "${REPO}:v${version}-latest" -o ${version}; then
+
+    latest_tag="v${version}-latest"
+    versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}"
+    regional_build_mode=${REGIONAL_BUILD_MODE:-}
+    if [ "$regional_build_mode" == "true" ]; then
+        case $stage in
+        dev)
+            latest_tag="v${version}-latest"
+            versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}"
+            ;;
+        staging)
+            latest_tag="v${version}-latest-staging"
+            versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}-staging"
+            ;;
+        prod)
+            latest_tag="v${version}-latest-prod"
+            versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}-prod"
+            ;;
+        *)
+            echo "Invalid stage: $stage"
+            exit 1
+            ;;
+        esac
+    fi
+
+    if "$ORAS_BIN" pull "${REPO}:${latest_tag}" -o ${version}; then
         removeBundleMetadata ${version}/bundle.yaml
     else
         mkdir -p ${version} && touch ${version}/bundle.yaml.stripped
@@ -76,8 +102,8 @@ function push () {
     if (git diff --no-index --quiet -- ${version}/bundle.yaml.stripped bundle.yaml.stripped) then
         echo "bundle contents are identical skipping bundle push for ${version}"
     else
-        "$ORAS_BIN" push "${REPO}:v${version}-${CODEBUILD_BUILD_NUMBER}" bundle.yaml
-        "$ORAS_BIN" push "${REPO}:v${version}-latest" bundle.yaml
+        "$ORAS_BIN" push "${REPO}:${versioned_tag}" bundle.yaml
+        "$ORAS_BIN" push "${REPO}:${latest_tag}" bundle.yaml
     fi
 }
 
