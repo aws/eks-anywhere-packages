@@ -6,34 +6,34 @@ packages:
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.7.1-eks-1-30-latest
   - org: metrics-server
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.7.1-eks-1-29-latest
   - org: metrics-server
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.7.1-eks-1-28-latest
   - org: metrics-server
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.7.1-eks-1-27-latest
   - org: metrics-server
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.7.1-eks-1-26-latest

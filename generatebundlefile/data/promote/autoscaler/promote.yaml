@@ -6,34 +6,34 @@ packages:
     projects:
       - name: cluster-autoscaler
         repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 9.37.0-1.30-latest
   - org: cluster-autoscaler
     projects:
       - name: cluster-autoscaler
         repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 9.37.0-1.29-latest
   - org: cluster-autoscaler
     projects:
       - name: cluster-autoscaler
         repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 9.37.0-1.28-latest
   - org: cluster-autoscaler
     projects:
       - name: cluster-autoscaler
         repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 9.37.0-1.27-latest
   - org: cluster-autoscaler
     projects:
       - name: cluster-autoscaler
         repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 9.37.0-1.26-latest
