@@ -38,7 +38,7 @@ packages:
         repository: adot/charts/aws-otel-collector
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.39.0-1ce89733ecc3f0160b6b90e7c00cc3885918e1a5
+            - name: 0.40.0-52e9f4d2fff96e9d14f10ac815c1689c97f5d418
   - org: cert-manager
     projects:
       - name: cert-manager
@@ -98,5 +98,5 @@ packages:
         repository: prometheus/charts/prometheus
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 2.52.0-451cb0d2fd416176540b65be9e46b4cfc0db99f0
+            - name: 2.53.0-531da7866743bfa077a6b25d180c0839aa268e0b
 
