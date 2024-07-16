@@ -7,97 +7,97 @@ packages:
     projects:
       - name: eks-anywhere-packages
         repository: eks-anywhere-packages
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.3-451cb0d2fd416176540b65be9e46b4cfc0db99f0
+            - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.3-451cb0d2fd416176540b65be9e46b4cfc0db99f0
+          - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
       - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-migrations
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
           - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
       - name: credential-provider-package
         repository: credential-provider-package
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.3-451cb0d2fd416176540b65be9e46b4cfc0db99f0
+          - name: 0.4.3-1b3abb9bb2f39a317a8efd688a3ac8977d36e355
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
         repository: hello-eks-anywhere
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.1.2-latest-helm
+            - name: 0.1.2-828e7d186ded23e54f6bd95a5ce1319150f7e325
   - org: aws-observability
     projects:
       - name: adot
         repository: adot/charts/aws-otel-collector
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.39.0-1ce89733ecc3f0160b6b90e7c00cc3885918e1a5
+            - name: 0.39.0-1ce89733ecc3f0160b6b90e7c00cc3885918e1a5
   - org: cert-manager
     projects:
       - name: cert-manager
         workloadonly: true
         repository: cert-manager/cert-manager
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
           - name: 1.14.5-e88962cabe4c34a5e332e490bd7d2c1c263ce9fb
   - org: kubernetes
     projects:
       - name: cluster-autoscaler
         repository: cluster-autoscaler/charts/cluster-autoscaler
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 9.37.0-1.27-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e-latest-helm
+            - name: 9.37.0-1.27-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
   - org: harbor
     projects:
       - name: harbor
         repository: harbor/harbor-helm
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 2.10.2-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
+            - name: 2.10.2-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
   - org: metallb
     projects:
       - name: metallb
         repository: metallb/metallb
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.14.5-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
+            - name: 0.14.5-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
   - org: metallb
     projects:
       - name: metallb-crds
         repository: metallb/crds
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.14.5-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
+            - name: 0.14.5-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.7.1-eks-1-27-32-fe14b98f98132123f478eaf6e65bba4a29bf488b-latest-helm
+            - name: 0.7.1-eks-1-27-32-fe14b98f98132123f478eaf6e65bba4a29bf488b
   - org: emissary
     projects:
       - name: emissary
         repository: emissary-ingress/emissary
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 3.9.1-latest-helm
+            - name: 3.9.1-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
       - name: emissary-crds
         repository: emissary-ingress/crds
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 3.9.1-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
+            - name: 3.9.1-d18f9e2def8e8e24b3ce0e0c543cc4d1d7d6512e
   - org: prometheus
     projects:
       - name: prometheus
         repository: prometheus/charts/prometheus
-        registry: public.ecr.aws/eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 2.52.0-451cb0d2fd416176540b65be9e46b4cfc0db99f0
+            - name: 2.52.0-451cb0d2fd416176540b65be9e46b4cfc0db99f0

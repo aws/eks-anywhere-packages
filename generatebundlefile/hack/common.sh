@@ -18,7 +18,7 @@
 # functions, source this file, e.g.:
 #    . <path-to-this-file>/common.sh
 
-# awsAuth echoes an AWS ECR password
+# orasLogin echoes an AWS ECR password
 function orasLogin () {
     local repo=${1?:no repo specified}
     local awsCmd="ecr"
@@ -44,10 +44,6 @@ function generate () {
     local kms_key="arn:aws:kms:us-west-2:857151390494:alias/signingPackagesKey"
 
     file_name=${version}.yaml
-    regional_build_mode=${REGIONAL_BUILD_MODE:-}
-    if [ "$regional_build_mode" == "true" ]; then
-        file_name=${version}-regional.yaml
-    fi
 
     cd "${BASE_DIRECTORY}/generatebundlefile"
     ./bin/generatebundlefile --input "./data/bundles_${stage}/$file_name" \
@@ -71,27 +67,24 @@ function push () {
 
     latest_tag="v${version}-latest"
     versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}"
-    regional_build_mode=${REGIONAL_BUILD_MODE:-}
-    if [ "$regional_build_mode" == "true" ]; then
-        case $stage in
-        dev)
-            latest_tag="v${version}-latest"
-            versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}"
-            ;;
-        staging)
-            latest_tag="v${version}-latest-staging"
-            versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}-staging"
-            ;;
-        prod)
-            latest_tag="v${version}-latest-prod"
-            versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}-prod"
-            ;;
-        *)
-            echo "Invalid stage: $stage"
-            exit 1
-            ;;
-        esac
-    fi
+    case $stage in
+    dev)
+        latest_tag="v${version}-latest"
+        versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}"
+        ;;
+    staging)
+        latest_tag="v${version}-latest-staging"
+        versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}-staging"
+        ;;
+    prod)
+        latest_tag="v${version}-latest-prod"
+        versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}-prod"
+        ;;
+    *)
+        echo "Invalid stage: $stage"
+        exit 1
+        ;;
+    esac
 
     if "$ORAS_BIN" pull "${REPO}:${latest_tag}" -o ${version}; then
         removeBundleMetadata ${version}/bundle.yaml
