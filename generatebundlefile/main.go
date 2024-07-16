@@ -27,13 +27,6 @@ func main() {
 	opts := NewOptions()
 	opts.SetupLogger()
 
-	regionalBuildModeEnvvar := os.Getenv("REGIONAL_BUILD_MODE")
-	if regionalBuildModeEnvvar == "true" {
-		opts.regionalBuildMode = true
-	} else {
-		opts.regionalBuildMode = false
-	}
-
 	if opts.generateSample {
 		outputFilename := filepath.Join(opts.outputFolder, "bundle.yaml")
 		f, err := os.OpenFile(outputFilename, os.O_WRONLY|os.O_CREATE, 0o644)
@@ -53,17 +46,10 @@ func main() {
 		return
 	}
 
-	// Run promotion operation if promote flag is provided or if running
-	// in regional build mode
-	if opts.promote != "" || opts.regionalBuildMode {
-		err := cmdPromote(opts)
-		if err != nil {
-			BundleLog.Error(err, "promoting curated package")
-			os.Exit(1)
-		}
-		if !opts.regionalBuildMode {
-			return
-		}
+	err := cmdPromote(opts)
+	if err != nil {
+		BundleLog.Error(err, "promoting curated package")
+		os.Exit(1)
 	}
 
 	if opts.regionCheck {
@@ -75,7 +61,7 @@ func main() {
 		return
 	}
 
-	err := cmdGenerate(opts)
+	err = cmdGenerate(opts)
 	if err != nil {
 		BundleLog.Error(err, "generating bundle")
 		os.Exit(1)
@@ -135,7 +121,7 @@ func cmdPromote(opts *Options) error {
 		}
 	}
 
-	clients, err := GetSDKClients(opts.regionalBuildMode)
+	clients, err := GetSDKClients()
 	if err != nil {
 		return fmt.Errorf("getting SDK clients: %w", err)
 	}
@@ -151,7 +137,7 @@ func cmdPromote(opts *Options) error {
 	if ok {
 		Profile = val
 	}
-	if opts.regionalBuildMode && Profile != "default" {
+	if Profile != "default" {
 		clients, err = clients.GetProfileSDKConnection("ecrpublic", Profile, ecrPublicRegion)
 		if err != nil {
 			BundleLog.Error(err, "Unable create SDK Client connections")
@@ -186,7 +172,7 @@ func cmdPromote(opts *Options) error {
 	}
 	for repoName, versions := range promoteCharts {
 		for _, version := range versions {
-			err = clients.PromoteHelmChart(repoName, dockerAuth.Authfile, version, opts.copyImages, opts.regionalBuildMode)
+			err = clients.PromoteHelmChart(repoName, dockerAuth.Authfile, version, opts.copyImages)
 			if err != nil {
 				return fmt.Errorf("promoting Helm chart: %w", err)
 			}
@@ -458,7 +444,7 @@ func cmdGenerate(opts *Options) error {
 		// push packages to private ECR.
 		if opts.publicProfile != "" {
 			BundleLog.Info("Starting release public ECR process....")
-			clients, err := GetSDKClients(opts.regionalBuildMode)
+			clients, err := GetSDKClients()
 			if err != nil {
 				BundleLog.Error(err, "getting sdk clients")
 				os.Exit(1)
@@ -503,7 +489,7 @@ func cmdGenerate(opts *Options) error {
 			}
 			for _, charts := range addOnBundleSpec.Packages {
 				for _, versions := range charts.Source.Versions {
-					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, copyImages[charts.Source.Repository], opts.regionalBuildMode)
+					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, copyImages[charts.Source.Repository])
 					if err != nil {
 						BundleLog.Error(err, "promoting helm chart",
 							"name", charts.Source.Repository)
@@ -524,7 +510,7 @@ func cmdGenerate(opts *Options) error {
 		// if o.publicProfile != "" && if o.privateProfile != "" {}
 		if opts.privateProfile != "" {
 			BundleLog.Info("Starting release to private ECR process....")
-			clients, err := GetSDKClients(opts.regionalBuildMode)
+			clients, err := GetSDKClients()
 			if err != nil {
 				BundleLog.Error(err, "getting SDK clients")
 				os.Exit(1)
@@ -562,7 +548,7 @@ func cmdGenerate(opts *Options) error {
 			}
 			for _, charts := range addOnBundleSpec.Packages {
 				for _, versions := range charts.Source.Versions {
-					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, true, opts.regionalBuildMode)
+					err = clients.PromoteHelmChart(charts.Source.Repository, dockerAuth.Authfile, versions.Name, true)
 					if err != nil {
 						BundleLog.Error(err, "promoting helm chart",
 							"name", charts.Source.Repository)

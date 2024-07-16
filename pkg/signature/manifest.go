@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"os"
 	"path"
 	"strings"
 	"text/template"
@@ -30,11 +29,7 @@ var (
 )
 
 func init() {
-	if os.Getenv("REGIONAL_BUILD_MODE") == "true" {
-		PublicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELSnBPQf4H/GFb6yl6smKB9wwuKnD4goGHQYwg9+yQ1YusQNqZPn/QkVZnWCzJbZ/pksmpkno6dSzb/Hq+dBAMA=="
-	} else {
-		PublicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw=="
-	}
+	PublicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELSnBPQf4H/GFb6yl6smKB9wwuKnD4goGHQYwg9+yQ1YusQNqZPn/QkVZnWCzJbZ/pksmpkno6dSzb/Hq+dBAMA=="
 	EksaDomain = Domain{Name: DomainName, Pubkey: PublicKey}
 }
 

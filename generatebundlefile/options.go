@@ -24,7 +24,6 @@ type Options struct {
 	privateProfile    string
 	bundleFile        string
 	regionCheck       bool
-	regionalBuildMode bool
 }
 
 func (o *Options) SetupLogger() {
