@@ -56,7 +56,7 @@ func TestBundleValidate(t *testing.T) {
 
 		err = sut.isPackageBundleValid(myBundle)
 
-		assert.EqualError(t, err, "The signature is invalid for the configured public key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnP0Yo+ZxzPUEfohcG3bbJ8987UT4f0tj+XVBjS/s35wkfjrxTKrVZQpz3ta3zi5ZlgXzd7a20B1U1Py/TtPsxw==")
+		assert.EqualError(t, err, "The signature is invalid for the configured public key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELSnBPQf4H/GFb6yl6smKB9wwuKnD4goGHQYwg9+yQ1YusQNqZPn/QkVZnWCzJbZ/pksmpkno6dSzb/Hq+dBAMA==")
 	})
 
 	t.Run("env override", func(t *testing.T) {
