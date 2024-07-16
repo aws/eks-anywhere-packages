@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
@@ -45,9 +46,10 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.Packag
 			APIVersion: api.SchemeBuilder.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        bundleName,
-			Namespace:   api.PackageNamespace,
-			Annotations: DefaultExcludesAnnotation,
+			Name:              bundleName,
+			Namespace:         api.PackageNamespace,
+			Annotations:       DefaultExcludesAnnotation,
+			CreationTimestamp: metav1.Time{Time: time.Time{}},
 		},
 		Spec: api.PackageBundleSpec{
 			Packages: []api.BundlePackage{
@@ -109,9 +111,10 @@ func AddMetadata(s api.PackageBundleSpec, name string) *api.PackageBundle {
 			APIVersion: api.SchemeBuilder.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   api.PackageNamespace,
-			Annotations: DefaultExcludesAnnotation,
+			Name:              name,
+			Namespace:         api.PackageNamespace,
+			Annotations:       DefaultExcludesAnnotation,
+			CreationTimestamp: metav1.Time{Time: time.Now()},
 		},
 		Spec: s,
 	}
