@@ -6,26 +6,26 @@ packages:
     projects:
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: latest
 
       - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-migrations
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: latest
 
       - name: eks-anywhere-packages
         repository: eks-anywhere-packages
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.0.0-latest
             - name: latest
 
       - name: credential-provider-package
         repository: credential-provider-package
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.0.0-latest
             - name: latest

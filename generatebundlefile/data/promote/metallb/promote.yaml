@@ -6,13 +6,13 @@ packages:
     projects:
       - name: crds
         repository: metallb/crds
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.14.5-latest
   - org: metallb 
     projects:
       - name: metallb
         repository: metallb/metallb
-        registry: 857151390494.dkr.ecr.us-west-2.amazonaws.com
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.14.5-latest
