@@ -66,19 +66,19 @@ function push () {
     removeBundleMetadata bundle.yaml
 
     latest_tag="v${version}-latest"
-    versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}"
+    versioned_tag=$(yq ".metadata.name" bundle.yaml)
     case $stage in
     dev)
-        latest_tag="v${version}-latest"
-        versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}"
+        latest_tag="${latest_tag}"
+        versioned_tag="${versioned_tag}"
         ;;
     staging)
-        latest_tag="v${version}-latest-staging"
-        versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}-staging"
+        latest_tag="${latest_tag}-staging"
+        versioned_tag="${versioned_tag}-staging"
         ;;
     prod)
-        latest_tag="v${version}-latest-prod"
-        versioned_tag="v${version}-${CODEBUILD_BUILD_NUMBER}-prod"
+        latest_tag="${latest_tag}-prod"
+        versioned_tag="${versioned_tag}-prod"
         ;;
     *)
         echo "Invalid stage: $stage"

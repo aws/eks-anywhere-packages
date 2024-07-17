@@ -22,7 +22,6 @@ export LANG=C.UTF-8
 
 BASE_AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 BASE_DIRECTORY=$(git rev-parse --show-toplevel)
-export CODEBUILD_BUILD_NUMBER=$(($CODEBUILD_BUILD_NUMBER+110))
 
 . "${BASE_DIRECTORY}/generatebundlefile/hack/common.sh"
 ORAS_BIN=${BASE_DIRECTORY}/bin/oras
