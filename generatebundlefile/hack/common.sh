@@ -86,22 +86,7 @@ function push () {
         ;;
     esac
 
-    if "$ORAS_BIN" pull "${REPO}:${latest_tag}" -o ${version}; then
-        removeBundleMetadata ${version}/bundle.yaml
-    else
-        mkdir -p ${version} && touch ${version}/bundle.yaml.stripped
-    fi
+    "$ORAS_BIN" push "${REPO}:${versioned_tag}" bundle.yaml
+    "$ORAS_BIN" push "${REPO}:${latest_tag}" bundle.yaml
 
-    if (git diff --no-index --quiet -- ${version}/bundle.yaml.stripped bundle.yaml.stripped) then
-        echo "bundle contents are identical skipping bundle push for ${version}"
-    else
-        "$ORAS_BIN" push "${REPO}:${versioned_tag}" bundle.yaml
-        "$ORAS_BIN" push "${REPO}:${latest_tag}" bundle.yaml
-    fi
-}
-
-function removeBundleMetadata () {
-    local bundle=${1?:no bundle specified}
-    yq 'del(.metadata.name)' ${bundle} > ${bundle}.strippedname
-    yq 'del(.metadata.annotations)' ${bundle}.strippedname > ${bundle}.stripped
 }
