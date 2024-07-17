@@ -63,7 +63,6 @@ function push () {
     local stage=${2?:no version specified}
     cd "${BASE_DIRECTORY}/generatebundlefile/output-${version}"
     orasLogin "$REPO"
-    removeBundleMetadata bundle.yaml
 
     latest_tag="v${version}-latest"
     versioned_tag=$(yq ".metadata.name" bundle.yaml)
