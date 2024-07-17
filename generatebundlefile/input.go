@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"sigs.k8s.io/yaml"
 
@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	YamlSeparator = "\n---\n"
+	YamlSeparator  = "\n---\n"
+	YYYYMMDDFormat = "2006-01-02"
 )
 
 func ValidateInputConfig(fileName string) (*Input, error) {
@@ -142,14 +143,13 @@ func (c *SDKClients) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, st
 	if Input.Name == "" || Input.KubernetesVersion == "" {
 		return packageBundleSpec, "", nil, fmt.Errorf("error: Empty input field from `Name` or `KubernetesVersion`.")
 	}
-	var name string
-	name, ok := os.LookupEnv("CODEBUILD_BUILD_NUMBER")
-	if !ok {
-		name = Input.Name
-	} else {
-		version := strings.Split(Input.KubernetesVersion, ".")
-		name = fmt.Sprintf("v1-%s-%s", version[1], name)
-	}
+
+	currentTime := time.Now()
+	currentEpochTime := currentTime.Unix()
+	date := currentTime.Format(YYYYMMDDFormat)
+
+	version := strings.Split(Input.KubernetesVersion, ".")
+	name := fmt.Sprintf("v1-%s-%s-%d", version[1], date, currentEpochTime)
 	if Input.MinVersion != "" {
 		packageBundleSpec.MinVersion = Input.MinVersion
 	}
