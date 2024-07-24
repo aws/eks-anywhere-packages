@@ -40,7 +40,6 @@ fi
 
 # Generate bundles from beta account private ECR registry and
 # push them to prod account private ECR registry (same as beta account in this case)
-export AWS_PROFILE=prod
 for version in 1-26 1-27 1-28 1-29 1-30; do
     generate ${version} "prod"
     push ${version} "prod"
