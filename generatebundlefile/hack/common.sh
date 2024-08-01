@@ -51,13 +51,6 @@ function generate () {
                  --output "output-${version}"
 }
 
-function regionCheck () {
-    local version=$1
-    cd "${BASE_DIRECTORY}/generatebundlefile"
-    ./bin/generatebundlefile --bundle "output-${version}/bundle.yaml" \
-                --region-check true || true
-}
-
 function push () {
     local version=${1?:no version specified}
     local stage=${2?:no version specified}
