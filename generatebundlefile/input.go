@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -55,7 +55,7 @@ func validateInputConfigName(inputConfig *Input) error {
 func (inputConfig *Input) ValidateInputNotEmpty() error {
 	// Check if Projects are listed
 	if len(inputConfig.Packages) < 1 {
-		return fmt.Errorf("Should use non-empty list of projects for input")
+		return fmt.Errorf("should use non-empty list of projects for input")
 	}
 	return nil
 }
@@ -96,13 +96,13 @@ func validateBundleName(bundle *api.PackageBundle) error {
 func ValidateBundleNoSignature(bundle *api.PackageBundle) error {
 	// Check if Projects are listed
 	if len(bundle.Spec.Packages) < 1 {
-		return fmt.Errorf("Should use non-empty list of projects for input")
+		return fmt.Errorf("should use non-empty list of projects for input")
 	}
 	return nil
 }
 
 func ParseBundle(filename string) (*api.PackageBundle, error) {
-	content, err := ioutil.ReadFile(filepath.Clean(filename))
+	content, err := os.ReadFile(filepath.Clean(filename))
 	if err != nil {
 		return nil, fmt.Errorf("reading package bundle file %q: %w", filename, err)
 	}
@@ -121,7 +121,7 @@ func ParseBundle(filename string) (*api.PackageBundle, error) {
 }
 
 func ParseInputConfig(fileName string, inputConfig *Input) error {
-	content, err := ioutil.ReadFile(filepath.Clean(fileName))
+	content, err := os.ReadFile(filepath.Clean(fileName))
 	if err != nil {
 		return fmt.Errorf("unable to read file due to: %v", err)
 	}
@@ -138,10 +138,10 @@ func ParseInputConfig(fileName string, inputConfig *Input) error {
 	return fmt.Errorf("cluster spec file %s is invalid or does not contain kind %v", fileName, inputConfig)
 }
 
-func (c *SDKClients) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, string, map[string]bool, error) {
+func (c *SDKClients) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, string, error) {
 	packageBundleSpec := api.PackageBundleSpec{}
 	if Input.Name == "" || Input.KubernetesVersion == "" {
-		return packageBundleSpec, "", nil, fmt.Errorf("error: Empty input field from `Name` or `KubernetesVersion`.")
+		return packageBundleSpec, "", fmt.Errorf("empty input field from `Name` or `KubernetesVersion`")
 	}
 
 	currentTime := time.Now()
@@ -153,17 +153,15 @@ func (c *SDKClients) NewBundleFromInput(Input *Input) (api.PackageBundleSpec, st
 	if Input.MinVersion != "" {
 		packageBundleSpec.MinVersion = Input.MinVersion
 	}
-	copyImages := map[string]bool{}
 	for _, org := range Input.Packages {
 		for _, project := range org.Projects {
-			copyImages[project.Repository] = project.CopyImages
 			bundlePkg, err := c.NewPackageFromInput(project)
 			if err != nil {
 				BundleLog.Error(err, "Unable to complete NewBundleFromInput from ecr lookup failure")
-				return packageBundleSpec, "", nil, err
+				return packageBundleSpec, "", err
 			}
 			packageBundleSpec.Packages = append(packageBundleSpec.Packages, *bundlePkg)
 		}
 	}
-	return packageBundleSpec, name, copyImages, nil
+	return packageBundleSpec, name, nil
 }

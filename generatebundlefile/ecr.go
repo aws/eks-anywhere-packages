@@ -31,11 +31,6 @@ type registryClient interface {
 	GetAuthorizationToken(ctx context.Context, params *ecr.GetAuthorizationTokenInput, optFns ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)
 }
 
-type CheckECR interface {
-	tagExistsInRepository(repository, tag string) (bool, error)
-	shaExistsInRepository(repository, tag string) (bool, error)
-}
-
 // NewECRClient Creates a new ECR Client client
 func NewECRClient(client registryClient, needsCreds bool) (*ecrClient, error) {
 	ecrClient := &ecrClient{
@@ -146,7 +141,7 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 // tagFromSha Looks up the Tag of an ECR artifact from a sha
 func (c *ecrClient) tagFromSha(repository, sha, substringTag string) (string, error) {
 	if repository == "" || sha == "" {
-		return "", fmt.Errorf("Emtpy repository, or sha passed to the function")
+		return "", fmt.Errorf("empty repository, or sha passed to the function")
 	}
 	var imagelookup []ecrtypes.ImageIdentifier
 	imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageDigest: &sha})
@@ -156,7 +151,7 @@ func (c *ecrClient) tagFromSha(repository, sha, substringTag string) (string, er
 		ImageIds:       imagelookup,
 	})
 	if err != nil {
-		if strings.Contains(err.Error(), "does not exist within the repository") == true {
+		if strings.Contains(err.Error(), "does not exist within the repository") {
 			return "", nil
 		} else {
 			return "", fmt.Errorf("looking up image details %v", err)
@@ -192,11 +187,11 @@ func NewAuthFile(dockerstruct *DockerAuth) (DockerAuthFile, error) {
 	jsonbytes, err := json.Marshal(*dockerstruct)
 	auth := DockerAuthFile{}
 	if err != nil {
-		return auth, fmt.Errorf("Marshalling docker auth file to json %w", err)
+		return auth, fmt.Errorf("marshalling docker auth file to json %w", err)
 	}
 	f, err := os.CreateTemp("", "dockerAuth")
 	if err != nil {
-		return auth, fmt.Errorf("Creating tempfile %w", err)
+		return auth, fmt.Errorf("creating tempfile %w", err)
 	}
 	defer f.Close()
 	fmt.Fprint(f, string(jsonbytes))
@@ -206,126 +201,8 @@ func NewAuthFile(dockerstruct *DockerAuth) (DockerAuthFile, error) {
 
 func (d DockerAuthFile) Remove() error {
 	if d.Authfile == "" {
-		return fmt.Errorf("No Authfile in DockerAuthFile given")
+		return fmt.Errorf("no Authfile in DockerAuthFile given")
 	}
 	defer os.Remove(d.Authfile)
 	return nil
-}
-
-// getNameAndVersion looks up the latest pushed helm chart's tag from a given repo name from ECR.
-func (c *SDKClients) getNameAndVersion(repoName, tag, accountID string) (string, string, string, error) {
-	var version string
-	var sha string
-	splitname := strings.Split(repoName, ":") // TODO add a regex filter
-	name := splitname[0]
-	ecrname := fmt.Sprintf("%s.dkr.ecr.us-west-2.amazonaws.com/%s", accountID, name)
-	BundleLog.Info("Looking up ECR for Helm chart", "Repository", ecrname)
-	if len(splitname) > 0 {
-		// If for promotion, we use a named tag instead of latest we do a lookup for that tag.
-		if !strings.HasSuffix(tag, "latest") {
-			imageIDs := []ecrtypes.ImageIdentifier{{ImageTag: &tag}}
-			ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
-				RepositoryName: aws.String(repoName),
-				ImageIds:       imageIDs,
-			})
-			if err != nil {
-				return "", "", "", fmt.Errorf("DescribeImagesRequest to ECR failed: %w", err)
-			}
-			if len(ImageDetails) == 1 {
-				return ecrname, tag, *ImageDetails[0].ImageDigest, nil
-			}
-		}
-		// If tag is -latest we do a timestamp lookup
-		if tag == "latest" {
-			ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
-				RepositoryName: aws.String(repoName),
-			})
-			if err != nil {
-				return "", "", "", err
-			}
-			var images []ImageDetailsBothECR
-			for _, image := range ImageDetails {
-				details, err := createECRImageDetails(ImageDetailsECR{PrivateImageDetails: image})
-				if err != nil {
-					return "", "", "", err
-				}
-				images = append(images, details)
-			}
-			version, sha, err = getLatestHelmTagandSha(images)
-			return ecrname, version, sha, err
-		}
-		// If tag contains -latest we do timestamp lookup of any tags matching a regexp of the specified tag.
-		if strings.Contains(tag, "-latest") {
-			regex := regexp.MustCompile(`-latest`)
-			splitVersion := regex.Split(tag, -1) // extract out the version without the latest
-			ImageDetails, err := c.ecrClient.Describe(&ecr.DescribeImagesInput{
-				RepositoryName: aws.String(repoName),
-			})
-			if err != nil {
-				return "", "", "", fmt.Errorf("Unable to complete DescribeImagesRequest to ECR: %s", err)
-			}
-			var images []ImageDetailsBothECR
-			for _, image := range ImageDetails {
-				details, _ := createECRImageDetails(ImageDetailsECR{PrivateImageDetails: image})
-				images = append(images, details)
-			}
-			filteredImageDetails := ImageTagFilter(images, splitVersion[0])
-			version, sha, err = getLatestHelmTagandSha(filteredImageDetails)
-			if err != nil {
-				return "", "", "", err
-			}
-			return ecrname, version, sha, err
-		}
-	}
-	return "", "", "", fmt.Errorf("invalid repository: %q", repoName)
-}
-
-// shaExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
-func (c *ecrClient) shaExistsInRepository(repository, sha string) (bool, error) {
-	if repository == "" || sha == "" {
-		return false, fmt.Errorf("Emtpy repository, or sha passed to the function")
-	}
-	var imagelookup []ecrtypes.ImageIdentifier
-	imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageDigest: &sha})
-	ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
-		RepositoryName: aws.String(repository),
-		ImageIds:       imagelookup,
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "does not exist within the repository") == true {
-			return false, nil
-		}
-	}
-	for _, detail := range ImageDetails {
-		if detail.ImageDigest != nil && *detail.ImageDigest == sha {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-// tagExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
-func (c *ecrClient) tagExistsInRepository(repository, tag string) (bool, error) {
-	if repository == "" || tag == "" {
-		return false, fmt.Errorf("Emtpy repository, or tag passed to the function")
-	}
-	var imagelookup []ecrtypes.ImageIdentifier
-	imagelookup = append(imagelookup, ecrtypes.ImageIdentifier{ImageTag: &tag})
-	ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
-		RepositoryName: aws.String(repository),
-		ImageIds:       imagelookup,
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "does not exist within the repository") == true {
-			return false, nil
-		}
-	}
-	for _, detail := range ImageDetails {
-		for _, Imagetag := range detail.ImageTags {
-			if tag == Imagetag {
-				return true, nil
-			}
-		}
-	}
-	return false, nil
 }

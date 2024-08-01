@@ -120,30 +120,6 @@ func AddMetadata(s api.PackageBundleSpec, name string) *api.PackageBundle {
 	}
 }
 
-// IfSignature checks if a signature exsits on a Packagebundle
-func IfSignature(bundle *api.PackageBundle) (bool, error) {
-	annotations := bundle.Annotations
-	if annotations != nil {
-		return true, nil
-	}
-	return false, nil
-}
-
-// CheckSignature checks if current signature is equal to signature to added as an annotation, and skips if they are the same.
-func CheckSignature(bundle *api.PackageBundle, signature string) (bool, error) {
-	if signature == "" || bundle == nil {
-		return false, fmt.Errorf("either signature or bundle is missing, but are required")
-	}
-	annotations := map[string]string{
-		FullSignatureAnnotation: signature,
-	}
-	//  If current signature on file isn't at the --signature input return false, otherwsie true
-	if annotations[FullSignatureAnnotation] != bundle.Annotations[FullSignatureAnnotation] {
-		return false, fmt.Errorf("A signature already exists on the input file signatue")
-	}
-	return true, nil
-}
-
 // GetBundleSignature calls KMS and retrieves a signature, then base64 decodes it and returns that back
 func GetBundleSignature(ctx context.Context, bundle *api.PackageBundle, key string) (string, error) {
 	digest, _, err := sig.GetDigest(bundle, sig.EksaDomain)

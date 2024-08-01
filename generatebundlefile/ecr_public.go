@@ -135,56 +135,6 @@ func (c *SDKClients) GetShaForPublicInputs(project Project) ([]api.SourceVersion
 	return sourceVersion, nil
 }
 
-// shaExistsInRepositoryPublic checks if a given OCI artifact exists in a destination repo using the sha sum.
-func (c *ecrPublicClient) shaExistsInRepository(repository, sha string) (bool, error) {
-	if repository == "" || sha == "" {
-		return false, fmt.Errorf("Emtpy repository, or sha passed to the function")
-	}
-	var imagelookup []ecrpublictypes.ImageIdentifier
-	imagelookup = append(imagelookup, ecrpublictypes.ImageIdentifier{ImageDigest: &sha})
-	ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
-		RepositoryName: aws.String(repository),
-		ImageIds:       imagelookup,
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "does not exist within the repository") == true {
-			return false, nil
-		}
-	}
-	for _, detail := range ImageDetails {
-		if detail.ImageDigest != nil && *detail.ImageDigest == sha {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-// tagExistsInRepository checks if a given OCI artifact exists in a destination repo using the sha sum.
-func (c *ecrPublicClient) tagExistsInRepository(repository, tag string) (bool, error) {
-	if repository == "" || tag == "" {
-		return false, fmt.Errorf("Emtpy repository, or tag passed to the function")
-	}
-	var imagelookup []ecrpublictypes.ImageIdentifier
-	imagelookup = append(imagelookup, ecrpublictypes.ImageIdentifier{ImageTag: &tag})
-	ImageDetails, err := c.DescribePublic(&ecrpublic.DescribeImagesInput{
-		RepositoryName: aws.String(repository),
-		ImageIds:       imagelookup,
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "does not exist within the repository") == true {
-			return false, nil
-		}
-	}
-	for _, detail := range ImageDetails {
-		for _, Imagetag := range detail.ImageTags {
-			if tag == Imagetag {
-				return true, nil
-			}
-		}
-	}
-	return false, nil
-}
-
 // GetRegistryURI gets the current account's AWS ECR Public registry URI
 func (c *ecrPublicClient) GetRegistryURI() (string, error) {
 	registries, err := c.DescribeRegistries(context.TODO(), (&ecrpublic.DescribeRegistriesInput{}))
@@ -194,7 +144,7 @@ func (c *ecrPublicClient) GetRegistryURI() (string, error) {
 	if len(registries.Registries) > 0 && registries.Registries[0].RegistryUri != nil && *registries.Registries[0].RegistryUri != "" {
 		return *registries.Registries[0].RegistryUri, nil
 	}
-	return "", fmt.Errorf("Emtpy list of registries for the account")
+	return "", fmt.Errorf("empty list of registries for the account")
 }
 
 // GetPublicAuthToken gets an authorization token from ECR public
@@ -206,49 +156,4 @@ func (c *ecrPublicClient) GetPublicAuthToken() (string, error) {
 	authToken := *authTokenOutput.AuthorizationData.AuthorizationToken
 
 	return authToken, nil
-}
-
-// getNameAndVersionPublic looks up the latest pushed helm chart's tag from a given repo name Full name in Public ECR OCI format.
-func (c *SDKClients) getNameAndVersionPublic(repoName, tag, registryURI string) (string, string, string, error) {
-	var version string
-	var sha string
-	splitname := strings.Split(repoName, ":") // TODO add a regex filter
-	name := splitname[0]
-	ecrname := fmt.Sprintf("%s/%s", c.ecrPublicClient.SourceRegistry, name)
-	if len(splitname) > 0 {
-		if !strings.HasSuffix(tag, "latest") {
-			imageIDs := []ecrpublictypes.ImageIdentifier{{ImageTag: &tag}}
-			ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
-				RepositoryName: aws.String(repoName),
-				ImageIds:       imageIDs,
-			})
-			if err != nil {
-				return "", "", "", fmt.Errorf("DescribeImagesRequest to public ECR failed: %w", err)
-			}
-			if len(ImageDetails) == 1 {
-				return ecrname, tag, *ImageDetails[0].ImageDigest, nil
-			}
-		}
-		ImageDetails, err := c.ecrPublicClient.DescribePublic(&ecrpublic.DescribeImagesInput{
-			RepositoryName: aws.String(repoName),
-		})
-		if err != nil {
-			return "", "", "", err
-		}
-		var images []ImageDetailsBothECR
-		for _, image := range ImageDetails {
-			details, err := createECRImageDetails(ImageDetailsECR{PublicImageDetails: image})
-			if err != nil {
-				return "", "", "", err
-			}
-			images = append(images, details)
-		}
-		version, sha, err = getLatestHelmTagandSha(images)
-		if err != nil {
-			return "", "", "", err
-		}
-		ecrname := fmt.Sprintf("%s/%s", c.ecrPublicClient.SourceRegistry, name)
-		return ecrname, version, sha, err
-	}
-	return "", "", "", fmt.Errorf("invalid repository: %q", repoName)
 }

@@ -27,7 +27,7 @@ func NewStsClient(client stsClientInterface, account bool) (*stsClient, error) {
 			stsClient.AccountID = *stslookup.Account
 			return stsClient, nil
 		}
-		return nil, fmt.Errorf("Empty Account ID from stslookup call")
+		return nil, fmt.Errorf("empty Account ID from stslookup call")
 	}
 	return stsClient, nil
 }

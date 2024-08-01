@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -71,7 +70,7 @@ func helmLog(log logr.Logger) action.DebugLog {
 // UnTarHelmChart will attempt to move the helm chart out of the helm cache, by untaring it to the pwd and creating the filesystem to unpack it into.
 func UnTarHelmChart(chartRef, chartPath, dest string) error {
 	if chartRef == "" || chartPath == "" || dest == "" {
-		return fmt.Errorf("Empty input value given for UnTarHelmChart")
+		return fmt.Errorf("empty input value given for UnTarHelmChart")
 	}
 	_, err := os.Stat(dest)
 	if os.IsNotExist(err) {
@@ -91,7 +90,7 @@ func UnTarHelmChart(chartRef, chartPath, dest string) error {
 	return chartutil.ExpandFile(dest, chartRef)
 }
 
-// hasRequires checks for the existance of the requires.yaml within the helm directory
+// hasRequires checks for the existence of the requires.yaml within the helm directory
 func hasRequires(helmdir string) (string, error) {
 	requires := filepath.Join(helmdir, "requires.yaml")
 	info, err := os.Stat(requires)
@@ -99,7 +98,7 @@ func hasRequires(helmdir string) (string, error) {
 		return "", err
 	}
 	if info.IsDir() {
-		return "", fmt.Errorf("Found Dir, not requires.yaml file")
+		return "", fmt.Errorf("found Dir, not requires.yaml file")
 	}
 	return requires, nil
 }
@@ -144,14 +143,14 @@ func validateHelmRequiresName(helmrequires *Requires) error {
 func (helmrequires *Requires) validateHelmRequiresNotEmpty() error {
 	// Check if Projects are listed
 	if len(helmrequires.Spec.Images) < 1 {
-		return fmt.Errorf("Should use non-empty list of images for requires")
+		return fmt.Errorf("should use non-empty list of images for requires")
 	}
 	return nil
 }
 
 // parseHelmRequires will attempt to unpack the requires.yaml into the Go struct `Requires`
 func parseHelmRequires(fileName string, helmrequires *Requires) error {
-	content, err := ioutil.ReadFile(fileName)
+	content, err := os.ReadFile(fileName)
 	if err != nil {
 		return fmt.Errorf("unable to read file due to: %v", err)
 	}

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This binary reads an input file describing the curated packages to be included in the bundle then generates a bundle custom resource file. In addition, it has the ability to promote images and Helm charts between container registries.
+This binary reads an input file describing the curated packages to be included in the bundle then generates a bundle custom resource file.
 
 There are three types of helm version tags we can input:
 
@@ -23,15 +23,16 @@ make build
 ### Bundle Generation
 
 To generate a signed bundle you need an AWS KMS key that is:
+
 - Asymmetric
 - ECC_NIST_P256
-- Key Policy enabled for CLI user to have `kms:Sign` configured. 
+- Key Policy enabled for CLI user to have `kms:Sign` configured.
 
 ```sh
 generatebundlefile --input data/sample_input.yaml --key alias/signingPackagesKey
 ```
 
-This will output all the corresponding CRD's into `output/bundle.yaml` 
+This will output all the corresponding CRD's into `output/bundle.yaml`
 
 #### Sample Bundle Generation
 
@@ -41,47 +42,11 @@ generatebundlefile --generate-sample
 
 This will output a sample bundle file to ./output.
 
-
-### Public Promotion to another Account
-
-```sh
-generatebundlefile --public-profile "profile-name" --input data/sample_input.yaml
-```
-
-This command will move **Only** the helm chart from the listed input files to the target **public** ECR in another account.
-
-### Private Promotion to another Account
-
-```sh
-generatebundlefile --private-profile "profile-name" --input data/sample_input.yaml
-```
-
-This command will move **Only** the images from the listed helm charts in the input files to the target **private** ECR in another account.
-
-### Package Promotion
-
-To promote a package from a private ECR to public you need the repository name. This repository must contain a Helm chart built by the process in the eks-anywhere-build-tooling git repository.
-This will **both** for the helm chart, and the imgaes required to the public ECR of the calling user.
-
-To promote the latest helm chart from the private repository.
-
-```sh
-generatebundlefile --promote hello-eks-anywhere
-```
-
-To promote multiple versions of a helm chart in one command
-
-```sh
-generatebundlefile --promote hello-eks-anywhere --input data/promote.yaml
-```
-
 ### Input File Supported Formats
 
-Currently the following formats can be used as input files each of the following command flags.
+Currently the following formats can be used as input files with each of the following command flags.
 
 --key alias/signingPackagesKey
---private-profile
---public--profile
 
 #### Private Registry
 
@@ -175,23 +140,4 @@ packages:
         versions:
             - name: 0.1.1-92904119e6e1bae35bf88663d0875259d42346f8
             - name: latest
-```
-
-
-#### Public Profile with Image Copy
-
-```yaml
-name: "v1-22-1001"
-kubernetesVersion: "1.22"
-packages:
-  - org: aws-containers
-    projects:
-      - name: hello-eks-anywhere
-        copyimages: true
-        repository: hello-eks-anywhere
-        registry: public.ecr.aws/eks-anywhere
-        versions:
-            - name: 0.1.1-92904119e6e1bae35bf88663d0875259d42346f8
-            - name: latest
-
 ```
