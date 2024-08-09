@@ -29,15 +29,6 @@ type SigningPackageBundle struct {
 	Status interface{} `json:"status,omitempty"`
 }
 
-// newSigningPackageBundle is api.PackageBundle using SigningObjectMeta instead of metav1.ObjectMeta
-func newSigningPackageBundle(bundle *api.PackageBundle) *SigningPackageBundle {
-	return &SigningPackageBundle{
-		PackageBundle:     bundle,
-		SigningObjectMeta: newSigningObjectMeta(&bundle.ObjectMeta),
-		Status:            nil,
-	}
-}
-
 // SigningObjectMeta removes fields that shouldn't be included when signing.
 type SigningObjectMeta struct {
 	*metav1.ObjectMeta
@@ -46,14 +37,6 @@ type SigningObjectMeta struct {
 
 	// CreationTimestamp isn't relevant to a digital signature.
 	CreationTimestamp interface{} `json:"creationTimestamp,omitempty"`
-}
-
-// newSigningObjectMeta is metav1.ObjectMeta without the CreationTimestamp since it gets added the yaml as null otherwise.
-func newSigningObjectMeta(meta *metav1.ObjectMeta) *SigningObjectMeta {
-	return &SigningObjectMeta{
-		ObjectMeta:        meta,
-		CreationTimestamp: nil,
-	}
 }
 
 // Input is the schema for the input file
@@ -82,7 +65,6 @@ type Project struct {
 	Repository   string `json:"repository,omitempty"`
 	Versions     []Tag  `json:"versions,omitempty"`
 	WorkloadOnly bool   `json:"workloadonly,omitempty"`
-	CopyImages   bool   `json:"copyimages,omitempty"`
 }
 
 // Tag is the release tag

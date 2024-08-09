@@ -10,8 +10,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
-	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
-	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
 )
 
 func TestSplitECRName(t *testing.T) {
@@ -86,7 +84,7 @@ func TestUnTarHelmChart(t *testing.T) {
 		t.Fatal("Error creating test dir:", err)
 	}
 	defer os.RemoveAll("hello-eks-anywhere")
-	f, err := os.Create("hello-eks-anywhere/Chart.yaml")
+	f, _ := os.Create("hello-eks-anywhere/Chart.yaml")
 	content := []byte("apiVersion: v2\nversion: 0.1.0\nappVersion: 0.1.0\nname: hello-eks-anywhere\n")
 	err = os.WriteFile("hello-eks-anywhere/Chart.yaml", content, 0o644)
 	if err != nil {
@@ -136,54 +134,6 @@ func TestUnTarHelmChart(t *testing.T) {
 			err := UnTarHelmChart(tc.testChartPath, tc.testChartName, tempDir)
 			if (err != nil) != tc.wantErr {
 				tt.Fatalf("UnTarHelmChart() error = %v, wantErr %v", err, tc.wantErr)
-			}
-		})
-	}
-}
-
-func TestShaExistsInRepository(t *testing.T) {
-	client := newMockPublicRegistryClient(nil)
-	tests := []struct {
-		client         *mockPublicRegistryClient
-		testName       string
-		testRepository string
-		testVersion    string
-		checkPass      bool
-		wantErr        bool
-	}{
-		{
-			testName:       "Test empty Repository",
-			testRepository: "",
-			testVersion:    "sha256:0526725a65691944e831add6b247b25a93b8eeb1033dddadeaa089e95b021172",
-			wantErr:        true,
-		},
-		{
-			testName:       "Test empty Version",
-			testRepository: "hello-eks-anywhere",
-			testVersion:    "",
-			wantErr:        true,
-		},
-		{
-			testName:       "Test valid Repository and Version",
-			testRepository: "hello-eks-anywhere",
-			testVersion:    "sha256:0526725a65691944e831add6b247b25a93b8eeb1033dddadeaa089e95b021172",
-			checkPass:      true,
-			wantErr:        false,
-		},
-	}
-	for _, tc := range tests {
-		t.Run(tc.testName, func(tt *testing.T) {
-			clients := &SDKClients{
-				ecrPublicClient: &ecrPublicClient{
-					publicRegistryClient: client,
-				},
-			}
-			got, err := clients.ecrPublicClient.shaExistsInRepository(tc.testRepository, tc.testVersion)
-			if (err != nil) != tc.wantErr {
-				tt.Fatalf("shaExistsInRepositoryPublic() error = %v, wantErr %v", err, tc.wantErr)
-			}
-			if got != tc.checkPass {
-				tt.Fatalf("shaExistsInRepositoryPublic() = %#v\n\n\n, want %#v", got, tc.checkPass)
 			}
 		})
 	}
@@ -248,42 +198,6 @@ func TestTagFromSha(t *testing.T) {
 			}
 		})
 	}
-}
-
-// Helper funcions
-// to create the mocks "impl 'r *mockRegistryClient' registryClient"
-
-type mockPublicRegistryClient struct {
-	err error
-}
-
-func newMockPublicRegistryClient(err error) *mockPublicRegistryClient {
-	return &mockPublicRegistryClient{
-		err: err,
-	}
-}
-
-var testSha string = "sha256:0526725a65691944e831add6b247b25a93b8eeb1033dddadeaa089e95b021172"
-
-func (r *mockPublicRegistryClient) DescribeImages(ctx context.Context, params *ecrpublic.DescribeImagesInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.DescribeImagesOutput, error) {
-	if r.err != nil {
-		return nil, r.err
-	}
-	return &ecrpublic.DescribeImagesOutput{
-		ImageDetails: []ecrpublictypes.ImageDetail{
-			{
-				ImageDigest: &testSha,
-			},
-		},
-	}, nil
-}
-
-func (r *mockPublicRegistryClient) DescribeRegistries(ctx context.Context, params *ecrpublic.DescribeRegistriesInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.DescribeRegistriesOutput, error) {
-	panic("not implemented") // TODO: Implement
-}
-
-func (r *mockPublicRegistryClient) GetAuthorizationToken(ctx context.Context, params *ecrpublic.GetAuthorizationTokenInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error) {
-	panic("not implemented") // TODO: Implement
 }
 
 // ECR

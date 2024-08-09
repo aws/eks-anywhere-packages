@@ -13,17 +13,11 @@ import (
 
 // Options represents the flag for the current plugin
 type Options struct {
-	inputFile         string
-	outputFolder      string
-	generateSample    bool
-	promote           string
-	tag               string
-	copyImages        bool
-	key               string
-	publicProfile     string
-	privateProfile    string
-	bundleFile        string
-	regionCheck       bool
+	inputFile      string
+	outputFolder   string
+	generateSample bool
+	key            string
+	bundleFile     string
 }
 
 func (o *Options) SetupLogger() {
@@ -78,14 +72,8 @@ func NewOptions() *Options {
 	fs.BoolVar(&o.generateSample, "generate-sample", false, "Whether you want to generate a sample bundle for yourself")
 	fs.StringVar(&o.inputFile, "input", "", "The path where the input bundle generation file lives")
 	fs.StringVar(&o.outputFolder, "output", "output", "The path where to write the output bundle files")
-	fs.StringVar(&o.promote, "promote", "", "The Helm chart private ECR OCI uri to pull and promote")
-	fs.StringVar(&o.tag, "tag", "", "The tag of the helm chart used with promote flag")
-	fs.BoolVar(&o.copyImages, "copy-images", false, "Whether to copy images during a helm promotion, the default is to Not copy.")
 	fs.StringVar(&o.key, "key", "k", "The key to sign with")
-	fs.StringVar(&o.publicProfile, "public-profile", "", "The AWS Public Profile to release the prod bundle into")
-	fs.StringVar(&o.privateProfile, "private-profile", "", "The AWS Private Profile to release all packages into")
 	fs.StringVar(&o.bundleFile, "bundle", "", "The path where the bundle file lives")
-	fs.BoolVar(&o.regionCheck, "region-check", false, "Check the passed in bundle resource and if they exist in the supported ECR regions")
 	err := fs.Parse(os.Args[1:])
 	if err != nil {
 		BundleLog.Error(err, "Error parsing input flags")
