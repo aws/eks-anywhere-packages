@@ -79,7 +79,7 @@ func ImageTagFilter(details []ImageDetailsBothECR, version string) []ImageDetail
 	var filteredDetails []ImageDetailsBothECR
 	for _, detail := range details {
 		for _, tag := range detail.ImageTags {
-			if strings.HasPrefix(tag, version) {
+			if strings.HasPrefix(tag, version) && strings.Contains(tag, "latest") {
 				filteredDetails = append(filteredDetails, detail)
 			}
 		}
