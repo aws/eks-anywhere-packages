@@ -7,10 +7,8 @@ BUILD_REPO_BRANCH_NAME?=main
 CLI_REPO_BRANCH_NAME?=main
 GOLANG_VERSION?="1.21"
 GO ?= $(shell source $(REPO_ROOT)/scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
-ECR_PUBLIC_URI?=$(shell AWS_REGION=us-east-1 && aws ecr-public describe-registries --query 'registries[*].registryUri' --output text)
 BASE_DIRECTORY=$(shell git rev-parse --show-toplevel)
 GIT_HASH=$(shell git -C $(BASE_DIRECTORY) rev-parse HEAD)
-
 
 ifeq ($(CODEBUILD_CI),)
 DRY_RUN=true

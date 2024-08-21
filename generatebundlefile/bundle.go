@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path"
 	"strings"
 	"time"
@@ -35,6 +34,11 @@ var (
 var generatedMetadataFields = []string{"creationTimestamp", "generation", "managedFields", "uid", "resourceVersion"}
 
 type BundleGenerateOpt func(config *BundleGenerate)
+
+type SDKClients struct {
+	ecrClient *ecrClient
+	stsClient *stsClient
+}
 
 // NewBundleGenerate is used for generating YAML for generating a new sample CRD file.
 func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.PackageBundle {
@@ -74,13 +78,6 @@ func NewBundleGenerate(bundleName string, opts ...BundleGenerateOpt) *api.Packag
 func (c *SDKClients) NewPackageFromInput(project Project) (*api.BundlePackage, error) {
 	var versionList []api.SourceVersion
 	var err error
-	// Check bundle Input registry for ECR Public Registry
-	if strings.Contains(project.Registry, "public.ecr.aws") {
-		versionList, err = c.GetShaForPublicInputs(project)
-		if err != nil {
-			return nil, err
-		}
-	}
 	// Check bundle Input registry for ECR Private Registry
 	if strings.Contains(project.Registry, "amazonaws.com") {
 		versionList, err = c.ecrClient.GetShaForInputs(project)
@@ -127,25 +124,11 @@ func GetBundleSignature(ctx context.Context, bundle *api.PackageBundle, key stri
 		return "", err
 	}
 
-	// Creating AWS Clients with profile
-	ConfigFilePath := "~/.aws/config"
-	val, ok := os.LookupEnv("AWS_CONFIG_FILE")
-	if ok {
-		ConfigFilePath = val
-	}
-	BundleLog.Info("Using Config File", "AWS_CONFIG_FILE", ConfigFilePath)
-	confWithProfile, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithSharedConfigFiles(
-			[]string{ConfigFilePath},
-		),
-		config.WithRegion("us-west-2"),
-		config.WithSharedConfigProfile("default"),
-	)
+	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(defaultRegion))
 	if err != nil {
-		fmt.Println("configuration error, " + err.Error())
-		os.Exit(-1)
+		return "", err
 	}
-	client := kms.NewFromConfig(confWithProfile)
+	client := kms.NewFromConfig(conf)
 
 	input := &kms.SignInput{
 		KeyId:            &key,

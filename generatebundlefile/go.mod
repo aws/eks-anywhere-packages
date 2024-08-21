@@ -8,12 +8,10 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.21.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.39
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.19.5
-	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.3
 	github.com/aws/aws-sdk-go-v2/service/kms v1.17.1
 	github.com/aws/aws-sdk-go-v2/service/sts v1.21.5
 	github.com/aws/eks-anywhere-packages v0.0.0-00010101000000-000000000000
 	github.com/go-logr/logr v1.3.0
-	github.com/jinzhu/copier v0.3.5
 	github.com/pkg/errors v0.9.1
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.14.3

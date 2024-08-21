@@ -24,11 +24,6 @@ function orasLogin () {
     local awsCmd="ecr"
     local region="--region=us-west-2"
 
-    if [[ $repo =~ "public.ecr.aws" ]]; then
-        awsCmd="ecr-public"
-        region="--region=us-east-1"
-    fi
-
     profile=${PROFILE:-}
     profile_arg=""
     if [ -n "$profile" ]; then

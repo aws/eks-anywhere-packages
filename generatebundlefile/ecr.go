@@ -16,11 +16,6 @@ import (
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 )
 
-const (
-	ecrRegion       = "us-west-2"
-	ecrPublicRegion = "us-east-1"
-)
-
 type ecrClient struct {
 	registryClient
 	AuthConfig string
@@ -98,12 +93,8 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 			if err != nil {
 				return nil, fmt.Errorf("unable to complete DescribeImagesRequest to ECR: %s", err)
 			}
-			var images []ImageDetailsBothECR
-			for _, image := range ImageDetails {
-				details, _ := createECRImageDetails(ImageDetailsECR{PrivateImageDetails: image})
-				images = append(images, details)
-			}
-			sha, err := getLatestImageSha(images)
+
+			sha, err := getLatestImageSha(ImageDetails)
 			if err != nil {
 				return nil, err
 			}
@@ -120,12 +111,8 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 			if err != nil {
 				return nil, fmt.Errorf("unable to complete DescribeImagesRequest to ECR: %s", err)
 			}
-			var images []ImageDetailsBothECR
-			for _, image := range ImageDetails {
-				details, _ := createECRImageDetails(ImageDetailsECR{PrivateImageDetails: image})
-				images = append(images, details)
-			}
-			filteredImageDetails := ImageTagFilter(images, splitVersion[0])
+
+			filteredImageDetails := ImageTagFilter(ImageDetails, splitVersion[0])
 			sha, err := getLatestImageSha(filteredImageDetails)
 			if err != nil {
 				return nil, err

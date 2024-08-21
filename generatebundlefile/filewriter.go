@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -56,7 +55,7 @@ func (t *writer) Write(fileName string, content []byte, f ...FileOptionsFunc) (s
 	}
 	currentDir := t.dir
 	filePath := filepath.Join(currentDir, fileName)
-	err := ioutil.WriteFile(filePath, content, op.Permissions)
+	err := os.WriteFile(filePath, content, op.Permissions)
 	if err != nil {
 		return "", fmt.Errorf("error writing to file [%s]: %v", filePath, err)
 	}

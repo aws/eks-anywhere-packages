@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
-	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -68,16 +68,16 @@ var (
 	testTagBundle      string = "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214"
 	testShaBundle      string = "sha256:d5467083c4d175e7e9bba823e95570d28fff86a2fbccb03f5ec3093db6f039be"
 	testImageMediaType string = "application/vnd.oci.image.manifest.v1+json"
-	testRegistryId     string = "public.ecr.aws/eks-anywhere"
+	testRegistryId     string = "067575901363.dkr.ecr.us-west-2.amazonaws.com"
 	testRepositoryName string = "hello-eks-anywhere"
 	testAccountID      string = "123456702424"
 )
 
 func TestNewPackageFromInput(t *testing.T) {
-	client := newMockPublicRegistryClientBundle(nil)
-	stsclient := newMockSTSReleaseClient(nil)
+	client := newMockPrivateRegistryClientBundle(nil)
+	stsclient := newMockSTSClient(nil)
 	tests := []struct {
-		client      *mockPublicRegistryClientBundle
+		client      *mockPrivateRegistryClientBundle
 		testname    string
 		testproject Project
 		wantErr     bool
@@ -88,7 +88,7 @@ func TestNewPackageFromInput(t *testing.T) {
 			testproject: Project{
 				Name:       "hello-eks-anywhere",
 				Repository: "hello-eks-anywhere",
-				Registry:   "public.ecr.aws/eks-anywhere",
+				Registry:   testRegistryId,
 				Versions:   []Tag{},
 			},
 			wantErr: true,
@@ -98,7 +98,7 @@ func TestNewPackageFromInput(t *testing.T) {
 			testproject: Project{
 				Name:       "hello-eks-anywhere",
 				Repository: "hello-eks-anywhere",
-				Registry:   "public.ecr.aws/eks-anywhere",
+				Registry:   testRegistryId,
 				Versions: []Tag{
 					{Name: testTagBundle},
 				},
@@ -108,7 +108,7 @@ func TestNewPackageFromInput(t *testing.T) {
 				Name: "hello-eks-anywhere",
 				Source: api.BundlePackageSource{
 					Repository: "hello-eks-anywhere",
-					Registry:   "public.ecr.aws/eks-anywhere",
+					Registry:   testRegistryId,
 					Versions: []api.SourceVersion{
 						{
 							Name:   testTagBundle,
@@ -123,7 +123,7 @@ func TestNewPackageFromInput(t *testing.T) {
 			testproject: Project{
 				Name:       "hello-eks-anywhere",
 				Repository: "hello-eks-anywhere",
-				Registry:   "public.ecr.aws/eks-anywhere",
+				Registry:   testRegistryId,
 				Versions: []Tag{
 					{Name: "latest"},
 				},
@@ -133,7 +133,7 @@ func TestNewPackageFromInput(t *testing.T) {
 				Name: "hello-eks-anywhere",
 				Source: api.BundlePackageSource{
 					Repository: "hello-eks-anywhere",
-					Registry:   "public.ecr.aws/eks-anywhere",
+					Registry:   testRegistryId,
 					Versions: []api.SourceVersion{
 						{
 							Name:   testTagBundle,
@@ -148,7 +148,7 @@ func TestNewPackageFromInput(t *testing.T) {
 			testproject: Project{
 				Name:       "hello-eks-anywhere",
 				Repository: "hello-eks-anywhere",
-				Registry:   "public.ecr.aws/eks-anywhere",
+				Registry:   testRegistryId,
 				Versions: []Tag{
 					{Name: "test-latest-helm"},
 				},
@@ -158,7 +158,7 @@ func TestNewPackageFromInput(t *testing.T) {
 				Name: "hello-eks-anywhere",
 				Source: api.BundlePackageSource{
 					Repository: "hello-eks-anywhere",
-					Registry:   "public.ecr.aws/eks-anywhere",
+					Registry:   testRegistryId,
 					Versions: []api.SourceVersion{
 						{
 							Name:   "test-latest-helm",
@@ -172,10 +172,10 @@ func TestNewPackageFromInput(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.testname, func(tt *testing.T) {
 			clients := &SDKClients{
-				ecrPublicClient: &ecrPublicClient{
-					publicRegistryClient: client,
+				ecrClient: &ecrClient{
+					registryClient: client,
 				},
-				stsClientRelease: &stsClient{
+				stsClient: &stsClient{
 					stsClientInterface: stsclient,
 				},
 			}
@@ -190,23 +190,23 @@ func TestNewPackageFromInput(t *testing.T) {
 	}
 }
 
-type mockPublicRegistryClientBundle struct {
+type mockPrivateRegistryClientBundle struct {
 	err error
 }
 
-func newMockPublicRegistryClientBundle(err error) *mockPublicRegistryClientBundle {
-	return &mockPublicRegistryClientBundle{
+func newMockPrivateRegistryClientBundle(err error) *mockPrivateRegistryClientBundle {
+	return &mockPrivateRegistryClientBundle{
 		err: err,
 	}
 }
 
-func (r *mockPublicRegistryClientBundle) DescribeImages(ctx context.Context, params *ecrpublic.DescribeImagesInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.DescribeImagesOutput, error) {
+func (r *mockPrivateRegistryClientBundle) DescribeImages(ctx context.Context, params *ecr.DescribeImagesInput, optFns ...func(*ecr.Options)) (*ecr.DescribeImagesOutput, error) {
 	if r.err != nil {
 		return nil, r.err
 	}
 	testImagePushedAt := time.Now()
-	return &ecrpublic.DescribeImagesOutput{
-		ImageDetails: []ecrpublictypes.ImageDetail{
+	return &ecr.DescribeImagesOutput{
+		ImageDetails: []ecrtypes.ImageDetail{
 			{
 				ImageDigest:            &testShaBundle,
 				ImageTags:              []string{testTagBundle},
@@ -219,25 +219,25 @@ func (r *mockPublicRegistryClientBundle) DescribeImages(ctx context.Context, par
 	}, nil
 }
 
-func (r *mockPublicRegistryClientBundle) DescribeRegistries(ctx context.Context, params *ecrpublic.DescribeRegistriesInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.DescribeRegistriesOutput, error) {
+func (r *mockPrivateRegistryClientBundle) DescribeRegistry(ctx context.Context, params *ecr.DescribeRegistryInput, optFns ...func(*ecr.Options)) (*ecr.DescribeRegistryOutput, error) {
 	panic("not implemented") // TODO: Implement
 }
 
-func (r *mockPublicRegistryClientBundle) GetAuthorizationToken(ctx context.Context, params *ecrpublic.GetAuthorizationTokenInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error) {
+func (r *mockPrivateRegistryClientBundle) GetAuthorizationToken(ctx context.Context, params *ecr.GetAuthorizationTokenInput, optFns ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error) {
 	panic("not implemented") // TODO: Implement
 }
 
-type mockSTSReleaseClient struct {
+type mockSTSClient struct {
 	err error
 }
 
-func newMockSTSReleaseClient(err error) *mockSTSReleaseClient {
-	return &mockSTSReleaseClient{
+func newMockSTSClient(err error) *mockSTSClient {
+	return &mockSTSClient{
 		err: err,
 	}
 }
 
-func (r *mockSTSReleaseClient) GetCallerIdentity(ctx context.Context, params *sts.GetCallerIdentityInput, optFns ...func(*sts.Options)) (*sts.GetCallerIdentityOutput, error) {
+func (r *mockSTSClient) GetCallerIdentity(ctx context.Context, params *sts.GetCallerIdentityInput, optFns ...func(*sts.Options)) (*sts.GetCallerIdentityOutput, error) {
 	if r.err != nil {
 		return nil, r.err
 	}
