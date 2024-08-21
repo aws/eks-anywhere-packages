@@ -9,11 +9,15 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
-	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	sig "github.com/aws/eks-anywhere-packages/pkg/signature"
+)
+
+const (
+	defaultRegion = "us-west-2"
 )
 
 var BundleLog = ctrl.Log.WithName("BundleGenerator")
@@ -80,39 +84,23 @@ func cmdGenerate(opts *Options) error {
 
 	// Validate Input config, and turn into Input struct
 	BundleLog.Info("Using input file to create bundle crds.", "Input file", opts.inputFile)
-	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrPublicRegion))
+	conf, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(defaultRegion))
 	if err != nil {
 		BundleLog.Error(err, "loading default AWS config: %w", err)
 		os.Exit(1)
 	}
 	clients := &SDKClients{}
-	client := ecrpublic.NewFromConfig(conf)
-	clients.ecrPublicClient, err = NewECRPublicClient(client, true)
-	if err != nil {
-		BundleLog.Error(err, "creating public ECR client")
-		os.Exit(1)
-	}
-	conf, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(ecrRegion))
-	if err != nil {
-		BundleLog.Error(err, "loading default AWS config: %w", err)
-		os.Exit(1)
-	}
 	ecrClient := ecr.NewFromConfig(conf)
 	clients.ecrClient, err = NewECRClient(ecrClient, true)
 	if err != nil {
 		BundleLog.Error(err, "creating ECR client")
 		os.Exit(1)
 	}
-	// Creating AWS Clients with profile
-	Profile := "default"
-	val, ok := os.LookupEnv("AWS_PROFILE")
-	if ok {
-		Profile = val
-	}
-	BundleLog.Info("Using Env", "AWS_PROFILE", Profile)
-	clients, err = clients.GetProfileSDKConnection("sts", Profile, ecrRegion)
+
+	stsClient := sts.NewFromConfig(conf)
+	clients.stsClient, err = NewStsClient(stsClient, true)
 	if err != nil {
-		BundleLog.Error(err, "getting profile SDK connection")
+		BundleLog.Error(err, "creating STS client")
 		os.Exit(1)
 	}
 	for _, f := range files {
@@ -125,10 +113,9 @@ func cmdGenerate(opts *Options) error {
 		// Create Authfile for Helm Driver
 		dockerReleaseStruct := &DockerAuth{
 			Auths: map[string]DockerAuthRegistry{
-				fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClientRelease.AccountID, ecrRegion): {
+				fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", clients.stsClient.AccountID, defaultRegion): {
 					clients.ecrClient.AuthConfig,
 				},
-				fmt.Sprintf("public.ecr.aws/%s", clients.ecrPublicClient.SourceRegistry): {clients.ecrPublicClient.AuthConfig},
 			},
 		}
 
