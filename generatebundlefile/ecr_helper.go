@@ -81,7 +81,7 @@ func ImageTagFilter(details []ecrtypes.ImageDetail, version string) []ecrtypes.I
 	return filteredDetails
 }
 
-// getLatestImageSha Iterates list of Helm Charts, to find latest pushed image and return tag/sha  of the latest pushed image
+// getLatestImageSha Iterates list of Helm Charts, to find latest pushed image and return tag/sha of the latest pushed image
 func getLatestImageSha(details []ecrtypes.ImageDetail) (*api.SourceVersion, error) {
 	var latest ecrtypes.ImageDetail
 	latest.ImagePushedAt = &time.Time{}

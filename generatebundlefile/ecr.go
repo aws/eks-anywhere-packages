@@ -85,7 +85,7 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 				}
 			}
 		}
-		//
+
 		if tag.Name == "latest" {
 			ImageDetails, err := c.Describe(&ecr.DescribeImagesInput{
 				RepositoryName: aws.String(project.Repository),
@@ -94,14 +94,15 @@ func (c *ecrClient) GetShaForInputs(project Project) ([]api.SourceVersion, error
 				return nil, fmt.Errorf("unable to complete DescribeImagesRequest to ECR: %s", err)
 			}
 
-			sha, err := getLatestImageSha(ImageDetails)
+			filteredImageDetails := ImageTagFilter(ImageDetails, "")
+			sha, err := getLatestImageSha(filteredImageDetails)
 			if err != nil {
 				return nil, err
 			}
 			sourceVersion = append(sourceVersion, *sha)
 			continue
 		}
-		//
+
 		if strings.HasSuffix(tag.Name, "-latest") {
 			regex := regexp.MustCompile(`-latest`)
 			splitVersion := regex.Split(tag.Name, -1) // extract out the version without the latest

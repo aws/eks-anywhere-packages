@@ -80,7 +80,7 @@ packages:
 
 #### Latest Version
 
-The "latest" tag will tell the program to use a timestamp lookup, and find the most recently pushed helm chart for information, even if that helm chart doesn't have the latest tag.
+The "latest" tag will tell the program to use a timestamp lookup, and find the most recently pushed helm chart for information only if that helm chart has the latest tag.
 
 ```yaml
 name: "v1-22-1001"

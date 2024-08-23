@@ -65,7 +65,7 @@ func TestNewBundleGenerate(t *testing.T) {
 }
 
 var (
-	testTagBundle      string = "0.1.0_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214"
+	testTagBundle      string = "0.1.0_latest_c4e25cb42e9bb88d2b8c2abfbde9f10ade39b214"
 	testShaBundle      string = "sha256:d5467083c4d175e7e9bba823e95570d28fff86a2fbccb03f5ec3093db6f039be"
 	testImageMediaType string = "application/vnd.oci.image.manifest.v1+json"
 	testRegistryId     string = "067575901363.dkr.ecr.us-west-2.amazonaws.com"
