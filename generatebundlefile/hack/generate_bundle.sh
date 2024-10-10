@@ -35,7 +35,7 @@ fi
 make build
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin
 
-for version in 1-26 1-27 1-28 1-29 1-30 1-31; do
+for version in 1-27 1-28 1-29 1-30 1-31; do
     generate ${version} "dev"
     push ${version} "dev"
 done
