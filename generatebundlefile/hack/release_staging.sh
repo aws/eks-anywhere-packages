@@ -40,7 +40,7 @@ fi
 
 # Generate bundles from beta account private ECR registry and
 # push them to prod account private ECR registry (same as beta account in this case)
-for version in 1-26 1-27 1-28 1-29 1-30 1-31; do
+for version in 1-27 1-28 1-29 1-30 1-31; do
     generate ${version} "staging"
     push ${version} "staging"
 done
