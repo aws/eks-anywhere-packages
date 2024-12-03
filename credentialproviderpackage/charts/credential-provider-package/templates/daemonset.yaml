@@ -43,8 +43,8 @@ spec:
             {{- else if eq $os "ubuntu" }}
             - mountPath: /node-files/kubelet-extra-args
               name: kubelet-extra-args
-            - mountPath: /node-files/kubelet-extra-args-legacy
-              name: kubelet-extra-args-legacy
+            - mountPath: /node-files/ubuntu-legacy-kubelet-extra-args
+              name: ubuntu-legacy-kubelet-extra-args
             - name: package-mounts
               mountPath: /eksa-packages
             {{- else}}
@@ -84,7 +84,7 @@ spec:
           hostPath:
             path: /etc/default/kubelet
             type: FileOrCreate
-        - name: kubelet-extra-args-legacy
+        - name: ubuntu-legacy-kubelet-extra-args
           hostPath:
             path: /etc/sysconfig/kubelet
             type: FileOrCreate

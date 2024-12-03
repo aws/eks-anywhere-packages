@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"syscall"
@@ -26,7 +25,7 @@ const (
 	basePath              = "/eksa-packages/"
 	credOutFile           = "aws-creds"
 	mountedExtraArgs      = "/node-files/kubelet-extra-args"
-	ubuntuLegacyExtraArgs = "/node-files/kubelet-extra-args-legacy"
+	ubuntuLegacyExtraArgs = "/node-files/ubuntu-legacy-kubelet-extra-args"
 	credProviderFile      = "credential-provider-config.yaml"
 
 	// Binaries
@@ -226,7 +225,7 @@ func (c *linuxOS) createConfig() (string, error) {
 	if err != nil {
 		return "", nil
 	}
-	err = ioutil.WriteFile(dstPath, bytes, 0o600)
+	err = os.WriteFile(dstPath, bytes, 0o600)
 	if err != nil {
 		return "", err
 	}
