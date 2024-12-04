@@ -40,6 +40,13 @@ spec:
             {{- if eq $os "bottlerocket" }}
             - mountPath: /run/api.sock
               name: socket
+            {{- else if eq $os "ubuntu" }}
+            - mountPath: /node-files/kubelet-extra-args
+              name: kubelet-extra-args
+            - mountPath: /node-files/ubuntu-legacy-kubelet-extra-args
+              name: ubuntu-legacy-kubelet-extra-args
+            - name: package-mounts
+              mountPath: /eksa-packages
             {{- else}}
             - mountPath: /node-files/kubelet-extra-args
               name: kubelet-extra-args
@@ -71,6 +78,15 @@ spec:
         - name: kubelet-extra-args
           hostPath:
             path: /etc/default/kubelet
+            type: FileOrCreate
+        {{- else if eq $os "ubuntu"}}
+        - name: kubelet-extra-args
+          hostPath:
+            path: /etc/default/kubelet
+            type: FileOrCreate
+        - name: ubuntu-legacy-kubelet-extra-args
+          hostPath:
+            path: /etc/sysconfig/kubelet
             type: FileOrCreate
         {{- else}}
         - name: kubelet-extra-args

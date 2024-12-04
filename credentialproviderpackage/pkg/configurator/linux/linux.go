@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"syscall"
@@ -22,11 +21,12 @@ import (
 var credProviderTemplate string
 
 const (
-	binPath          = "/eksa-binaries/"
-	basePath         = "/eksa-packages/"
-	credOutFile      = "aws-creds"
-	mountedExtraArgs = "/node-files/kubelet-extra-args"
-	credProviderFile = "credential-provider-config.yaml"
+	binPath               = "/eksa-binaries/"
+	basePath              = "/eksa-packages/"
+	credOutFile           = "aws-creds"
+	mountedExtraArgs      = "/node-files/kubelet-extra-args"
+	ubuntuLegacyExtraArgs = "/node-files/ubuntu-legacy-kubelet-extra-args"
+	credProviderFile      = "credential-provider-config.yaml"
 
 	// Binaries
 	ecrCredProviderBinary = "ecr-credential-provider"
@@ -34,19 +34,21 @@ const (
 )
 
 type linuxOS struct {
-	profile       string
-	extraArgsPath string
-	basePath      string
-	config        constants.CredentialProviderConfigOptions
+	profile             string
+	extraArgsPath       string
+	legacyExtraArgsPath string
+	basePath            string
+	config              constants.CredentialProviderConfigOptions
 }
 
 var _ configurator.Configurator = (*linuxOS)(nil)
 
 func NewLinuxConfigurator() *linuxOS {
 	return &linuxOS{
-		profile:       "",
-		extraArgsPath: mountedExtraArgs,
-		basePath:      basePath,
+		profile:             "",
+		extraArgsPath:       mountedExtraArgs,
+		legacyExtraArgsPath: ubuntuLegacyExtraArgs,
+		basePath:            basePath,
 	}
 }
 
@@ -62,9 +64,8 @@ func (c *linuxOS) UpdateAWSCredentials(sourcePath, profile string) error {
 	return err
 }
 
-func (c *linuxOS) UpdateCredentialProvider(_ string) error {
-	// Adding to KUBELET_EXTRA_ARGS in place
-	file, err := ioutil.ReadFile(c.extraArgsPath)
+func (c *linuxOS) updateConfigFile(configPath string) error {
+	file, err := os.ReadFile(configPath)
 	if err != nil {
 		return err
 	}
@@ -91,8 +92,24 @@ func (c *linuxOS) UpdateCredentialProvider(_ string) error {
 	}
 
 	out := strings.Join(lines, "\n")
-	err = ioutil.WriteFile(c.extraArgsPath, []byte(out), 0o644)
+	err = os.WriteFile(configPath, []byte(out), 0o644)
 	return err
+}
+
+func (c *linuxOS) UpdateCredentialProvider(_ string) error {
+	// Adding to KUBELET_EXTRA_ARGS in place
+	if err := c.updateConfigFile(mountedExtraArgs); err != nil {
+		return fmt.Errorf("failed to update kubelet args: %v", err)
+	}
+
+	// Adding KUBELET_EXTRA_ARGS to legacy path for ubuntu
+	if _, err := os.Stat(ubuntuLegacyExtraArgs); err == nil {
+		if err := c.updateConfigFile(ubuntuLegacyExtraArgs); err != nil {
+			return fmt.Errorf("failed to update legacy kubelet args for ubuntu: %v", err)
+		}
+	}
+
+	return nil
 }
 
 func (c *linuxOS) CommitChanges() error {
@@ -208,7 +225,7 @@ func (c *linuxOS) createConfig() (string, error) {
 	if err != nil {
 		return "", nil
 	}
-	err = ioutil.WriteFile(dstPath, bytes, 0o600)
+	err = os.WriteFile(dstPath, bytes, 0o600)
 	if err != nil {
 		return "", err
 	}

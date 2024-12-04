@@ -2,7 +2,6 @@ package linux
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -16,10 +15,11 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 	testDir, _ := test.NewWriter(t)
 	dir := testDir + "/"
 	type fields struct {
-		profile       string
-		extraArgsPath string
-		basePath      string
-		config        constants.CredentialProviderConfigOptions
+		profile             string
+		extraArgsPath       string
+		legacyExtraArgsPath string
+		basePath            string
+		config              constants.CredentialProviderConfigOptions
 	}
 	type args struct {
 		line string
@@ -36,9 +36,10 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 		{
 			name: "test empty string",
 			fields: fields{
-				profile:       "eksa-packages",
-				extraArgsPath: dir,
-				basePath:      dir,
+				profile:             "eksa-packages",
+				extraArgsPath:       dir,
+				legacyExtraArgsPath: dir,
+				basePath:            dir,
 				config: constants.CredentialProviderConfigOptions{
 					ImagePatterns:        []string{constants.DefaultImagePattern},
 					DefaultCacheDuration: constants.DefaultCacheDuration,
@@ -52,9 +53,10 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 		{
 			name: "test multiple match patterns",
 			fields: fields{
-				profile:       "eksa-packages",
-				extraArgsPath: dir,
-				basePath:      dir,
+				profile:             "eksa-packages",
+				extraArgsPath:       dir,
+				legacyExtraArgsPath: dir,
+				basePath:            dir,
 				config: constants.CredentialProviderConfigOptions{
 					ImagePatterns: []string{
 						"1234567.dkr.ecr.us-east-1.amazonaws.com",
@@ -71,9 +73,10 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 		{
 			name: "skip credential provider if already provided",
 			fields: fields{
-				profile:       "eksa-packages",
-				extraArgsPath: dir,
-				basePath:      dir,
+				profile:             "eksa-packages",
+				extraArgsPath:       dir,
+				legacyExtraArgsPath: dir,
+				basePath:            dir,
 				config: constants.CredentialProviderConfigOptions{
 					ImagePatterns:        []string{constants.DefaultImagePattern},
 					DefaultCacheDuration: constants.DefaultCacheDuration,
@@ -87,9 +90,10 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 		{
 			name: "test alpha api",
 			fields: fields{
-				profile:       "eksa-packages",
-				extraArgsPath: dir,
-				basePath:      dir,
+				profile:             "eksa-packages",
+				extraArgsPath:       dir,
+				legacyExtraArgsPath: dir,
+				basePath:            dir,
 				config: constants.CredentialProviderConfigOptions{
 					ImagePatterns:        []string{constants.DefaultImagePattern},
 					DefaultCacheDuration: constants.DefaultCacheDuration,
@@ -104,9 +108,10 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 		{
 			name: "test v1 api 1.27",
 			fields: fields{
-				profile:       "eksa-packages",
-				extraArgsPath: dir,
-				basePath:      dir,
+				profile:             "eksa-packages",
+				extraArgsPath:       dir,
+				legacyExtraArgsPath: dir,
+				basePath:            dir,
 				config: constants.CredentialProviderConfigOptions{
 					ImagePatterns:        []string{constants.DefaultImagePattern},
 					DefaultCacheDuration: constants.DefaultCacheDuration,
@@ -122,10 +127,11 @@ func Test_linuxOS_updateKubeletArguments(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &linuxOS{
-				profile:       tt.fields.profile,
-				extraArgsPath: tt.fields.extraArgsPath,
-				basePath:      tt.fields.basePath,
-				config:        tt.fields.config,
+				profile:             tt.fields.profile,
+				extraArgsPath:       tt.fields.extraArgsPath,
+				legacyExtraArgsPath: tt.fields.legacyExtraArgsPath,
+				basePath:            tt.fields.basePath,
+				config:              tt.fields.config,
 			}
 			t.Setenv("K8S_VERSION", tt.k8sVersion)
 
@@ -143,10 +149,11 @@ func Test_linuxOS_UpdateAWSCredentials(t *testing.T) {
 	testDir, _ := test.NewWriter(t)
 	dir := testDir + "/"
 	type fields struct {
-		profile       string
-		extraArgsPath string
-		basePath      string
-		config        constants.CredentialProviderConfigOptions
+		profile             string
+		extraArgsPath       string
+		legacyExtraArgsPath string
+		basePath            string
+		config              constants.CredentialProviderConfigOptions
 	}
 	type args struct {
 		sourcePath string
@@ -161,9 +168,10 @@ func Test_linuxOS_UpdateAWSCredentials(t *testing.T) {
 		{
 			name: "simple credential move",
 			fields: fields{
-				profile:       "eksa-packages",
-				extraArgsPath: dir,
-				basePath:      dir,
+				profile:             "eksa-packages",
+				extraArgsPath:       dir,
+				legacyExtraArgsPath: dir,
+				basePath:            dir,
 				config: constants.CredentialProviderConfigOptions{
 					ImagePatterns:        []string{constants.DefaultImagePattern},
 					DefaultCacheDuration: constants.DefaultCacheDuration,
@@ -180,10 +188,11 @@ func Test_linuxOS_UpdateAWSCredentials(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dstFile := tt.fields.basePath + credOutFile
 			c := &linuxOS{
-				profile:       tt.fields.profile,
-				extraArgsPath: tt.fields.extraArgsPath,
-				basePath:      tt.fields.basePath,
-				config:        tt.fields.config,
+				profile:             tt.fields.profile,
+				extraArgsPath:       tt.fields.extraArgsPath,
+				legacyExtraArgsPath: tt.fields.legacyExtraArgsPath,
+				basePath:            tt.fields.basePath,
+				config:              tt.fields.config,
 			}
 			if err := c.UpdateAWSCredentials(tt.args.sourcePath, tt.args.profile); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateAWSCredentials() error = %v, wantErr %v", err, tt.wantErr)
@@ -199,12 +208,12 @@ func Test_linuxOS_UpdateAWSCredentials(t *testing.T) {
 			if err != nil {
 				t.Errorf("Failed to set file back to readable")
 			}
-			expectedCreds, err := ioutil.ReadFile(tt.args.sourcePath)
+			expectedCreds, err := os.ReadFile(tt.args.sourcePath)
 			if err != nil {
 				t.Errorf("Failed to read source credential file")
 			}
 
-			actualCreds, err := ioutil.ReadFile(dstFile)
+			actualCreds, err := os.ReadFile(dstFile)
 			if err != nil {
 				t.Errorf("Failed to read created credential file")
 			}
@@ -215,10 +224,11 @@ func Test_linuxOS_UpdateAWSCredentials(t *testing.T) {
 
 func Test_linuxOS_Initialize(t *testing.T) {
 	type fields struct {
-		profile       string
-		extraArgsPath string
-		basePath      string
-		config        constants.CredentialProviderConfigOptions
+		profile             string
+		extraArgsPath       string
+		legacyExtraArgsPath string
+		basePath            string
+		config              constants.CredentialProviderConfigOptions
 	}
 	type args struct {
 		config constants.CredentialProviderConfigOptions
