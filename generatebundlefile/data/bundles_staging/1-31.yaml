@@ -9,22 +9,22 @@ packages:
         repository: eks-anywhere-packages
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.4-e48d47fc6bb79181d452e038901a2d42d651553c
+          - name: 0.4.5-9838f945bf4881a2e452b07db97d68c9661cbcab
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.4-e48d47fc6bb79181d452e038901a2d42d651553c
+          - name: 0.4.5-9838f945bf4881a2e452b07db97d68c9661cbcab
       - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-migrations
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.4-e48d47fc6bb79181d452e038901a2d42d651553c
+          - name: 0.4.5-9838f945bf4881a2e452b07db97d68c9661cbcab
       - name: credential-provider-package
         repository: credential-provider-package
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.4-e48d47fc6bb79181d452e038901a2d42d651553c
+          - name: 0.4.5-9838f945bf4881a2e452b07db97d68c9661cbcab
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
@@ -46,7 +46,7 @@ packages:
         repository: cert-manager/cert-manager
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 1.15.3-39c950cce324ee9af2ffb3ce4ac8232c497e22eb
+          - name: 1.16.1-92000258dc428ea8c33730f217c48efc80c9210d
   - org: emissary
     projects:
       - name: emissary
@@ -65,14 +65,14 @@ packages:
         repository: harbor/harbor-helm
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 2.11.1-f3f846a233e9df45b0e4bef2f5676bbb6a4f5f35
+            - name: 2.11.1-d0066f98f3ae9cfcc1f410769ee021a5a11eeb42
   - org: kubernetes
     projects:
       - name: cluster-autoscaler
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 9.43.0-1.31-0df35c164d4707002dd01a8f0e5353ba7d03b86f
+            - name: 9.43.2-1.31-364a15b221394f71231b047d5920cfdbfd29a886
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
@@ -86,17 +86,17 @@ packages:
         repository: metallb/metallb
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.14.8-39c950cce324ee9af2ffb3ce4ac8232c497e22eb
+            - name: 0.14.9-5303a93f03b353d51c0c5149b63a408ff26765ec
       - name: metallb-crds
         repository: metallb/crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.14.8-39c950cce324ee9af2ffb3ce4ac8232c497e22eb
+            - name: 0.14.9-5303a93f03b353d51c0c5149b63a408ff26765ec
   - org: prometheus
     projects:
       - name: prometheus
         repository: prometheus/charts/prometheus
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 2.54.1-f7277f56fc7b38a70e14c66155967659c07bd893
+            - name: 2.55.1-92000258dc428ea8c33730f217c48efc80c9210d
 
