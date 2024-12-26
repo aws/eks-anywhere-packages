@@ -53,7 +53,7 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 9.43.0-1.30-0df35c164d4707002dd01a8f0e5353ba7d03b86f
+            - name: 9.43.2-1.30-364a15b221394f71231b047d5920cfdbfd29a886
   - org: harbor
     projects:
       - name: harbor
