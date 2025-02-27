@@ -38,7 +38,7 @@ packages:
         repository: adot/charts/aws-otel-collector
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.41.1-c25b099c99a55d8982da3205df72785caf1069f4
+            - name: 0.42.0-7a3222fadc4f546f0242bc3050e4d98b75890181
   - org: cert-manager
     projects:
       - name: cert-manager
@@ -65,7 +65,7 @@ packages:
         repository: harbor/harbor-helm
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 2.11.1-d0066f98f3ae9cfcc1f410769ee021a5a11eeb42
+            - name: 2.12.2-e85aeddf0581f729116470a700f7f21ac5a82d27
   - org: kubernetes
     projects:
       - name: cluster-autoscaler
