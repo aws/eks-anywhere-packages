@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      # Update system and install basic utilities
+      - yum update -y
+      - yum install -y tar wget gzip curl
+
+      # Set up ORAS installation
+      - export REPO_ROOT=$(pwd)
+      - export ORAS_VERSION="1.2.2"
+      - export ORAS_BIN=${REPO_ROOT}/bin
+      - mkdir -p ${ORAS_BIN}
+      
+      # Download and install ORAS
+      - wget https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz
+      - tar -zxf oras_${ORAS_VERSION}_linux_amd64.tar.gz -C ${ORAS_BIN}
+      - chmod +x ${ORAS_BIN}/oras
+      - export PATH=${ORAS_BIN}:$PATH
+      
+      # Clean up
+      - rm oras_${ORAS_VERSION}_linux_amd64.tar.gz
+  build:
+    commands:
+    - chmod +x release/scripts/announce-curated-packages-release.sh
+    - ./release/scripts/announce-curated-packages-release.sh
