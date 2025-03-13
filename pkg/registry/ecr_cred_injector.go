@@ -191,6 +191,7 @@ func getECRClientFromVariables(ctx context.Context, log logr.Logger) (*ecr.Clien
 	accessKeyPath := awsSecretPath + "/AWS_ACCESS_KEY_ID"
 	secretAccessKeyPath := awsSecretPath + "/AWS_SECRET_ACCESS_KEY"
 	regionPath := awsSecretPath + "/REGION"
+	sessionTokenPath := awsSecretPath + "/AWS_SESSION_TOKEN"
 
 	accessKeyByte, err := os.ReadFile(accessKeyPath)
 	if err != nil {
@@ -207,9 +208,18 @@ func getECRClientFromVariables(ctx context.Context, log logr.Logger) (*ecr.Clien
 		log.Error(err, "Cannot get region from file, %v")
 	}
 	region := strings.Trim(string(regionByte), "'")
+	var sessionToken string
+	// check if sessionToken exists and read it
+	if _, err := os.Stat(sessionTokenPath); !os.IsNotExist(err) {
+		sessionTokenByte, err := os.ReadFile(sessionTokenPath)
+		if err != nil {
+			log.Error(err, "Cannot get sessionToken from file, %v")
+		}
+		sessionToken = strings.Trim(string(sessionTokenByte), "'")
+	}
 
 	cfg, err := awsConfig.LoadDefaultConfig(ctx,
-		awsConfig.WithCredentialsProvider(awsCredentials.NewStaticCredentialsProvider(accessKey, secretAccessKey, "")),
+		awsConfig.WithCredentialsProvider(awsCredentials.NewStaticCredentialsProvider(accessKey, secretAccessKey, sessionToken)),
 		awsConfig.WithRegion(region),
 	)
 	if err != nil {

@@ -122,6 +122,7 @@ registryMirrorSecret:
 awsSecret:
   id: ""
   secret: ""
+  sessionToken: ""
   region: ""
   # -- Config overrides other awsSecret fields
   config: ""

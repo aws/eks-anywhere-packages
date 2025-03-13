@@ -2,7 +2,7 @@ package awscred
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/aws/eks-anywhere-packages/credentialproviderpackage/internal/test"
@@ -12,11 +12,20 @@ func Test_generateAwsConfigSecret(t *testing.T) {
 	testDir, _ := test.NewWriter(t)
 	dir := testDir + "/"
 	err := createTestFiles(dir)
-	wantString := fmt.Sprintf(
+	wantStringWithoutSessionToken := fmt.Sprintf(
 		`
 [default]
 aws_access_key_id=abc
 aws_secret_access_key=def
+region=us-east-3
+`)
+
+	wantStringWithSessionToken := fmt.Sprintf(
+		`
+[default]
+aws_access_key_id=abc
+aws_secret_access_key=def
+aws_session_token=session-token-abc
 region=us-east-3
 `)
 	if err != nil {
@@ -25,6 +34,7 @@ region=us-east-3
 	type args struct {
 		accessKeyPath       string
 		secretAccessKeyPath string
+		sessionTokenKeyPath string
 		regionPath          string
 	}
 	tests := []struct {
@@ -34,13 +44,25 @@ region=us-east-3
 		wantErr bool
 	}{
 		{
-			name: "test create config",
+			name: "test create config without SessionToken",
 			args: args{
 				accessKeyPath:       dir + "accessKey",
 				secretAccessKeyPath: dir + "secretAccessKey",
+				sessionTokenKeyPath: dir + "wronPath",
 				regionPath:          dir + "region",
 			},
-			want:    wantString,
+			want:    wantStringWithoutSessionToken,
+			wantErr: false,
+		},
+		{
+			name: "test create config with SessionToken",
+			args: args{
+				accessKeyPath:       dir + "accessKey",
+				secretAccessKeyPath: dir + "secretAccessKey",
+				sessionTokenKeyPath: dir + "sessionTokenKey",
+				regionPath:          dir + "region",
+			},
+			want:    wantStringWithSessionToken,
 			wantErr: false,
 		},
 		{
@@ -48,6 +70,7 @@ region=us-east-3
 			args: args{
 				accessKeyPath:       dir + "wrongPath",
 				secretAccessKeyPath: dir + "secretAccessKey",
+				sessionTokenKeyPath: dir + "sessionTokenKey",
 				regionPath:          dir + "region",
 			},
 			want:    "",
@@ -58,6 +81,7 @@ region=us-east-3
 			args: args{
 				accessKeyPath:       dir + "accessKey",
 				secretAccessKeyPath: dir + "wrongPath",
+				sessionTokenKeyPath: dir + "sessionTokenKey",
 				regionPath:          dir + "region",
 			},
 			want:    "",
@@ -68,6 +92,7 @@ region=us-east-3
 			args: args{
 				accessKeyPath:       dir + "accessKey",
 				secretAccessKeyPath: dir + "secretAccessKey",
+				sessionTokenKeyPath: dir + "sessionTokenKey",
 				regionPath:          dir + "wrongPath",
 			},
 			want:    "",
@@ -80,13 +105,13 @@ region=us-east-3
 				secretAccessKeyPath: dir + "secretAccessKeyWithQuote",
 				regionPath:          dir + "region",
 			},
-			want:    wantString,
+			want:    wantStringWithoutSessionToken,
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := generateAwsConfigSecret(tt.args.accessKeyPath, tt.args.secretAccessKeyPath, tt.args.regionPath)
+			got, err := generateAwsConfigSecret(tt.args.accessKeyPath, tt.args.secretAccessKeyPath, tt.args.sessionTokenKeyPath, tt.args.regionPath)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("generateAwsConfigSecret() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -96,6 +121,7 @@ region=us-east-3
 			}
 		})
 	}
+	os.RemoveAll(testDir)
 }
 
 func createTestFiles(baseDir string) error {
@@ -103,11 +129,12 @@ func createTestFiles(baseDir string) error {
 		"accessKey":                "abc",
 		"secretAccessKey":          "def",
 		"region":                   "us-east-3",
+		"sessionTokenKey":          "session-token-abc",
 		"secretAccessKeyWithQuote": "'def'",
 	}
 
 	for filePath, data := range writeMap {
-		err := ioutil.WriteFile(baseDir+filePath, []byte(data), 0o600)
+		err := os.WriteFile(baseDir+filePath, []byte(data), 0o600)
 		if err != nil {
 			return err
 		}
