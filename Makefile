@@ -8,8 +8,9 @@ IMG ?= controller:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd"
 
-GOLANG_VERSION?="1.21"
-GO ?= $(shell source ./scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
+GOLANG_VERSION?="1.23"
+GO_PATH ?= $(shell source ./scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))
+GO ?= $(GO_PATH)/go
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell $(GO) env GOBIN))
@@ -43,9 +44,18 @@ help: ## Display this help.
 
 ##@ Development
 
+
+## We need to make sure the right go binary is used when running controller-gen.
+## Among other things it uses the go binary to parse the go.mod, which due to newer directives,
+## has to be parsed with a version at least as new as the go version used to build the go.mod.
+## In a local dev environment this export path is not necessary, assuming single go version is used.
+## However, in CI we use the base builder image which contains multiple go versions and might not default to
+## the same version as the one in this Makefile.
+manifests: export PATH := $(GO_PATH):$(PATH)
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./api/v1alpha1" output:crd:artifacts:config=config/crd/bases
 
+generate: export PATH := $(GO_PATH):$(PATH)
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
@@ -155,8 +165,9 @@ helm-delete:
 	helm delete eksa-packages
 
 CONTROLLER_GEN = $(BIN_DIR)/controller-gen
+CONTROLLER_GEN_VERSION := v0.17.2
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.11.1)
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_GEN_VERSION))
 
 KUSTOMIZE = $(BIN_DIR)/kustomize
 kustomize: ## Download kustomize locally if necessary.
