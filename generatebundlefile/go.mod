@@ -1,6 +1,8 @@
 module github.com/aws/eks-anywhere-packages/generatebundlefile
 
-go 1.21
+go 1.23
+
+toolchain go1.23.7
 
 replace github.com/aws/eks-anywhere-packages => ../
 

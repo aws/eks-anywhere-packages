@@ -118,7 +118,7 @@ func (v *packageValidator) isPackageValid(p *v1alpha1.Package, activeBundle *v1a
 
 	result, err := validatePackage(p, jsonSchema)
 	if err != nil {
-		return false, fmt.Errorf(err.Error())
+		return false, err
 	}
 
 	if p.Status.Spec.TargetNamespace != "" && p.Status.Spec.TargetNamespace != p.Spec.TargetNamespace {

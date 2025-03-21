@@ -189,6 +189,6 @@ func newFakeClient(scheme *runtime.Scheme) *fakeClient {
 func (c *fakeClient) List(ctx context.Context,
 	obj client.ObjectList, opts ...client.ListOption,
 ) error {
-	log.Printf("list has been called")
+	log.Print("list has been called")
 	return fmt.Errorf("testing error")
 }
