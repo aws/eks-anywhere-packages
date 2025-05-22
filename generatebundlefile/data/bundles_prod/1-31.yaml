@@ -68,8 +68,6 @@ packages:
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
             - name: 0.14.9-86ed88d61f9bf11dd0cdef4390a9c23d0712015b
-  - org: metallb
-    projects:
       - name: metallb-crds
         repository: metallb/crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
