@@ -100,7 +100,12 @@ func TestHandleInner(t *testing.T) {
 	})
 
 	t.Run("handles decoder errors", func(t *testing.T) {
-		v := &activeBundleValidator{}
+		scheme := runtime.NewScheme()
+		require.NoError(t, v1alpha1.AddToScheme(scheme))
+		decoder := admission.NewDecoder(scheme)
+		v := &activeBundleValidator{
+			decoder: decoder,
+		}
 		req := admission.Request{
 			AdmissionRequest: admissionv1.AdmissionRequest{
 				Object: runtime.RawExtension{

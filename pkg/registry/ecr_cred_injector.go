@@ -159,7 +159,7 @@ func GetECRClient(ctx context.Context, log logr.Logger) (*ecr.Client, error) {
 	if c == nil {
 		c, err = getECRClientFromVariables(ctx, log)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to load AWS config, " + err.Error())
+			return nil, fmt.Errorf("Unable to load AWS config, %w", err)
 		}
 	}
 	return c, nil
