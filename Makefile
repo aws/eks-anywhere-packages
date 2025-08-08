@@ -165,7 +165,7 @@ helm-delete:
 	helm delete eksa-packages
 
 CONTROLLER_GEN = $(BIN_DIR)/controller-gen
-CONTROLLER_GEN_VERSION := v0.17.2
+CONTROLLER_GEN_VERSION := v0.18.0
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_GEN_VERSION))
 

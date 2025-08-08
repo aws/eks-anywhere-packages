@@ -41,7 +41,7 @@ const (
 type packageBundleValidator struct {
 	Client       client.Client
 	BundleClient bundle.Client
-	decoder      *admission.Decoder
+	decoder      admission.Decoder
 	log          logr.Logger
 }
 
@@ -93,7 +93,7 @@ func (v *packageBundleValidator) Handle(_ context.Context, request admission.Req
 func (v *packageBundleValidator) isPackageBundleValid(pb *v1alpha1.PackageBundle) error {
 	if !pb.IsValidVersion() {
 		v.log.Info("Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): " + pb.Name)
-		return fmt.Errorf("Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): " + pb.Name)
+		return fmt.Errorf("Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): %s", pb.Name)
 	}
 
 	keyOverride := os.Getenv(PublicKeyEnvVar)
@@ -107,7 +107,7 @@ func (v *packageBundleValidator) isPackageBundleValid(pb *v1alpha1.PackageBundle
 	}
 	if !valid {
 		v.log.Info("Invalid signature", "Error", err, "Digest", base64.StdEncoding.EncodeToString(digest[:]), "Manifest", string(yml))
-		return fmt.Errorf("The signature is invalid for the configured public key: " + domain.Pubkey)
+		return fmt.Errorf("The signature is invalid for the configured public key: %s", domain.Pubkey)
 	}
 	return nil
 }
