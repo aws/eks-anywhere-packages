@@ -165,6 +165,6 @@ func (r *PackageBundleControllerReconciler) SetupWithManager(mgr ctrl.Manager) e
 }
 
 func withoutRequeue(result ctrl.Result) ctrl.Result {
-	result.Requeue = false
+	result.RequeueAfter = 0
 	return result
 }
