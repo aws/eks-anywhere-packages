@@ -34,7 +34,7 @@ import (
 type activeBundleValidator struct {
 	Client  client.Client
 	Config  *rest.Config
-	decoder *admission.Decoder
+	decoder admission.Decoder
 	tcc     authenticator.TargetClusterClient
 }
 
