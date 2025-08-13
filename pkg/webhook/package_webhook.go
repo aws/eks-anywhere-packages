@@ -37,7 +37,7 @@ import (
 type packageValidator struct {
 	Client       client.Client
 	BundleClient bundle.Client
-	decoder      *admission.Decoder
+	decoder      admission.Decoder
 }
 
 func InitPackageValidator(mgr ctrl.Manager) error {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
@@ -87,7 +88,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
 		assert.NoError(t, err)
-		assert.True(t, result.Requeue)
+		assert.True(t, result.RequeueAfter > 0)
 	})
 
 	t.Run("bundle manager process bundle controller error", func(t *testing.T) {
@@ -107,7 +108,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
 		assert.NoError(t, err)
-		assert.True(t, result.Requeue)
+		assert.True(t, result.RequeueAfter > 0)
 	})
 
 	t.Run("marks status ignored for bogus package bundle controller namespace", func(t *testing.T) {
@@ -138,7 +139,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			logr.Discard())
 		result, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: ignoredController})
 		assert.NoError(t, err)
-		assert.False(t, result.Requeue)
+		assert.Equal(t, result.RequeueAfter, time.Duration(0))
 	})
 
 	t.Run("error marking status ignored for bogus package bundle controller namespace", func(t *testing.T) {
@@ -163,7 +164,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			logr.Discard())
 		result, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: ignoredController})
 		assert.NoError(t, err)
-		assert.False(t, result.Requeue)
+		assert.Equal(t, result.RequeueAfter, time.Duration(0))
 	})
 
 	t.Run("ignore already ignored bogus package bundle controller", func(t *testing.T) {
@@ -186,7 +187,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			logr.Discard())
 		result, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: ignoredController})
 		assert.NoError(t, err)
-		assert.False(t, result.Requeue)
+		assert.Equal(t, result.RequeueAfter, time.Duration(0))
 	})
 
 	t.Run("handles deleted package bundle controllers", func(t *testing.T) {
@@ -208,7 +209,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
 		assert.NoError(t, err)
-		assert.False(t, result.Requeue)
+		assert.Equal(t, result.RequeueAfter, time.Duration(0))
 	})
 
 	t.Run("get error", func(t *testing.T) {
@@ -223,7 +224,7 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
 		assert.EqualError(t, err, "retrieving package bundle controller: oops")
-		assert.True(t, result.Requeue)
+		assert.True(t, result.RequeueAfter > 0)
 	})
 
 	t.Run("package bundle controller with non default image registry with cert update", func(t *testing.T) {
@@ -270,6 +271,6 @@ func TestPackageBundleControllerReconcilerReconcile(t *testing.T) {
 			logr.Discard())
 		result, err := r.Reconcile(ctx, req)
 		assert.NoError(t, err)
-		assert.True(t, result.Requeue)
+		assert.True(t, result.RequeueAfter > 0)
 	})
 }
