@@ -38,9 +38,10 @@ type brKubernetes struct {
 	Kubernetes kubernetes `json:"kubernetes"`
 }
 type ecrCredentialProvider struct {
-	CacheDuration string   `json:"cache-duration"`
-	Enabled       bool     `json:"enabled"`
-	ImagePatterns []string `json:"image-patterns"`
+	CacheDuration string            `json:"cache-duration"`
+	Enabled       bool              `json:"enabled"`
+	ImagePatterns []string          `json:"image-patterns"`
+	Environment   map[string]string `json:"environment,omitempty"`
 }
 type credentialProviders struct {
 	EcrCredentialProvider ecrCredentialProvider `json:"ecr-credential-provider"`
@@ -190,6 +191,7 @@ func createCredentialProviderPayload(config constants.CredentialProviderConfigOp
 					Enabled:       true,
 					ImagePatterns: config.ImagePatterns,
 					CacheDuration: config.DefaultCacheDuration,
+					Environment:   configurator.GetProxyEnvironment(),
 				},
 			},
 		},
