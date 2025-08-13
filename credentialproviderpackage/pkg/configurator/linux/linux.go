@@ -217,13 +217,14 @@ func (c *linuxOS) createConfig() (string, error) {
 		"apiVersion":    getApiVersion(),
 		"imagePattern":  c.config.ImagePatterns,
 		"cacheDuration": c.config.DefaultCacheDuration,
+		"proxy":         configurator.GetProxyEnvironment(),
 	}
 
 	dstPath := c.basePath + credProviderFile
 
 	bytes, err := templater.Execute(credProviderTemplate, values)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	err = os.WriteFile(dstPath, bytes, 0o600)
 	if err != nil {
