@@ -60,7 +60,7 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 9.46.6-1.32-latest
+            - name: 9.47.0-1.33-latest
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
@@ -74,12 +74,12 @@ packages:
         repository: metallb/metallb
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.14.9-latest
+            - name: 0.15.2-latest
       - name: metallb-crds
         repository: metallb/crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.14.9-latest
+            - name: 0.15.2-latest
   - org: emissary
     projects:
       - name: emissary
