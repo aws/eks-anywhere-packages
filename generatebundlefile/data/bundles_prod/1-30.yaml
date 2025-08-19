@@ -9,22 +9,22 @@ packages:
         repository: eks-anywhere-packages
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.6-219cdb017cc53620296dbbe96bc9d39c8aef8481
+          - name: 0.4.8-2b14f5510b18747819672e570828a4fd7260e5f6
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.6-219cdb017cc53620296dbbe96bc9d39c8aef8481
+          - name: 0.4.8-2b14f5510b18747819672e570828a4fd7260e5f6
       - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-migrations
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.6-219cdb017cc53620296dbbe96bc9d39c8aef8481
+          - name: 0.4.8-2b14f5510b18747819672e570828a4fd7260e5f6
       - name: credential-provider-package
         repository: credential-provider-package
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.6-219cdb017cc53620296dbbe96bc9d39c8aef8481
+          - name: 0.4.8-2b14f5510b18747819672e570828a4fd7260e5f6
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
@@ -67,12 +67,12 @@ packages:
         repository: metallb/metallb
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.14.9-86ed88d61f9bf11dd0cdef4390a9c23d0712015b
+            - name: 0.14.9-56a5f4c53e98fe1035904a127728781b46b00af2
       - name: metallb-crds
         repository: metallb/crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.14.9-86ed88d61f9bf11dd0cdef4390a9c23d0712015b
+            - name: 0.14.9-56a5f4c53e98fe1035904a127728781b46b00af2
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
