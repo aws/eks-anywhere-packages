@@ -60,9 +60,6 @@ func (mc *ManagerContext) getImageRegistry(values map[string]interface{}) string
 			return val.(string)
 		}
 	}
-	if mc.PBC.Spec.PrivateRegistry != "" {
-		return mc.PBC.Spec.PrivateRegistry
-	}
 	return mc.PBC.GetDefaultImageRegistry()
 }
 

@@ -149,9 +149,7 @@ func givenMocks(t *testing.T) (*ManagerContext, *mocks.MockPackageDriver) {
 		Source:        expectedSource,
 		Bundle:        givenBundle(),
 		PBC: api.PackageBundleController{
-			Spec: api.PackageBundleControllerSpec{
-				PrivateRegistry: "privateRegistry",
-			},
+			Spec: api.PackageBundleControllerSpec{},
 		},
 		RequeueAfter: time.Duration(100),
 		Log:          logr.Discard(),
@@ -185,17 +183,9 @@ func TestManagerContext_getRegistry(t *testing.T) {
 		assert.Equal(t, "valuesRegistry", sut.getImageRegistry(values))
 	})
 
-	t.Run("registry from privateRegistry", func(t *testing.T) {
-		sut, _ := givenMocks(t)
-		values := make(map[string]interface{})
-
-		assert.Equal(t, "privateRegistry", sut.getImageRegistry(values))
-	})
-
 	t.Run("registry from default gated registry", func(t *testing.T) {
 		sut, _ := givenMocks(t)
 		values := make(map[string]interface{})
-		sut.PBC.Spec.PrivateRegistry = ""
 		sut.Source.Registry = ""
 
 		assert.Equal(t, "783794618700.dkr.ecr.us-west-2.amazonaws.com", sut.getImageRegistry(values))

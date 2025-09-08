@@ -67,9 +67,9 @@ type PackageBundleControllerSpec struct {
 	// +optional
 	ActiveBundle string `json:"activeBundle"`
 
-	// PrivateRegistry is the registry being used for all images, charts and bundles
+	// PrivateRegistry is an experimental field which is not supported anymore
 	// +optional
-	PrivateRegistry string `json:"privateRegistry"`
+	PrivateRegistry string `json:"privateRegistry,omitempty"`
 
 	// +kubebuilder:default:="public.ecr.aws/eks-anywhere"
 	// DefaultRegistry for pulling helm charts and the bundle
