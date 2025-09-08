@@ -16,7 +16,7 @@ spec:
   config: |
     {{- with .Values }}
     {{- $controller := pick .controller "env" }}
-    {{- $newValues := pick . "proxy" "sourceRegistry" "clusterName" "privateRegistry" "imagePullPolicy" "defaultRegistry" "defaultImageRegistry" }}
+    {{- $newValues := pick . "proxy" "sourceRegistry" "clusterName" "imagePullPolicy" "defaultRegistry" "defaultImageRegistry" }}
     {{- $_ := set $newValues "controller" $controller }}
     {{- toYaml $newValues | nindent 4 }}
     {{- end }}

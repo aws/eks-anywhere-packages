@@ -79,8 +79,8 @@ spec:
                 format: int32
                 type: integer
               privateRegistry:
-                description: PrivateRegistry is the registry being used for all images,
-                  charts and bundles
+                description: PrivateRegistry is an experimental field which is not
+                  supported anymore
                 type: string
               upgradeCheckInterval:
                 default: 24h
@@ -134,8 +134,8 @@ spec:
                     format: int32
                     type: integer
                   privateRegistry:
-                    description: PrivateRegistry is the registry being used for all
-                      images, charts and bundles
+                    description: PrivateRegistry is an experimental field which is
+                      not supported anymore
                     type: string
                   upgradeCheckInterval:
                     default: 24h

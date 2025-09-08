@@ -12,6 +12,5 @@ spec:
   upgradeCheckShortInterval: 10s
   defaultRegistry: {{.Values.defaultRegistry}}
   defaultImageRegistry: {{.Values.defaultImageRegistry}}
-  privateRegistry: {{.Values.privateRegistry}}
 {{- end -}}
 {{- end -}}
