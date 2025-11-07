@@ -3,7 +3,7 @@ SHELL = /usr/bin/env bash -o pipefail
 
 REPO_ROOT=$(shell git rev-parse --show-toplevel)
 PROJECT_ROOT=$(REPO_ROOT)/credentialproviderpackage
-GOLANG_VERSION?="1.24"
+GOLANG_VERSION?="1.25"
 GO ?= $(shell source $(REPO_ROOT)/scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
