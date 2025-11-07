@@ -2,7 +2,7 @@ SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
 REPO_ROOT=$(shell git rev-parse --show-toplevel)
-GOLANG_VERSION?="1.19"
+GOLANG_VERSION?="1.24"
 GO ?= $(shell source $(REPO_ROOT)/scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))/go
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)

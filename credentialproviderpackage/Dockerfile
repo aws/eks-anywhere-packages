@@ -1,4 +1,4 @@
-FROM golang:1.19-buster
+FROM golang:1.24-bookworm
 ENV GOTRACEBACK=single
 ENV GOPROXY=direct
 WORKDIR /app
