@@ -46,7 +46,7 @@ packages:
         repository: cert-manager/cert-manager
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 1.16.4-latest
+          - name: 1.18.2-latest
   - org: harbor
     projects:
       - name: harbor

@@ -8,7 +8,7 @@ IMG ?= controller:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd"
 
-GOLANG_VERSION?="1.23"
+GOLANG_VERSION?="1.24"
 GO_PATH ?= $(shell source ./scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))
 GO ?= $(GO_PATH)/go
 
