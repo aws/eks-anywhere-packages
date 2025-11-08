@@ -9,22 +9,22 @@ packages:
         repository: eks-anywhere-packages
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.8-2b14f5510b18747819672e570828a4fd7260e5f6
+          - name: 0.4.9-60f91681d1d877ad1b4361a5ea900e90cd4b10a5
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.8-2b14f5510b18747819672e570828a4fd7260e5f6
+          - name: 0.4.9-60f91681d1d877ad1b4361a5ea900e90cd4b10a5
       - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-migrations
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.8-2b14f5510b18747819672e570828a4fd7260e5f6
+          - name: 0.4.9-60f91681d1d877ad1b4361a5ea900e90cd4b10a5
       - name: credential-provider-package
         repository: credential-provider-package
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.8-2b14f5510b18747819672e570828a4fd7260e5f6
+          - name: 0.4.9-60f91681d1d877ad1b4361a5ea900e90cd4b10a5
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
@@ -46,7 +46,7 @@ packages:
         repository: cert-manager/cert-manager
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 1.16.4-5c92307141dd7a471036dec8681d2428b5054e86
+          - name: 1.18.2-da11d177f85a2a990927569b9bd8991758ac42f0
   - org: kubernetes
     projects:
       - name: cluster-autoscaler
@@ -67,12 +67,12 @@ packages:
         repository: metallb/metallb
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.14.9-56a5f4c53e98fe1035904a127728781b46b00af2
+            - name: 0.15.2-9348057197ed07e06cb125b2c6cb9511ffd3ed62
       - name: metallb-crds
         repository: metallb/crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.14.9-56a5f4c53e98fe1035904a127728781b46b00af2
+            - name: 0.15.2-9348057197ed07e06cb125b2c6cb9511ffd3ed62
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
