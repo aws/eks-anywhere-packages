@@ -1,0 +1,67 @@
+version: 2
+updates:
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependabot"
+      - "ok-to-test"
+
+  # Root Go module
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      all-go-mod-patch-and-minor:
+        patterns: ["*"]
+        update-types: ["patch", "minor"]
+    labels:
+      - "dependabot"
+      - "ok-to-test"
+
+  # credentialproviderpackage Go module
+  - package-ecosystem: "gomod"
+    directory: "/credentialproviderpackage"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      all-go-mod-patch-and-minor:
+        patterns: ["*"]
+        update-types: ["patch", "minor"]
+    labels:
+      - "dependabot"
+      - "ok-to-test"
+
+  # generatebundlefile Go module
+  - package-ecosystem: "gomod"
+    directory: "/generatebundlefile"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      all-go-mod-patch-and-minor:
+        patterns: ["*"]
+        update-types: ["patch", "minor"]
+    labels:
+      - "dependabot"
+      - "ok-to-test"
+
+  # ecrtokenrefresher Go module
+  - package-ecosystem: "gomod"
+    directory: "/ecrtokenrefresher"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      all-go-mod-patch-and-minor:
+        patterns: ["*"]
+        update-types: ["patch", "minor"]
+    labels:
+      - "dependabot"
+      - "ok-to-test"
