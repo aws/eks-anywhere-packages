@@ -94,6 +94,17 @@ gosec: ## Run gosec against code.
 	$(GO) install github.com/securego/gosec/v2/cmd/gosec@latest
 	gosec --exclude-dir generatebundlefile --exclude-dir ecrtokenrefresher --exclude-dir credentialproviderpackage  ./...
 
+.PHONY: vulncheck
+vulncheck: govulncheck ## Run govulncheck against all Go modules.
+	@echo "Running govulncheck on root module..."
+	$(GO_VULNCHECK) ./...
+	@echo "Running govulncheck on credentialproviderpackage module..."
+	cd credentialproviderpackage && $(GO_VULNCHECK) ./...
+	@echo "Running govulncheck on generatebundlefile module..."
+	cd generatebundlefile && $(GO_VULNCHECK) ./...
+	@echo "Running govulncheck on ecrtokenrefresher module..."
+	cd ecrtokenrefresher && $(GO_VULNCHECK) ./...
+
 SIGNED_ARTIFACTS = pkg/signature/testdata/packagebundle_minControllerVersion.yaml.signed pkg/signature/testdata/packagebundle_valid.yaml.signed pkg/signature/testdata/pod_valid.yaml.signed api/testdata/bundle_one.yaml.signed api/testdata/bundle_two.yaml.signed
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 # Test a specific package with something like ./api/... see go help packages for
@@ -101,8 +112,7 @@ ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 GOTESTS ?= ./...
 # Use "-short" to skip long tests, or "-verbose" for more verbose reporting. Run
 # go help testflags to see all options.
-# -buildmod=pie is temporary fix for https://github.com/golang/go/issues/54482
-GOTESTFLAGS ?= "-buildmode=pie"
+GOTESTFLAGS ?=
 test: manifests generate mocks ${SIGNED_ARTIFACTS} ## Run tests.
 	$(GO) test -vet=all $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks | grep -v fake | grep -v testutil` -coverprofile cover.out
 
@@ -176,6 +186,11 @@ kustomize: ## Download kustomize locally if necessary.
 MOCKGEN = $(BIN_DIR)/mockgen
 mockgen: ## Download mockgen locally if necessary.
 	$(call go-get-tool,$(MOCKGEN),github.com/golang/mock/mockgen@v1.6.0)
+
+GO_VULNCHECK_BIN := govulncheck
+GO_VULNCHECK := $(BIN_DIR)/$(GO_VULNCHECK_BIN)
+govulncheck: ## Download govulncheck locally if necessary.
+	$(call go-get-tool,$(GO_VULNCHECK),golang.org/x/vuln/cmd/govulncheck@latest)
 
 # go-get-tool will 'go install' any package $2 and install it to $1.
 define go-get-tool

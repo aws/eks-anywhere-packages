@@ -45,6 +45,43 @@ ssh -v -L 10350:localhost:10350 <remote-host>
 
 After running `tilt up`, tilt's UI should now be available at `localhost:10350` on your local machine.
 
+### Vulnerability Checking
+
+This repository includes comprehensive vulnerability scanning for all Go dependencies across all modules.
+
+#### Running Vulnerability Checks Locally
+
+To scan all Go modules for known vulnerabilities:
+
+```bash
+make vulncheck
+```
+
+This will run `govulncheck` against:
+- Root module (`./`)
+- `credentialproviderpackage` module
+- `generatebundlefile` module
+- `ecrtokenrefresher` module
+
+#### CI/CD Integration
+
+Vulnerability scanning runs automatically via GitHub Actions:
+
+- **On Pull Requests**: Dependency review checks for newly introduced vulnerable dependencies
+- **On Push to Main**: Full vulnerability scan across all modules
+- **Daily Scheduled Scans**: Automated scans run at 7am UTC to catch newly disclosed vulnerabilities
+- **Manual Trigger**: Can be triggered manually via GitHub Actions workflow dispatch
+
+#### Automated Dependency Updates
+
+GitHub Dependabot is configured to:
+- Monitor all 4 Go modules for security updates
+- Monitor GitHub Actions for updates
+- Create pull requests automatically when vulnerabilities are detected
+- Run weekly checks for new updates
+
+To view security advisories and Dependabot alerts, visit the repository's Security tab on GitHub.
+
 ## Security
 
 If you discover a potential security issue in this project, or think you may
