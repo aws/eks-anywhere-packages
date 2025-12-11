@@ -12,7 +12,7 @@ def generate_schema_for_value(value: Any, key: str = "") -> Dict[str, Any]:
         schema["default"] = {}
         schema["title"] = f"The {key} Schema" if key else "Root Schema"
         schema["required"] = []  # Empty required field by default
-        schema["additionalProperties"] = False
+        schema["additionalProperties"] = True
         schema["properties"] = {}
 
         # Process properties
