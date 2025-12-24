@@ -132,9 +132,9 @@ func (s *ecrSecret) DelFromConfigMap(ctx context.Context, name, namespace string
 
 func (s *ecrSecret) GetSecretValues(ctx context.Context, namespace string) (map[string]interface{}, error) {
 	values := make(map[string]interface{})
-	values["imagePullSecrets"] = []map[string]string{
-		{"name": ecrTokenName},
-		{"name": MirrorCredName},
+	values["imagePullSecrets"] = []interface{}{
+		map[string]interface{}{"name": ecrTokenName},
+		map[string]interface{}{"name": MirrorCredName},
 	}
 
 	return values, nil
