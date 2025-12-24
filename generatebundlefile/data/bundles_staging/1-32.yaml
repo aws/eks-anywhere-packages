@@ -9,22 +9,22 @@ packages:
         repository: eks-anywhere-packages
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.10-0a2c5d9bf3b4ef3bbdc8882f938ba8a00fd5ee2e
+          - name: 0.4.11-69b64d7b9deace97a619630f260f2367a17cb8a7
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.10-0a2c5d9bf3b4ef3bbdc8882f938ba8a00fd5ee2e
+          - name: 0.4.11-69b64d7b9deace97a619630f260f2367a17cb8a7
       - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-migrations
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.10-0a2c5d9bf3b4ef3bbdc8882f938ba8a00fd5ee2e
+          - name: 0.4.11-69b64d7b9deace97a619630f260f2367a17cb8a7
       - name: credential-provider-package
         repository: credential-provider-package
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.10-0a2c5d9bf3b4ef3bbdc8882f938ba8a00fd5ee2e
+          - name: 0.4.11-69b64d7b9deace97a619630f260f2367a17cb8a7
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
@@ -53,12 +53,12 @@ packages:
         repository: emissary-ingress/emissary
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 3.10.0-80fc2788bea6e90c6fcd63ef38bcc9eae93be674
+            - name: 3.10.0-8cda6fb197455bddd19ac02c407cfb625d308a46
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 3.10.0-80fc2788bea6e90c6fcd63ef38bcc9eae93be674
+            - name: 3.10.0-8cda6fb197455bddd19ac02c407cfb625d308a46
   - org: harbor
     projects:
       - name: harbor
