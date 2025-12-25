@@ -38,7 +38,7 @@ packages:
         repository: adot/charts/aws-otel-collector
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.45.1-19a636a9f036af2ace61421796298b40d60bd6ce
+            - name: 0.45.1-0a79bb66343a3e7440c195598f1575f2ea89d42f
   - org: cert-manager
     projects:
       - name: cert-manager
@@ -79,7 +79,7 @@ packages:
         repository: metrics-server/charts/metrics-server
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.8.0-eksbuild.5-cfad03a73656cbb829a648342fe0bfddc782d92a
+            - name: 0.8.0-eksbuild.5-0a79bb66343a3e7440c195598f1575f2ea89d42f
   - org: metallb
     projects:
       - name: metallb
