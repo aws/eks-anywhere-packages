@@ -1,0 +1,101 @@
+# This info is hardcoded and comes from https://github.com/aws/eks-anywhere-build-tooling
+name: "v1-35-1001"
+kubernetesVersion: "1.35"
+minControllerVersion: "v0.4.4"
+packages:
+  - org: aws
+    projects:
+      - name: eks-anywhere-packages
+        repository: eks-anywhere-packages
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+          - name: 0.4.12-2436ac71775788f6df73e12de2a490fda5f09355
+      - name: eks-anywhere-packages-crds
+        repository: eks-anywhere-packages-crds
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+          - name: 0.4.12-2436ac71775788f6df73e12de2a490fda5f09355
+      - name: eks-anywhere-packages-migrations
+        repository: eks-anywhere-packages-migrations
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+          - name: 0.4.12-2436ac71775788f6df73e12de2a490fda5f09355
+      - name: credential-provider-package
+        repository: credential-provider-package
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+          - name: 0.4.12-2436ac71775788f6df73e12de2a490fda5f09355
+  - org: aws-containers
+    projects:
+      - name: hello-eks-anywhere
+        repository: hello-eks-anywhere
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 0.1.2-39c950cce324ee9af2ffb3ce4ac8232c497e22eb
+  - org: aws-observability
+    projects:
+      - name: adot
+        repository: adot/charts/aws-otel-collector
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 0.45.1-0a79bb66343a3e7440c195598f1575f2ea89d42f
+  - org: cert-manager
+    projects:
+      - name: cert-manager
+        workloadonly: true
+        repository: cert-manager/cert-manager
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+          - name: 1.18.2-da11d177f85a2a990927569b9bd8991758ac42f0
+  - org: emissary
+    projects:
+      - name: emissary
+        repository: emissary-ingress/emissary
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 3.10.0-8cda6fb197455bddd19ac02c407cfb625d308a46
+      - name: emissary-crds
+        repository: emissary-ingress/crds
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 3.10.0-8cda6fb197455bddd19ac02c407cfb625d308a46
+  - org: harbor
+    projects:
+      - name: harbor
+        repository: harbor/harbor-helm
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 2.12.2-747035a88891231874f62899dd89d22a7eb988f8
+  - org: kubernetes
+    projects:
+      - name: cluster-autoscaler
+        repository: cluster-autoscaler/charts/cluster-autoscaler
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 9.47.0-1.35-4830078c0aec1c884b39d1892fbb5b00aae7c6da
+  - org: kubernetes-sigs
+    projects:
+      - name: metrics-server
+        repository: metrics-server/charts/metrics-server
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 0.8.0-eksbuild.5-0a79bb66343a3e7440c195598f1575f2ea89d42f
+  - org: metallb
+    projects:
+      - name: metallb
+        repository: metallb/metallb
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 0.15.2-9348057197ed07e06cb125b2c6cb9511ffd3ed62
+      - name: metallb-crds
+        repository: metallb/crds
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 0.15.2-9348057197ed07e06cb125b2c6cb9511ffd3ed62
+  - org: prometheus
+    projects:
+      - name: prometheus
+        repository: prometheus/charts/prometheus
+        registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
+        versions:
+            - name: 3.8.0-23d9bdf20dc519d34f5e286c431080a02dc73781
