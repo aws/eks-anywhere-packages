@@ -38,7 +38,7 @@ packages:
         repository: adot/charts/aws-otel-collector
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.43.1-latest
+            - name: 0.45.1-latest
   - org: cert-manager
     projects:
       - name: cert-manager
@@ -46,7 +46,7 @@ packages:
         repository: cert-manager/cert-manager
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 1.18.2-latest
+          - name: 1.19.3-latest
   - org: harbor
     projects:
       - name: harbor
@@ -60,14 +60,14 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 9.46.6-1.30-latest
+            - name: 9.55.0-1.30-latest
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.7.2-eksbuild.3-latest
+            - name: 0.8.0-eksbuild.5-latest
   - org: metallb
     projects:
       - name: metallb
@@ -86,16 +86,16 @@ packages:
         repository: emissary-ingress/emissary
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 3.9.1-latest
+            - name: 3.10.0-latest
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 3.9.1-latest
+            - name: 3.10.0-latest
   - org: prometheus
     projects:
       - name: prometheus
         repository: prometheus/charts/prometheus
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 2.55.1-latest
+            - name: 3.8.0-latest
