@@ -8,6 +8,7 @@ kind: Package
 metadata:
   annotations:
     "helm.sh/resource-policy": keep
+    "anywhere.eks.aws.com/internal": "true"
   name: eks-anywhere-packages
   namespace: {{ $namespace }}
 spec:
@@ -27,6 +28,7 @@ kind: Package
 metadata:
   annotations:
     "helm.sh/resource-policy": keep
+    "anywhere.eks.aws.com/internal": "true"
   name: eks-anywhere-packages-{{ .Values.clusterName }}
   namespace: {{ $mgmtNamespace }}
 spec:
