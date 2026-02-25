@@ -12,6 +12,8 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  privateKey:
+    rotationPolicy: Never
   dnsNames:
   - {{ .Release.Name }}-eks-anywhere-packages.eksa-packages.svc
   - {{ .Release.Name }}-eks-anywhere-packages.eksa-packages.svc.cluster.local
