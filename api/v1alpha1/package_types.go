@@ -75,7 +75,6 @@ type PackageStatus struct {
 	// Version currently installed.
 	CurrentVersion string `json:"currentVersion"`
 
-	// +kubebuilder:validation:Required
 	// Version to be installed.
 	TargetVersion string `json:"targetVersion,omitempty"`
 
