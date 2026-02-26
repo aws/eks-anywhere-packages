@@ -65,7 +65,7 @@ packages:
         repository: harbor/harbor-helm
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 2.14.2-9358e9b75281b02d9173bf92a5fe3d99ab243b56
+            - name: 2.12.2-74ee859d85ff68686d3a7084c89dfe1d80784f83
   - org: kubernetes
     projects:
       - name: cluster-autoscaler
