@@ -51,11 +51,21 @@ func NewECRCredInjector(ctx context.Context, k8sClient client.Client, log logr.L
 }
 
 func (a *ECRCredInjector) Run(ctx context.Context) {
-	err := a.Refresh(ctx)
-	if err != nil {
-		a.log.Error(err, "Failed to inject ECR credential to docker config")
-	} else {
-		a.log.Info("ECR credential is injected to the docker config file")
+	// Retry with short interval until first successful credential injection.
+	// The initial attempt may fail if the PackageBundleController CR has not
+	// been created yet during cluster bootstrap.
+	for {
+		err := a.Refresh(ctx)
+		if err == nil {
+			a.log.Info("ECR credential is injected to the docker config file")
+			break
+		}
+		a.log.Error(err, "Failed to inject ECR credential to docker config, retrying in 30s")
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(30 * time.Second):
+		}
 	}
 
 	for range time.Tick(time.Hour) {
@@ -63,7 +73,7 @@ func (a *ECRCredInjector) Run(ctx context.Context) {
 		if err != nil {
 			a.log.Error(err, "Failed to refresh ECR credential in dockerconfig file")
 		} else {
-			a.log.Info("injected ECR credential has be refreshed")
+			a.log.Info("injected ECR credential has been refreshed")
 		}
 	}
 }

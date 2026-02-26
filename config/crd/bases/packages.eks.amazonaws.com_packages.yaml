@@ -169,7 +169,6 @@ spec:
             required:
             - currentVersion
             - source
-            - targetVersion
             type: object
         type: object
     served: true
