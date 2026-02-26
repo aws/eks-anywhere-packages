@@ -46,7 +46,7 @@ packages:
         repository: cert-manager/cert-manager
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 1.19.3-dcb73486cb037dbae13d92d891af6847d221e966
+          - name: 1.18.2-da11d177f85a2a990927569b9bd8991758ac42f0
   - org: emissary
     projects:
       - name: emissary
@@ -72,7 +72,7 @@ packages:
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 9.55.0-1.33-a8d9a8f3bcd7b130c103527b73f53cd1a60dc1b5
+            - name: 9.47.0-1.33-f79bc2e104800e0bbc10b5aa383056e32fdf87e7
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
