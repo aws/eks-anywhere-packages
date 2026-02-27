@@ -9,22 +9,22 @@ packages:
         repository: eks-anywhere-packages
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.12-2436ac71775788f6df73e12de2a490fda5f09355
+          - name: 0.4.15-bfa37afbe8fd2c9471b138b2729c35b737ad52cf
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.12-2436ac71775788f6df73e12de2a490fda5f09355
+          - name: 0.4.15-bfa37afbe8fd2c9471b138b2729c35b737ad52cf
       - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-migrations
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.12-2436ac71775788f6df73e12de2a490fda5f09355
+          - name: 0.4.15-bfa37afbe8fd2c9471b138b2729c35b737ad52cf
       - name: credential-provider-package
         repository: credential-provider-package
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.12-2436ac71775788f6df73e12de2a490fda5f09355
+          - name: 0.4.15-bfa37afbe8fd2c9471b138b2729c35b737ad52cf
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
@@ -65,14 +65,14 @@ packages:
         repository: harbor/harbor-helm
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 2.12.2-747035a88891231874f62899dd89d22a7eb988f8
+            - name: 2.12.2-74ee859d85ff68686d3a7084c89dfe1d80784f83
   - org: kubernetes
     projects:
       - name: cluster-autoscaler
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 9.47.0-1.35-4830078c0aec1c884b39d1892fbb5b00aae7c6da
+            - name: 9.55.0-1.35-a8d9a8f3bcd7b130c103527b73f53cd1a60dc1b5
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
