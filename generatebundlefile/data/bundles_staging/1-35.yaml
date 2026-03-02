@@ -46,7 +46,7 @@ packages:
         repository: cert-manager/cert-manager
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 1.18.2-da11d177f85a2a990927569b9bd8991758ac42f0
+          - name: 1.19.3-dcb73486cb037dbae13d92d891af6847d221e966
   - org: emissary
     projects:
       - name: emissary
@@ -65,7 +65,7 @@ packages:
         repository: harbor/harbor-helm
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 2.12.2-74ee859d85ff68686d3a7084c89dfe1d80784f83
+            - name: 2.14.2-350e1fba031f7d283f63ad28a4263194938146d3
   - org: kubernetes
     projects:
       - name: cluster-autoscaler
