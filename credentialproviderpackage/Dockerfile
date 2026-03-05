@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine
+FROM golang:1.24.13-bookworm
 ENV GOTRACEBACK=single
 ENV GOPROXY=direct
 WORKDIR /app
