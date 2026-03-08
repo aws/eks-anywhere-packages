@@ -98,4 +98,4 @@ packages:
         repository: prometheus/charts/prometheus
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 3.8.0-223072abab4ca3ca06fc614c6f151ad00d3f4dbc
+            - name: 3.8.0-3726eca575d05fdd2b9cdcb1fd32f4e0cc3441ba
