@@ -114,6 +114,12 @@ GOTESTS ?= ./...
 # go help testflags to see all options.
 GOTESTFLAGS ?=
 test: manifests generate mocks ${SIGNED_ARTIFACTS} ## Run tests.
+	@# Workaround for Go 1.25 bug: covdata tool missing from GOTOOLDIR.
+	@if [ ! -f "$$($(GO) env GOTOOLDIR)/covdata" ]; then \
+		chmod u+w "$$($(GO) env GOTOOLDIR)" && \
+		cp "$$($(GO) tool -n covdata)" "$$($(GO) env GOTOOLDIR)/covdata" && \
+		chmod u-w "$$($(GO) env GOTOOLDIR)"; \
+	fi
 	$(GO) test -vet=all $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks | grep -v fake | grep -v testutil` -coverprofile cover.out
 
 clean: ## Clean up resources created by make targets
