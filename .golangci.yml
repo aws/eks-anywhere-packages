@@ -4,21 +4,20 @@ run:
   build-tags:
   - exclude_graphdriver_btrfs
   - exclude_graphdriver_devicemapper
-linters:
+formatters:
   enable:
     - gofmt
+linters:
+  enable:
     - gci
-settings:
-  gci:
-    sections:
-    - standard
-    - default
-    - prefix(github.com/aws/eks-anywhere-packages)
-issues:
-  max-same-issues: 0
-  max-issues-per-linter: 0
-exclusions:
-  paths:
-  - "zz_generated.*\\.go$"
-  - ".*/mocks"
-  - "controllers/tilt_modules"
+  settings:
+    gci:
+      sections:
+      - standard
+      - default
+      - prefix(github.com/aws/eks-anywhere-packages)
+  exclusions:
+    paths:
+    - "zz_generated.*\\.go$"
+    - ".*/mocks"
+    - "controllers/tilt_modules"
