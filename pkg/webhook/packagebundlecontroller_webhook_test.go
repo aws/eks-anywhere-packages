@@ -65,7 +65,7 @@ func TestHandleInner(t *testing.T) {
 		resp, err := v.handleInner(ctx, pbc, bundles)
 		if assert.NoError(t, err) {
 			assert.NotNil(t, resp)
-			assert.True(t, resp.AdmissionResponse.Allowed)
+			assert.True(t, resp.Allowed)
 		}
 	})
 

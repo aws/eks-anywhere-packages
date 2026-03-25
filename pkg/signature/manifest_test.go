@@ -63,7 +63,7 @@ func TestValidateSignature(t *testing.T) {
 		valid, _, _, err := ValidateSignature(bundle, Domain{Name: "eksx.amazon.com", Pubkey: "notakey"})
 
 		assert.False(t, valid, "Signature should be invalid for the provided domain")
-		assert.EqualError(t, err, "Missing signature")
+		assert.EqualError(t, err, "missing signature")
 	})
 
 	t.Run("request for different domain, missing eksa signature, requested signature invalid", func(t *testing.T) {
@@ -81,7 +81,7 @@ func TestValidateSignature(t *testing.T) {
 
 		valid, _, _, err = ValidateSignature(bundle, EksaDomain)
 		assert.False(t, valid, "Signature should be invalid for the Eksa domain")
-		assert.EqualError(t, err, "Missing signature")
+		assert.EqualError(t, err, "missing signature")
 	})
 	t.Run("Valid document with all fields excluded must fail signature validation", func(t *testing.T) {
 		bundle, _ := testutil.GivenPackageBundle("testdata/packagebundle_valid.yaml")
@@ -105,7 +105,7 @@ func TestValidateSignature(t *testing.T) {
 
 		valid, _, _, err := ValidateSignature(bundle, EksaDomain)
 		assert.False(t, valid, "Signature should be invalid as it is missing")
-		assert.EqualError(t, err, "Missing signature")
+		assert.EqualError(t, err, "missing signature")
 	})
 
 	t.Run("Invalid signature format causes validation to fail with an helpful message", func(t *testing.T) {

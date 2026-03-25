@@ -246,8 +246,8 @@ func (tcc *targetClusterClient) ApplySecret(ctx context.Context, secret *corev1.
 
 	newSecret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      secret.ObjectMeta.Name,
-			Namespace: secret.ObjectMeta.Namespace,
+			Name:      secret.Name,
+			Namespace: secret.Namespace,
 		},
 		Data: secret.Data,
 	}

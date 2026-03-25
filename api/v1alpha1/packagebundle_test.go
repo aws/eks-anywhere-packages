@@ -52,7 +52,7 @@ func TestPackageBundle_Find(t *testing.T) {
 	assert.Equal(t, expected, actual)
 
 	expectedPkgNotFoundErr := "package not found in bundle (fake bundle): Bogus"
-	sut.ObjectMeta.Name = "fake bundle"
+	sut.Name = "fake bundle"
 	_, err = sut.FindPackage("Bogus")
 	assert.EqualError(t, err, expectedPkgNotFoundErr)
 

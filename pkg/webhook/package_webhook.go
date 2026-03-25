@@ -81,7 +81,7 @@ func (v *packageValidator) Handle(ctx context.Context, request admission.Request
 
 	if !isConfigValid {
 		reason := fmt.Sprintf("package %s failed validation with error: %v", p.Name, err)
-		resp.AdmissionResponse.Result = &metav1.Status{
+		resp.Result = &metav1.Status{
 			Status:  metav1.StatusFailure,
 			Code:    http.StatusBadRequest,
 			Message: reason,

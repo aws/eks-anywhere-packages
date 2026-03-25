@@ -19,7 +19,7 @@ const (
 )
 
 func (config *PackageBundle) MetaKind() string {
-	return config.TypeMeta.Kind
+	return config.Kind
 }
 
 func (config *PackageBundle) ExpectedKind() string {

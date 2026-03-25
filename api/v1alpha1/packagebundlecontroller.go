@@ -5,7 +5,7 @@ import "path"
 const PackageBundleControllerKind = "PackageBundleController"
 
 func (config *PackageBundleController) MetaKind() string {
-	return config.TypeMeta.Kind
+	return config.Kind
 }
 
 func (config *PackageBundleController) ExpectedKind() string {

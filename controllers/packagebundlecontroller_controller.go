@@ -106,7 +106,7 @@ func (r *PackageBundleControllerReconciler) Reconcile(ctx context.Context, req c
 	}
 
 	pbc := &api.PackageBundleController{}
-	err := r.Client.Get(ctx, req.NamespacedName, pbc)
+	err := r.Get(ctx, req.NamespacedName, pbc)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return result, fmt.Errorf("retrieving package bundle controller: %s", err)

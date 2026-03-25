@@ -16,7 +16,7 @@ const (
 )
 
 func (config *Package) MetaKind() string {
-	return config.TypeMeta.Kind
+	return config.Kind
 }
 
 func (config *Package) ExpectedKind() string {

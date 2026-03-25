@@ -143,7 +143,7 @@ func (bc *managerClient) GetSecret(ctx context.Context, name string) (secret *v1
 
 func (bc *managerClient) GetBundleList(ctx context.Context) (bundles []api.PackageBundle, err error) {
 	allBundles := &api.PackageBundleList{}
-	err = bc.Client.List(ctx, allBundles, &client.ListOptions{Namespace: api.PackageNamespace})
+	err = bc.List(ctx, allBundles, &client.ListOptions{Namespace: api.PackageNamespace})
 	if err != nil {
 		return nil, fmt.Errorf("listing package bundles: %s", err)
 	}
@@ -167,7 +167,7 @@ func (bc *managerClient) CreateClusterNamespace(ctx context.Context, clusterName
 	}
 
 	ns.Name = name
-	err = bc.Client.Create(ctx, ns)
+	err = bc.Create(ctx, ns)
 	if err != nil {
 		return err
 	}
