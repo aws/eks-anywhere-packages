@@ -7,15 +7,15 @@ run:
 formatters:
   enable:
     - gofmt
-linters:
-  enable:
     - gci
   settings:
     gci:
       sections:
-      - standard
-      - default
-      - prefix(github.com/aws/eks-anywhere-packages)
+        - standard
+        - default
+        - prefix(github.com/aws/eks-anywhere-packages)
+linters:
+  enable: []
   exclusions:
     paths:
     - "zz_generated.*\\.go$"
