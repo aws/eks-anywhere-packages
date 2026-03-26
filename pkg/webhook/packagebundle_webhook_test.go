@@ -28,7 +28,7 @@ func TestBundleValidate(t *testing.T) {
 
 		err := sut.isPackageBundleValid(&myBundle)
 
-		assert.EqualError(t, err, "Missing signature")
+		assert.EqualError(t, err, "missing signature")
 	})
 
 	t.Run("invalid name", func(t *testing.T) {
@@ -36,7 +36,7 @@ func TestBundleValidate(t *testing.T) {
 
 		err := sut.isPackageBundleValid(&myBundle)
 
-		assert.EqualError(t, err, "Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): kevin-morby")
+		assert.EqualError(t, err, "invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): kevin-morby")
 	})
 
 	t.Run("invalid key", func(t *testing.T) {

@@ -1,2 +1,7 @@
 documentation:
-- docs/**/*
+- changed-files:
+  - any-glob-to-any-file: docs/**
+
+area/docs:
+- changed-files:
+  - any-glob-to-any-file: docs/**

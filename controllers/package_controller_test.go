@@ -203,7 +203,7 @@ func TestReconcile(t *testing.T) {
 
 		tf.bundleClient.EXPECT().GetPackageBundleController(gomock.Any(), "billy").Return(&pbc, nil)
 		newBundle := tf.mockBundle()
-		newBundle.ObjectMeta.Name = "fake bundle"
+		newBundle.Name = "fake bundle"
 		tf.bundleClient.EXPECT().GetActiveBundle(gomock.Any(), "billy").Return(newBundle, nil)
 
 		testErr := errors.New("status update test error")

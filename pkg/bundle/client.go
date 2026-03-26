@@ -143,7 +143,7 @@ func (bc *managerClient) GetSecret(ctx context.Context, name string) (secret *v1
 
 func (bc *managerClient) GetBundleList(ctx context.Context) (bundles []api.PackageBundle, err error) {
 	allBundles := &api.PackageBundleList{}
-	err = bc.Client.List(ctx, allBundles, &client.ListOptions{Namespace: api.PackageNamespace})
+	err = bc.List(ctx, allBundles, &client.ListOptions{Namespace: api.PackageNamespace})
 	if err != nil {
 		return nil, fmt.Errorf("listing package bundles: %s", err)
 	}
@@ -167,7 +167,7 @@ func (bc *managerClient) CreateClusterNamespace(ctx context.Context, clusterName
 	}
 
 	ns.Name = name
-	err = bc.Client.Create(ctx, ns)
+	err = bc.Create(ctx, ns)
 	if err != nil {
 		return err
 	}
@@ -203,7 +203,7 @@ func (bc *managerClient) CreateClusterConfigMap(ctx context.Context, clusterName
 	// Unfortunate workaround for emissary webhooks hard coded crd namespace
 	cm.Data["emissary-system"] = "eksa-package-placeholder"
 
-	err = bc.Client.Create(ctx, cm)
+	err = bc.Create(ctx, cm)
 	if err != nil {
 		return err
 	}
@@ -212,17 +212,17 @@ func (bc *managerClient) CreateClusterConfigMap(ctx context.Context, clusterName
 
 // CreatePackage creates the given package resource
 func (p *managerClient) CreatePackage(ctx context.Context, pkg *api.Package) (err error) {
-	return p.Client.Create(ctx, pkg)
+	return p.Create(ctx, pkg)
 }
 
 // GetPackageList retrieves all packages present in the given namespace
 func (p *managerClient) GetPackageList(ctx context.Context, namespace string) (packages api.PackageList, err error) {
 	list := api.PackageList{}
-	return list, p.Client.List(ctx, &list, client.InNamespace(namespace))
+	return list, p.List(ctx, &list, client.InNamespace(namespace))
 }
 
 func (bc *managerClient) CreateBundle(ctx context.Context, bundle *api.PackageBundle) error {
-	err := bc.Client.Create(ctx, bundle)
+	err := bc.Create(ctx, bundle)
 	if err != nil {
 		return fmt.Errorf("creating new package bundle: %s", err)
 	}

@@ -152,7 +152,7 @@ func ValidateSignature(manifest Manifest, domain Domain) (valid bool, digest [32
 		return false, [32]byte{}, yml, err
 	}
 	if metaSig == "" {
-		return false, [32]byte{}, yml, errors.New("Missing signature")
+		return false, [32]byte{}, yml, errors.New("missing signature")
 	}
 
 	digest, yml, err = GetDigest(manifest, domain)

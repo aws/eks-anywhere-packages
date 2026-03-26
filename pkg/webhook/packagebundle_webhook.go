@@ -79,7 +79,7 @@ func (v *packageBundleValidator) Handle(_ context.Context, request admission.Req
 
 	if err != nil {
 		reason := fmt.Sprintf("package %s failed validation with error: %v", pb.Name, err.Error())
-		resp.AdmissionResponse.Result = &metav1.Status{
+		resp.Result = &metav1.Status{
 			Status:  metav1.StatusFailure,
 			Code:    http.StatusBadRequest,
 			Message: reason,
@@ -92,8 +92,8 @@ func (v *packageBundleValidator) Handle(_ context.Context, request admission.Req
 
 func (v *packageBundleValidator) isPackageBundleValid(pb *v1alpha1.PackageBundle) error {
 	if !pb.IsValidVersion() {
-		v.log.Info("Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): " + pb.Name)
-		return fmt.Errorf("Invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): %s", pb.Name)
+		v.log.Info("invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): " + pb.Name)
+		return fmt.Errorf("invalid bundle name (should be in the format vx-xx-xxxx where x is a digit): %s", pb.Name)
 	}
 
 	keyOverride := os.Getenv(PublicKeyEnvVar)
@@ -107,7 +107,7 @@ func (v *packageBundleValidator) isPackageBundleValid(pb *v1alpha1.PackageBundle
 	}
 	if !valid {
 		v.log.Info("Invalid signature", "Error", err, "Digest", base64.StdEncoding.EncodeToString(digest[:]), "Manifest", string(yml))
-		return fmt.Errorf("The signature is invalid for the configured public key: %s", domain.Pubkey)
+		return fmt.Errorf("the signature is invalid for the configured public key: %s", domain.Pubkey)
 	}
 	return nil
 }

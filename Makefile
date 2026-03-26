@@ -8,7 +8,7 @@ IMG ?= controller:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd"
 
-GOLANG_VERSION?="1.24"
+GOLANG_VERSION?="1.25"
 GO_PATH ?= $(shell source ./scripts/common.sh && build::common::get_go_path $(GOLANG_VERSION))
 GO ?= $(GO_PATH)/go
 
@@ -114,6 +114,12 @@ GOTESTS ?= ./...
 # go help testflags to see all options.
 GOTESTFLAGS ?=
 test: manifests generate mocks ${SIGNED_ARTIFACTS} ## Run tests.
+	@# Workaround for Go 1.25 bug: covdata tool missing from GOTOOLDIR.
+	@if [ ! -f "$$($(GO) env GOTOOLDIR)/covdata" ]; then \
+		chmod u+w "$$($(GO) env GOTOOLDIR)" && \
+		cp "$$($(GO) tool -n covdata)" "$$($(GO) env GOTOOLDIR)/covdata" && \
+		chmod u-w "$$($(GO) env GOTOOLDIR)"; \
+	fi
 	$(GO) test -vet=all $(GOTESTFLAGS) `$(GO) list $(GOTESTS) | grep -v mocks | grep -v fake | grep -v testutil` -coverprofile cover.out
 
 clean: ## Clean up resources created by make targets
