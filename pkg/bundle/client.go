@@ -203,7 +203,7 @@ func (bc *managerClient) CreateClusterConfigMap(ctx context.Context, clusterName
 	// Unfortunate workaround for emissary webhooks hard coded crd namespace
 	cm.Data["emissary-system"] = "eksa-package-placeholder"
 
-	err = bc.Client.Create(ctx, cm)
+	err = bc.Create(ctx, cm)
 	if err != nil {
 		return err
 	}
@@ -212,13 +212,13 @@ func (bc *managerClient) CreateClusterConfigMap(ctx context.Context, clusterName
 
 // CreatePackage creates the given package resource
 func (p *managerClient) CreatePackage(ctx context.Context, pkg *api.Package) (err error) {
-	return p.Client.Create(ctx, pkg)
+	return p.Create(ctx, pkg)
 }
 
 // GetPackageList retrieves all packages present in the given namespace
 func (p *managerClient) GetPackageList(ctx context.Context, namespace string) (packages api.PackageList, err error) {
 	list := api.PackageList{}
-	return list, p.Client.List(ctx, &list, client.InNamespace(namespace))
+	return list, p.List(ctx, &list, client.InNamespace(namespace))
 }
 
 func (bc *managerClient) CreateBundle(ctx context.Context, bundle *api.PackageBundle) error {
