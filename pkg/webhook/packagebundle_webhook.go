@@ -107,7 +107,7 @@ func (v *packageBundleValidator) isPackageBundleValid(pb *v1alpha1.PackageBundle
 	}
 	if !valid {
 		v.log.Info("Invalid signature", "Error", err, "Digest", base64.StdEncoding.EncodeToString(digest[:]), "Manifest", string(yml))
-		return fmt.Errorf("The signature is invalid for the configured public key: %s", domain.Pubkey)
+		return fmt.Errorf("the signature is invalid for the configured public key: %s", domain.Pubkey)
 	}
 	return nil
 }

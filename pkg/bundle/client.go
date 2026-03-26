@@ -222,7 +222,7 @@ func (p *managerClient) GetPackageList(ctx context.Context, namespace string) (p
 }
 
 func (bc *managerClient) CreateBundle(ctx context.Context, bundle *api.PackageBundle) error {
-	err := bc.Client.Create(ctx, bundle)
+	err := bc.Create(ctx, bundle)
 	if err != nil {
 		return fmt.Errorf("creating new package bundle: %s", err)
 	}
