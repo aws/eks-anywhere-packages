@@ -5,6 +5,9 @@
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: PackageBundleController
 metadata:
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
   name: {{.Values.clusterName}}
   namespace: eksa-packages
 spec:
