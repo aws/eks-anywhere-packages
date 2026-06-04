@@ -150,11 +150,6 @@ func (d *helmDriver) Install(ctx context.Context,
 		d.log.Info("failed to Update Secret in all namespaces", "error", err)
 	}
 
-	err = d.upgradeRelease(ctx, name, helmChart, values)
-	if err != nil {
-		return fmt.Errorf("upgrading helm chart %s: %w", name, err)
-	}
-
 	if err := d.secretAuth.AddSecretToAllNamespace(ctx); err != nil {
 		d.log.Info("failed to Update Secret in all namespaces", "error", err)
 	}
