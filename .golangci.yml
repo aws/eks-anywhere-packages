@@ -19,8 +19,8 @@ formatters:
 issues:
   max-same-issues: 0
   max-issues-per-linter: 0
-  exclude-files:
+exclusions:
+  paths:
   - "zz_generated.*\\.go$"
-  exclude-dirs:
   - ".*/mocks"
   - "controllers/tilt_modules"
