@@ -1,6 +1,6 @@
 # This info is hardcoded and comes from https://github.com/aws/eks-anywhere-build-tooling
-name: "v1-35-1001"
-kubernetesVersion: "1.35"
+name: "v1-36-1001"
+kubernetesVersion: "1.36"
 minControllerVersion: "v0.4.4"
 packages:
   - org: aws
