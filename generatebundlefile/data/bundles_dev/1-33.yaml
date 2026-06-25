@@ -46,7 +46,7 @@ packages:
         repository: cert-manager/cert-manager
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 1.20.2-eksbuild.2-latest
+          - name: 1.20.2-eksbuild.3-latest
   - org: harbor
     projects:
       - name: harbor
