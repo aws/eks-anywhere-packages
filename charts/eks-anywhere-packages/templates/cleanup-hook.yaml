@@ -1,0 +1,50 @@
+{{- $render := include "eks-anywhere-packages.rendertype" . }}
+{{- $namespace := printf "%s-%s" "eksa-packages" .Values.clusterName -}}
+{{- if or (eq $render "controller") (eq $render "workload") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "eks-anywhere-packages.fullname" . }}-cleanup
+  namespace: {{ .Values.namespace }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed,before-hook-creation
+  labels:
+    {{- include "eks-anywhere-packages.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      serviceAccountName: {{ include "eks-anywhere-packages.serviceAccountName" . }}
+      restartPolicy: Never
+      containers:
+      - name: cleanup
+        image: {{.Values.sourceRegistry}}{{ template "template.image" .Values.controller }}
+        command:
+        - /bin/sh
+        - -c
+        - |
+          TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+          APISERVER=https://kubernetes.default.svc
+          CACERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+          delete_resource() {
+            local url="$1"
+            local code
+            code=$(curl -s -o /dev/null -w "%{http_code}" --cacert "$CACERT" \
+              -H "Authorization: Bearer $TOKEN" \
+              -X DELETE "$url")
+            if [ "$code" = "200" ] || [ "$code" = "404" ]; then
+              echo "OK ($code): $url"
+            else
+              echo "WARN ($code): $url"
+            fi
+          }
+
+          delete_resource "$APISERVER/apis/packages.eks.amazonaws.com/v1alpha1/namespaces/{{ $namespace }}/packages/eks-anywhere-packages"
+          delete_resource "$APISERVER/apis/packages.eks.amazonaws.com/v1alpha1/namespaces/{{ $namespace }}/packages/ecr-credential-provider-package"
+          delete_resource "$APISERVER/apis/packages.eks.amazonaws.com/v1alpha1/namespaces/eksa-packages/packagebundlecontrollers/{{ .Values.clusterName }}"
+          echo "Cleanup complete"
+{{- end }}
