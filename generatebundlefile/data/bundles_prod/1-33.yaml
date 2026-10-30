@@ -9,36 +9,36 @@ packages:
         repository: eks-anywhere-packages
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.17-97cea5a35f6077a7b93cbb1db3d82944cdff594b
+          - name: 0.4.17-52144544695cb0523ce082ebdd11ef3b2d6f2f19
       - name: eks-anywhere-packages-crds
         repository: eks-anywhere-packages-crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.17-97cea5a35f6077a7b93cbb1db3d82944cdff594b
+          - name: 0.4.17-52144544695cb0523ce082ebdd11ef3b2d6f2f19
       - name: eks-anywhere-packages-migrations
         repository: eks-anywhere-packages-migrations
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.17-97cea5a35f6077a7b93cbb1db3d82944cdff594b
+          - name: 0.4.17-52144544695cb0523ce082ebdd11ef3b2d6f2f19
       - name: credential-provider-package
         repository: credential-provider-package
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.4.17-97cea5a35f6077a7b93cbb1db3d82944cdff594b
+          - name: 0.4.17-52144544695cb0523ce082ebdd11ef3b2d6f2f19
   - org: aws-containers
     projects:
       - name: hello-eks-anywhere
         repository: hello-eks-anywhere
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.1.2-39c950cce324ee9af2ffb3ce4ac8232c497e22eb
+          - name: 0.1.2-383aa49fb8478739109dcff454f8e01b16e7c08e
   - org: aws-observability
     projects:
       - name: adot
         repository: adot/charts/aws-otel-collector
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.49.0-ede5c0211ada6ad0fa2254dbba74d6691675bee3
+          - name: 0.51.0-50c76fd7f1130c4721fbce99f8f2b12caf35168b
   - org: cert-manager
     projects:
       - name: cert-manager
@@ -46,56 +46,56 @@ packages:
         repository: cert-manager/cert-manager
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 1.20.2-eksbuild.3-0fd1e3113a8ab92fc8d3a41402d727ab7d73e95c
+          - name: 1.21.2-eksbuild.4-630b0c6c94922072f9c2f7e6d88375c289bf6672
   - org: emissary
     projects:
       - name: emissary
         repository: emissary-ingress/emissary
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 4.1.0-71c9f9f01cce0e11231cb101e00676e307ce70cd
+          - name: 4.1.0-383aa49fb8478739109dcff454f8e01b16e7c08e
       - name: emissary-crds
         repository: emissary-ingress/crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 4.1.0-71c9f9f01cce0e11231cb101e00676e307ce70cd
+          - name: 4.1.0-383aa49fb8478739109dcff454f8e01b16e7c08e
   - org: harbor
     projects:
       - name: harbor
         repository: harbor/harbor-helm
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 2.14.2-c35aff37c5c9ddc956d11950535fd2ed19366038
+          - name: 2.14.2-f48f446fdb98cacf2dcc19e1817e5ca063195771
   - org: kubernetes
     projects:
       - name: cluster-autoscaler
         repository: cluster-autoscaler/charts/cluster-autoscaler
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 9.55.0-1.33-ed83e8b4e147f0ac2edf9e1a1a996205bbed1fc5
+          - name: 9.55.0-1.33-f48f446fdb98cacf2dcc19e1817e5ca063195771
   - org: kubernetes-sigs
     projects:
       - name: metrics-server
         repository: metrics-server/charts/metrics-server
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.8.1-eksbuild.11-2d3ae292608127ed5b22b1f327192a0e69d49d51
+          - name: 0.8.1-eksbuild.22-beead2045605898e4cc445c624a2e1f1683261c0
   - org: metallb
     projects:
       - name: metallb
         repository: metallb/metallb
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.16.1-53ccfa3e6cffccca29e0b82d29ef9db7f1a4940e
+          - name: 0.16.1-383aa49fb8478739109dcff454f8e01b16e7c08e
       - name: metallb-crds
         repository: metallb/crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 0.16.1-53ccfa3e6cffccca29e0b82d29ef9db7f1a4940e
+          - name: 0.16.1-383aa49fb8478739109dcff454f8e01b16e7c08e
   - org: prometheus
     projects:
       - name: prometheus
         repository: prometheus/charts/prometheus
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-            - name: 3.12.0-6b01831749bcc5fb184480d1527e2dc5898c06fc
+          - name: 3.15.1-383aa49fb8478739109dcff454f8e01b16e7c08e
