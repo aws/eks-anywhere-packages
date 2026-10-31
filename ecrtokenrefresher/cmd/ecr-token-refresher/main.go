@@ -34,10 +34,7 @@ func main() {
 	}
 	clientSets[defaultClusterName] = defaultClientSet
 
-	secrets := []secrets.Secret{
-		&aws.AwsSecret{},
-		&registrymirror.RegistryMirrorSecret{},
-	}
+	secrets := refreshableSecrets()
 
 	utils.InfoLogger.Println("Initialization starts...")
 	for _, secret := range secrets {
@@ -62,4 +59,16 @@ func main() {
 	utils.InfoLogger.Println("Broadcasting ends...")
 
 	utils.InfoLogger.Println("Job complete at " + time.Now().UTC().String())
+}
+
+// refreshableSecrets returns the secrets to refresh, in order. The registry
+// mirror secret goes first: it only reads from the cluster, while the AWS
+// secret calls ECR, which an airgapped cluster can't reach. This job runs as
+// the package controller's init container, so the mirror credentials must be
+// written before a slow or failing ECR call.
+func refreshableSecrets() []secrets.Secret {
+	return []secrets.Secret{
+		&registrymirror.RegistryMirrorSecret{},
+		&aws.AwsSecret{},
+	}
 }

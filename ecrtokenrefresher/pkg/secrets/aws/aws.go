@@ -1,14 +1,17 @@
 package aws
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"github.com/aws/aws-sdk-go/service/sts"
@@ -42,6 +45,28 @@ const (
 	envSessionToken      = "AWS_SESSION_TOKEN"
 	regionDefault        = "us-west-2"
 )
+
+// ecrRequestTimeout bounds the ECR GetAuthorizationToken call, SDK retries
+// included. The refresher runs as the package controller's init container, and
+// the controller serves the package webhooks. Without a bound, an unreachable
+// ECR endpoint (an airgapped cluster that pulls from a registry mirror) keeps
+// the controller from starting for minutes, and the package controller helm
+// install fails because its webhook isn't up.
+var ecrRequestTimeout = 15 * time.Second
+
+// ecrClient is the part of the ECR API the refresher uses.
+type ecrClient interface {
+	GetAuthorizationTokenWithContext(ctx context.Context, input *ecr.GetAuthorizationTokenInput, opts ...request.Option) (*ecr.GetAuthorizationTokenOutput, error)
+}
+
+// newECRClient builds the ECR client. Tests replace it.
+var newECRClient = func() (ecrClient, error) {
+	sess, err := session.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	return ecr.New(sess), nil
+}
 
 func (aws *AwsSecret) Init(mgmtClusterName string, clientSets secrets.ClusterClientSet) error {
 	secretname := os.Getenv(envVarAwsSecret)
@@ -107,10 +132,15 @@ func (aws *AwsSecret) getCredentials() ([]*secrets.Credential, error) {
 	ecrRegs = append(ecrRegs, &defID)
 	devID := devAccountID
 	ecrRegs = append(ecrRegs, &devID)
-	svc := ecr.New(session.Must(session.NewSession()))
-	token, err := svc.GetAuthorizationToken(&ecr.GetAuthorizationTokenInput{RegistryIds: ecrRegs})
+	svc, err := newECRClient()
 	if err != nil {
 		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), ecrRequestTimeout)
+	defer cancel()
+	token, err := svc.GetAuthorizationTokenWithContext(ctx, &ecr.GetAuthorizationTokenInput{RegistryIds: ecrRegs})
+	if err != nil {
+		return nil, fmt.Errorf("getting ECR authorization token (timeout %s): %w", ecrRequestTimeout, err)
 	}
 
 	if token == nil {
