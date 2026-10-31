@@ -1,13 +1,13 @@
 module github.com/aws/eks-anywhere-packages/credentialproviderpackage
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/google/go-cmp v0.7.0
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/mod v0.21.0
+	golang.org/x/mod v0.42.0
 	k8s.io/apimachinery v0.33.0
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -23,8 +23,8 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/net v0.55.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
