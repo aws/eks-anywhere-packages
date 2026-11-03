@@ -2,19 +2,24 @@ package driver
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"reflect"
 	"strings"
 
 	"github.com/go-logr/logr"
-	"helm.sh/helm/v3/pkg/action"
-	"helm.sh/helm/v3/pkg/chart"
-	"helm.sh/helm/v3/pkg/chart/loader"
-	"helm.sh/helm/v3/pkg/cli"
-	"helm.sh/helm/v3/pkg/registry"
-	"helm.sh/helm/v3/pkg/storage/driver"
+	"helm.sh/helm/v4/pkg/action"
+	chart "helm.sh/helm/v4/pkg/chart/v2"
+	"helm.sh/helm/v4/pkg/chart/v2/loader"
+	"helm.sh/helm/v4/pkg/cli"
+	"helm.sh/helm/v4/pkg/kube"
+	"helm.sh/helm/v4/pkg/registry"
+	release "helm.sh/helm/v4/pkg/release/v1"
+	"helm.sh/helm/v4/pkg/storage/driver"
 
 	api "github.com/aws/eks-anywhere-packages/api/v1alpha1"
 	auth "github.com/aws/eks-anywhere-packages/pkg/authenticator"
@@ -63,8 +68,9 @@ func (d *helmDriver) Initialize(ctx context.Context, clusterName string) (err er
 		return fmt.Errorf("creating registry client for helm driver: %w", err)
 	}
 
-	d.cfg = &action.Configuration{RegistryClient: client}
-	err = d.cfg.Init(d.tcc, d.settings.Namespace(), os.Getenv("HELM_DRIVER"), helmLog(d.log))
+	d.cfg = action.NewConfiguration(action.ConfigurationSetLogger(logr.ToSlogHandler(d.log)))
+	d.cfg.RegistryClient = client
+	err = d.cfg.Init(d.tcc, d.settings.Namespace(), os.Getenv("HELM_DRIVER"))
 	if err != nil {
 		return fmt.Errorf("initializing helm driver: %w", err)
 	}
@@ -76,7 +82,7 @@ func (d *helmDriver) Install(ctx context.Context,
 	name, namespace string, createNamespace bool, source api.PackageOCISource, values map[string]interface{},
 ) error {
 	var err error
-	install := action.NewInstall(d.cfg)
+	install := d.newInstallAction()
 	install.Version = source.Version
 	install.ReleaseName = name
 	install.CreateNamespace = createNamespace
@@ -187,9 +193,7 @@ func (d *helmDriver) upgradeRelease(ctx context.Context, name string,
 ) (err error) {
 	// upgrade unless changes in the values are detected. For POC, run helm
 	// every time and rely on its idempotency.
-	upgrade := action.NewUpgrade(d.cfg)
-	// Limit history saved as secret for resource limit
-	upgrade.MaxHistory = varHelmUpgradeMaxHistory
+	upgrade := d.newUpgradeAction()
 	_, err = upgrade.RunWithContext(ctx, name, helmChart, values)
 	if err != nil {
 		return fmt.Errorf("upgrading helm release %s: %w", name, err)
@@ -199,7 +203,7 @@ func (d *helmDriver) upgradeRelease(ctx context.Context, name string,
 }
 
 func (d *helmDriver) Uninstall(ctx context.Context, name string) (err error) {
-	uninstall := action.NewUninstall(d.cfg)
+	uninstall := d.newUninstallAction()
 	rel, err := uninstall.Run(name)
 	if err != nil {
 		if errors.Is(err, driver.ErrReleaseNotFound) {
@@ -207,18 +211,37 @@ func (d *helmDriver) Uninstall(ctx context.Context, name string) (err error) {
 		}
 		return fmt.Errorf("uninstalling helm chart %s: %w", name, err)
 	}
-	err = d.secretAuth.DelFromConfigMap(ctx, name, rel.Release.Namespace)
+	storedRelease, ok := rel.Release.(*release.Release)
+	if !ok {
+		return fmt.Errorf("reading uninstalled Helm release %s: unsupported release type %T", name, rel.Release)
+	}
+	err = d.secretAuth.DelFromConfigMap(ctx, name, storedRelease.Namespace)
 	if err != nil {
 		d.log.Info("failed to remove namespace from configmap")
 	}
 	return nil
 }
 
-// helmLog wraps logr.Logger to make it compatible with helm's DebugLog.
-func helmLog(log logr.Logger) action.DebugLog {
-	return func(template string, args ...interface{}) {
-		log.Info(fmt.Sprintf(template, args...))
-	}
+func (d *helmDriver) newInstallAction() *action.Install {
+	install := action.NewInstall(d.cfg)
+	// Keep Helm 3's apply behavior and hook waits when changing libraries.
+	install.ServerSideApply = false
+	install.WaitStrategy = kube.HookOnlyStrategy
+	return install
+}
+
+func (d *helmDriver) newUpgradeAction() *action.Upgrade {
+	upgrade := action.NewUpgrade(d.cfg)
+	upgrade.WaitStrategy = kube.HookOnlyStrategy
+	// Limit history saved as secret for resource limit
+	upgrade.MaxHistory = varHelmUpgradeMaxHistory
+	return upgrade
+}
+
+func (d *helmDriver) newUninstallAction() *action.Uninstall {
+	uninstall := action.NewUninstall(d.cfg)
+	uninstall.WaitStrategy = kube.HookOnlyStrategy
+	return uninstall
 }
 
 func (d *helmDriver) IsConfigChanged(_ context.Context, name string, values map[string]interface{}) (bool, error) {
@@ -229,19 +252,24 @@ func (d *helmDriver) IsConfigChanged(_ context.Context, name string, values map[
 		return true, nil
 	}
 
+	storedRelease, ok := rel.(*release.Release)
+	if !ok {
+		return false, fmt.Errorf("reading Helm release %s configuration: unsupported release type %T", name, rel)
+	}
+
 	// Check imagePullSecret not defined in config
 	if _, exist := values["imagePullSecrets"]; !exist {
 		// Check if imagePullSecrets was added by driver
-		if val, ok := rel.Config["imagePullSecrets"]; ok {
+		if val, ok := storedRelease.Config["imagePullSecrets"]; ok {
 			values["imagePullSecrets"] = val
 		}
 	}
 
-	return !reflect.DeepEqual(values, rel.Config), nil
+	return !reflect.DeepEqual(values, storedRelease.Config), nil
 }
 
 func newRegistryClient(certFile, keyFile, caFile string, insecureSkipTLSverify bool, settings *cli.EnvSettings) (*registry.Client, error) {
-	if certFile != "" && keyFile != "" || caFile != "" || !insecureSkipTLSverify {
+	if certFile != "" || keyFile != "" || caFile != "" || !insecureSkipTLSverify {
 		registryClient, err := newRegistryClientWithTLS(certFile, keyFile, caFile, insecureSkipTLSverify, settings)
 		if err != nil {
 			return nil, err
@@ -271,8 +299,32 @@ func newDefaultRegistryClient(settings *cli.EnvSettings) (*registry.Client, erro
 
 func newRegistryClientWithTLS(certFile, keyFile, caFile string, insecureSkipTLSverify bool, settings *cli.EnvSettings) (*registry.Client, error) {
 	// Create a new registry client
-	registryClient, err := registry.NewRegistryClientWithTLS(os.Stderr, certFile, keyFile, caFile, insecureSkipTLSverify,
-		settings.RegistryConfig, settings.Debug,
+	tlsConfig := &tls.Config{MinVersion: tls.VersionTLS12, InsecureSkipVerify: insecureSkipTLSverify}
+	// Validate supplied trust and client keys even when verification is explicitly disabled.
+	if certFile != "" || keyFile != "" {
+		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+		if err != nil {
+			return nil, fmt.Errorf("loading registry client certificate: %w", err)
+		}
+		tlsConfig.Certificates = []tls.Certificate{cert}
+	}
+	if caFile != "" {
+		ca, err := os.ReadFile(caFile)
+		if err != nil {
+			return nil, fmt.Errorf("reading registry CA file: %w", err)
+		}
+		pool := x509.NewCertPool()
+		if !pool.AppendCertsFromPEM(ca) {
+			return nil, fmt.Errorf("loading registry CA file %s: no certificates found", caFile)
+		}
+		tlsConfig.RootCAs = pool
+	}
+	registryClient, err := registry.NewClient(
+		registry.ClientOptDebug(settings.Debug), registry.ClientOptEnableCache(true),
+		registry.ClientOptWriter(os.Stderr), registry.ClientOptCredentialsFile(settings.RegistryConfig),
+		registry.ClientOptHTTPClient(&http.Client{Transport: &http.Transport{
+			TLSClientConfig: tlsConfig, Proxy: http.ProxyFromEnvironment,
+		}}),
 	)
 	if err != nil {
 		return nil, err

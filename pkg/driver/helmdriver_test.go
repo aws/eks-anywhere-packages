@@ -9,8 +9,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"helm.sh/helm/v3/pkg/kube"
-	"helm.sh/helm/v3/pkg/release"
+	"helm.sh/helm/v4/pkg/kube"
+	"helm.sh/helm/v4/pkg/release"
+	releasev1 "helm.sh/helm/v4/pkg/release/v1"
 
 	"github.com/aws/eks-anywhere-packages/pkg/authenticator/mocks"
 )
@@ -72,7 +73,7 @@ func TestIsConfigChanged(t *testing.T) {
 		origValues := map[string]interface{}{"foo": foo, "bar": true}
 		newValues := shallowCopy(t, origValues)
 		newValues["foo"] = foo + 1
-		rel := &release.Release{Config: newValues}
+		rel := &releasev1.Release{Config: newValues}
 		helm, err := givenInitializedHelmDriver(t)
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
@@ -88,7 +89,7 @@ func TestIsConfigChanged(t *testing.T) {
 
 		origValues := map[string]interface{}{"foo": 1, "bar": true}
 		sameValues := shallowCopy(t, origValues)
-		rel := &release.Release{Config: sameValues}
+		rel := &releasev1.Release{Config: sameValues}
 		helm, err := givenInitializedHelmDriver(t)
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
@@ -106,7 +107,7 @@ func TestIsConfigChanged(t *testing.T) {
 		origValues := map[string]interface{}{"foo": foo, "bar": true}
 		newValues := shallowCopy(t, origValues)
 		newValues["imagePullSecrets"] = "test"
-		rel := &release.Release{Config: newValues}
+		rel := &releasev1.Release{Config: newValues}
 		helm, err := givenInitializedHelmDriver(t)
 		assert.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
@@ -124,7 +125,7 @@ func TestIsConfigChanged(t *testing.T) {
 		origValues := map[string]interface{}{"foo": foo, "bar": true}
 		newValues := shallowCopy(t, origValues)
 		origValues["imagePullSecrets"] = "test"
-		rel := &release.Release{Config: newValues}
+		rel := &releasev1.Release{Config: newValues}
 		helm, err := givenInitializedHelmDriver(t)
 		require.NoError(t, err)
 		helm.cfg.KubeClient = newMockKube(nil)
@@ -169,11 +170,11 @@ func (k *mockKube) IsReachable() error {
 }
 
 type mockReleasesDriver struct {
-	release *release.Release
+	release release.Releaser
 	err     error
 }
 
-func newMockReleasesDriver(release *release.Release, err error) *mockReleasesDriver {
+func newMockReleasesDriver(release release.Releaser, err error) *mockReleasesDriver {
 	return &mockReleasesDriver{
 		release: release,
 		err:     err,
@@ -183,19 +184,19 @@ func newMockReleasesDriver(release *release.Release, err error) *mockReleasesDri
 // generated via
 // impl -dir $GOPATH/pkg/mod/helm.sh/helm/v3@v3.8.1/pkg/storage 'd *mockReleasesDriver' driver.Driver
 
-func (d *mockReleasesDriver) Create(key string, rls *release.Release) error {
+func (d *mockReleasesDriver) Create(key string, rls release.Releaser) error {
 	panic("not implemented") // TODO: Implement
 }
 
-func (d *mockReleasesDriver) Update(key string, rls *release.Release) error {
+func (d *mockReleasesDriver) Update(key string, rls release.Releaser) error {
 	panic("not implemented") // TODO: Implement
 }
 
-func (d *mockReleasesDriver) Delete(key string) (*release.Release, error) {
+func (d *mockReleasesDriver) Delete(key string) (release.Releaser, error) {
 	panic("not implemented") // TODO: Implement
 }
 
-func (d *mockReleasesDriver) Get(key string) (*release.Release, error) {
+func (d *mockReleasesDriver) Get(key string) (release.Releaser, error) {
 	if d.err != nil {
 		return nil, d.err
 	}
@@ -203,16 +204,16 @@ func (d *mockReleasesDriver) Get(key string) (*release.Release, error) {
 	return d.release, nil
 }
 
-func (d *mockReleasesDriver) List(filter func(*release.Release) bool) ([]*release.Release, error) {
+func (d *mockReleasesDriver) List(filter func(release.Releaser) bool) ([]release.Releaser, error) {
 	panic("not implemented") // TODO: Implement
 }
 
-func (d *mockReleasesDriver) Query(labels map[string]string) ([]*release.Release, error) {
+func (d *mockReleasesDriver) Query(labels map[string]string) ([]release.Releaser, error) {
 	if d.err != nil {
 		return nil, d.err
 	}
 
-	return []*release.Release{d.release}, nil
+	return []release.Releaser{d.release}, nil
 }
 
 func (d *mockReleasesDriver) Name() string {

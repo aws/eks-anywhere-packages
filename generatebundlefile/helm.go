@@ -8,10 +8,10 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
-	"helm.sh/helm/v3/pkg/action"
-	"helm.sh/helm/v3/pkg/chartutil"
-	"helm.sh/helm/v3/pkg/cli"
-	"helm.sh/helm/v3/pkg/registry"
+	"helm.sh/helm/v4/pkg/action"
+	chartutil "helm.sh/helm/v4/pkg/chart/v2/util"
+	"helm.sh/helm/v4/pkg/cli"
+	"helm.sh/helm/v4/pkg/registry"
 	"sigs.k8s.io/yaml"
 )
 
@@ -29,9 +29,10 @@ func NewHelm(log logr.Logger, authfile string) (*helmDriver, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating registry client while initializing helm driver: %w", err)
 	}
-	cfg := &action.Configuration{RegistryClient: client}
+	cfg := action.NewConfiguration(action.ConfigurationSetLogger(logr.ToSlogHandler(log)))
+	cfg.RegistryClient = client
 	err = cfg.Init(settings.RESTClientGetter(), settings.Namespace(),
-		os.Getenv("HELM_DRIVER"), helmLog(log))
+		os.Getenv("HELM_DRIVER"))
 	if err != nil {
 		return nil, fmt.Errorf("initializing helm driver: %w", err)
 	}
@@ -58,13 +59,6 @@ func (d *helmDriver) PullHelmChart(name, version string) (string, error) {
 		return "", fmt.Errorf("running the Helm LocateChart command, you might need run an AWS ECR Login: %w", err)
 	}
 	return chartPath, nil
-}
-
-// helmLog wraps logr.Logger to make it compatible with helm's DebugLog.
-func helmLog(log logr.Logger) action.DebugLog {
-	return func(template string, args ...interface{}) {
-		log.Info(fmt.Sprintf(template, args...))
-	}
 }
 
 // UnTarHelmChart will attempt to move the helm chart out of the helm cache, by untaring it to the pwd and creating the filesystem to unpack it into.

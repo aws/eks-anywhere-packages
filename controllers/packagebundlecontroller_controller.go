@@ -33,7 +33,7 @@ import (
 )
 
 //go:generate mockgen -destination=mocks/client.go -package=mocks sigs.k8s.io/controller-runtime/pkg/client Client,StatusWriter
-//go:generate mockgen -destination=mocks/manager.go -package=mocks sigs.k8s.io/controller-runtime/pkg/manager Manager
+//go:generate bash ../hack/generate_manager_mock.sh
 
 const (
 	DefaultUpgradeCheckInterval          = time.Hour * 24
