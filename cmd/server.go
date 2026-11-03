@@ -120,6 +120,9 @@ func server() error {
 		if err = webhook.InitPackageValidator(mgr); err != nil {
 			return fmt.Errorf("unable to create package webhook: %v", err)
 		}
+		if err := mgr.AddReadyzCheck("webhook", mgr.GetWebhookServer().StartedChecker()); err != nil {
+			return fmt.Errorf("unable to set up webhook ready check: %w", err)
+		}
 	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

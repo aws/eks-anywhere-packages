@@ -9,6 +9,8 @@ metadata:
   annotations:
     "helm.sh/resource-policy": keep
     "anywhere.eks.aws.com/internal": "true"
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
   name: eks-anywhere-packages
   namespace: {{ $namespace }}
 spec:

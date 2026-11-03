@@ -1,12 +1,17 @@
 {{- $render := include "eks-anywhere-packages.rendertype" . }}
 {{- if not (eq $render "package") }}
-{{ if .Capabilities.APIVersions.Has "packagecontrollers.packages.eks.amazonaws.com/v1alpha1/{{.Values.clusterName}}" -}}
-{{- else -}}
+{{- if not (lookup "packages.eks.amazonaws.com/v1alpha1" "PackageBundleController" "eksa-packages" .Values.clusterName) -}}
 apiVersion: packages.eks.amazonaws.com/v1alpha1
 kind: PackageBundleController
 metadata:
   name: {{.Values.clusterName}}
   namespace: eksa-packages
+  {{- if eq $render "controller" }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/resource-policy": keep
+  {{- end }}
 spec:
   upgradeCheckInterval: 24h
   upgradeCheckShortInterval: 10s
