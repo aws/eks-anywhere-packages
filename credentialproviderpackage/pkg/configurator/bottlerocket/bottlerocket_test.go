@@ -80,7 +80,7 @@ func Test_bottleRocket_CommitChanges(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(tt.response.statusCode)
-				fmt.Fprintf(w, tt.response.responseMsg)
+				fmt.Fprint(w, tt.response.responseMsg)
 			}))
 			b := &bottleRocket{
 				client:  tt.fields.client,
@@ -195,7 +195,7 @@ func Test_bottleRocket_UpdateAWSCredentials(t *testing.T) {
 						validatePatchRequest(w, r, t, tt.patchResponse)
 					} else if r.Method == http.MethodPost {
 						w.WriteHeader(tt.commitResponse.statusCode)
-						fmt.Fprintf(w, tt.commitResponse.responseMsg)
+						fmt.Fprint(w, tt.commitResponse.responseMsg)
 					} else {
 						t.Errorf("Recieved unexected request %v", r.Method)
 					}
@@ -324,7 +324,7 @@ func validatePatchRequest(w http.ResponseWriter, r *http.Request, t *testing.T, 
 		t.Errorf("Patch message expcted %v got %v", patchResponse.expectedBody, data)
 	}
 	w.WriteHeader(patchResponse.statusCode)
-	fmt.Fprintf(w, patchResponse.responseMsg)
+	fmt.Fprint(w, patchResponse.responseMsg)
 }
 
 func Test_bottleRocket_Initialize(t *testing.T) {
