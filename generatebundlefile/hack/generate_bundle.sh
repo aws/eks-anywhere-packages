@@ -35,7 +35,8 @@ fi
 make build
 chmod +x ${BASE_DIRECTORY}/generatebundlefile/bin
 
-for version in 1-30 1-31 1-32 1-33 1-34 1-35 1-36; do
+supported_bundle_versions=$(bundle_versions "dev")
+for version in $supported_bundle_versions; do
     generate ${version} "dev"
     push ${version} "dev"
 done

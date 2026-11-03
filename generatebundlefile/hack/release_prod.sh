@@ -40,7 +40,8 @@ fi
 
 # Generate bundles from beta account private ECR registry and
 # push them to prod account private ECR registry (same as beta account in this case)
-for version in 1-30 1-31 1-32 1-33 1-34 1-35 1-36; do
+supported_bundle_versions=$(bundle_versions "prod")
+for version in $supported_bundle_versions; do
     generate ${version} "prod"
     push ${version} "prod"
 done

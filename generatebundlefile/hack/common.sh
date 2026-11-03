@@ -18,6 +18,26 @@
 # functions, source this file, e.g.:
 #    . <path-to-this-file>/common.sh
 
+# Discover versions from the inputs so new Kubernetes bundles cannot be silently omitted.
+function bundle_versions () {
+    local stage=${1?:no stage specified}
+    local input
+    local version
+    for input in "${BASE_DIRECTORY}/generatebundlefile/data/bundles_${stage}"/*.yaml; do
+        if [ ! -f "$input" ]; then
+            echo "No bundle inputs found for stage ${stage}" >&2
+            return 1
+        fi
+        version=${input##*/}
+        version=${version%.yaml}
+        if [[ ! "$version" =~ ^1-[0-9]+$ ]]; then
+            echo "Invalid bundle input version ${version}" >&2
+            return 1
+        fi
+        printf '%s\n' "$version"
+    done
+}
+
 # orasLogin echoes an AWS ECR password
 function orasLogin () {
     local repo=${1?:no repo specified}
