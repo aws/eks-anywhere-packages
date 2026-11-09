@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -152,6 +153,13 @@ func getApiVersion() string {
 	return apiVersion
 }
 
+// copyWithPermissons copies srcpath to dstpath with the given permission.
+//
+// The copy goes to a temporary file in the destination directory, which
+// os.CreateTemp creates with mode 0600. The file gets its final permission and
+// is synced before it is renamed over dstpath, so dstpath never has looser
+// permissions than requested, and each copy replaces the file instead of
+// rewriting it in place.
 func copyWithPermissons(srcpath, dstpath string, permission os.FileMode) (err error) {
 	r, err := os.Open(srcpath)
 	if err != nil {
@@ -159,27 +167,33 @@ func copyWithPermissons(srcpath, dstpath string, permission os.FileMode) (err er
 	}
 	defer r.Close() // ok to ignore error: file was opened read-only.
 
-	w, err := os.Create(dstpath)
+	w, err := os.CreateTemp(filepath.Dir(dstpath), "."+filepath.Base(dstpath)+".tmp-*")
 	if err != nil {
 		return err
 	}
+	tmpPath := w.Name()
 
 	defer func() {
-		c := w.Close()
-		// Report the error from Close, if any.
-		// But do so only if there isn't already
-		// an outgoing error.
-		if c != nil && err == nil {
-			err = c
+		if err != nil {
+			// Close may already have run; its error doesn't matter here.
+			_ = w.Close()
+			_ = os.Remove(tmpPath)
 		}
 	}()
 
-	_, err = io.Copy(w, r)
-	if err != nil {
+	if _, err = io.Copy(w, r); err != nil {
 		return err
 	}
-	err = os.Chmod(dstpath, permission)
-	return err
+	if err = w.Chmod(permission); err != nil {
+		return err
+	}
+	if err = w.Sync(); err != nil {
+		return err
+	}
+	if err = w.Close(); err != nil {
+		return err
+	}
+	return os.Rename(tmpPath, dstpath)
 }
 
 func copyBinaries() (string, error) {
