@@ -86,12 +86,12 @@ packages:
         repository: metallb/metallb
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.16.1-037d32808364b5f4e49f7cbfc94928abec88d8d9
+          - name: 0.16.1-197f03931c1250f31389d03423ba3f5e46d75b8c
       - name: metallb-crds
         repository: metallb/crds
         registry: 067575901363.dkr.ecr.us-west-2.amazonaws.com
         versions:
-          - name: 0.16.1-037d32808364b5f4e49f7cbfc94928abec88d8d9
+          - name: 0.16.1-197f03931c1250f31389d03423ba3f5e46d75b8c
   - org: prometheus
     projects:
       - name: prometheus
